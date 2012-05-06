@@ -15,7 +15,7 @@ int now[LEN];
 static const bool VERBOSE = POWER < 5;
 
 ui64 Generate(ui8 index, bool small, ui8 defect) {
-    if ( (index < 13) || VERBOSE) {
+    if ( (index < 6) || VERBOSE) {
         for (size_t i = 0; i < index; ++i)
             printf("%d", now[i]);
         printf(" %d\n", (int)defect);
@@ -51,7 +51,14 @@ ui64 Generate(ui8 index, bool small, ui8 defect) {
                 ++d2;
             ++d2;
         }
-        sum += Generate(index + 1, small || (next < mod5[index]), defect + d2);
+        ui64 g = Generate(index + 1, small || (next < mod5[index]), defect + d2);
+        if (small) {
+            if ((0 == next || 3 == next) && (next + 1 <= limit)) {
+                g += g;
+                ++next;
+            }
+        }
+        sum += g;
     }
     return sum;
 }
