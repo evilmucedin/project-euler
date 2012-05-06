@@ -15,10 +15,11 @@ int now[LEN];
 static const bool VERBOSE = POWER < 5;
 
 ui64 Generate(ui8 index, bool small, ui8 defect) {
-    if ( (index < 14) || VERBOSE) {
+    if ( (index < 13) || VERBOSE) {
         for (size_t i = 0; i < index; ++i)
             printf("%d", now[i]);
         printf(" %d\n", (int)defect);
+        fflush(stdout);
     }
 
     if (index == LEN) {
