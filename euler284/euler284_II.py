@@ -1,6 +1,4 @@
-#!/usr/bin/arch -i386 /opt/local/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python
-
-import psyco
+#!/usr/bin/env python
 
 BASE = 14
 
@@ -39,6 +37,18 @@ def IsSteady(p, base):
     # print IsPrefix( p, Print(sm, base) )
     return p == sm
 
+def Mul(a, b, base):
+    sm = [0]*len(a)
+    for i in xrange(len(a)):
+        for j in xrange(0, min((len(a) - i, len(b)))):
+            sm[i + j] += a[i]*b[j]
+    carry = 0
+    for i in xrange(len(sm)):
+        sm[i] += carry
+        carry = sm[i] / base
+        sm[i] %= base
+    return sm
+
 def Ch(x):
     if x < 10:
         return chr(x + ord('0'))
@@ -55,32 +65,31 @@ def Draw(p):
         print res
 
 ans = []
-ans.append([[]])
-for ln in xrange(1, MAXLEN + 1):
-    print ln,
-    forTest = list(ans[ln - 1])
-    if ln >= 2:
-        forTest += ans[ln - 2]
-    if ln >= 3:
-        forTest += ans[ln - 3]
-    if ln >= 4:
-        forTest += ans[ln - 4]
+ans.append([[1]])
+ans.append([[7], [8]])
+for ln in xrange(2, MAXLEN + 1):
+    print ln
+
+    r1 = ans[-1][0]
+    r2 = ans[-1][1]
     ans.append([])
-    for a in forTest:
-        for d in xrange(1, BASE):
-            c = list(a)
-            while len(c) != ln - 1:
-                c.append(0)
-            c.append(d)
-            if IsSteady(c, BASE):
-                # Draw(c)
-                ans[-1].append(c)
-    print len(ans[-1])
+    
+    mul = [0]*ln
+    mul[0] = 1
+    for i in xrange(2):
+        mul = Mul(mul, r1, BASE)
+    ans[-1].append(mul)
+    
+    mul = [0]*ln
+    mul[0] = 1
+    for i in xrange(7):
+        mul = Mul(mul, r2, BASE)
+    ans[-1].append(mul)
 
 sm = 0
 for i in xrange(MAXLEN + 1):
     for a in ans[i]:
-        if len(a) == i:
+        if a[-1] != 0:
             # Draw(p)
             for j in a:
                 sm += j
