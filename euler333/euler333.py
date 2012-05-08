@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
-N = 100
+import random
+
 N = 1000000
+# N = 100
 
 ways = [0]*(N + 1)
 nums = []
@@ -34,13 +36,25 @@ for i in xrange(1, N + 1):
     if j == 1:
         nums.append(i)
 
-gen(0, 0, [])
+random.shuffle(nums)
+
+# i = 2
+# while i < N:
+#     gen(i, 0, [i])
+#     i *= 2
+#     print i, left
+
+i = 3
+while i < N:
+    gen(i, 0, [i])
+    i *= 3
+    print i, left
 
 sum = 0
 erato = [True]*N
 for i in xrange(2, N):
     if erato[i]:
-        if ways[i] == 1:
+        if ways[i] < 2:
             print "!!", i
             sum += i
         j = i + i
