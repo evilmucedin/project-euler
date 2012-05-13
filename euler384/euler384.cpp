@@ -45,7 +45,7 @@ ui64 g(ui64 t, ui64 c) {
             TNums& line = cache[t];
             line.clear();
 
-            ui64 limit = min(max(t*101/159 + 1, c), t - 1);
+            ui64 limit = min(max(t*2/3 + 10, c), t - 1);
             line.reserve(limit + 1);
 
             ui64 i = 0;
