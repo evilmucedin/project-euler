@@ -45,7 +45,7 @@ ui64 g(ui64 t, ui64 c) {
             TNums& line = cache[t];
             line.clear();
 
-            ui64 limit = min(max(t/2 + 2, c), t - 1);
+            ui64 limit = min(max(t*101/159 + 1, c), t - 1);
             line.reserve(limit + 1);
 
             ui64 i = 0;
@@ -53,8 +53,9 @@ ui64 g(ui64 t, ui64 c) {
             ui64 t1 = (t - 1)/2;
             ui64 t2 = (t + 1)/2;
 
-            g(t1, min(t1 - 1, c/2 + 2));
-            g(t2, min(t2 - 1, c/2 + 2));
+            // g(t1, min(t1 - 1, c/2 + 2));
+            // g(t2, min(t2 - 1, c/2 + 2));
+            printf("%llu %llu\n", t, c);
             while (line.size() <= limit) {
                 if ((i < t1) && (g(t1, i) < g(t2, j))) {
                     ui64 g1 = g(t1, i);
