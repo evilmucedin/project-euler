@@ -96,8 +96,8 @@ int main() {
         fa = fa + fb;
         fb = temp;
         ui64 res = g(fa, fb - 1);
-        printf("%llu %llu %llu %llu %llu\n", i + 2, fa, fb, res, sum);
         sum += res;
+        printf("%llu %llu %llu %llu %llu\n", i + 2, fa, fb, res, sum);
     }
     printf("%llu\n", sum);
 
