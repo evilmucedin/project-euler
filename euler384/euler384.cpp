@@ -12,26 +12,6 @@ typedef vector<ui64> TNums;
 
 typedef unordered_map<ui64, TNums> TCache;
 
-inline int m1(int n) {
-    if (n & 1)
-        return -1;
-    else
-        return 1;
-}
-
-inline int a(ui64 x) {
-    int prev = 0;
-    int count = 0;
-    while (x) {
-        int now = x & 1;
-        if (now && prev)
-            ++count;
-        prev = now;
-        x /= 2;
-    }
-    return m1(count);
-}
-
 TCache cache;
 
 ui64 g(ui64 t, ui64 c) {
@@ -45,44 +25,59 @@ ui64 g(ui64 t, ui64 c) {
             TNums& line = cache[t];
             line.clear();
 
-            ui64 limit = min(max(t*2/3 + 10, c), t - 1);
+            const ui64 limit = min(max(t*2/3 + 5, c), t - 1);
             line.reserve(limit + 1);
 
             ui64 i = 0;
             ui64 j = 0;
-            ui64 t1 = (t - 1)/2;
-            ui64 t2 = (t + 1)/2;
+            const ui64 t1 = (t - 1)/2;
+            const ui64 t2 = (t + 1)/2;
 
             // g(t1, min(t1 - 1, c/2 + 2));
             // g(t2, min(t2 - 1, c/2 + 2));
             printf("%llu %llu\n", t, c);
             while (line.size() <= limit) {
-                if ((i < t1) && (g(t1, i) < g(t2, j))) {
+                ui64 cg = g(t2, j);
+                int sign = 0;
+                if (i < t1) {
                     ui64 g1 = g(t1, i);
-                    ui64 ag1 = a(g1);
-                    if (ag1 == -1)
-                        line.push_back(4*g1);
-                    if (m1(g1)*ag1 == 1)
-                        line.push_back(4*g1 + 2);
-                    ++i;
+                    if (g1 < cg) {
+                        cg = g1;
+                        sign = 1;
+                        ++i;
+                    } else {
+                        ++j;
+                    }
                 } else {
-                    ui64 g2 = g(t2, j);
-                    ui64 ag2 = a(g2);
-                    if (ag2 == 1)
-                        line.push_back(4*g2);
-                    if (m1(g2)*ag2 == -1)
-                        line.push_back(4*g2 + 2);
                     ++j;
                 }
+
+                int count2 = 0;
+                {
+                    ui64 x = cg;
+                    int prev = 0;
+                    while (x) {
+                        int now = x & 1;
+                        count2 += (now && prev);
+                        prev = now;
+                        x >>= 1;
+                    }
+                }
+
+                if ( (count2 & 1) == sign )
+                    line.push_back(4*cg);
+                if (((cg & 1) ^ (count2 & 1)) == !sign)
+                    line.push_back(4*cg + 2);
             }
+            // printf("\n");
 
             return line[c];
         } else {
-            ui64 prev = g(t/2, c/2);
-            if (c % 2 == 0)
-                return 4*prev + 1;
-            else
+            const ui64 prev = g(t >> 1, c >> 1);
+            if (c & 1)
                 return 4*prev + 3;
+            else
+                return 4*prev + 1;
         }
     }
 }
@@ -98,6 +93,7 @@ int main() {
         ui64 res = g(fa, fb - 1);
         sum += res;
         printf("%llu %llu %llu %llu %llu\n", i + 2, fa, fb, res, sum);
+        cache.clear();
     }
     printf("%llu\n", sum);
 
