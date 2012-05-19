@@ -4,8 +4,9 @@
 typedef unsigned long long int ui64;
 
 int main() {
-    // static const ui64 N = 10000;
-    static const ui64 N = 10000000000000000ULL;
+    static const ui64 N = 100;
+    // static const ui64 N = 10000000000000000ULL;
+    static const double TAU = (1. + sqrt(5.))/2;
     static const double TAU2 = (3. + sqrt(5.))/2;
 
     // static const ui64 MOD = 282475249;
@@ -40,6 +41,7 @@ int main() {
             result += diff*(i % MOD);
             result %= MOD;
         }
+        printf("%lld\n", result);
     }
     printf("%lld\n", result);
 
