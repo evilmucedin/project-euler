@@ -30,7 +30,7 @@ class MillerRabin:
 
     def __init__(self):
         self.mPrimes = []
-        N = 300
+        N = 100
         sieve = [True]*N
         for i in xrange(2, N):
             if sieve[i]:
@@ -68,16 +68,16 @@ class MillerRabin:
                 return False
             return True
 
-        for i in xrange(10):
-            witness = random.randint(2, n - 2)
-            if not test(witness):
-                return False
-
         if n > sqr(self.mPrimes[10]):
             for i in xrange(10):
                 if not test(self.mPrimes[i]):
                     return False
         
+        for i in xrange(10):
+            witness = random.randint(2, n - 2)
+            if not test(witness):
+                return False
+
         return True
 
 
@@ -87,6 +87,35 @@ def testMillerRabin():
     for i in xrange(N):
         if isPrime(i) != mr.isPrime(i):
             print i, isPrime(i), mr.isPrime(i)
+
+import cPickle
+
+class memoize(object):
+    def __init__(self, func):
+        self.func = func
+        self._cache = {}
+    
+    def __call__(self, *args, **kwds):
+        key = args
+        if kwds:
+            items = kwds.items()
+            items.sort()
+            key = key + tuple(items)
+        try:
+            if key in self._cache:
+                return self._cache[key]
+            self._cache[key] = result = self.func(*args, **kwds)
+            return result
+        except TypeError:
+            try:
+                dump = cPickle.dumps(key)
+            except cPickle.PicklingError:
+                return self.func(*args, **kwds)
+            else:
+                if dump in self._cache:
+                    return self._cache[dump]
+                self._cache[dump] = result = self.func(*args, **kwds)
+                return result
 
 if __name__ == "__main__":
     testMillerRabin()
