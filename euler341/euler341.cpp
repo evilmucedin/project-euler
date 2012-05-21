@@ -49,7 +49,7 @@ static const ui64 initCache[] = {0, 1, 2};
 TIntVector cache(initCache, initCache + 3);
 
 void FillCache() {
-    static const ui64 CACHE_SIZE = 50000000;
+    static const ui64 CACHE_SIZE = 2000000000;
     cache.resize(CACHE_SIZE);
     cache[1] = 1;
     for (size_t i = 2; i < CACHE_SIZE; ++i)
@@ -88,8 +88,10 @@ int main() {
     {
         ui64 res = 0;
         for (ui64 i = 1; i < 1000000; ++i) {
-            if ((i % 100) == 0)
-                printf("%lld %.2lf\n", i, 100.0*double(i)/1000000);
+            if ((i % 100) == 0) {
+                printf("%lld %.2lf %lld\n", i, 100.0*double(i)/1000000, res);
+                fflush(stdout);
+            }
             res += golomb_(i*i*i);
         }
         printf("%lld\n", res);
