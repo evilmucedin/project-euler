@@ -6,30 +6,47 @@
 
 using namespace std;
 
-int CalcShortestPath(int n, int m)
+typedef pair<int, int> TPoint;
+typedef pair<TPoint, TPoint> TPosition;
+
+struct TState
 {
-    typedef vector<int> TIntVector;
-    typedef vector<TIntVector> TIntVectorVector;
-    typedef vector<TIntVectorVector> TIntVectorVectorVector;
-    typedef vector<TIntVectorVectorVector> TIntVectorVectorVectorVector;
+	int m_distance;
+	TPosition m_parent;
 
-    TIntVector dummy1(m, -1);
-    TIntVectorVector dummy2(n, dummy1);
-    TIntVectorVectorVector dummy3(m, dummy2);
-    TIntVectorVectorVectorVector distances(n, dummy3);
+	TState()
+	{
+		m_distance = -1;
+	}
+};
 
-    typedef pair<int, int> TPoint;
-    typedef pair<TPoint, TPoint> TPosition;
+typedef vector<TState> TStateVector;
+typedef vector<TStateVector> TStateVectorVector;
+typedef vector<TStateVectorVector> TStateVectorVectorVector;
+typedef vector<TStateVectorVectorVector> TStateVectorVectorVectorVector;
+
+TState& GetState(TStateVectorVectorVectorVector& vct, const TPosition& pos)
+{
+	return vct[pos.first.first][pos.first.second][pos.second.first][pos.second.second];
+}
+
+int CalcShortestPath(int n, int m, bool visualize = false)
+{
+	TStateVector dummy1(m, TState());
+    TStateVectorVector dummy2(n, dummy1);
+    TStateVectorVectorVector dummy3(m, dummy2);
+    TStateVectorVectorVectorVector distances(n, dummy3);
+
     typedef queue<TPosition> TPositions;
 
     TPositions positions;
     
     TPosition start = make_pair( make_pair(0, 0), make_pair(n - 1, m - 1) );
     positions.push(start);
-    distances[start.first.first][start.first.second][start.second.first][start.second.second] = 0;
+	distances[start.first.first][start.first.second][start.second.first][start.second.second].m_distance = 0;
 
     bool finish = false;
-    int result = -1;
+    TPosition resultPosition;
     while (!finish)
     {
         TPosition current = positions.front();
@@ -46,27 +63,64 @@ int CalcShortestPath(int n, int m)
                 {
                     nextFill = empty;
                 }
-                int& distance = distances[nextFill.first][nextFill.second][next.first][next.second];
+				const TPosition nextPosition = make_pair(nextFill, next);
+				TState& nextState = GetState(distances, nextPosition); 
+				int& distance = nextState.m_distance;
                 if (-1 == distance)
                 {
-                    distance = 1 + distances[current.first.first][current.first.second][current.second.first][current.second.second];
-                    if (nextFill.first == n -1 && nextFill.second == m - 1 && !finish)
+					distance = 1 + GetState(distances, current).m_distance;
+					nextState.m_parent = current;
+					if (nextFill.first == n - 1 && nextFill.second == m - 1 && !finish)
                     {
                         finish = true;
-                        result = distance;
+						resultPosition = nextPosition;
                     }
-                    positions.push(make_pair(nextFill, next));
+					positions.push(nextPosition);
                 }
             }
         }
     }
 
-    return result;
+	if (visualize)
+	{
+		TPosition currentPosition = resultPosition;
+		do
+		{
+			for (size_t i = 0; i < n; ++i)
+			{
+				for (size_t j = 0; j < m; ++j)
+				{
+					TPoint p = make_pair(i, j);
+					if (p == currentPosition.first)
+					{
+						printf("*");
+					}
+					else if (p == currentPosition.second)
+					{
+						printf("0");
+					}
+					else
+					{
+						printf(".");
+					}
+				}
+				printf("\n");
+			}
+			printf("\n");
+			currentPosition = GetState(distances, currentPosition).m_parent;
+		}
+		while (currentPosition != start);
+	}
+
+	return GetState(distances, resultPosition).m_distance;
 }
 
 int main()
 {
-    for (int i = 2; i < 15; ++i)
+	CalcShortestPath(5, 5, true);
+	return 0;
+
+	for (int i = 2; i < 15; ++i)
     {
         // printf("%d %d\n", i, CalcShortestPath(i, i));
         // continue;
