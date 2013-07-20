@@ -7,12 +7,13 @@ using namespace std;
 typedef vector<int> TIntVector;
 typedef vector<bool> TBoolVector;
 
-static const size_t N = 100000000;
+static const size_t N = 5000;
 // static const size_t N = 4;
 
-static const size_t MOD = 1000000000 + 9;
-
 typedef unsigned long long int TLLI;
+
+static const TLLI UB = 1000000000000000000ULL;
+static const TLLI LB = 1000000000ULL;
 
 TLLI FastMod(TLLI base, TLLI power, TLLI mod)
 {
@@ -32,16 +33,35 @@ TLLI FastMod(TLLI base, TLLI power, TLLI mod)
     }
 }
 
+void FactorialFactorization(TLLI n, const TIntVector& primes, TIntVector* result)
+{
+    result->resize(primes.size());
+    for (size_t i = 0; i < primes.size(); ++i)
+    {
+        int power = 0;
+        TLLI nn = n;
+        while (nn)
+        {
+            nn /= primes[i];
+            power += nn;
+        }
+        (*result)[i] = power;
+    }
+}
+
 int main()
 {
     TIntVector primes;
     {
         TBoolVector erato(N + 1, true);
-        for (size_t i = 2; i <= N; ++i)
+        for (size_t i = 2; i < N; ++i)
         {
             if (erato[i])
             {
-                primes.push_back(i);
+                if (i > 1000)
+                {
+                    primes.push_back(i);
+                }
                 for (size_t j = i + i; j < erato.size(); j += i)
                 {
                     erato[j] = false;
@@ -52,32 +72,17 @@ int main()
 
     printf("Primes: %d\n", static_cast<int>(primes.size()));
 
-    TIntVector power(primes.size());
+    TIntVector powerLB1;
+    FactorialFactorization(LB, primes, &powerLB1);
+    TIntVector powerLB2;
+    FactorialFactorization(UB - LB, primes, &powerLB2);
+    TIntVector powerUB;
+    FactorialFactorization(UB, primes, &powerUB);
 
     for (size_t i = 0; i < primes.size(); ++i)
     {
-        if (!(i % 100000))
-        {
-            printf("...%d\n", static_cast<int>(i));
-        }
-
-        size_t ii = N;
-        while (ii)
-        {
-            ii /= primes[i];
-            power[i] += ii;
-        }
+        printf("%d %d\n", static_cast<int>(primes[i]), powerUB[i] - powerLB1[i] - powerLB2[i]);
     }
-    printf("Factorization done.\n");
-
-    TLLI result = 1;
-
-    for (size_t i = 0; i < power.size(); ++i)
-    {
-        result = (result * (1 + FastMod(primes[i], 2*power[i], MOD))) % MOD;
-    }
-
-    printf("Result: %lld\n", result);
 
     return 0;
 }
