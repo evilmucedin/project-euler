@@ -20,7 +20,6 @@ static const i64 LB = 1000000000ULL;
 
 i64 EGCD(i64 n, i64 m, i64* a, i64* b)
 {
-    // printf("!%lld %lld\n", n, m);
     if (0 == m)
     {
         *a = 1;
@@ -30,10 +29,8 @@ i64 EGCD(i64 n, i64 m, i64* a, i64* b)
     i64 as;
     i64 bs;
     i64 s = EGCD(m, n % m, &as, &bs);
-    // printf("!%lld %lld\n", as*m + bs*(n % m), s);
     *a = bs;
     *b = as - bs*(n / m);
-    // printf("!!%lld %lld\n", *a*n + *b*m, s);
     return s;
 }
 
@@ -50,12 +47,6 @@ i64 InvertModPrime(i64 x, i64 prime)
     {
         a -= prime;
     }
-    if (1 != ((x*a) % prime))
-    {
-        throw std::exception();
-    }
-    // printf("%lld\n", (x*a) % prime);
-    // printf("%lld %lld %lld %lld %lld\n", s, x, a, prime, (x*a) % prime);
     return a;
 }
 
@@ -75,8 +66,6 @@ int BinomialCoefficientMod(i64 n, i64 m, int prime)
         i64 subTask2 = BinomialCoefficientMod(n % prime, m % prime, prime);
         return (subTask1*subTask2) % prime;
     }
-
-    // printf("%lld %lld\n", n, m);
 
     int primePower = 0;
     i64 result = 1;
@@ -100,8 +89,6 @@ int BinomialCoefficientMod(i64 n, i64 m, int prime)
         }
         result = (result*InvertModPrime(ii, prime)) % prime;
     }
-
-    // printf("%lld %lld %d %lld\n", n, m, primePower, result);
 
     if (0 != primePower)
     {
@@ -155,13 +142,9 @@ int main()
                 i64 ii = (m/primes[i]) % primes[i];
                 i64 jj = (m/primes[j]) % primes[j];
                 i64 kk = (m/primes[k]) % primes[k];
-                // printf("%lld\n", (ii*InvertModPrime(ii, primes[i])) % primes[i]);
-                // printf("%lld\n", (jj*InvertModPrime(jj, primes[j])) % primes[j]);
-                // printf("%lld\n", (kk*InvertModPrime(kk, primes[k])) % primes[k]);
                 i64 x = (remainder[i]*(m/primes[i])*InvertModPrime(m/primes[i], primes[i]) +
                         remainder[j]*(m/primes[j])*InvertModPrime(m/primes[j], primes[j]) +
                         remainder[k]*(m/primes[k])*InvertModPrime(m/primes[k], primes[k])) % m;
-                // printf("%lld %lld %lld\n", (x % primes[i]) - remainder[i], (x % primes[j]) - remainder[j], (x % primes[k]) - remainder[k]);
                 result += x;
             }
         }
