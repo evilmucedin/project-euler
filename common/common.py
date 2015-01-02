@@ -3,6 +3,17 @@
 import math
 import random
 
+def egcd(a, b):
+    if 0 == b:
+        return (a, 1, 0)
+    else:
+        gcd, sA, sB = egcd(b, a % b)
+        return (gcd, sB, sA - sB*(a/b))
+
+def modInv(a, p):
+    gcd, sA, sB = egcd(a, p)
+    return sA
+
 def isPrime(n):
     if n > 1:
         top = min(int(math.sqrt(n)), n - 1)
