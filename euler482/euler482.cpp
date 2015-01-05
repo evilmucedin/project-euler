@@ -6,16 +6,19 @@ using namespace std;
 
 int main()
 {
+    // static const size_t N = 15;
     // static const size_t N = 1000;
-    // static const size_t N = 10000;
-    static const size_t N = 10000000;
+    static const size_t N = 1000;
+    // static const size_t N = 10000000;
     size_t count = 0;
     for (long long int a = 1; a <= N; ++a)
     {
+        /*
         if (0 == (a % 100) || (a < 10000))
         {
             cerr << a << endl;
         }
+        */
         for (long long int b = a; b <= N - a; ++b)
         {
             int topC = min(N - a - b, a + b - 1);
@@ -48,10 +51,10 @@ int main()
                                 long long int sla = b*c*(b + c - a);
                                 if (0 == (sla % sum))
                                 {
-                                    long long int la = sqrt(slc/sum) + 0.4999;
+                                    long long int la = sqrt(sla/sum) + 0.4999;
                                     if (la*la*sum == sla)
                                     {
-                                        // cerr << a << " " << b << " " << c << " " << la << " " << lb << " " << lc << endl;
+                                        cerr << a << " " << b << " " << c << " " << la << " " << lb << " " << lc << endl;
                                         // cerr << static_cast<double>(la*la)/b/c + static_cast<double>(lb*lb)/a/c + static_cast<double>(lc*lc)/a/b << endl;
                                         count += a + b + c + la + lb + lc;
                                     }
