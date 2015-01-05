@@ -30,8 +30,8 @@ int main()
 
     size_t count = 0;
 
-    static const long long int MAXP = 10000000;
-    // static const long long int MAXP = 1000;
+    // static const long long int MAXP = 10000000;
+    static const long long int MAXP = 1000000;
 
     static const long long int MAXM = 4000;
     for (long long int m = 1; m <= MAXM; ++m)
@@ -45,7 +45,7 @@ int main()
                 long long int a = n*n - m*m;
                 long long int b = 2*n*m;
 
-                long long int maxk = MAXP/a;
+                long long int maxk = MAXP/a/2;
                 for (int k = 1; k <= maxk; ++k)
                 {
                     pyth[k*a].push_back(k*b);
@@ -66,6 +66,9 @@ int main()
         toA->second.erase( unique(toA->second.begin(), toA->second.end()), toA->second.end() );
     }
 
+    size_t count3 = 0;
+    size_t count4 = 0;
+
     TWas was;
 
     for (TIntIntVectorMap::const_iterator toA1 = pyth.begin(); toA1 != pyth.end(); ++toA1)
@@ -77,17 +80,18 @@ int main()
             TIntIntVectorMap::const_iterator toR2 = pyth.find(r);
             for (TIntVector::const_iterator toA2 = toR2->second.begin(); toA2 != toR2->second.end(); ++toA2)
             {
+                ++count3;
                 int a2 = *toA2;
-                int a = a1 + a2;
-                double beta = 2*atan( static_cast<double>(r)/a1 );
-                double gamma = 2*atan( static_cast<double>(r)/a2 );
-                double alpha = 2*M_PI - beta - gamma;
-                double sn = static_cast<double>(a)/sin(alpha);
-                double b = sin(beta)*sn;
-                double c = sin(gamma)*sn;
+                long long int a = a1 + a2;
+                long double beta = 2.0*atan( static_cast<long double>(r)/a1 );
+                long double gamma = 2.0*atan( static_cast<long double>(r)/a2 );
+                long double alpha = 2*M_PI - beta - gamma;
+                long double sn = static_cast<long double>(a)/sin(alpha);
+                long double b = sin(beta)*sn;
+                long double c = sin(gamma)*sn;
                 long long int ib = static_cast<long long int>(b + 0.1);
                 long long int ic = static_cast<long long int>(c + 0.1);
-                static const double EPS = 1e-8;
+                static const double EPS = 1e-6;
                 if ( fabs(b - ib) < EPS && fabs(c - ic) < EPS && (a + ib + ic <= MAXP) && (ib >= 1) && (ic >= 1) && (a + ib > ic) && (a + ic > ib) && (ib + ic > a) )
                 {
                     long long int sum = a + ib + ic;
@@ -116,6 +120,7 @@ int main()
                                                 // cerr << a << " " << ib << " " << ic << " " << la << " " << lb << " " << lc << endl;
                                                 // cerr << static_cast<double>(la*la)/b/c + static_cast<double>(lb*lb)/a/c + static_cast<double>(lc*lc)/a/b << endl;
                                                 count2 += a + ib + ic + la + lb + lc;
+                                                ++count4;
                                             }
                                         }
                                     }
@@ -131,6 +136,8 @@ int main()
     }
 
     cout << count2 << endl;
+    cout << count3 << endl;
+    cout << count4 << endl;
 
     return 0;
 }
