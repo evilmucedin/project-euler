@@ -6,6 +6,7 @@ namespace euler365
 	{
 		public static void Main(string[] args)
 		{
-		}
+            System.Console.WriteLine("Hello, world!");
+        }
 	}
 }
