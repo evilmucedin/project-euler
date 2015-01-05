@@ -8,7 +8,7 @@ int main()
 {
     // static const size_t N = 15;
     // static const size_t N = 1000;
-    static const size_t N = 1000;
+    static const size_t N = 10000;
     // static const size_t N = 10000000;
     size_t count = 0;
     for (long long int a = 1; a <= N; ++a)
@@ -54,7 +54,9 @@ int main()
                                     long long int la = sqrt(sla/sum) + 0.4999;
                                     if (la*la*sum == sla)
                                     {
-                                        cerr << a << " " << b << " " << c << " " << la << " " << lb << " " << lc << endl;
+                                        double p = sum/2;
+                                        double r = sqrt( (p - a)*(p - b)*(p - c)/p );
+                                        cerr << a << " " << b << " " << c << " " << la << " " << lb << " " << lc << " " << r << endl;
                                         // cerr << static_cast<double>(la*la)/b/c + static_cast<double>(lb*lb)/a/c + static_cast<double>(lc*lc)/a/b << endl;
                                         count += a + b + c + la + lb + lc;
                                     }
