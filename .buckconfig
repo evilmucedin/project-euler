@@ -1,0 +1,4 @@
+[cxx]
+cflags=-std=c++17
+cppflags=-std=c++17
+cxxflags=-std=c++17
