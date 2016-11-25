@@ -1,0 +1,22 @@
+cxx_library(
+  name="header",
+  exported_headers=[
+    "header.h",
+  ],
+)
+
+cxx_library(
+  name="primes",
+  srcs=[
+    "primes.cpp",
+  ],
+  exported_headers=[
+    "primes.h",
+  ],
+  deps=[
+    ":header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

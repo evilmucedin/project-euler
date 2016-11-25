@@ -1,0 +1,6 @@
+--config
+cxx.cppflags=-O0 -g
+--config
+cxx.cflags=-O0 -g
+--config
+cxx.cxxflags=-O0 -g
