@@ -27,7 +27,7 @@ int main() {
             for (uint64_t c = 1; c <= N; ++c) {
                 for (uint64_t d = 1; d <= N; ++d) {
                     uint64_t square = pointsInTriangle[a][b] + pointsInTriangle[b][c] + pointsInTriangle[c][d] + pointsInTriangle[d][a] + a + c + b + d - 3;
-                    uint64_t root = sqrt((long double)square);
+                    uint64_t root = ::sqrt(static_cast<long double>(square));
                     if (square == root*root) {
                         ++count;
                     }
