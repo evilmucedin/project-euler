@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "math.h"
+
 Erato::Erato(u32 n)
     : sieve_(n, true)
 {
@@ -48,6 +50,16 @@ PrimeFactors factorization(u64 number, const Erato& erato) {
     }
     if (1 != now) {
         result.emplace_back(now, 1);
+    }
+    return result;
+}
+
+u64 eulerTotient(u64 number, const Erato& erato) {
+    auto factors = factorization(number, erato);
+    u64 result = 1;
+    for (const auto& factor : factors) {
+        result *= factor.factor_ - 1;
+        result *= power<u64>(factor.factor_, factor.power_ - 1);
     }
     return result;
 }

@@ -20,3 +20,4 @@ struct PrimeFactor {
 using PrimeFactors = vector<PrimeFactor>;
 
 PrimeFactors factorization(u64 number, const Erato& erato);
+u64 eulerTotient(u64 number, const Erato& erato);
