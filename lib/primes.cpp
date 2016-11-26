@@ -20,6 +20,11 @@ Erato::Erato(u32 n)
     cerr << "Erato is done." << endl;
 }
 
+bool Erato::isPrime(u32 n) const {
+    assert(n < sieve_.size());
+    return sieve_[n];
+}
+
 PrimeFactor::PrimeFactor() = default;
 
 PrimeFactor::PrimeFactor(u64 factor, u32 power)

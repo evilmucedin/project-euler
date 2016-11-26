@@ -7,6 +7,7 @@
 
 struct Erato {
     Erato(u32 n);
+    bool isPrime(u32 n) const;
 
     BoolVector sieve_;
     IntVector primes_;
