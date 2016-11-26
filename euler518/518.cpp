@@ -14,25 +14,27 @@ void solve(u32 n) {
     for (size_t iThread = 0; iThread < kThreads; ++iThread) {
         threads[iThread] = thread( [&, iThread] {
             u64 localResult = 0;
-            for (size_t i = iThread; i < erato.primes_.size(); i += kThreads) {
-                if (0 == (i % 1000)) {
-                    cerr << "..." << i << endl;
-                }
-                for (size_t j = i + 1; j < erato.primes_.size(); ++j) {
-                    double alpha = static_cast<double>(erato.primes_[j] + 1)/(erato.primes_[i] + 1);
-                    double dc = (erato.primes_[j] + 1)*alpha;
+            const auto& primes = erato.primes_;
+            for (size_t i = iThread; i < primes.size(); i += kThreads) {
+                size_t j;
+                for (j = i + 1; j < primes.size(); ++j) {
+                    double alpha = static_cast<double>(primes[j] + 1)/(primes[i] + 1);
+                    double dc = (primes[j] + 1)*alpha;
                     u32 c = static_cast<u32>(dc + 0.4999);
                     if (c + 1 >= n) {
                         break;
                     }
                     if (fabs(dc - c) < 0.001) {
                         if (erato.isPrime(c - 1)) {
-                            localResult += erato.primes_[i];
-                            localResult += erato.primes_[j];
+                            localResult += primes[i];
+                            localResult += primes[j];
                             localResult += c - 1;
                             // cerr << erato.primes_[i] << " " << erato.primes_[j] << " " << (c - 1) << endl;
                         }
                     }
+                }
+                if (0 == (i % 1000)) {
+                    cerr << "..." << i << " " << j << endl;
                 }
             }
             result += localResult;
