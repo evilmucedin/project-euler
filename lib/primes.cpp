@@ -38,7 +38,7 @@ PrimeFactors factorization(u64 number, const Erato& erato) {
     PrimeFactors result;
     u64 now = number;
     size_t index = 0;
-    while (index < erato.primes_.size() && erato.primes_[index] <= top) {
+    while (index < erato.primes_.size() && static_cast<u64>(erato.primes_[index]) <= top) {
         auto factor = erato.primes_[index];
         if (0 == (now % factor)) {
             i32 power = 0;
