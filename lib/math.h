@@ -28,6 +28,16 @@ T power(T a, T b) {
 }
 
 template<typename T>
+T gcd(T n, T m) {
+    while (m) {
+        T temp = n;
+        n = m;
+        m = temp % m;
+    }
+    return n;
+}
+
+template<typename T>
 T egcd(T n, T m, T* a, T* b) {
     if (0 == m) {
         *a = 1;
@@ -36,7 +46,7 @@ T egcd(T n, T m, T* a, T* b) {
     }
     T as;
     T bs;
-    T s = EGCD(m, n % m, &as, &bs);
+    T s = egcd(m, n % m, &as, &bs);
     *a = bs;
     *b = as - bs*(n / m);
     return s;
@@ -55,4 +65,3 @@ T invertModPrime(T x, T prime) {
     }
     return a;
 }
-

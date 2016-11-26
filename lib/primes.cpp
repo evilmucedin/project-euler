@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-#include "math.h"
-
 Erato::Erato(u32 n)
     : sieve_(n, true)
 {
@@ -63,3 +61,26 @@ u64 eulerTotient(u64 number, const Erato& erato) {
     }
     return result;
 }
+
+TotientErato::TotientErato(u32 n)
+    : sieve_(n, true)
+    , totient_(n)
+{
+    for (size_t i = 0; i < totient_.size(); ++i) {
+        totient_[i] = i;
+    }
+    sieve_[0] = false;
+    sieve_[1] = false;
+    for (size_t i = 2; i < n; ++i) {
+        if (sieve_[i]) {
+            size_t j = i;
+            while (j < n) {
+                sieve_[j] = false;
+                totient_[j] = (totient_[j]/i)*(i - 1);
+                j += i;
+            }
+        }
+    }
+    cerr << "TotientErato is done." << endl;
+}
+
