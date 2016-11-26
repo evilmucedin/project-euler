@@ -20,11 +20,12 @@ void solve(u32 n) {
                 }
                 for (size_t j = i + 1; j < erato.primes_.size(); ++j) {
                     double alpha = static_cast<double>(erato.primes_[j] + 1)/(erato.primes_[i] + 1);
-                    u32 c = static_cast<u32>((erato.primes_[j] + 1)*alpha + 0.4999);
-                    if (c >= n) {
+                    double dc = (erato.primes_[j] + 1)*alpha;
+                    u32 c = static_cast<u32>(dc + 0.4999);
+                    if (c + 1 >= n) {
                         break;
                     }
-                    if (fabs( (erato.primes_[j] + 1)*alpha - c) < 0.001 ) {
+                    if (fabs(dc - c) < 0.001) {
                         if (erato.isPrime(c - 1)) {
                             localResult += erato.primes_[i];
                             localResult += erato.primes_[j];
@@ -35,6 +36,7 @@ void solve(u32 n) {
                 }
             }
             result += localResult;
+            cerr << iThread << " is done" << endl;
         });
     }
 
