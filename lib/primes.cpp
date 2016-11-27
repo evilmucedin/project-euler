@@ -33,6 +33,10 @@ PrimeFactor::PrimeFactor(u64 factor, u32 power)
 {
 }
 
+bool PrimeFactor::operator<(const PrimeFactor& rhs) const {
+    return factor_ < rhs.factor_;
+}
+
 PrimeFactors factorization(u64 number, const Erato& erato) {
     u64 top = ::sqrt(number) + 1;
     PrimeFactors result;
@@ -54,6 +58,7 @@ PrimeFactors factorization(u64 number, const Erato& erato) {
     if (1 != now) {
         result.emplace_back(now, 1);
     }
+    sort(result.begin(), result.end());
     return result;
 }
 
@@ -67,7 +72,6 @@ u64 eulerTotient(u64 number, const Erato& erato) {
     return result;
 }
 
-
 static void genDivisors(const PrimeFactors& factors, size_t index, u64 now, U64Vector* result) {
     if (index == factors.size()) {
         result->emplace_back(now);
@@ -80,10 +84,30 @@ static void genDivisors(const PrimeFactors& factors, size_t index, u64 now, U64V
     }
 }
 
+U64Vector divisors(const PrimeFactors& factorization) {
+    U64Vector result;
+    genDivisors(factorization, 0, 1, &result);
+    sort(result.begin(), result.end());
+    return result;
+}
+
 U64Vector divisors(u64 number, const Erato& erato) {
     PrimeFactors primeFactors = factorization(number, erato);
+    return divisors(primeFactors);
+}
+
+U64Vector divisors2(u64 number) {
     U64Vector result;
-    genDivisors(primeFactors, 0, 1, &result);
+    u64 top = sqrt(static_cast<double>(number)) + 0.1;
+    for (size_t i = 1; i <= top; ++i) {
+        if (0 == (number % i)) {
+            result.emplace_back(i);
+            if (i*i != number) {
+                result.emplace_back(number / i);
+            }
+        }
+    }
+    sort(result.begin(), result.end());
     return result;
 }
 

@@ -1,5 +1,8 @@
 cxx_library(
   name="header",
+  srcs=[
+    "header.cpp",
+  ],
   exported_headers=[
     "header.h",
   ],
@@ -9,6 +12,22 @@ cxx_library(
   name="math",
   exported_headers=[
     "math.h",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="console",
+  exported_headers=[
+    "console.h",
+  ],
+  srcs=[
+    "console.cpp",
+  ],
+  deps=[
+    ":header",
   ],
   visibility=[
     'PUBLIC',

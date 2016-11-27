@@ -20,13 +20,16 @@ struct PrimeFactor {
 
     PrimeFactor();
     PrimeFactor(u64 factor, u32 power);
+    bool operator<(const PrimeFactor& rhs) const;
 };
 
 using PrimeFactors = vector<PrimeFactor>;
 
 PrimeFactors factorization(u64 number, const Erato& erato);
 u64 eulerTotient(u64 number, const Erato& erato);
+U64Vector divisors(const PrimeFactors& factorization);
 U64Vector divisors(u64 number, const Erato& erato);
+U64Vector divisors2(u64 number);
 
 template<typename T>
 bool isPrime(T number) {
