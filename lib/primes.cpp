@@ -38,7 +38,7 @@ PrimeFactors factorization(u64 number, const Erato& erato) {
     PrimeFactors result;
     u64 now = number;
     size_t index = 0;
-    while (index < erato.primes_.size() && erato.primes_[index] <= top) {
+    while (index < erato.primes_.size() && static_cast<u64>(erato.primes_[index]) <= top) {
         auto factor = erato.primes_[index];
         if (0 == (now % factor)) {
             i32 power = 0;
@@ -64,6 +64,26 @@ u64 eulerTotient(u64 number, const Erato& erato) {
         result *= factor.factor_ - 1;
         result *= power<u64>(factor.factor_, factor.power_ - 1);
     }
+    return result;
+}
+
+
+static void genDivisors(const PrimeFactors& factors, size_t index, u64 now, U64Vector* result) {
+    if (index == factors.size()) {
+        result->emplace_back(now);
+    } else {
+        u64 mul = 1;
+        for (size_t i = 0; i <= factors[index].power_; ++i) {
+            genDivisors(factors, index + 1, now*mul, result);
+            mul *= factors[index].factor_;
+        }
+    }
+}
+
+U64Vector divisors(u64 number, const Erato& erato) {
+    PrimeFactors primeFactors = factorization(number, erato);
+    U64Vector result;
+    genDivisors(primeFactors, 0, 1, &result);
     return result;
 }
 
