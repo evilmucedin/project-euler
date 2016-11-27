@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 
 using namespace std;
 
@@ -13,3 +14,4 @@ using i32 = int32_t;
 using BoolVector = vector<bool>;
 using IntVector = vector<int>;
 using U64Vector = vector<u64>;
+using U64Set = unordered_set<u64>;

@@ -13,7 +13,7 @@ u64 powerSumModulo(u64 a, u64 n, u64 modulo) {
     }
 }
 
-void solve(int n) {
+void solve(u32 n) {
     TotientErato erato(n + 100);
     u64 result = 0;
     for (u32 i = 1; i <= n; i += 2) {

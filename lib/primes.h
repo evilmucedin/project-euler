@@ -25,6 +25,7 @@ using PrimeFactors = vector<PrimeFactor>;
 
 PrimeFactors factorization(u64 number, const Erato& erato);
 u64 eulerTotient(u64 number, const Erato& erato);
+U64Vector divisors(u64 number, const Erato& erato);
 
 template<typename T>
 T invertMod(T a, T b, const Erato& erato) {

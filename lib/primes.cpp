@@ -67,6 +67,26 @@ u64 eulerTotient(u64 number, const Erato& erato) {
     return result;
 }
 
+
+static void genDivisors(const PrimeFactors& factors, size_t index, u64 now, U64Vector* result) {
+    if (index == factors.size()) {
+        result->emplace_back(now);
+    } else {
+        u64 mul = 1;
+        for (size_t i = 0; i <= factors[index].power_; ++i) {
+            genDivisors(factors, index + 1, now*mul, result);
+            mul *= factors[index].factor_;
+        }
+    }
+}
+
+U64Vector divisors(u64 number, const Erato& erato) {
+    PrimeFactors primeFactors = factorization(number, erato);
+    U64Vector result;
+    genDivisors(primeFactors, 0, 1, &result);
+    return result;
+}
+
 TotientErato::TotientErato(u32 n)
     : sieve_(n, true)
     , totient_(n)
