@@ -1,5 +1,3 @@
-#include <cmath>
-
 #include "lib/primes.h"
 
 void solve(u32 n) {
