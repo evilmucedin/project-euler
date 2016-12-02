@@ -1,7 +1,7 @@
 #include "lib/primes.h"
 
 void solve(u64 n) {
-    Erato erato(n + 1000);
+    Erato erato(n/6 + 10);
 
     u64 result = 0;
     const auto& primes = erato.primes_;
