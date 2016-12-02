@@ -1,0 +1,53 @@
+cxx_library(
+  name="gtestInt",
+  exported_headers=[
+    "gtest-death-test.h",
+    "gtest.h",
+    "gtest-message.h",
+    "gtest-param-test.h",
+    "gtest_pred_impl.h",
+    "gtest-printers.h",
+    "gtest_prod.h",
+    "gtest-spi.h",
+    "gtest-test-part.h",
+    "gtest-typed-test.h",
+    "internal/custom/gtest.h",
+    "internal/custom/gtest-port.h",
+    "internal/custom/gtest-printers.h",
+    "internal/gtest-death-test-internal.h",
+    "internal/gtest-filepath.h",
+    "internal/gtest-internal.h",
+    "internal/gtest-linked_ptr.h",
+    "internal/gtest-param-util-generated.h",
+    "internal/gtest-param-util.h",
+    "internal/gtest-port-arch.h",
+    "internal/gtest-port.h",
+    "internal/gtest-string.h",
+    "internal/gtest-type-util.h",
+  ],
+  srcs=[
+    "gtest.cc",
+    "gtest-death-test.cc",
+    "gtest-filepath.cc",
+    "gtest-port.cc",
+    "gtest-printers.cc",
+    "gtest-test-part.cc",
+    "gtest-typed-test.cc",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="gtest",
+  srcs=[
+    "gtest_main.cc",
+  ],
+  deps=[
+    ":gtestInt",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

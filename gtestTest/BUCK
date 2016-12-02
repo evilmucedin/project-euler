@@ -1,0 +1,20 @@
+cxx_library(
+  name="sample1",
+  srcs=[
+    "sample1.cc",
+  ],
+  headers=[
+    "sample1.h",
+  ],
+)
+
+cxx_binary(
+  name="sample1Unittest",
+  deps=[
+    ":sample1",
+    "//gtest:gtest",
+  ],
+  srcs=[
+    "sample1_unittest.cc",
+  ],
+)
