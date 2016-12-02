@@ -50,3 +50,48 @@ cxx_library(
     'PUBLIC',
   ],
 )
+
+cxx_library(
+  name="radixSort",
+  srcs=[
+    "radixSort.cpp",
+  ],
+  exported_headers=[
+    "radixSort.h",
+  ],
+  deps=[
+    ":header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="timer",
+  srcs=[
+    "timer.cpp",
+  ],
+  exported_headers=[
+    "timer.h",
+  ],
+  deps=[
+    ":header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_binary(
+  name="radixSortTest",
+  srcs=[
+    "tests/radixSortTest.cpp",
+  ],
+  deps=[
+    ":header",
+    ":radixSort",
+    ":timer",
+    "//gtest:gtest",
+  ],
+)
