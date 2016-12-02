@@ -6,7 +6,7 @@
 #include "lib/timer.h"
 
 TEST(RadixSortRand, RadixSortTest) {
-    static constexpr size_t n = 1 << 24;
+    static constexpr size_t n = 1 << 20;
     U32Vector vct(n);
     for (size_t i = 0; i < n; ++i) {
         vct[i] = rand();
