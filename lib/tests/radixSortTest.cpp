@@ -19,9 +19,9 @@ TEST(RadixSortRand, RadixSortTest) {
     }
     {
         Timer t("std::sort");
-        sort(vct.begin(), vct.end());
+        sort(copy2.begin(), copy2.end());
     }
     for (size_t i = 1; i < n; ++i) {
-        EXPECT_LE(vct[i - 1], vct[i]);
+        EXPECT_LE(copy1[i - 1], copy1[i]);
     }
 }
