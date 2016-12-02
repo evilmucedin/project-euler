@@ -13,9 +13,9 @@ void radixSort(U32Vector& vct) {
         for (int i = 1; i <= (1 << 8); ++i) {
             counts[i] += counts[i - 1];
         }
-        for (size_t i = 0; i < vct.size(); ++i) {
-            auto bucket = (vct[i] & mask) >> shift;
-            temp[ counts[bucket]++ ] = vct[i];
+        for (auto v: vct) {
+            auto bucket = (v & mask) >> shift;
+            temp[ counts[bucket]++ ] = v;
         }
         vct.swap(temp);
     }
