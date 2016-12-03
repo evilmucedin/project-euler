@@ -38,3 +38,12 @@ ostream& operator<<(ostream& o, u128 v) {
     }
     return o;
 }
+
+ostream& operator<<(ostream& o, i128 v) {
+    if (v < 0) {
+        o << "-";
+        v = -v;
+    }
+    o << static_cast<u128>(v);
+    return o;
+}
