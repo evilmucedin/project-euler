@@ -8,22 +8,25 @@ int main() {
     u64 notfound = 0;
     for (u128 n = 1000000; n < kMax; ++n) {
         cerr << "..." << (u64)n << " " << found << " " << notfound << endl;
-        u128 totientN = totients.totient_[n];
+        const u128 totientN = totients.totient_[n];
         for (u128 m = n + 1; m < kMax; ++m) {
-            u128 totientM = totients.totient_[m];
+            const u128 totientM = totients.totient_[m];
 
             u128 a;
             u128 b;
             auto g = egcd(n, m, &a, &b);
+            assert(g == n*a + m*b);
             if (1 == g) {
-                u128 res = totientM*a*(u128)n + totientN*b*(u128)m;
+                u128 res = totientM*a*n + totientN*b*m;
+                assert(res % n == totientN);
+                assert(res % m == totientM);
                 auto d = res/(m*n);
                 res -= d*m*n;
                 while (res < 0) {
                     res += m*n;
                 }
-                if (res % n != totientN || res % m != totientM) {
-                    cout << "!" << (u64)res << " " << (u64)(res % n) << " " << (u64)totientN << endl;
+                if (((res % n) != totientN) || ((res % m) != totientM)) {
+                    cout << "!" << res << " " << res % n << " " << n << " " << m << " " << totientN << endl;
                 }
             } else {
                 auto res = totientM;

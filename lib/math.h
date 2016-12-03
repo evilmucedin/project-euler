@@ -49,6 +49,7 @@ T egcd(T n, T m, T* a, T* b) {
     T s = egcd(m, n % m, &as, &bs);
     *a = bs;
     *b = as - bs*(n / m);
+    assert(s == n*(*a) + m*(*b));
     return s;
 }
 

@@ -26,6 +26,7 @@ using U128Set = unordered_set<u128>;
 
 ostream& operator<<(ostream& o, const U64Vector& v);
 ostream& operator<<(ostream& o, const U32Vector& v);
+ostream& operator<<(ostream& o, u128 v);
 
 template<typename T>
 typename T::value_type sum(const T& x) {

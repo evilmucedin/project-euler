@@ -27,3 +27,14 @@ ostream& operator<<(ostream& o, const U32Vector& v) {
     o << "]";
     return o;
 }
+
+ostream& operator<<(ostream& o, u128 v) {
+    u64 high = v >> 64;
+    u64 low = (v << 64) >> 64;
+    if (!high) {
+        o << low;
+    } else {
+        o << "(" << high << ", " << low << ")";
+    }
+    return o;
+}
