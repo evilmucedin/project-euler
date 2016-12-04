@@ -70,7 +70,7 @@ template<typename T>
 bool invertMod(T n, T m, T* result) {
     T a;
     T b;
-    T gcd = egcd(n, m, a, b);
+    T gcd = egcd(n, m, &a, &b);
     if (1 != gcd) {
         return false;
     }
@@ -112,7 +112,7 @@ bool crt(const vector<T>& a, const vector<T>& n, T* result)
         T n2 = n[i];
         T aa;
         T nn;
-        if (!merge(a1, n1, a2, n2, aa, nn)) {
+        if (!crtMerge(a1, n1, a2, n2, aa, nn)) {
             return false;
         }
         a1 = aa;
