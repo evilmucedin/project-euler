@@ -32,6 +32,13 @@ static IType solve(IType n, IType m, IType totientN, IType totientM) {
         return 0;
     }
 
+    auto g3 = gcd(n, m);
+
+    if ((totientN % g3) != (totientM % g3)) {
+        ++notfound1;
+        return 0;
+    }
+
     // cerr << g1 << " " << g2 << endl;
 
     /*
@@ -72,6 +79,8 @@ static IType solve(IType n, IType m, IType totientN, IType totientM) {
             return res*g;
         }
     }
+
+    // cerr << "?" << n1 << " " << m1 << " " << totientN1 << " " << totientM1 << " " << gcd(n1, m1) << endl;
 
     auto res = totientM1;
     while ((res < n1*m1) && ((res % n1) != totientN1)) {
