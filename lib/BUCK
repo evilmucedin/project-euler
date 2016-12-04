@@ -95,3 +95,15 @@ cxx_binary(
     "//gtest:gtest",
   ],
 )
+
+cxx_binary(
+  name="primesTest",
+  srcs=[
+    "tests/primesTest.cpp",
+  ],
+  deps=[
+    ":header",
+    ":primes",
+    "//gtest:gtest",
+  ],
+)
