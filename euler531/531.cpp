@@ -1,11 +1,14 @@
 #include "lib/primes.h"
+#include "lib/threads.h"
 
 u64 found1 = 0;
 u64 found2 = 0;
 u64 notfound1 = 0;
 u64 notfound2 = 0;
 
-static i128 solve(i128 n, i128 m, i128 totientN, i128 totientM) {
+using IType = i64;
+
+static IType solve(IType n, IType m, IType totientN, IType totientM) {
     if ((totientM % n) == totientN) {
         ++found2;
         return totientM;
@@ -52,10 +55,10 @@ static i128 solve(i128 n, i128 m, i128 totientN, i128 totientM) {
     auto totientN1 = totientN / g;
     auto totientM1 = totientM / g;
     {
-        i128 a;
-        i128 b;
+        IType a;
+        IType b;
         egcd(n1, m1, &a, &b);
-        i128 res = totientM1*a*n1 + totientN1*b*m1;
+        IType res = totientM1*a*n1 + totientN1*b*m1;
         auto d = res/(m1*n1);
         res -= d*m1*n1;
         while (res < 0) {
@@ -85,7 +88,7 @@ static i128 solve(i128 n, i128 m, i128 totientN, i128 totientM) {
     return 0;
 }
 
-static i128 solve0(i128 n, i128 m, i128 totientN, i128 totientM) {
+static IType solve0(IType n, IType m, IType totientN, IType totientM) {
     auto res = totientM;
     while ((res < n*m) && ((res % n) != totientN)) {
         res += m;
@@ -105,21 +108,34 @@ int main() {
     static constexpr u32 kMax = 1005000;
     TotientErato totients(kMax + 10000);
     u128 result = 0;
-    for (i128 n = 1000000; n < kMax; ++n) {
-        cerr << "..." << (u64)n << " " << found1 << " " << found2 << " " << notfound1 << " " << notfound2 << endl;
-        const i128 totientN = totients.totient_[n];
-        for (i128 m = n + 1; m < kMax; ++m) {
-            const i128 totientM = totients.totient_[m];
-#ifndef NDEBUG
-            auto res1 = solve(n, m, totientN, totientM);
-            auto res2 = solve0(n, m, totientN, totientM);
-            if (res1 != res2) {
-                cerr << "!" << n << " " << m << " " << totientN << " " << totientM << " " << res1 << " " << res2 << endl;
+
+    static constexpr int kNthreads = 2;
+    auto solvePart = [&](int iThread) {
+        u128 lresult = 0;
+        for (IType n = 1000000; n < kMax; ++n) {
+            if ( (n % kNthreads) != iThread ) {
+                continue;
             }
+
+            cerr << "..." << (u64)n << " " << found1 << " " << found2 << " " << notfound1 << " " << notfound2 << endl;
+            const IType totientN = totients.totient_[n];
+            for (IType m = n + 1; m < kMax; ++m) {
+                const IType totientM = totients.totient_[m];
+#ifndef NDEBUG
+                auto res1 = solve(n, m, totientN, totientM);
+                auto res2 = solve0(n, m, totientN, totientM);
+                if (res1 != res2) {
+                    cerr << "!" << n << " " << m << " " << totientN << " " << totientM << " " << res1 << " " << res2 << endl;
+                }
 #endif
-            result += solve(n, m, totientN, totientM);
+                lresult += solve(n, m, totientN, totientM);
+            }
         }
-    }
+        result += lresult;
+    };
+
+    runInThreads(kNthreads, solvePart);
+
     cout << result << endl;
     return 0;
 }

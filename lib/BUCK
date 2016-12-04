@@ -6,6 +6,19 @@ cxx_library(
   exported_headers=[
     "header.h",
   ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="threads",
+  exported_headers=[
+    "threads.h",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
 )
 
 cxx_library(
