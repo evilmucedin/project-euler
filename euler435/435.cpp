@@ -11,32 +11,58 @@ static U64Vector fillFib(u64 m, u64 mod) {
     return result;
 }
 
-static U64Vector fill(u64 x, u64 n, u64 mod, const U64Vector& fib) {
+using FibPair = pair<u64, u64>;
+using FibPairs = vector<FibPair>;
+
+static FibPairs fill(u64 x, u64 n, u64 mod, const U64Vector& fib) {
     U64Vector result(n);
-    u64 now = 1;
-    for (u64 j = 0; j < n; ++j) {
+    result[0] = 0;
+    u64 now = x;
+    for (u64 j = 1; j < n; ++j) {
+        // cerr << j << " " << fib[j] << " " << now << endl;
+        result[j] = (result[j - 1] + ((now*fib[j]) % mod)) % mod;
         now = (now*x) % mod;
-        result[j] = (result[j] + (now*fib[j]) % mod) % mod;
     }
-    return result;
+    FibPairs fibResult;
+    for (u64 j = 1; j < n; ++j) {
+        fibResult.emplace_back(result[j - 1], result[j]);
+    }
+    return fibResult;
 }
 
 int main() {
+    /*
+    const auto tfibs = fillFib(10, 1000000);
+    cerr << tfibs << endl;
+    const auto tseq = fill(11, 10, 1000000, tfibs);
+    cerr << tseq << endl;
+    return 0;
+    */
+
     Erato e(1000);
-    const auto facts = factorization(1307674368000, e);
-    static constexpr u64 maxN = 100000;
-    U64Vector rems;
-    U64Vector bases;
+    static constexpr u128 kMod = 1307674368000;
+    static constexpr u128 kIndex = 1000000000000000ULL;
+    const auto facts = factorization(kMod, e);
+    static constexpr u128 maxN = 100000;
+    I128Vector rems;
+    I128Vector bases;
     for (const auto& f : facts) {
-        const u64 mod = power(f.factor_, static_cast<u64>(f.power_));
-        const U64Vector fibs = fillFib(maxN, mod);
-        cout << mod << " " << fibs << endl;
+        const u128 mod = power(static_cast<u128>(f.factor_), static_cast<u128>(f.power_));
+        const auto fibs = fillFib(maxN, mod);
+        u64 result = 0;
         for (int x = 1; x <= 100; ++x) {
-            const U64Vector seq = fill(x, maxN, mod, fibs);
-            cout << mod << " " << x << " " << seq << endl;
+            const auto seq = fill(x, maxN, mod, fibs);
+            Cycle c;
+            if (detectCycle(seq, &c)) {
+                result = (result + getFromCycle(seq, c, kIndex).first) % mod;
+            } else {
+                cerr << "Cycle not detected" << endl;
+            }
         }
+        rems.emplace_back(result);
+        bases.emplace_back(mod);
     }
-    u64 result;
+    i128 result;
     cout << crt(rems, bases, &result) << endl;
     cout << result << endl;
     return 0;

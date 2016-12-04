@@ -67,14 +67,17 @@ struct TotientErato {
 };
 
 template<typename T>
-bool invertMod(T n, T m, T* result) {
-    T a;
-    T b;
-    T gcd = egcd(n, m, &a, &b);
+bool invertMod(T a, T n, T* result) {
+    T x;
+    T y;
+    T gcd = egcd(a, n, &x, &y);
     if (1 != gcd) {
         return false;
     }
-    *result = ((a % n) + n) % n;
+    *result = ((x % n) + n) % n;
+#ifndef NDEBUG
+    assert((((*result)*a) % n) == 1);
+#endif
     return true;
 }
 
@@ -118,6 +121,12 @@ bool crt(const vector<T>& a, const vector<T>& n, T* result)
         a1 = aa;
         n1 = nn;
     }
-    return (a1 % n1 + n1) % n1;
+    *result = (a1 % n1 + n1) % n1;
+#ifndef NDEBUG
+    for (size_t i = 0; i < a.size(); ++i) {
+        assert(a[i] == (*result % n[i]));
+    }
+#endif
+    return true;
 }
 
