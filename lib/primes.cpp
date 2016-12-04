@@ -37,6 +37,23 @@ bool PrimeFactor::operator<(const PrimeFactor& rhs) const {
     return factor_ < rhs.factor_;
 }
 
+ostream& operator<<(ostream& o, const PrimeFactor& v) {
+    o << "{" << v.factor_ << "^" << v.power_ << "}";
+    return o;
+}
+
+ostream& operator<<(ostream& o, const PrimeFactors& v) {
+    bool first = true;
+    for (const auto& f: v) {
+        if (!first) {
+            o << "*";
+        }
+        first = false;
+        o << f;
+    }
+    return o;
+}
+
 PrimeFactors factorization(u64 number, const Erato& erato) {
     u64 top = ::sqrt(number) + 1;
     PrimeFactors result;
