@@ -84,9 +84,10 @@ u64 smallestDivisor(u64 number, const Erato& erato) {
     size_t index = 0;
     while (index < erato.primes_.size() && static_cast<u64>(erato.primes_[index]) <= top) {
         auto factor = erato.primes_[index];
-        if (0 == (now % factor)) {
+        if (0 == (number % factor)) {
             return factor;
         }
+        ++index;
     }
     return number;
 }
