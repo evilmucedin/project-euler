@@ -16,9 +16,10 @@ using i128 = __int128;
 
 using BoolVector = vector<bool>;
 using IntVector = vector<int>;
+using I32Vector = vector<i32>;
 using U32Vector = vector<u32>;
+using I64Vector = vector<i64>;
 using U64Vector = vector<u64>;
-using U128Vector = vector<u128>;
 using I128Vector = vector<i128>;
 using U128Vector = vector<u128>;
 

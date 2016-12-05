@@ -19,7 +19,6 @@ static FibPairs fill(u64 x, u64 n, u64 mod, const U64Vector& fib) {
     result[0] = 0;
     u64 now = x;
     for (u64 j = 1; j < n; ++j) {
-        // cerr << j << " " << fib[j] << " " << now << endl;
         result[j] = (result[j - 1] + ((now*fib[j]) % mod)) % mod;
         now = (now*x) % mod;
     }
@@ -43,7 +42,7 @@ int main() {
     static constexpr u128 kMod = 1307674368000;
     static constexpr u128 kIndex = 1000000000000000ULL;
     const auto facts = factorization(kMod, e);
-    static constexpr u128 maxN = 100000;
+    static constexpr u128 maxN = 10000;
     I128Vector rems;
     I128Vector bases;
     for (const auto& f : facts) {
