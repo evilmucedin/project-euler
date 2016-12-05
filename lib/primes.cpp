@@ -79,6 +79,18 @@ PrimeFactors factorization(u64 number, const Erato& erato) {
     return result;
 }
 
+u64 smallestDivisor(u64 number, const Erato& erato) {
+    u64 top = ::sqrt(number) + 1;
+    size_t index = 0;
+    while (index < erato.primes_.size() && static_cast<u64>(erato.primes_[index]) <= top) {
+        auto factor = erato.primes_[index];
+        if (0 == (now % factor)) {
+            return factor;
+        }
+    }
+    return number;
+}
+
 u64 eulerTotient(u64 number, const Erato& erato) {
     auto factors = factorization(number, erato);
     u64 result = 1;

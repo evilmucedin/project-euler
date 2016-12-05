@@ -33,6 +33,7 @@ u64 eulerTotient(u64 number, const Erato& erato);
 U64Vector divisors(const PrimeFactors& factorization);
 U64Vector divisors(u64 number, const Erato& erato);
 U64Vector divisors2(u64 number);
+u64 smallestDivisor(u64 number, const Erato& erato);
 
 template<typename T>
 bool isPrime(T number) {
