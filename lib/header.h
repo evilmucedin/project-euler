@@ -114,3 +114,11 @@ template<typename T>
 T subVector(const T& vct, size_t start, size_t end) {
     return T(vct.begin() + start, vct.begin() + end);
 }
+
+template<typename T>
+void sortAndUnique(vector<T>& v) {
+    sort(v.begin(), v.end());
+    v.erase(unique(v.begin(), v.end()), v.end());
+}
+
+bool oneIn(int n);

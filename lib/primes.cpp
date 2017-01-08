@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-Erato::Erato(u32 n)
+Erato::Erato(size_t n)
     : sieve_(n, true)
 {
     sieve_[0] = false;
@@ -20,7 +20,7 @@ Erato::Erato(u32 n)
     cerr << "Erato is done." << endl;
 }
 
-bool Erato::isPrime(u32 n) const {
+bool Erato::isPrime(size_t n) const {
     assert(n < sieve_.size());
     return sieve_[n];
 }
@@ -90,6 +90,25 @@ u64 smallestDivisor(u64 number, const Erato& erato) {
         ++index;
     }
     return number;
+}
+
+bool isPrime(size_t number, const Erato& erato) {
+    if (number < 2) {
+        return false;
+    }
+    if (number < 4) {
+        return true;
+    }
+    if (0 == (number & 1)) {
+        return false;
+    }
+    int limit = static_cast<int>(::sqrt(static_cast<double>(number)) + 0.1);
+    size_t iDiv = 0;
+    const auto& primes = erato.primes_;
+    while (iDiv < primes.size() && primes[iDiv] <= limit && (number % primes[iDiv])) {
+        ++iDiv;
+    }
+    return primes[iDiv] > limit;
 }
 
 u64 eulerTotient(u64 number, const Erato& erato) {

@@ -7,8 +7,8 @@
 #include "lib/math.h"
 
 struct Erato {
-    Erato(u32 n);
-    bool isPrime(u32 n) const;
+    Erato(size_t n);
+    bool isPrime(size_t n) const;
 
     BoolVector sieve_;
     IntVector primes_;
@@ -34,6 +34,7 @@ U64Vector divisors(const PrimeFactors& factorization);
 U64Vector divisors(u64 number, const Erato& erato);
 U64Vector divisors2(u64 number);
 u64 smallestDivisor(u64 number, const Erato& erato);
+bool isPrime(size_t number, const Erato& erato);
 
 template<typename T>
 bool isPrime(T number) {
