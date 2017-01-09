@@ -3,6 +3,8 @@ cxx_library(
   srcs=[
     "header.cpp",
   ],
+  deps=[
+  ],
   exported_headers=[
     "header.h",
   ],
@@ -58,6 +60,7 @@ cxx_library(
   deps=[
     ":header",
     ":math",
+    "//glog:glog",
   ],
   visibility=[
     'PUBLIC',

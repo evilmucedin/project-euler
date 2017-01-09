@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "glog/logging.h"
+
 Erato::Erato(size_t n)
     : sieve_(n, true)
 {
@@ -9,6 +11,7 @@ Erato::Erato(size_t n)
     sieve_[1] = false;
     for (size_t i = 2; i < n; ++i) {
         if (sieve_[i]) {
+            LOG_EVERY_MS(INFO, 10000) << "... erato " << i;
             primes_.emplace_back(i);
             size_t j = i + i;
             while (j < n) {
@@ -103,7 +106,7 @@ bool isPrime(size_t number, const Erato& erato) {
         return false;
     }
     int limit = static_cast<int>(::sqrt(static_cast<double>(number)) + 0.1);
-    size_t iDiv = 0;
+    size_t iDiv = 1;
     const auto& primes = erato.primes_;
     while (iDiv < primes.size() && primes[iDiv] <= limit && (number % primes[iDiv])) {
         ++iDiv;

@@ -107,7 +107,7 @@ GLOG_DEFINE_bool(logtostderr, BoolFromEnv("GOOGLE_LOGTOSTDERR", false),
                  "log messages go to stderr instead of logfiles");
 GLOG_DEFINE_bool(alsologtostderr, BoolFromEnv("GOOGLE_ALSOLOGTOSTDERR", false),
                  "log messages go to stderr in addition to logfiles");
-GLOG_DEFINE_bool(colorlogtostderr, false,
+GLOG_DEFINE_bool(colorlogtostderr, true,
                  "color messages logged to stderr (if supported by terminal)");
 #ifdef OS_LINUX
 GLOG_DEFINE_bool(drop_log_memory, true, "Drop in-memory buffers of log contents. "
@@ -127,7 +127,7 @@ _END_GOOGLE_NAMESPACE_
 // The default is ERROR instead of FATAL so that users can see problems
 // when they run a program without having to look in another file.
 DEFINE_int32(stderrthreshold,
-             GOOGLE_NAMESPACE::GLOG_ERROR,
+             GOOGLE_NAMESPACE::GLOG_INFO,
              "log messages at or above this level are copied to stderr in "
              "addition to logfiles.  This flag obsoletes --alsologtostderr.");
 
@@ -2086,3 +2086,10 @@ void ShutdownGoogleLogging() {
 }
 
 _END_GOOGLE_NAMESPACE_
+
+LoggingInitializer::LoggingInitializer() {
+    google::InitGoogleLogging("euler");
+    google::InstallFailureSignalHandler();
+}
+
+extern const LoggingInitializer sLoggingInitializer;

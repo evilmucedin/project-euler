@@ -1622,10 +1622,22 @@ GOOGLE_GLOG_DLL_DECL void InstallFailureWriter(
 
 }
 
+class LoggingInitializer {
+    LoggingInitializer();
+
+public:
+    inline static const LoggingInitializer& get() {
+        static const LoggingInitializer sLoggingInitializer;
+        return sLoggingInitializer;
+    }
+};
+
+
 #include <atomic>
 #include <chrono>
 
 #define LOG_EVERY_MS(severity, milli_interval)                               \
+  LoggingInitializer::get();                                                \
   for (decltype(milli_interval) FB_LEM_once = 1,                             \
                                 FB_LEM_interval = (milli_interval);          \
        FB_LEM_once; )                                                        \
