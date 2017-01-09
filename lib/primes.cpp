@@ -111,7 +111,9 @@ bool isPrime(size_t number, const Erato& erato) {
     while (iDiv < primes.size() && primes[iDiv] <= limit && (number % primes[iDiv])) {
         ++iDiv;
     }
-    return primes[iDiv] > limit;
+    bool result = (iDiv >= primes.size()) || (0 != (number % primes[iDiv]));
+    assert(number >= erato.sieve_.size() || result == erato.isPrime(number));
+    return result;
 }
 
 u64 eulerTotient(u64 number, const Erato& erato) {

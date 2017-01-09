@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -48,6 +50,36 @@ ostream& operator<<(ostream& o, const vector<T>& v) {
 template<typename T1, typename T2>
 ostream& operator<<(ostream& o, const std::pair<T1, T2>& p) {
     o << "(" << p.first << ", " << p.second << ")";
+    return o;
+}
+
+template<typename T1, typename T2>
+ostream& operator<<(ostream& o, const std::map<T1, T2>& m) {
+    o << "{";
+    bool first = true;
+    for (const auto& p: m) {
+        if (!first) {
+            o << ", ";
+        }
+        first = false;
+        o << p;
+    }
+    o << "}";
+    return o;
+}
+
+template<typename T1, typename T2>
+ostream& operator<<(ostream& o, const std::unordered_map<T1, T2>& m) {
+    o << "{";
+    bool first = true;
+    for (const auto& p: m) {
+        if (!first) {
+            o << ", ";
+        }
+        first = false;
+        o << p;
+    }
+    o << "}";
     return o;
 }
 
