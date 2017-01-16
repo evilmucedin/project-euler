@@ -7,17 +7,19 @@
 static u64 solve(u64 u, u64 k) {
     auto size = u + 2*k + 10;
 
-    LOG(INFO) << "factorization sieve";
-    FactorizationErato erato(size);
-
-    LOG(INFO) << "factorization";
     IntVector cDiv(size);
-    for (size_t i = 1; i < cDiv.size(); ++i) {
-        u64 result = 1;
-        for (const auto& factor: erato.factorize(i)) {
-            result *= 1 + factor.power_;
+    {
+        LOG(INFO) << "factorization sieve";
+        FactorizationErato erato(size);
+
+        LOG(INFO) << "factorization";
+        for (size_t i = 1; i < cDiv.size(); ++i) {
+            u64 result = 1;
+            for (const auto& factor: erato.factorize(i)) {
+                result *= 1 + factor.power_;
+            }
+            cDiv[i] = result;
         }
-        cDiv[i] = result;
     }
 
     LOG(INFO) << "segment tree";
@@ -42,6 +44,6 @@ static u64 solve(u64 u, u64 k) {
 
 int main() {
     cout << solve(1000, 10) << endl;
-    cout << solve(10000000, 100000) << endl;
+    cout << solve(100000000, 100000) << endl;
     return 0;
 }
