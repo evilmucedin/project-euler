@@ -49,6 +49,10 @@ bool PrimeFactor::operator<(const PrimeFactor& rhs) const {
     return factor_ < rhs.factor_;
 }
 
+bool PrimeFactor::operator==(const PrimeFactor& rhs) const {
+    return factor_ == rhs.factor_ && power_ == rhs.power_;
+}
+
 ostream& operator<<(ostream& o, const PrimeFactor& v) {
     o << "{" << v.factor_ << "^" << v.power_ << "}";
     return o;

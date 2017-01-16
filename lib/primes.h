@@ -23,6 +23,7 @@ struct PrimeFactor {
     PrimeFactor();
     PrimeFactor(u64 factor, u32 power);
     bool operator<(const PrimeFactor& rhs) const;
+    bool operator==(const PrimeFactor& rhs) const;
 };
 
 using PrimeFactors = vector<PrimeFactor>;

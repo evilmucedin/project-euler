@@ -30,7 +30,6 @@ TEST(PrimesTest, Pi3) {
     EXPECT_EQ(pi(100000000, erato), 5761455);
 }
 
-/*
 TEST(PrimesTest, Pi2) {
     static constexpr int kN = 100000;
     Erato erato(kN/10);
@@ -39,4 +38,12 @@ TEST(PrimesTest, Pi2) {
         EXPECT_EQ(pi(i, erato), erato2.pi(i));
     }
 }
-*/
+
+TEST(PrimesTest, CountDivisors) {
+    static constexpr int kN = 100000;
+    FactorizationErato ferato(kN);
+    Erato erato(kN);
+    for (size_t i = 1; i < kN; ++i) {
+        EXPECT_EQ(ferato.factorize(i), factorization(i, erato));
+    }
+}
