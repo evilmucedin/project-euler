@@ -1,0 +1,9 @@
+cxx_binary(
+  name="485",
+  srcs=[
+    "485.cpp"
+  ],
+  deps=[
+    "//lib:primes",
+  ],
+)

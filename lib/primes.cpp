@@ -28,6 +28,15 @@ bool Erato::isPrime(size_t n) const {
     return sieve_[n];
 }
 
+size_t Erato::pi(size_t n) const {
+    assert(n < sieve_.size());
+    return upper_bound(primes_.begin(), primes_.end(), n) - primes_.begin();
+}
+
+size_t Erato::n() const {
+    return sieve_.size();
+}
+
 PrimeFactor::PrimeFactor() = default;
 
 PrimeFactor::PrimeFactor(u64 factor, u32 power)
@@ -114,6 +123,51 @@ bool isPrime(size_t number, const Erato& erato) {
     bool result = (iDiv >= primes.size()) || (0 != (number % primes[iDiv]));
     assert(number >= erato.sieve_.size() || result == erato.isPrime(number));
     return result;
+}
+
+static size_t phiPi(size_t m, size_t b, const Erato& erato) {
+    if (0 == b) {
+        return m;
+    }
+    if (m < 1) {
+        return 0;
+    }
+    static constexpr size_t maxM = 100000;
+    static constexpr size_t maxB = 100;
+    static constexpr u64 kEmpty = -1;
+    static const U64Vector dummy(maxB, kEmpty);
+    static vector<U64Vector> cache(maxM, dummy);
+    if (m < maxM && b < maxB) {
+        auto& cacheItem = cache[m][b];
+        if (kEmpty != cacheItem) {
+            return cacheItem;
+        }
+        return cacheItem = phiPi(m, b - 1, erato) - phiPi(m/erato.primes_[b - 1], b - 1, erato);
+    }
+    return phiPi(m, b - 1, erato) - phiPi(m/erato.primes_[b - 1], b - 1, erato);
+}
+
+size_t pi(size_t number, const Erato& erato) {
+    if (number < erato.n()) {
+        return erato.pi(number);
+    }
+
+    size_t top = static_cast<size_t>(sqrt(number) + 0.0001);
+
+    size_t y = pow(number, 1.0/3) + 1;
+
+    auto p2 = [&](size_t m) {
+        size_t result = 0;
+        for (size_t p = y + 1; p <= top; ++p) {
+            if (erato.isPrime(p)) {
+                result += pi(m/p, erato) - pi(p, erato) + 1;
+            }
+        }
+        return result;
+    };
+
+    size_t n = pi(y, erato);
+    return phiPi(number, n, erato) + n - 1 - p2(number);
 }
 
 u64 eulerTotient(u64 number, const Erato& erato) {
