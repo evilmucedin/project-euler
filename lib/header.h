@@ -154,3 +154,5 @@ void sortAndUnique(vector<T>& v) {
 }
 
 bool oneIn(int n);
+
+#define OUT(X) #X << ": " << X << ", "

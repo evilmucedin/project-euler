@@ -9,6 +9,8 @@
 struct Erato {
     Erato(size_t n);
     bool isPrime(size_t n) const;
+    size_t pi(size_t n) const;
+    size_t n() const;
 
     BoolVector sieve_;
     IntVector primes_;
@@ -35,6 +37,7 @@ U64Vector divisors(u64 number, const Erato& erato);
 U64Vector divisors2(u64 number);
 u64 smallestDivisor(u64 number, const Erato& erato);
 bool isPrime(size_t number, const Erato& erato);
+size_t pi(size_t number, const Erato& erato);
 
 template<typename T>
 bool isPrime(T number) {
@@ -108,8 +111,7 @@ bool crtMerge(T a1, T n1, T a2, T n2, T& a3, T& n3) {
 }
 
 template<typename T>
-bool crt(const vector<T>& a, const vector<T>& n, T* result)
-{
+bool crt(const vector<T>& a, const vector<T>& n, T* result) {
     T a1 = a[0];
     T n1 = n[0];
     for (size_t i = 1; i < a.size(); ++i) {
