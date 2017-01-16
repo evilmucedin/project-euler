@@ -3,3 +3,4 @@ cflags=-std=c++14
 cppflags=-std=c++14
 cxxflags=-std=c++14
 ldflags=-pthread
+gtest_dep=//gtest:gtest
