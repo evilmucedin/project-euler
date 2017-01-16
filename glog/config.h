@@ -82,8 +82,10 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
+#ifndef __APPLE__
 /* Define to 1 if you have the <syscall.h> header file. */
-#define HAVE_SYSCALL_H 1
+#   define HAVE_SYSCALL_H 1
+#endif
 
 /* Define to 1 if you have the <syslog.h> header file. */
 #define HAVE_SYSLOG_H 1
@@ -100,14 +102,18 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
+#ifndef __APPLE__
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
-#define HAVE_SYS_UCONTEXT_H 1
+#   define HAVE_SYS_UCONTEXT_H 1
+#endif
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H 1
 
+#ifndef __APPLE__
 /* Define to 1 if you have the <ucontext.h> header file. */
-#define HAVE_UCONTEXT_H 1
+#   define HAVE_UCONTEXT_H 1
+#endif
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
