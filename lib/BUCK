@@ -4,6 +4,7 @@ cxx_library(
     "header.cpp",
   ],
   deps=[
+    # "//jemalloc:jemalloc",
   ],
   exported_headers=[
     "header.h",

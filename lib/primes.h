@@ -35,6 +35,7 @@ u64 eulerTotient(u64 number, const Erato& erato);
 U64Vector divisors(const PrimeFactors& factorization);
 U64Vector divisors(u64 number, const Erato& erato);
 U64Vector divisors2(u64 number);
+u64 numberOfDivisors(u64 number, const Erato& erato);
 u64 smallestDivisor(u64 number, const Erato& erato);
 bool isPrime(size_t number, const Erato& erato);
 size_t pi(size_t number, const Erato& erato);
@@ -69,6 +70,13 @@ struct TotientErato {
 
     BoolVector sieve_;
     IntVector totient_;
+};
+
+struct FactorizationErato {
+    FactorizationErato(i32 n);
+    PrimeFactors factorize(i32 x) const;
+
+    vector<I32Vector> primeFactors_;
 };
 
 template<typename T>

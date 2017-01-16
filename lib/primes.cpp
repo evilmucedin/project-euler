@@ -219,6 +219,14 @@ U64Vector divisors2(u64 number) {
     return result;
 }
 
+u64 numberOfDivisors(u64 number, const Erato& erato) {
+    u64 result = 1;
+    for (const auto& pair: factorization(number, erato)) {
+        result *= pair.power_ + 1;
+    }
+    return result;
+}
+
 TotientErato::TotientErato(u32 n)
     : sieve_(n, true)
     , totient_(n)
@@ -239,5 +247,32 @@ TotientErato::TotientErato(u32 n)
         }
     }
     cerr << "TotientErato is done." << endl;
+}
+
+FactorizationErato::FactorizationErato(i32 n)
+    : primeFactors_(n)
+{
+    for (i32 i = 2; i < n; ++i) {
+        if (primeFactors_[i].empty()) {
+            LOG_EVERY_MS(INFO, 10000) << "... erato " << i;
+            for (i32 j = i; j < n; j += i) {
+                primeFactors_[j].push_back(i);
+            }
+        }
+        primeFactors_[i].shrink_to_fit();
+    }
+}
+
+PrimeFactors FactorizationErato::factorize(i32 x) const {
+    PrimeFactors result;
+    for (auto p: primeFactors_[x]) {
+        int power = 0;
+        while (0 == (x % p)) {
+            x /= p;
+            ++power;
+        }
+        result.emplace_back(p, power);
+    }
+    return result;
 }
 
