@@ -1,0 +1,11 @@
+cxx_binary(
+  name="555",
+  srcs=[
+    "555.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:primes",
+  ],
+)
