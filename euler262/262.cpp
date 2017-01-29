@@ -33,5 +33,6 @@ int main() {
     draw(f(1400, 1400), "b.bmp");
     draw(10000, "c.bmp");
     draw(10400, "d.bmp");
+    draw(10396, "e.bmp");
     return 0;
 }

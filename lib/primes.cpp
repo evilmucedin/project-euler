@@ -270,7 +270,8 @@ FactorizationErato::FactorizationErato(i32 n)
 PrimeFactors FactorizationErato::factorize(i32 x) const {
     PrimeFactors result;
     for (auto p: primeFactors_[x]) {
-        int power = 0;
+        int power = 1;
+        x /= p;
         while (0 == (x % p)) {
             x /= p;
             ++power;

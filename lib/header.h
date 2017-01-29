@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -31,6 +33,20 @@ using U128Set = unordered_set<u128>;
 
 ostream& operator<<(ostream& o, u128 v);
 ostream& operator<<(ostream& o, i128 v);
+
+namespace std {
+template<typename T>
+struct hash<vector<T>> {
+    size_t operator()(const vector<T>& v) const {
+        size_t result = 0;
+        hash<T> hasher;
+        for (const auto& e: v) {
+            result += hasher(e);
+        }
+        return result;
+    }
+};
+}
 
 template<typename T>
 ostream& operator<<(ostream& o, const vector<T>& v) {
