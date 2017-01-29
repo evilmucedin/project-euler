@@ -6,5 +6,6 @@ cxx_binary(
   deps=[
     "//lib:primes",
     "//lib:segmentTree",
+    # "//jemalloc:jemalloc",
   ],
 )

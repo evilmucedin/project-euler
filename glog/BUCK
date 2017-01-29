@@ -27,7 +27,7 @@ cxx_library(
     "./raw_logging.cc",
     "./signalhandler.cc",
     "./symbolize.cc",
-    "./utilities.cc",
+    "./utilities.cpp",
     "./vlog_is_on.cc",
   ],
   visibility=[
