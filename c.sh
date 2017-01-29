@@ -24,4 +24,6 @@ cxx_binary(
 )
 EOF
 
+    git add ${DIR}/*
+
 fi
