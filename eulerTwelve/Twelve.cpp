@@ -1,6 +1,19 @@
 #include "lib/header.h"
 
+struct A {
+    ~A() {
+        throw exception();
+    }
+};
+
 int main() {
+    try {
+        A a;
+        throw exception();
+    } catch (...) {
+        cout << "Ha-ha" << endl;
+    }
+
     vector<IntVector> kPerm = {
         {2, 3, 4, 5},
         {1, 3, 6, 8},
