@@ -1,0 +1,9 @@
+cxx_binary(
+  name="280",
+  srcs=[
+    "280.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
