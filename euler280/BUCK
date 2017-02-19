@@ -4,6 +4,7 @@ cxx_binary(
     "280.cpp"
   ],
   deps=[
+    "//glog:glog",
     "//lib:header",
   ],
 )
