@@ -60,8 +60,17 @@ int main() {
     }
 
     double result = 0.0;
-
     for (int step = 1; step < 1000; ++step) {
+        Positions next;
+
+        positions.clear();
+        for (const auto& kv : next) {
+            if (kv.first.isFinal()) {
+                result += step*kv.second;
+            } else {
+                positions.emplace_back(kv);
+            }
+        }
     }
 
     cout << OUT(result);
