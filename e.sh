@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-vim euler$1/$1.cpp ${@:2}
+vim -p euler$1/$1.cpp euler$1/BUCK ${@:2}

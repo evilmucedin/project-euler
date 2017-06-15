@@ -109,6 +109,11 @@ typename T::value_type sum(const T& x) {
     return result;
 }
 
+template<typename T>
+T sqr(const T& x) {
+    return x*x;
+}
+
 struct Cycle {
     size_t start_;
     size_t period_;

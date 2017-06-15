@@ -112,6 +112,22 @@ cxx_library(
   ],
 )
 
+cxx_library(
+  name="integrate",
+  srcs=[
+    "integrate.cpp",
+  ],
+  exported_headers=[
+    "integrate.h",
+  ],
+  deps=[
+    ":header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
 cxx_test(
   name="radixSortTest",
   srcs=[
@@ -145,6 +161,17 @@ cxx_test(
   deps=[
     ":header",
     ":segmentTree",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="integrateTest",
+  srcs=[
+    "tests/integrateTest.cpp",
+  ],
+  deps=[
+    ":integrate",
     "//gtest:gtest",
   ],
 )
