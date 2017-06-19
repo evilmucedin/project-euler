@@ -1,3 +1,4 @@
+#include <cassert>
 #include <fstream>
 
 #include "glog/logging.h"
@@ -11,13 +12,21 @@ void saveSample(T& x, const string& filename) {
     static const size_t kN = 1000000;
     double sum = 0;
     double sum2 = 0;
+    double min = 1e9;
+    double max = -1e9;
     for (size_t i = 0; i < kN; ++i) {
         double value = x();
         fOut << value << endl;
         sum += value;
         sum2 += value*value;
+        if (value < min) {
+            min = value;
+        }
+        if (value > max) {
+            max = value;
+        }
     }
-    LOG(INFO) << filename << " Mean: " << sum/kN << " Var: " << (sum2 - sum*sum/kN)/kN;
+    LOG(INFO) << filename << " Mean: " << sum/kN << " Var: " << (sum2 - sum*sum/kN)/kN << " Min: " << min << " Max: " << max;
 }
 
 double rand01() {
@@ -48,8 +57,8 @@ double normalDensity(double x) {
     return exp(-Sqr(x)/2.0)/sqrt(2.0*M_PI);
 }
 
-static constexpr size_t kBins = 1000;
-static constexpr double kInf = 1e7;
+static constexpr double kBins = 1000.0;
+static constexpr double kInf = 500.0;
 
 struct InvCDGNormal {
     vector<double> x_;
@@ -57,8 +66,9 @@ struct InvCDGNormal {
 
     InvCDGNormal() {
         x_.push_back(-kInf);
-        for (double dx : vector<double>{1.0, 0.1, 0.01, 0.001}) {
-            for (double x = -1000.0*dx; x < 1000.0*dx; x += dx) {
+        double dx0 = kInf/kBins;
+        for (double dx : vector<double>{dx0, dx0/10, dx0/100, dx0/1000}) {
+            for (double x = -dx*kBins; x < dx*kBins; x += dx) {
                 x_.emplace_back(x);
             }
         }
@@ -68,11 +78,20 @@ struct InvCDGNormal {
         double sum = 0.0;
         y_.resize(x_.size());
         y_[0] = 0.0;
+        LOG(INFO) << normalDensity(kInf);
         for (size_t i = 1; i < x_.size(); ++i) {
-            sum += normalDensity(x_[i]) * (x_[i] - x_[i - 1]);
+            sum += (normalDensity(x_[i]) + normalDensity(x_[i - 1])) / 2.0 * (x_[i] - x_[i - 1]);
             y_[i] = sum;
         }
-        LOG(INFO) << "CDF sum: " << sum;
+        for (size_t i = 1; i < x_.size(); ) {
+            if (y_[i] < y_[i - 1] + 1e-6) {
+                x_.erase(x_.begin() + i);
+                y_.erase(y_.begin() + i);
+            } else {
+                ++i;
+            }
+        }
+        LOG(INFO) << "CDF sum: " << sum << " Points: " << x_.size() << " Limit: " << normalDensity(kInf);
     }
 
     double operator()() const {
@@ -81,14 +100,28 @@ struct InvCDGNormal {
             value = rand01();
         }
         auto it = lower_bound(y_.begin(), y_.end(), value);
+        if (it + 1 == y_.end()) {
+            --it;
+        }
         auto index = it - y_.begin();
         return x_[index] + (value - y_[index])/(y_[index + 1] - y_[index])*(x_[index + 1] - x_[index]);
     }
 };
 
+double randMC() {
+    double x;
+    double y;
+    do {
+        y = rand01();
+        x = (rand01() - 0.5)*1000.0;
+    } while (y > normalDensity(x));
+    return x;
+}
+
 int main() {
     InvCDGNormal g;
-    saveSample(g, "uniformInvCDF.csv");
+    saveSample(g, "normalInvCDF.csv");
+    saveSample(randMC, "normalMC.csv");
     saveSample(rand01, "uniform.csv");
     saveSample(normalNaive, "normalNaive.csv");
     saveSample(normalBoxMuller, "normalBoxMuller.csv");

@@ -1,0 +1,9 @@
+cxx_binary(
+  name="segment",
+  srcs=[
+    "segment.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
