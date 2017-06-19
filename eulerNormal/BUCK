@@ -4,6 +4,8 @@ cxx_binary(
     "Normal.cpp"
   ],
   deps=[
+    "//glog:glog",
     "//lib:header",
+    "//lib:math",
   ],
 )

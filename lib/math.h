@@ -1,6 +1,11 @@
 #pragma once
 
 template<typename T>
+T Sqr(T x) {
+    return x*x;
+}
+
+template<typename T>
 T power(T a, T b) {
     T result = 1;
     while (b > 0) {

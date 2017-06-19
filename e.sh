@@ -1,3 +1,9 @@
 #!/usr/bin/env bash
 
-vim -p euler$1/$1.cpp euler$1/BUCK ${@:2}
+filename=euler$1/$1.cpp
+if [ -e $filename ]; then
+    vim -p $filename euler$1/BUCK ${@:2}
+else
+    echo "$filename not found"
+    exit 1
+fi
