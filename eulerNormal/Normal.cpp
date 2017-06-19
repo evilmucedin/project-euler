@@ -60,11 +60,11 @@ double normalDensity(double x) {
 static constexpr double kBins = 1000.0;
 static constexpr double kInf = 500.0;
 
-struct InvCDGNormal {
+struct InvCDFNormal {
     vector<double> x_;
     vector<double> y_;
 
-    InvCDGNormal() {
+    InvCDFNormal() {
         x_.push_back(-kInf);
         double dx0 = kInf/kBins;
         for (double dx : vector<double>{dx0, dx0/10, dx0/100, dx0/1000}) {
@@ -78,7 +78,6 @@ struct InvCDGNormal {
         double sum = 0.0;
         y_.resize(x_.size());
         y_[0] = 0.0;
-        LOG(INFO) << normalDensity(kInf);
         for (size_t i = 1; i < x_.size(); ++i) {
             sum += (normalDensity(x_[i]) + normalDensity(x_[i - 1])) / 2.0 * (x_[i] - x_[i - 1]);
             y_[i] = sum;
@@ -119,7 +118,7 @@ double randMC() {
 }
 
 int main() {
-    InvCDGNormal g;
+    InvCDFNormal g;
     saveSample(g, "normalInvCDF.csv");
     saveSample(randMC, "normalMC.csv");
     saveSample(rand01, "uniform.csv");
