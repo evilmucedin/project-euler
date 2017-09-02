@@ -18,11 +18,14 @@ using qi::_1;
 
 int main() {
     string input("876,1234.56");
-    string::iterator iter = input.begin();
-    string::iterator end_iter = input.end();
+    auto iter = input.cbegin();
+    auto endIter = input.cend();
     int varI = -1;
     double varD = -1;
-    phrase_parse(iter, end_iter, int_[boost::phoenix::ref(varI) = _1] >> ',' >> double_[boost::phoenix::ref(varD) = _1], space);
+    phrase_parse(iter, endIter,
+                 int_[boost::phoenix::ref(varI) = _1] >> ',' >>
+                     double_[boost::phoenix::ref(varD) = _1],
+                 space);
     LOG(INFO) << OUT(varI) << OUT(varD);
 
     return 0;
