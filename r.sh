@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-. cCommon.sh
+. ./cCommon.sh
 
 ${buck_bin} build @mode/opt euler$1/...
 res=$?
