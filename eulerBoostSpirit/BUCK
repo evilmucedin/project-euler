@@ -1,0 +1,9 @@
+cxx_binary(
+  name="BoostSpirit",
+  srcs=[
+    "BoostSpirit.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
