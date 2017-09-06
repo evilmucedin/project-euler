@@ -2,11 +2,11 @@
 
 #include "glog/logging.h"
 
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/qi_real.hpp>
-#include <boost/spirit/include/qi_int.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/qi_int.hpp>
+#include <boost/spirit/include/qi_real.hpp>
 
 namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
@@ -24,20 +24,18 @@ struct Function;
 using Node = boost::variant<int, boost::recursive_wrapper<Function>>;
 
 struct Function {
-    std::string name;
-    std::vector<Node> children;
+  std::string name;
+  std::vector<Node> children;
 
-    Function& operator+=(const Node& node) {
-        children.emplace_back(node);
-        return *this;
-    }
+  Function& operator+=(const Node& node) {
+    children.emplace_back(node);
+    return *this;
+  }
 
-    void operator=(const std::string &name_) { name = name_; }
+  void operator=(const std::string& name_) { name = name_; }
 };
 
-void print(int x) {
-    LOG(INFO) << "print: " << x;
-}
+void print(int x) { LOG(INFO) << "print: " << x; }
 
 template <typename Iterator>
 struct FunctionGrammar
@@ -57,20 +55,20 @@ struct FunctionGrammar
   qi::rule<Iterator, int(), ascii::space_type> atom;
 };
 
-int eval(const Node &node) {
+int eval(const Node& node) {
   int result = 0;
   switch (node.which()) {
-  case 0:
-    result = boost::get<int>(node);
-    LOG(INFO) << OUT(result);
-    break;
-  case 1:
-    const auto& f = boost::get<Function>(node);
-    LOG(INFO) << OUT(f.name) << OUT(f.children.size());
-    for (const auto &x : f.children) {
-      result += eval(x);
-    }
-    break;
+    case 0:
+      result = boost::get<int>(node);
+      LOG(INFO) << OUT(result);
+      break;
+    case 1:
+      const auto& f = boost::get<Function>(node);
+      LOG(INFO) << OUT(f.name) << OUT(f.children.size());
+      for (const auto& x : f.children) {
+        result += eval(x);
+      }
+      break;
   }
   return result;
 }
