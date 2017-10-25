@@ -4,6 +4,7 @@ cxx_binary(
     "CovMatrix.cpp"
   ],
   deps=[
+    "//glog:glog",
     "//lib:header",
     "//lib:random",
   ],
