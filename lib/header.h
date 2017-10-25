@@ -27,6 +27,7 @@ using I64Vector = vector<i64>;
 using U64Vector = vector<u64>;
 using I128Vector = vector<i128>;
 using U128Vector = vector<u128>;
+using DoubleVector = vector<double>;
 
 using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;
@@ -174,7 +175,5 @@ void sortAndUnique(vector<T>& v) {
     sort(v.begin(), v.end());
     v.erase(unique(v.begin(), v.end()), v.end());
 }
-
-bool oneIn(int n);
 
 #define OUT(X) #X << ": " << X << ", "

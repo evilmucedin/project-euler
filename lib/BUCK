@@ -14,6 +14,16 @@ cxx_library(
 )
 
 cxx_library(
+  name="random",
+  exported_headers=[
+    "random.h",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="threads",
   exported_headers=[
     "threads.h",

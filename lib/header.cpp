@@ -24,7 +24,3 @@ ostream& operator<<(ostream& o, i128 v) {
     o << static_cast<u128>(v);
     return o;
 }
-
-bool oneIn(int n) {
-    return 0 == (rand() % n);
-}

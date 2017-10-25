@@ -1,5 +1,8 @@
 #include "lib/header.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 #include <unistd.h>
@@ -12,9 +15,9 @@ private:
     unsigned long count_ = 0; // Initialized as locked.
 
 public:
-	Semaphore(unsigned long count) {
-		count_ = count;
-	}
+    Semaphore(unsigned long count) {
+        count_ = count;
+    }
 
     void notify(int count = 1) {
         std::unique_lock<decltype(mutex_)> lock(mutex_);
@@ -33,13 +36,13 @@ public:
 
 class ReadWriteLock {
 private:
-	static constexpr size_t kMaxReads = 1000;
+    static constexpr size_t kMaxReads = 1000;
 
 public:
-	ReadWriteLock()
-		: s_(kMaxReads)
-	{
-	}
+    ReadWriteLock()
+        : s_(kMaxReads)
+    {
+    }
 
     void acquireReadLock() {
         s_.wait();
@@ -58,7 +61,7 @@ public:
     }
 
 private:
-	Semaphore s_;
+    Semaphore s_;
 };
 
 static constexpr size_t kThreads = 16;
