@@ -1,0 +1,9 @@
+cxx_binary(
+  name="CovMatrix",
+  srcs=[
+    "CovMatrix.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
