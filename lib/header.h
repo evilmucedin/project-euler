@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cmath>
+#ifndef NDEBUG
+#   include <cassert>
+#endif
 
 #include <algorithm>
 #include <iostream>
@@ -111,8 +114,41 @@ typename T::value_type sum(const T& x) {
 }
 
 template<typename T>
+vector<T> operator+(const vector<T>& a, const vector<T>& b) {
+#ifndef NDEBUG
+    assert(a.size() == b.size());
+#endif
+    vector<T> result(a.size());
+    for (size_t i = 0; i < a.size(); ++i) {
+        result[i] = a[i] + b[i];
+    }
+    return result;
+}
+
+template<typename T>
+vector<T> operator-(const vector<T>& a, const vector<T>& b) {
+#ifndef NDEBUG
+    assert(a.size() == b.size());
+#endif
+    vector<T> result(a.size());
+    for (size_t i = 0; i < a.size(); ++i) {
+        result[i] = a[i] - b[i];
+    }
+    return result;
+}
+
+template<typename T>
 T sqr(const T& x) {
     return x*x;
+}
+
+template<typename T>
+double length(const vector<T>& a) {
+    double l2 = 0.0;
+    for (const auto& x: a) {
+        l2 += sqr(x);
+    }
+    return sqrt(l2);
 }
 
 struct Cycle {
