@@ -1,6 +1,6 @@
 [cxx]
-cflags=-std=c++14
-cppflags=-std=c++14
-cxxflags=-std=c++14
-ldflags=-pthread
+cflags=-std=c++14 -march=native
+cppflags=-std=c++14 -march=native
+cxxflags=-std=c++14 -march=native
+ldflags=-pthread -march=native
 gtest_dep=//gtest:gtest
