@@ -114,6 +114,14 @@ typename T::value_type sum(const T& x) {
 }
 
 template<typename T>
+typename T::value_type average(const T& x) {
+#ifndef NDEBUG
+    assert(!x.empty());
+#endif
+    return sum(x)/x.size();
+}
+
+template<typename T>
 vector<T> operator+(const vector<T>& a, const vector<T>& b) {
 #ifndef NDEBUG
     assert(a.size() == b.size());
