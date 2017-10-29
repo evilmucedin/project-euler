@@ -24,6 +24,22 @@ cxx_library(
 )
 
 cxx_library(
+  name="stat",
+  exported_headers=[
+    "stat.h",
+  ],
+  srcs=[
+    "stat.cpp",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+  deps=[
+    ":header",
+  ],
+)
+
+cxx_library(
   name="threads",
   exported_headers=[
     "threads.h",

@@ -48,26 +48,6 @@ Point getRandomPoint(const Vector& plane) {
     return p;
 }
 
-struct Accumulator {
-    Accumulator() : n_(0), x_(0.0), y_(0.0), xy_(0.0) {}
-
-    void add(double x, double y) {
-        ++n_;
-        x_ += x;
-        y_ += y;
-        xy_ += x * y;
-    }
-
-    double covariance() const { return xy_ / n_ - (x_ / n_) * (y_ / n_); }
-
-    double xy() const { return xy_; }
-
-    u64 n_;
-    double x_;
-    double y_;
-    double xy_;
-};
-
 struct Matrix {
     Matrix(u32 dim) : dim_(dim), data_(dim_, Vector(dim_)) {}
     Matrix(const Matrix& m) : dim_(m.dim_), data_(m.data_) {}

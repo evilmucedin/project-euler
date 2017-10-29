@@ -7,5 +7,8 @@ cxx_binary(
     "//glog:glog",
     "//lib:header",
     "//lib:math",
+    "//lib:random",
+    "//lib:timer",
+    "//lib:stat",
   ],
 )

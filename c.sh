@@ -25,5 +25,6 @@ cxx_binary(
 EOF
 
     git add ${DIR}/*
-
+else
+    echo ${DIR} exists.
 fi
