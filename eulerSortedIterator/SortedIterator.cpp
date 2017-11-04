@@ -102,6 +102,7 @@ struct HeapMergeIterator : public IIterator {
 
 struct BinaryMergeIterator : public IIterator {
     BinaryMergeIterator(PIIterator a, PIIterator b) : a_(a), b_(b) {
+        has_ = true;
         calc();
     }
 
@@ -109,7 +110,6 @@ struct BinaryMergeIterator : public IIterator {
         bool aHas = a_->has();
         bool bHas = b_->has();
         if (aHas && bHas) {
-            has_ = true;
             int aVal = a_->get();
             int bVal = b_->get();
             if (aVal < bVal) {
@@ -120,11 +120,9 @@ struct BinaryMergeIterator : public IIterator {
                 b_->next();
             }
         } else if (aHas) {
-            has_ = true;
             val_ = a_->get();
             a_->next();
         } else if (bHas) {
-            has_ = true;
             val_ = b_->get();
             b_->next();
         } else {
@@ -150,40 +148,6 @@ struct BinaryMergeIterator : public IIterator {
     bool has_;
 };
 
-struct BufferedIterator : public IIterator {
-    BufferedIterator(PIIterator it) : it_(it) { fillBuffer(); }
-
-    void fillBuffer() {
-        first_ = 0;
-        length_ = 0;
-        while (length_ < kBuffer && it_->has()) {
-            buffer_[length_++] = it_->get();
-            it_->next();
-        }
-    }
-
-    bool has() const {
-        return first_ < length_;
-    }
-
-    int get() const {
-        return buffer_[first_];
-    }
-
-    void next() {
-        ++first_;
-        if (first_ >= length_) {
-            fillBuffer();
-        }
-    }
-
-    PIIterator it_;
-    static constexpr int kBuffer = 128;
-    int buffer_[kBuffer];
-    int length_;
-    int first_;
-};
-
 struct BinaryTreeMergeIterator : public IIterator {
     BinaryTreeMergeIterator(PIterators its) {
         PIIterators now(its.begin(), its.end());
@@ -204,20 +168,44 @@ struct BinaryTreeMergeIterator : public IIterator {
         root_ = now.front();
     }
 
-    bool has() const {
-        return root_->has();
-    }
+    bool has() const { return root_->has(); }
 
-    int get() const {
-        return root_->get();
-    }
+    int get() const { return root_->get(); }
 
-    void next() {
-        root_->next();
-    }
+    void next() { root_->next(); }
 
     PIIterator root_;
     PIteratorsCmp cmp_;
+};
+
+struct BufferedIterator : public IIterator {
+    BufferedIterator(PIIterator it) : it_(it) { fillBuffer(); }
+
+    void fillBuffer() {
+        first_ = 0;
+        length_ = 0;
+        while (length_ < kBuffer && it_->has()) {
+            buffer_[length_++] = it_->get();
+            it_->next();
+        }
+    }
+
+    bool has() const override { return first_ < length_; }
+
+    int get() const override { return buffer_[first_]; }
+
+    void next() override {
+        ++first_;
+        if (first_ >= length_) {
+            fillBuffer();
+        }
+    }
+
+    PIIterator it_;
+    static constexpr int kBuffer = 128;
+    int buffer_[kBuffer];
+    int length_;
+    int first_;
 };
 
 struct BufferedBinaryTreeMergeIterator : public IIterator {
