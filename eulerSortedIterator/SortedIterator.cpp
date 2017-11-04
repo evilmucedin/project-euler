@@ -344,7 +344,7 @@ struct BufferedBinaryMergeIterator {
     Iterator* ib_;
     BufferedBinaryMergeIterator* ba_;
     BufferedBinaryMergeIterator* bb_;
-    static constexpr int kBufferSize = 128;
+    static constexpr size_t kBufferSize = 128;
     int buffer_[kBufferSize];
     size_t length_;
     size_t first_;
@@ -355,11 +355,12 @@ static BufferedBinaryMergeIterator bufferedEofIterator(&eofIterator, &eofIterato
 
 struct BufferedBinaryTreeMergeIterator2 : public IIterator {
     BufferedBinaryTreeMergeIterator2(PIterators its) {
-        int size = 1;
-        int n = its.size();
+        size_t size = 1;
+        size_t n = its.size();
         while (n != 1) {
-            size += (n + 1) / 2;
-            n = (n + 1) / 2;
+            size_t next = (n + 1) / 2;
+            size += next;
+            n = next;
         }
         bits_.resize(size);
 
