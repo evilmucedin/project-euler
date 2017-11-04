@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -215,8 +216,20 @@ T subVector(const T& vct, size_t start, size_t end) {
 }
 
 template<typename T>
+void sort(T& v) {
+    std::sort(v.begin(), v.end());
+}
+
+template<typename T>
+T sorted(const T& x) {
+    T copy(x);
+    sort(copy);
+    return copy;
+}
+
+template<typename T>
 void sortAndUnique(vector<T>& v) {
-    sort(v.begin(), v.end());
+    sort(v);
     v.erase(unique(v.begin(), v.end()), v.end());
 }
 
