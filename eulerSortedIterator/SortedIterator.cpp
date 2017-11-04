@@ -64,13 +64,12 @@ using PIterators = vector<PIterator>;
 
 struct PIteratorsCmp {
     bool operator()(const Iterator* a, const Iterator* b) const{
-        return *a < *b;
+        return *b < *a;
     }
 };
 
 struct HeapMergeIterator : public IIterator {
-    HeapMergeIterator(const PIterators& its)
-    {
+    HeapMergeIterator(const PIterators& its) {
         its_.resize(its.size());
         for (size_t i = 0; i < its.size(); ++i) {
             its_[i] = its[i].get();
@@ -78,19 +77,15 @@ struct HeapMergeIterator : public IIterator {
         make_heap(its_.begin(), its_.end(), cmp_);
     }
 
-    bool has() const override {
-        return !its_.empty();
-    }
+    bool has() const override { return !its_.empty(); }
 
-    int get() const override {
-        return its_.front()->get();
-    }
+    int get() const override { return its_.front()->get(); }
 
     void next() override {
-        pop_heap(its_.begin(), its_.end());
+        pop_heap(its_.begin(), its_.end(), cmp_);
         its_.back()->next();
         if (its_.back()->has()) {
-            push_heap(its_.begin(), its_.end());
+            push_heap(its_.begin(), its_.end(), cmp_);
         } else {
             its_.pop_back();
         }
@@ -130,23 +125,19 @@ struct BinaryMergeIterator : public IIterator {
         }
     }
 
-    bool has() const override {
-        return has_;
-    }
+    bool has() const override { return has_; }
 
-    int get() const override {
-        return val_;
-    }
+    int get() const override { return val_; }
 
-    void next() override {
-        calc();
-    }
+    void next() override { calc(); }
 
     PIIterator a_;
     PIIterator b_;
     int val_;
     bool has_;
 };
+
+static PIIterator itEof = make_shared<Iterator>();
 
 struct BinaryTreeMergeIterator : public IIterator {
     BinaryTreeMergeIterator(PIterators its) {
@@ -159,7 +150,7 @@ struct BinaryTreeMergeIterator : public IIterator {
                 if (i + 1 < now.size()) {
                     b = now[i + 1];
                 } else {
-                    b = make_shared<Iterator>();
+                    b = itEof;
                 }
                 next.emplace_back(make_shared<BinaryMergeIterator>(a, b));
             }
@@ -228,27 +219,27 @@ struct BufferedBinaryTreeMergeIterator : public IIterator {
         root_ = now.front();
     }
 
-    bool has() const {
-        return root_->has();
-    }
+    bool has() const { return root_->has(); }
 
-    int get() const {
-        return root_->get();
-    }
+    int get() const { return root_->get(); }
 
-    void next() {
-        root_->next();
-    }
+    void next() { root_->next(); }
 
     PIIterator root_;
     PIteratorsCmp cmp_;
 };
 
-template<typename T>
+template <typename T>
 int sumIterator(T& it) {
     int result = 0;
+    int prev = -1;
     while (it.has()) {
-        result += it.get();
+        int now = it.get();
+        result += now;
+        if (prev > now) {
+            LOG(ERROR) << "Unordered " << OUT(prev) << OUT(now);
+        }
+        prev = now;
         it.next();
     }
     return result;
@@ -262,8 +253,8 @@ int main() {
         IntVector res;
         {
             Timer tCat("Cat");
-            res.reserve(kM*kN);
-            for (const auto& v: data) {
+            res.reserve(kM * kN);
+            for (const auto& v : data) {
                 res.insert(res.end(), v.begin(), v.end());
             }
         }
