@@ -98,7 +98,7 @@ struct PIteratorsCmp {
     }
 };
 
-struct HeapMergeIterator final : public IIterator {
+struct HeapMergeIterator {
     HeapMergeIterator(const PIterators& its) {
         its_.resize(its.size());
         for (size_t i = 0; i < its.size(); ++i) {
@@ -107,11 +107,11 @@ struct HeapMergeIterator final : public IIterator {
         make_heap(its_.begin(), its_.end(), cmp_);
     }
 
-    bool has() const override { return !its_.empty(); }
+    bool has() const { return !its_.empty(); }
 
-    int get() const override { return its_.front()->get(); }
+    int get() const { return its_.front()->get(); }
 
-    void next() override {
+    void next() {
         its_.front()->next();
         if (!its_.front()->has()) {
             swap(its_.front(), its_.back());
@@ -390,7 +390,7 @@ struct BufferedBinaryMergeIterator {
 static Iterator eofIterator;
 static BufferedBinaryMergeIterator bufferedEofIterator(&eofIterator, &eofIterator);
 
-struct BufferedBinaryTreeMergeIterator2 : public IIterator {
+struct BufferedBinaryTreeMergeIterator2 {
     BufferedBinaryTreeMergeIterator2(PIterators its) {
         size_t size = 1;
         size_t n = its.size();
@@ -515,6 +515,13 @@ int main() {
     }
 
     {
+        Timer tBufferedTreeMerge("Buffered tree merge 2");
+        auto pits = makePIterators();
+        BufferedBinaryTreeMergeIterator2 m(pits);
+        LOG(INFO) << OUT(sumIterator(m));
+    }
+
+    {
         Timer tTreeMerge("Tree merge");
         auto pits = makePIIterators();
         BinaryTreeMergeIterator m(pits);
@@ -525,13 +532,6 @@ int main() {
         Timer tBufferedTreeMerge("Buffered tree merge");
         auto pits = makePIIterators();
         BufferedBinaryTreeMergeIterator m(pits);
-        LOG(INFO) << OUT(sumIterator(m));
-    }
-
-    {
-        Timer tBufferedTreeMerge("Buffered tree merge 2");
-        auto pits = makePIterators();
-        BufferedBinaryTreeMergeIterator2 m(pits);
         LOG(INFO) << OUT(sumIterator(m));
     }
 
