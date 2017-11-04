@@ -266,7 +266,7 @@ struct BufferedBinaryMergeIterator {
         fillBuffer();
     }
 
-    bool hasInt() const {
+    inline bool hasInt() const {
         if (raw_) {
             return ia_->has() || ib_->has();
         } else {
@@ -274,56 +274,58 @@ struct BufferedBinaryMergeIterator {
         }
     }
 
-    int getAndNextInt() const {
-        int val;
+    inline int getAndNextInt() const {
         if (raw_) {
-            bool aHas = ia_->has();
-            bool bHas = ib_->has();
-            if (aHas && bHas) {
-                int aVal = ia_->get();
-                int bVal = ib_->get();
-                if (aVal < bVal) {
-                    val = aVal;
-                    ia_->next();
+            if (ia_->has()) {
+                if (ib_->has()) {
+                    int aVal = ia_->get();
+                    int bVal = ib_->get();
+                    if (aVal < bVal) {
+                        ia_->next();
+                        return aVal;
+                    } else {
+                        ib_->next();
+                        return bVal;
+                    }
                 } else {
-                    val = bVal;
-                    ib_->next();
+                    int aVal = ia_->get();
+                    ia_->next();
+                    return aVal;
                 }
-            } else if (aHas) {
-                val = ia_->get();
-                ia_->next();
             } else {
-                val = ib_->get();
+                int bVal = ib_->get();
                 ib_->next();
+                return bVal;
             }
         } else {
-            bool aHas = ba_->has();
-            bool bHas = bb_->has();
-            if (aHas && bHas) {
-                int aVal = ba_->get();
-                int bVal = bb_->get();
-                if (aVal < bVal) {
-                    val = aVal;
-                    ba_->next();
+            if (ba_->has()) {
+                if (bb_->has()) {
+                    int aVal = ba_->get();
+                    int bVal = bb_->get();
+                    if (aVal < bVal) {
+                        ba_->next();
+                        return aVal;
+                    } else {
+                        bb_->next();
+                        return bVal;
+                    }
                 } else {
-                    val = bVal;
-                    bb_->next();
+                    int bVal = ba_->get();
+                    ba_->next();
+                    return bVal;
                 }
-            } else if (aHas) {
-                val = ba_->get();
-                ba_->next();
             } else {
-                val = bb_->get();
+                int bVal = bb_->get();
                 bb_->next();
+                return bVal;
             }
         }
-        return val;
     }
 
     void fillBuffer() {
         first_ = 0;
         length_ = 0;
-        while (length_ < kBufferSize && hasInt()) {
+        while (length_ != kBufferSize && hasInt()) {
             buffer_[length_++] = getAndNextInt();
         }
     }
@@ -334,16 +336,22 @@ struct BufferedBinaryMergeIterator {
 
     void next() {
         ++first_;
-        if (first_ >= length_) {
+        if (first_ == length_) {
             fillBuffer();
         }
     }
 
     bool raw_;
-    Iterator* ia_;
-    Iterator* ib_;
-    BufferedBinaryMergeIterator* ba_;
-    BufferedBinaryMergeIterator* bb_;
+    union {
+        struct {
+            Iterator* ia_;
+            Iterator* ib_;
+        };
+        struct {
+            BufferedBinaryMergeIterator* ba_;
+            BufferedBinaryMergeIterator* bb_;
+        };
+    };
     static constexpr size_t kBufferSize = 128;
     int buffer_[kBufferSize];
     size_t length_;
