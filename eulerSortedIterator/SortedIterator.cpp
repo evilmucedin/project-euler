@@ -69,7 +69,7 @@ struct PIteratorsCmp {
     }
 };
 
-struct HeapMergeIterator : public IIterator {
+struct HeapMergeIterator final : public IIterator {
     HeapMergeIterator(const PIterators& its) {
         its_.resize(its.size());
         for (size_t i = 0; i < its.size(); ++i) {
@@ -83,12 +83,28 @@ struct HeapMergeIterator : public IIterator {
     int get() const override { return its_.front()->get(); }
 
     void next() override {
-        pop_heap(its_.begin(), its_.end(), cmp_);
-        its_.back()->next();
-        if (its_.back()->has()) {
-            push_heap(its_.begin(), its_.end(), cmp_);
-        } else {
+        its_.front()->next();
+        if (!its_.front()->has()) {
+            swap(its_.front(), its_.back());
             its_.pop_back();
+        }
+        if (!its_.empty()) {
+            size_t index = 0;
+            size_t limit = its_.size() / 2;
+            while (index < limit) {
+                size_t minIndex = 2 * index + 1;
+                if (minIndex + 1 < its_.size()) {
+                    if (cmp_(its_[minIndex], its_[minIndex + 1])) {
+                        ++minIndex;
+                    }
+                }
+                if (cmp_(its_[index], its_[minIndex])) {
+                    swap(its_[index], its_[minIndex]);
+                    index = minIndex;
+                } else {
+                    break;
+                }
+            }
         }
     }
 
@@ -96,7 +112,7 @@ struct HeapMergeIterator : public IIterator {
     PIteratorsCmp cmp_;
 };
 
-struct BinaryMergeIterator : public IIterator {
+struct BinaryMergeIterator final : public IIterator {
     BinaryMergeIterator(PIIterator a, PIIterator b) : a_(a), b_(b) {
         has_ = true;
         calc();
@@ -140,7 +156,7 @@ struct BinaryMergeIterator : public IIterator {
 
 static PIIterator itEof = make_shared<Iterator>();
 
-struct BinaryTreeMergeIterator : public IIterator {
+struct BinaryTreeMergeIterator final : public IIterator {
     BinaryTreeMergeIterator(PIterators its) {
         PIIterators now(its.begin(), its.end());
         while (now.size() != 1) {
@@ -169,7 +185,7 @@ struct BinaryTreeMergeIterator : public IIterator {
     PIIterator root_;
 };
 
-struct BufferedIterator : public IIterator {
+struct BufferedIterator final : public IIterator {
     BufferedIterator(PIIterator it) : it_(it) { fillBuffer(); }
 
     void fillBuffer() {
@@ -199,7 +215,7 @@ struct BufferedIterator : public IIterator {
     int first_;
 };
 
-struct BufferedBinaryTreeMergeIterator : public IIterator {
+struct BufferedBinaryTreeMergeIterator final : public IIterator {
     BufferedBinaryTreeMergeIterator(PIterators its) {
         PIIterators now(its.begin(), its.end());
         while (now.size() != 1) {
