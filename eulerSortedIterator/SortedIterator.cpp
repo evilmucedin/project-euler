@@ -32,7 +32,7 @@ struct IIterator {
 using PIIterator = shared_ptr<IIterator>;
 using PIIterators = vector<PIIterator>;
 
-struct Iterator : public IIterator {
+struct Iterator final : public IIterator {
     Iterator() : pos_(kN) {}
 
     Iterator(size_t index)
@@ -166,7 +166,6 @@ struct BinaryTreeMergeIterator : public IIterator {
     void next() { root_->next(); }
 
     PIIterator root_;
-    PIteratorsCmp cmp_;
 };
 
 struct BufferedIterator : public IIterator {
@@ -226,7 +225,169 @@ struct BufferedBinaryTreeMergeIterator : public IIterator {
     void next() { root_->next(); }
 
     PIIterator root_;
-    PIteratorsCmp cmp_;
+};
+
+struct BufferedBinaryMergeIterator {
+    BufferedBinaryMergeIterator() {
+    }
+
+    BufferedBinaryMergeIterator(Iterator* a, Iterator* b) {
+        init(a, b);
+    }
+
+    void init(Iterator* a, Iterator* b) {
+        ia_ = a;
+        ib_ = b;
+        raw_ = true;
+        fillBuffer();
+    }
+
+    void init(BufferedBinaryMergeIterator* a, BufferedBinaryMergeIterator* b) {
+        ba_ = a;
+        bb_ = b;
+        raw_ = false;
+        fillBuffer();
+    }
+
+    bool hasInt() const {
+        if (raw_) {
+            return ia_->has() || ib_->has();
+        } else {
+            return ba_->has() || bb_->has();
+        }
+    }
+
+    int getAndNextInt() const {
+        int val;
+        if (raw_) {
+            bool aHas = ia_->has();
+            bool bHas = ib_->has();
+            if (aHas && bHas) {
+                int aVal = ia_->get();
+                int bVal = ib_->get();
+                if (aVal < bVal) {
+                    val = aVal;
+                    ia_->next();
+                } else {
+                    val = bVal;
+                    ib_->next();
+                }
+            } else if (aHas) {
+                val = ia_->get();
+                ia_->next();
+            } else if (bHas) {
+                val = ib_->get();
+                ib_->next();
+            }
+        } else {
+            bool aHas = ba_->has();
+            bool bHas = bb_->has();
+            if (aHas && bHas) {
+                int aVal = ba_->get();
+                int bVal = bb_->get();
+                if (aVal < bVal) {
+                    val = aVal;
+                    ba_->next();
+                } else {
+                    val = bVal;
+                    bb_->next();
+                }
+            } else if (aHas) {
+                val = ba_->get();
+                ba_->next();
+            } else if (bHas) {
+                val = bb_->get();
+                bb_->next();
+            }
+        }
+        return val;
+    }
+
+    void fillBuffer() {
+        first_ = 0;
+        length_ = 0;
+        while (length_ < kBufferSize && hasInt()) {
+            buffer_[length_++] = getAndNextInt();
+        }
+    }
+
+    bool has() const { return first_ < length_; }
+
+    int get() const { return buffer_[first_]; }
+
+    void next() {
+        ++first_;
+        if (first_ >= length_) {
+            fillBuffer();
+        }
+    }
+
+    bool raw_;
+    Iterator* ia_;
+    Iterator* ib_;
+    BufferedBinaryMergeIterator* ba_;
+    BufferedBinaryMergeIterator* bb_;
+    static constexpr int kBufferSize = 128;
+    int buffer_[kBufferSize];
+    int length_;
+    int first_;
+};
+
+static Iterator eofIterator;
+static BufferedBinaryMergeIterator bufferedEofIterator(&eofIterator, &eofIterator);
+
+struct BufferedBinaryTreeMergeIterator2 : public IIterator {
+    BufferedBinaryTreeMergeIterator2(PIterators its) {
+        int size = 1;
+        int n = its.size();
+        while (n != 1) {
+            size += (n + 1) / 2;
+            n = (n + 1) / 2;
+        }
+        bits_.resize(size);
+
+        size_t start = 0;
+        size_t end = 0;
+        size_t last = 0;
+
+        for (size_t i = 0; i < its.size(); i += 2) {
+            Iterator* a = its[i].get();
+            Iterator* b;
+            if (i + 1 < its.size()) {
+                b = its[i + 1].get();
+            } else {
+                b = &eofIterator;
+            }
+            bits_[last++].init(a, b);
+        }
+        end = last;
+
+        while (start + 1 != end) {
+            for (size_t i = start; i < end; i += 2) {
+                BufferedBinaryMergeIterator* ba = &bits_[i];
+                BufferedBinaryMergeIterator* bb;
+                if (i + 1 < end) {
+                    bb = &bits_[i + 1];
+                } else {
+                    bb = &bufferedEofIterator;
+                }
+                bits_[last++].init(ba, bb);
+            }
+            start = end;
+            end = last;
+        }
+
+        root_ = &bits_[last - 1];
+    }
+
+    bool has() const { return root_->has(); }
+
+    int get() const { return root_->get(); }
+
+    void next() { root_->next(); }
+
+    BufferedBinaryMergeIterator* root_;
+    vector<BufferedBinaryMergeIterator> bits_;
 };
 
 template <typename T>
@@ -288,6 +449,13 @@ int main() {
         Timer tBufferedTreeMerge("Buffered tree merge");
         auto pits = makePIterators();
         BufferedBinaryTreeMergeIterator m(pits);
+        LOG(INFO) << OUT(sumIterator(m));
+    }
+
+    {
+        Timer tBufferedTreeMerge("Buffered tree merge 2");
+        auto pits = makePIterators();
+        BufferedBinaryTreeMergeIterator2 m(pits);
         LOG(INFO) << OUT(sumIterator(m));
     }
 
