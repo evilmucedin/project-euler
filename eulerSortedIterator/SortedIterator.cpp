@@ -2,6 +2,7 @@
 
 #include "lib/header.h"
 #include "lib/random.h"
+#include "lib/radixSort.h"
 #include "lib/timer.h"
 
 constexpr size_t kN = 100000;
@@ -420,6 +421,19 @@ int main() {
             }
         }
         sort(res);
+        LOG(INFO) << OUT(sum(res));
+    }
+
+    {
+        Timer tSort("RadixSort");
+        U32Vector res;
+        {
+            res.reserve(kM * kN);
+            for (const auto& v : data) {
+                res.insert(res.end(), v.begin(), v.end());
+            }
+        }
+        radixSort(res);
         LOG(INFO) << OUT(sum(res));
     }
 

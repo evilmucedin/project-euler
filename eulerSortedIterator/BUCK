@@ -5,6 +5,7 @@ cxx_binary(
   ],
   deps=[
     "//lib:header",
+    "//lib:radixSort",
     "//lib:random",
     "//lib:timer",
     "//glog:glog",
