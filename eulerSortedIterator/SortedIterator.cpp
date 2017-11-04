@@ -292,7 +292,7 @@ struct BufferedBinaryMergeIterator {
             } else if (aHas) {
                 val = ia_->get();
                 ia_->next();
-            } else if (bHas) {
+            } else {
                 val = ib_->get();
                 ib_->next();
             }
@@ -312,7 +312,7 @@ struct BufferedBinaryMergeIterator {
             } else if (aHas) {
                 val = ba_->get();
                 ba_->next();
-            } else if (bHas) {
+            } else {
                 val = bb_->get();
                 bb_->next();
             }
@@ -346,8 +346,8 @@ struct BufferedBinaryMergeIterator {
     BufferedBinaryMergeIterator* bb_;
     static constexpr int kBufferSize = 128;
     int buffer_[kBufferSize];
-    int length_;
-    int first_;
+    size_t length_;
+    size_t first_;
 };
 
 static Iterator eofIterator;
