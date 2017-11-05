@@ -53,9 +53,12 @@ struct Matrix {
     Matrix(const Matrix& m) : dim_(m.dim_), data_(m.data_) {}
 
     Matrix invert() const;
+    Matrix cholesky() const;
     Matrix transpose() const;
     Matrix operator*(const Matrix& m) const;
+    Matrix operator-(const Matrix& m) const;
     Vector operator*(const Vector& m) const;
+    double norm2() const;
 
     u32 dim_;
     using Data = vector<Vector>;
@@ -144,6 +147,38 @@ Matrix Matrix::invert() const {
     return result;
 }
 
+Matrix Matrix::cholesky() const {
+    Matrix result(dim_);
+    Matrix copy(*this);
+
+    for (size_t i = 0; i < dim_; ++i) {
+        double aSqRoot = sqrt(copy.data_[i][i]);
+        double aSqRootInv = 1.0 / aSqRoot;
+        double aInv = 1.0/copy.data_[i][i];
+        result.data_[i][i] = aSqRoot;
+        for (size_t j = i + 1; j < dim_; ++j) {
+            result.data_[j][i] = copy.data_[j][i]*aSqRootInv;
+        }
+        for (size_t j = i + 1; j < dim_; ++j) {
+            for (size_t k = i + 1; k < dim_; ++k) {
+                copy.data_[i][k] -= copy.data_[j][i]*copy.data_[k][i]*aInv;
+            }
+        }
+    }
+
+    return result;
+}
+
+double Matrix::norm2() const {
+    double sum = 0.0;
+    for (size_t i = 0; i < dim_; ++i) {
+        for (size_t j = 0; j < dim_; ++j) {
+            sum += sqr(data_[i][j]);
+        }
+    }
+    return sqrt(sum);
+}
+
 Matrix Matrix::transpose() const {
     Matrix result(dim_);
     for (u32 i = 0; i < dim_; ++i) {
@@ -161,6 +196,16 @@ Matrix Matrix::operator*(const Matrix& m) const {
             for (u32 k = 0; k < m.dim_; ++k) {
                 result.data_[i][k] += data_[i][j] * m.data_[j][k];
             }
+        }
+    }
+    return result;
+}
+
+Matrix Matrix::operator-(const Matrix& m) const {
+    Matrix result(m.dim_);
+    for (u32 i = 0; i < m.dim_; ++i) {
+        for (u32 j = 0; j < m.dim_; ++j) {
+            result.data_[i][j] = data_[i][j] - m.data_[i][j];
         }
     }
     return result;
@@ -199,14 +244,23 @@ int main() {
     }
 
     {
-        Timer tSolve("Solve");
+        Timer tSolve("Invert");
         Matrix inv = xtx.invert();
+        tSolve.finish();
         Vector bPrime = inv * xty;
 
         LOG(INFO) << OUT(b) << OUT(length(b));
         LOG(INFO) << OUT(bPrime) << OUT(length(bPrime));
         auto err = b - bPrime;
         LOG(INFO) << OUT(err) << OUT(length(err));
+    }
+
+    {
+        Timer tSolve("Cholesky");
+        Matrix chol = xtx.cholesky();
+        tSolve.finish();
+        Matrix xtx2 = chol*chol.transpose();
+        LOG(INFO) << OUT(xtx.norm2()) << OUT(xtx2.norm2()) << OUT((xtx - xtx2).norm2());
     }
 
     return 0;
