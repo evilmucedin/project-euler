@@ -153,15 +153,15 @@ Matrix Matrix::cholesky() const {
 
     for (size_t i = 0; i < dim_; ++i) {
         double aSqRoot = sqrt(copy.data_[i][i]);
-        double aSqRootInv = 1.0 / aSqRoot;
-        double aInv = 1.0/copy.data_[i][i];
         result.data_[i][i] = aSqRoot;
+        double aSqRootInv = 1.0 / aSqRoot;
         for (size_t j = i + 1; j < dim_; ++j) {
-            result.data_[j][i] = copy.data_[j][i]*aSqRootInv;
+            result.data_[j][i] = copy.data_[j][i] * aSqRootInv;
         }
+        double aInv = 1.0 / copy.data_[i][i];
         for (size_t j = i + 1; j < dim_; ++j) {
             for (size_t k = i + 1; k < dim_; ++k) {
-                copy.data_[i][k] -= copy.data_[j][i]*copy.data_[k][i]*aInv;
+                copy.data_[i][k] -= copy.data_[j][i] * copy.data_[k][i] * aInv;
             }
         }
     }
