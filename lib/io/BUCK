@@ -1,0 +1,16 @@
+cxx_library(
+  name="zstream",
+  exported_headers=[
+    "zstream.h",
+  ],
+  srcs=[
+     "zstream.cpp",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+  deps=[
+    "//zlib:zlib",
+  ],
+)
+
