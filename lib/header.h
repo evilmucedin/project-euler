@@ -200,57 +200,52 @@ bool detectCycle(const T& vector, Cycle* result) {
 }
 
 template<typename T>
-typename T::value_type getFromCycle(const T& vector, const Cycle& c, size_t index) {
-    if (index < vector.size()) {
-        return vector[index];
-    }
-    return vector[(index - c.start_) % c.period_ + c.start_];
+typename T::value_type getFromCycle(const T &vector, const Cycle &c,
+                                    size_t index) {
+  if (index < vector.size()) {
+    return vector[index];
+  }
+  return vector[(index - c.start_) % c.period_ + c.start_];
 }
 
-template<typename T>
-T subVector(const T& vct, size_t start) {
-    return T(vct.begin() + start, vct.end());
+template<typename T> T subVector(const T &vct, size_t start) {
+  return T(vct.begin() + start, vct.end());
 }
 
-template<typename T>
-T subVector(const T& vct, size_t start, size_t end) {
-    return T(vct.begin() + start, vct.begin() + end);
+template<typename T> T subVector(const T &vct, size_t start, size_t end) {
+  return T(vct.begin() + start, vct.begin() + end);
 }
 
-template<typename T>
-void sort(T& v) {
-    std::sort(v.begin(), v.end());
+template<typename T> void sort(T &v) { std::sort(v.begin(), v.end()); }
+
+template<typename T> T sorted(const T &x) {
+  T copy(x);
+  sort(copy);
+  return copy;
 }
 
-template<typename T>
-T sorted(const T& x) {
-    T copy(x);
-    sort(copy);
-    return copy;
-}
-
-template<typename T>
-void sortAndUnique(vector<T>& v) {
-    sort(v);
-    v.erase(unique(v.begin(), v.end()), v.end());
+template<typename T> void sortAndUnique(vector<T> &v) {
+  sort(v);
+  v.erase(unique(v.begin(), v.end()), v.end());
 }
 
 template<typename K, typename V>
-V findWithDefault(const unordered_map<K, V>& map, const K& key, const V& value) {
-    auto it = map.find(key);
-    if (it != map.end()) {
-        return it->second;
-    }
-    return value;
+V findWithDefault(const unordered_map<K, V> &map, const K &key,
+                  const V &value) {
+  auto it = map.find(key);
+  if (it != map.end()) {
+    return it->second;
+  }
+  return value;
 }
 
 class Exception : public std::exception {
-   public:
-    Exception(string msg);
-    const char* what() const noexcept;
+public:
+  Exception(string msg);
+  const char *what() const noexcept;
 
-   protected:
-    string msg_;
+protected:
+  string msg_;
 };
 
 string homeDir();
