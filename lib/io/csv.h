@@ -9,6 +9,7 @@ public:
   bool readLine();
   size_t size() const;
   const string& get(size_t index) const;
+  int getIndex(const string& s) const;
 
 private:
   shared_ptr<istream> stream_;
@@ -16,5 +17,6 @@ private:
   char quote_;
   string sLine_;
   StringVector header_;
+  unordered_map<string, int> fieldToIndex_;
   StringVector line_;
 };

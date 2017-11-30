@@ -235,4 +235,13 @@ void sortAndUnique(vector<T>& v) {
     v.erase(unique(v.begin(), v.end()), v.end());
 }
 
+template<typename K, typename V>
+V findWithDefault(const unordered_map<K, V>& map, const K& key, const V& value) {
+    auto it = map.find(key);
+    if (it != map.end()) {
+        return it->second;
+    }
+    return value;
+}
+
 #define OUT(X) #X << ": " << X << ", "

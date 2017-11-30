@@ -9,6 +9,10 @@ bool CsvParser::readHeader() {
         return false;
     }
     header_ = line_;
+    for (size_t i = 0; i < header_.size(); ++i) {
+        assert(fieldToIndex_.count(header_[i]) == 0);
+        fieldToIndex_.emplace(header_[i], i);
+    }
     return true;
 }
 
@@ -44,4 +48,8 @@ size_t CsvParser::size() const { return line_.size(); }
 const string& CsvParser::get(size_t index) const {
     assert(index < line_.size());
     return line_[index];
+}
+
+int CsvParser::getIndex(const string& s) const {
+    return findWithDefault(fieldToIndex_, s, -1);
 }
