@@ -4,13 +4,11 @@
 
 #include "lib/header.h"
 
-template<typename T>
+template <typename T>
 void runInThreads(int nThreads, T& lambda) {
     vector<thread> threads;
     for (int i = 0; i < nThreads; ++i) {
-        threads.emplace_back( thread([&, i] {
-            lambda(i);
-        } ));
+        threads.emplace_back(thread([&, i] { lambda(i); }));
     }
     for (auto& t : threads) {
         t.join();

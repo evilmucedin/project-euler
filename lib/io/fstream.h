@@ -3,17 +3,17 @@
 #include "lib/header.h"
 
 class IFstream : public ifstream {
- public:
-  IFstream() = default;
+   public:
+    IFstream() = default;
 
-  IFstream(const string& filename, ios_base::openmode mode = ios_base::in);
-  void open(const string& filename, ios_base::openmode mode = ios_base::in);
+    IFstream(const string& filename, ios_base::openmode mode = ios_base::in);
+    void open(const string& filename, ios_base::openmode mode = ios_base::in);
 };
 
 class OFstream : public ofstream {
- public:
-  OFstream() = default;
+   public:
+    OFstream() = default;
 
-  OFstream(const string& filename, ios_base::openmode mode = ios_base::out);
-  void open(const string& filename, ios_base::openmode mode = ios_base::out);
+    OFstream(const string& filename, ios_base::openmode mode = ios_base::out);
+    void open(const string& filename, ios_base::openmode mode = ios_base::out);
 };

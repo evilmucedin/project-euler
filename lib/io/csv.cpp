@@ -22,8 +22,8 @@ bool CsvParser::readLine() {
     }
     line_.clear();
     bool inQuote = false;
-    const char* begin = sLine_.data();
-    const char* p = begin;
+    auto begin = sLine_.data();
+    auto p = begin;
     while (*p) {
         if (inQuote) {
             if (*p == quote_) {
@@ -40,7 +40,7 @@ bool CsvParser::readLine() {
         ++p;
     }
     line_.emplace_back(begin, p - begin);
-    for (auto& s: line_) {
+    for (auto& s : line_) {
         unquote(s);
     }
     return true;
@@ -53,9 +53,7 @@ const string& CsvParser::get(size_t index) const {
     return line_[index];
 }
 
-int CsvParser::getIndex(const string& s) const {
-    return findWithDefault(fieldToIndex_, s, -1);
-}
+int CsvParser::getIndex(const string& s) const { return findWithDefault(fieldToIndex_, s, -1); }
 
 void CsvParser::unquote(string& s) {
     const char* r = s.data();
@@ -66,7 +64,7 @@ void CsvParser::unquote(string& s) {
     while (*r) {
         if (*r == quote_) {
             if (r[1] == quote_) {
-                *w++ = '\"';
+                *w++ = quote_;
                 r += 2;
             } else {
                 ++r;
@@ -77,4 +75,3 @@ void CsvParser::unquote(string& s) {
     }
     s.resize(w - s.data());
 }
-
