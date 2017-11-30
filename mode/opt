@@ -1,6 +1,6 @@
 --config
 cxx.cppflags=-O3 -DNDEBUG -std=c++14 -Wall
 --config
-cxx.cflags=-O3 -DNDEBUG -std=c++14 -Wall
+cxx.cflags=-O3 -DNDEBUG -Wall
 --config
 cxx.cxxflags=-O3 -DNDEBUG -std=c++14 -Wall

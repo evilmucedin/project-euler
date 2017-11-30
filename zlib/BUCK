@@ -1,6 +1,7 @@
 cxx_library(
   name="zlib",
   exported_headers=[
+    "zconf.h",
     "zlib.h",
   ],
   srcs=[
