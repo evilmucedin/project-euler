@@ -6,12 +6,12 @@ cxx_library(
   srcs=[
      "zstream.cpp",
   ],
-  visibility=[
-    "PUBLIC",
-  ],
   deps=[
     "//lib:header",
     "//zlib:zlib",
+  ],
+  visibility=[
+    "PUBLIC",
   ],
 )
 
@@ -23,10 +23,27 @@ cxx_library(
   srcs=[
     "csv.cpp",
   ],
+  deps=[
+    "//lib:header",
+  ],
   visibility=[
     "PUBLIC",
+  ],
+)
+
+cxx_library(
+  name="fstream",
+  exported_headers=[
+    "fstream.h",
+  ],
+  srcs=[
+    "fstream.cpp",
   ],
   deps=[
     "//lib:header",
   ],
+  visibility=[
+    'PUBLIC',
+  ],
 )
+

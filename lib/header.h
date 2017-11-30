@@ -244,4 +244,15 @@ V findWithDefault(const unordered_map<K, V>& map, const K& key, const V& value) 
     return value;
 }
 
+class Exception : public std::exception {
+   public:
+    Exception(string msg);
+    const char* what() const noexcept;
+
+   protected:
+    string msg_;
+};
+
+string homeDir();
+
 #define OUT(X) #X << ": " << X << ", "

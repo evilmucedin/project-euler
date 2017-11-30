@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-ZException::ZException(int ret) : msg_("zlib: ") {
+ZException::ZException(int ret) : Exception("zlib: ") {
     switch (ret) {
         case Z_STREAM_ERROR:
             msg_ += "Z_STREAM_ERROR: ";
@@ -25,9 +25,7 @@ ZException::ZException(int ret) : msg_("zlib: ") {
     }
 }
 
-ZException::ZException(string msg) : msg_(move(msg)) {}
-
-const char* ZException::what() const noexcept { return msg_.c_str(); }
+ZException::ZException(string msg) : Exception(msg) {}
 
 ZStreamWrapper::ZStreamWrapper(bool isInput, int level) : isInput_(isInput) {
     zalloc = Z_NULL;

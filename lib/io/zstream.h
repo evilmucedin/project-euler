@@ -4,14 +4,10 @@
 
 #include "zlib/zlib.h"
 
-class ZException : public std::exception {
+class ZException : public Exception {
    public:
     ZException(int ret);
     ZException(string msg);
-    const char* what() const noexcept;
-
-   private:
-    string msg_;
 };
 
 class ZStreamWrapper : public z_stream {
