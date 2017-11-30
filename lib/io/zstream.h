@@ -40,7 +40,7 @@ class ZIStreamBuf : public streambuf {
     char* inBuffStart_;
     char* inBuffEnd_;
     vector<char> outBuff_;
-    ZStreamWrapper zStrm_;
+    unique_ptr<ZStreamWrapper> zStrm_;
     size_t buffSize_;
 
     static constexpr size_t kDefaultBuffSize = 1 << 20;

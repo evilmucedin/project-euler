@@ -1,5 +1,7 @@
 #include "lib/io/zstream.h"
 
+#include <cassert>
+
 ZException::ZException(int ret) : msg_("zlib: ") {
     switch (ret) {
         case Z_STREAM_ERROR:
@@ -73,18 +75,24 @@ streambuf::int_type ZIStreamBuf::underflow() {
                     break;
                 }
             }
-            zStrm_.next_in = reinterpret_cast<Bytef*>(inBuffStart_);
-            zStrm_.avail_in = inBuffEnd_ - inBuffStart_;
-            zStrm_.next_out = reinterpret_cast<Bytef*>(outBuffFreeStart);
-            zStrm_.avail_out = (outBuff_.data() + buffSize_) - outBuffFreeStart;
-            auto ret = inflate(&zStrm_, Z_NO_FLUSH);
+            if (!zStrm_) {
+                zStrm_ = make_unique<ZStreamWrapper>(true);
+            }
+            zStrm_->next_in = reinterpret_cast<Bytef*>(inBuffStart_);
+            zStrm_->avail_in = inBuffEnd_ - inBuffStart_;
+            zStrm_->next_out = reinterpret_cast<Bytef*>(outBuffFreeStart);
+            zStrm_->avail_out = (outBuff_.data() + buffSize_) - outBuffFreeStart;
+            auto ret = inflate(zStrm_.get(), Z_NO_FLUSH);
             if (ret != Z_OK && ret != Z_STREAM_END) {
                 throw ZException(ret);
             }
-            inBuffStart_ = reinterpret_cast<char*>(zStrm_.next_in);
-            inBuffEnd_ = inBuffStart_ + zStrm_.avail_in;
-            outBuffFreeStart = reinterpret_cast<char*>(zStrm_.next_out);
-            assert(outBuffFreeStart + zStrm_.avail_out == outBuff_.data() + buffSize_);
+            inBuffStart_ = reinterpret_cast<char*>(zStrm_->next_in);
+            assert(inBuffEnd_ == inBuffStart_ + zStrm_->avail_in);
+            outBuffFreeStart = reinterpret_cast<char*>(zStrm_->next_out);
+            assert(outBuffFreeStart + zStrm_->avail_out == outBuff_.data() + buffSize_);
+            if (ret == Z_STREAM_END) {
+                zStrm_.reset();
+            }
         } while (outBuffFreeStart == outBuff_.data());
         setg(outBuff_.data(), outBuff_.data(), outBuffFreeStart);
     }

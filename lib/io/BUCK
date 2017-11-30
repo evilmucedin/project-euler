@@ -15,3 +15,18 @@ cxx_library(
   ],
 )
 
+cxx_library(
+  name="csv",
+  exported_headers=[
+    "csv.h",
+  ],
+  srcs=[
+    "csv.cpp",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)

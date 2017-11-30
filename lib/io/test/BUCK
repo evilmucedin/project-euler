@@ -9,3 +9,13 @@ cxx_test(
   ],
 )
 
+cxx_test(
+  name="csvTest",
+  srcs=[
+    "csvTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io:csv",
+  ],
+)

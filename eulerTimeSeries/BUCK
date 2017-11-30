@@ -1,0 +1,11 @@
+cxx_binary(
+  name="TimeSeries",
+  srcs=[
+    "TimeSeries.cpp"
+  ],
+  deps=[
+    "//lib:init",
+    "//lib:timer",
+    "//lib/io:zstream",
+  ],
+)
