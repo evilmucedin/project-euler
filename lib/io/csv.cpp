@@ -59,10 +59,10 @@ int CsvParser::getIndex(const string& s) const {
 
 void CsvParser::unquote(string& s) {
     const char* r = s.data();
-    char* w = const_cast<char*>(r);
     if (*r != quote_) {
         return;
     }
+    char* w = const_cast<char*>(r);
     while (*r) {
         if (*r == quote_) {
             if (r[1] == quote_) {
