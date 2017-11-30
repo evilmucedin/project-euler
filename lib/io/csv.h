@@ -12,6 +12,8 @@ public:
   int getIndex(const string& s) const;
 
 private:
+  void unquote(string& s);
+
   shared_ptr<istream> stream_;
   char delim_;
   char quote_;

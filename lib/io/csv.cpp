@@ -40,6 +40,9 @@ bool CsvParser::readLine() {
         ++p;
     }
     line_.emplace_back(begin, p - begin);
+    for (auto& s: line_) {
+        unquote(s);
+    }
     return true;
 }
 
@@ -53,3 +56,25 @@ const string& CsvParser::get(size_t index) const {
 int CsvParser::getIndex(const string& s) const {
     return findWithDefault(fieldToIndex_, s, -1);
 }
+
+void CsvParser::unquote(string& s) {
+    const char* r = s.data();
+    char* w = const_cast<char*>(r);
+    if (*r != quote_) {
+        return;
+    }
+    while (*r) {
+        if (*r == quote_) {
+            if (r[1] == quote_) {
+                *w++ = '\"';
+                r += 2;
+            } else {
+                ++r;
+            }
+        } else {
+            *w++ = *r++;
+        }
+    }
+    s.resize(w - s.data());
+}
+
