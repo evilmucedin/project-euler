@@ -31,6 +31,22 @@ cxx_library(
 )
 
 cxx_library(
+  name="string",
+  exported_headers=[
+    "string.h",
+  ],
+  srcs=[
+    "string.cpp",
+  ],
+  deps=[
+    ":header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="random",
   exported_headers=[
     "random.h",
@@ -171,50 +187,3 @@ cxx_library(
   ],
 )
 
-cxx_test(
-  name="radixSortTest",
-  srcs=[
-    "tests/radixSortTest.cpp",
-  ],
-  deps=[
-    ":header",
-    ":radixSort",
-    ":timer",
-    "//gtest:gtest",
-  ],
-)
-
-cxx_test(
-  name="primesTest",
-  srcs=[
-    "tests/primesTest.cpp",
-  ],
-  deps=[
-    ":header",
-    ":primes",
-    "//gtest:gtest",
-  ],
-)
-
-cxx_test(
-  name="segmentTreeTest",
-  srcs=[
-    "tests/segmentTreeTest.cpp",
-  ],
-  deps=[
-    ":header",
-    ":segmentTree",
-    "//gtest:gtest",
-  ],
-)
-
-cxx_test(
-  name="integrateTest",
-  srcs=[
-    "tests/integrateTest.cpp",
-  ],
-  deps=[
-    ":integrate",
-    "//gtest:gtest",
-  ],
-)
