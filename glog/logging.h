@@ -1626,10 +1626,7 @@ class LoggingInitializer {
     LoggingInitializer();
 
 public:
-    inline static const LoggingInitializer& get() {
-        static const LoggingInitializer sLoggingInitializer;
-        return sLoggingInitializer;
-    }
+    static const LoggingInitializer& get();
 };
 
 

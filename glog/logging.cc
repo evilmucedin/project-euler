@@ -2092,4 +2092,7 @@ LoggingInitializer::LoggingInitializer() {
     google::InstallFailureSignalHandler();
 }
 
-extern const LoggingInitializer sLoggingInitializer;
+const LoggingInitializer& LoggingInitializer::get() {
+    static const LoggingInitializer sLoggingInitializer;
+    return sLoggingInitializer;
+}

@@ -9,7 +9,9 @@ class CsvParser {
     bool readLine();
     size_t size() const;
     const string& get(size_t index) const;
+    int getInt(size_t index) const;
     int getIndex(const string& s) const;
+    size_t line() const;
 
    private:
     void unquote(string& s);
@@ -21,4 +23,5 @@ class CsvParser {
     StringVector header_;
     unordered_map<string, int> fieldToIndex_;
     StringVector line_;
+    size_t iLine_;
 };

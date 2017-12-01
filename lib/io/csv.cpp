@@ -2,7 +2,8 @@
 
 #include <cassert>
 
-CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote) : stream_(move(stream)), delim_(delim), quote_(quote) {}
+CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote)
+    : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
 
 bool CsvParser::readHeader() {
     if (!readLine()) {
@@ -20,6 +21,7 @@ bool CsvParser::readLine() {
     if (!getline(*stream_, sLine_)) {
         return false;
     }
+    ++iLine_;
     line_.clear();
     bool inQuote = false;
     auto begin = sLine_.data();
@@ -53,7 +55,13 @@ const string& CsvParser::get(size_t index) const {
     return line_[index];
 }
 
-int CsvParser::getIndex(const string& s) const { return findWithDefault(fieldToIndex_, s, -1); }
+int CsvParser::getInt(size_t index) const {
+    return stoi(get(index));
+}
+
+int CsvParser::getIndex(const string &s) const {
+  return findWithDefault(fieldToIndex_, s, -1);
+}
 
 void CsvParser::unquote(string& s) {
     const char* r = s.data();
@@ -74,4 +82,8 @@ void CsvParser::unquote(string& s) {
         }
     }
     s.resize(w - s.data());
+}
+
+size_t CsvParser::line() const {
+    return iLine_;
 }

@@ -3,5 +3,5 @@
 
 void standardInit(int argc, char* argv[]) {
     ios::sync_with_stdio(false);
-    google::InitGoogleLogging(argv[0]);
+    LoggingInitializer::get();
 }

@@ -16,11 +16,14 @@ int main(int argc, char* argv[]) {
   CsvParser reader(zIn);
   reader.readHeader();
   int iLine = 0;
+  int iFIDNumber = reader.getIndex("Number of FIDs");
+  int iType = reader.getIndex("UpdateType/Action");
   while (reader.readLine()) {
-    if (0 == (iLine % 100000000)) {
-      LOG(INFO) << OUT(iLine) << OUT(reader.size());
-    }
-    ++iLine;
+      int nFids = reader.getInt(iFIDNumber);
+      LOG_EVERY_MS(INFO, 1000) << OUT(reader.get(iType)) << OUT(nFids);
+      for (int iFid = 0; iFid < nFids; ++iFid) {
+        reader.readLine();
+      }
   }
   LOG(INFO) << OUT(iLine);
   return 0;
