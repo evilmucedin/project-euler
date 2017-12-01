@@ -1,8 +1,8 @@
 #include "lib/header.h"
 
-#include <unistd.h>
-#include <sys/types.h>
 #include <pwd.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 ostream& operator<<(ostream& o, const Cycle& c) {
     o << "(" << c.start_ << ", " << c.period_ << ")";
@@ -29,15 +29,10 @@ ostream& operator<<(ostream& o, i128 v) {
     return o;
 }
 
-Exception::Exception(string msg)
-    : msg_(move(msg))
-{
-}
+Exception::Exception() {}
 
-const char* Exception::what() const noexcept {
-    return msg_.c_str();
-}
+Exception::Exception(string msg) : msg_(move(msg)) {}
 
-string homeDir() {
-    return getpwuid(getuid())->pw_dir;
-}
+const char* Exception::what() const noexcept { return msg_.c_str(); }
+
+string homeDir() { return getpwuid(getuid())->pw_dir; }

@@ -240,13 +240,23 @@ V findWithDefault(const unordered_map<K, V> &map, const K &key,
 }
 
 class Exception : public std::exception {
-public:
-  Exception(string msg);
-  const char *what() const noexcept;
+   public:
+    Exception();
+    Exception(string msg);
+    const char* what() const noexcept;
 
-protected:
-  string msg_;
+   protected:
+    string msg_;
 };
+
+#define ENFORCE(X)             \
+    {                          \
+        if (!(X)) {            \
+            throw Exception(); \
+        }                      \
+    }
+
+#define ENFORCE_EQ(X, Y) ENFORCE((X) == (Y))
 
 string homeDir();
 

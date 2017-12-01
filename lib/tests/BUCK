@@ -1,0 +1,69 @@
+cxx_test(
+  name="datetimeTest",
+  srcs=[
+    "datetimeTest.cpp",
+  ],
+  deps=[
+    "//lib:datetime",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="stringTest",
+  srcs=[
+    "stringTest.cpp",
+  ],
+  deps=[
+    "//lib:string",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="radixSortTest",
+  srcs=[
+    "radixSortTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:radixSort",
+    "//lib:timer",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="primesTest",
+  srcs=[
+    "primesTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:primes",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="segmentTreeTest",
+  srcs=[
+    "segmentTreeTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:segmentTree",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="integrateTest",
+  srcs=[
+    "integrateTest.cpp",
+  ],
+  deps=[
+    "//lib:integrate",
+    "//gtest:gtest",
+  ],
+)

@@ -1,189 +1,206 @@
 cxx_library(
-  name="header",
-  srcs=[
-    "header.cpp",
-  ],
-  deps=[
-  ],
-  exported_headers=[
-    "header.h",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="header",
+    srcs=[
+        "header.cpp",
+    ],
+    deps=[
+    ],
+    exported_headers=[
+        "header.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="init",
-  exported_headers=[
-    "init.h",
-  ],
-  srcs=[
-    "init.cpp",
-  ],
-  deps=[
-    ":header",
-    "//glog:glog",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="init",
+    exported_headers=[
+        "init.h",
+    ],
+    srcs=[
+        "init.cpp",
+    ],
+    deps=[
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="string",
-  exported_headers=[
-    "string.h",
-  ],
-  srcs=[
-    "string.cpp",
-  ],
-  deps=[
-    ":header",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="string",
+    exported_headers=[
+        "string.h",
+    ],
+    srcs=[
+        "string.cpp",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="random",
-  exported_headers=[
-    "random.h",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="datetime",
+    exported_headers=[
+        "datetime.h",
+    ],
+    srcs=[
+        "datetime.cpp",
+    ],
+    deps=[
+        ":header",
+        ":math",
+        ":string",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="stat",
-  exported_headers=[
-    "stat.h",
-  ],
-  srcs=[
-    "stat.cpp",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
-  deps=[
-    ":header",
-  ],
+    name="random",
+    exported_headers=[
+        "random.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="threads",
-  exported_headers=[
-    "threads.h",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="stat",
+    exported_headers=[
+        "stat.h",
+    ],
+    srcs=[
+        "stat.cpp",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="math",
-  exported_headers=[
-    "math.h",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="threads",
+    exported_headers=[
+        "threads.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="console",
-  exported_headers=[
-    "console.h",
-  ],
-  srcs=[
-    "console.cpp",
-  ],
-  deps=[
-    ":header",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="math",
+    exported_headers=[
+        "math.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="primes",
-  srcs=[
-    "primes.cpp",
-  ],
-  exported_headers=[
-    "primes.h",
-  ],
-  deps=[
-    ":header",
-    ":math",
-    "//glog:glog",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="console",
+    exported_headers=[
+        "console.h",
+    ],
+    srcs=[
+        "console.cpp",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="radixSort",
-  srcs=[
-    "radixSort.cpp",
-  ],
-  exported_headers=[
-    "radixSort.h",
-  ],
-  deps=[
-    ":header",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="primes",
+    srcs=[
+        "primes.cpp",
+    ],
+    exported_headers=[
+        "primes.h",
+    ],
+    deps=[
+        ":header",
+        ":math",
+        "//glog:glog",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
 )
 
 cxx_library(
-  name="segmentTree",
-  exported_headers=[
-    "segmentTree.h",
-  ],
-  deps=[
-    ":header",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="radixSort",
+    srcs=[
+      "radixSort.cpp",
+    ],
+    exported_headers=[
+      "radixSort.h",
+    ],
+    deps=[
+      ":header",
+    ],
+    visibility=[
+      'PUBLIC',
+    ],
 )
 
 cxx_library(
-  name="timer",
-  srcs=[
-    "timer.cpp",
-  ],
-  exported_headers=[
-    "timer.h",
-  ],
-  deps=[
-    ":header",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="segmentTree",
+    exported_headers=[
+      "segmentTree.h",
+    ],
+    deps=[
+      ":header",
+    ],
+    visibility=[
+      'PUBLIC',
+    ],
 )
 
 cxx_library(
-  name="integrate",
-  srcs=[
-    "integrate.cpp",
-  ],
-  exported_headers=[
-    "integrate.h",
-  ],
-  deps=[
-    ":header",
-  ],
-  visibility=[
-    'PUBLIC',
-  ],
+    name="timer",
+    srcs=[
+      "timer.cpp",
+    ],
+    exported_headers=[
+      "timer.h",
+    ],
+    deps=[
+      ":header",
+    ],
+    visibility=[
+      'PUBLIC',
+    ],
 )
 
+cxx_library(
+    name="integrate",
+    srcs=[
+      "integrate.cpp",
+    ],
+    exported_headers=[
+      "integrate.h",
+    ],
+    deps=[
+      ":header",
+    ],
+    visibility=[
+      'PUBLIC',
+    ],
+)
