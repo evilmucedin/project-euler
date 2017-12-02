@@ -15,7 +15,6 @@ int main(int argc, char* argv[]) {
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
-    int iLine = 0;
     const int iFIDNumber = reader.getIndex("Number of FIDs");
     const int iType = reader.getIndex("UpdateType/Action");
     const int iDateTime = reader.getIndex("Date-Time");
@@ -41,13 +40,13 @@ int main(int argc, char* argv[]) {
                 }
             }
             if (ric == "AAPL.O") {
-                fOut << dateTime.time_.time_ << "\r" << price << "\t" << volume << endl;
+                fOut << dateTime.time_.time_ << "\t" << price << "\t" << volume << endl;
             }
             LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume);
         } else {
             reader.skipLines(nFids);
         }
     }
-    LOG(INFO) << OUT(iLine);
+    LOG(INFO) << OUT(reader.line());
     return 0;
 }
