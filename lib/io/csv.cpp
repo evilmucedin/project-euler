@@ -59,6 +59,10 @@ int CsvParser::getInt(size_t index) const {
     return stoi(get(index));
 }
 
+double CsvParser::getDouble(size_t index) const {
+    return stod(get(index));
+}
+
 int CsvParser::getIndex(const string &s) const {
   return findWithDefault(fieldToIndex_, s, -1);
 }
@@ -86,4 +90,13 @@ void CsvParser::unquote(string& s) {
 
 size_t CsvParser::line() const {
     return iLine_;
+}
+
+bool CsvParser::skipLines(size_t nLines) {
+    for (size_t iLine = 0; iLine < nLines; ++iLine) {
+        if (!getline(*stream_, sLine_)) {
+            return false;
+        }
+    }
+    return true;
 }

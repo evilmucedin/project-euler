@@ -5,6 +5,7 @@ cxx_binary(
   ],
   deps=[
     "//lib:init",
+    "//lib:datetime",
     "//lib/io:csv",
     "//lib/io:fstream",
     "//lib/io:zstream",

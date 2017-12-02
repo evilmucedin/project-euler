@@ -147,60 +147,60 @@ cxx_library(
 cxx_library(
     name="radixSort",
     srcs=[
-      "radixSort.cpp",
+        "radixSort.cpp",
     ],
     exported_headers=[
-      "radixSort.h",
+        "radixSort.h",
     ],
     deps=[
-      ":header",
+        ":header",
     ],
     visibility=[
-      'PUBLIC',
+        'PUBLIC',
     ],
 )
 
 cxx_library(
     name="segmentTree",
     exported_headers=[
-      "segmentTree.h",
+        "segmentTree.h",
     ],
     deps=[
-      ":header",
+        ":header",
     ],
     visibility=[
-      'PUBLIC',
+        'PUBLIC',
     ],
 )
 
 cxx_library(
     name="timer",
     srcs=[
-      "timer.cpp",
+        "timer.cpp",
     ],
     exported_headers=[
-      "timer.h",
+        "timer.h",
     ],
     deps=[
-      ":header",
+        ":header",
     ],
     visibility=[
-      'PUBLIC',
+        'PUBLIC',
     ],
 )
 
 cxx_library(
     name="integrate",
     srcs=[
-      "integrate.cpp",
+        "integrate.cpp",
     ],
     exported_headers=[
-      "integrate.h",
+        "integrate.h",
     ],
     deps=[
-      ":header",
+        ":header",
     ],
     visibility=[
-      'PUBLIC',
+        'PUBLIC',
     ],
 )
