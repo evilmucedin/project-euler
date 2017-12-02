@@ -57,9 +57,9 @@ void checkPeek(istream* is_p, const string& filename, ios_base::openmode mode) {
 }
 }
 
-IFstream::IFstream(const string& filename, ios_base::openmode mode) { open(filename, mode); }
+IFStream::IFStream(const string& filename, ios_base::openmode mode) { open(filename, mode); }
 
-void IFstream::open(const string& filename, ios_base::openmode mode) {
+void IFStream::open(const string& filename, ios_base::openmode mode) {
     mode |= ios_base::in;
     exceptions(ios_base::badbit);
     checkMode(filename, mode);
@@ -68,9 +68,9 @@ void IFstream::open(const string& filename, ios_base::openmode mode) {
     checkPeek(this, filename, mode);
 }
 
-OFstream::OFstream(const string& filename, ios_base::openmode mode) { open(filename, mode); }
+OFStream::OFStream(const string& filename, ios_base::openmode mode) { open(filename, mode); }
 
-void OFstream::open(const string& filename, ios_base::openmode mode) {
+void OFStream::open(const string& filename, ios_base::openmode mode) {
     mode |= ios_base::out;
     exceptions(ios_base::badbit);
     checkMode(filename, mode);
