@@ -1,4 +1,6 @@
 #include "glog/logging.h"
+#include "eigen/Dense"
+
 #include "lib/datetime.h"
 #include "lib/header.h"
 #include "lib/init.h"
@@ -7,6 +9,8 @@
 #include "lib/io/zstream.h"
 #include "lib/string.h"
 #include "lib/timer.h"
+
+using namespace Eigen;
 
 static const string kAaplFilename = "aapl.tsv";
 static const string kAaplTimeSeries = "aapl.ts";
@@ -88,8 +92,48 @@ void predict() {
     for (size_t i = 0; i < kN; ++i) {
         ts[i] = stod(split(fIn.readLine(), '\t')[1]);
     }
-    constexpr size_t kDim = 10;
-    constexpr size_t kPoints = kN / 2;
+    constexpr size_t kDim = 32;
+    constexpr size_t kPoints = kN/2;
+    // Rows Cols
+    Matrix<double, kDim, kPoints> x;
+    for (size_t i = 0; i < kDim; ++i) {
+        for (size_t j = 0; j < kPoints; ++j) {
+            x(i, j) = ts[i + j];
+        }
+    }
+    // cout << x << endl;
+
+    auto c = x * x.transpose() / kPoints;
+    SelfAdjointEigenSolver<MatrixXd> esC(c);
+    // cout << c << endl;
+    cout << esC.eigenvalues() << endl;
+    auto v = esC.eigenvectors();
+    //cout << "v:" << endl << v << endl;
+
+    constexpr size_t kR = 8;
+
+    Matrix<double, kDim - 1, kR> vStar;
+    for (size_t i = 0; i < kDim - 1; ++i) {
+        for (size_t j = 0; j < kR; ++j) {
+            vStar(i, j) = v(i, kDim - 1 - j);
+        }
+    }
+    // cout << "vStar:" << endl << vStar << endl;
+    Matrix<double, 1, kR> vTau;
+    for (size_t i = 0; i < kR; ++i) {
+        vTau(0, i) = v(kDim - 1, kDim - 1 - i);
+    }
+
+    auto vTauVTauTM = vTau*vTau.transpose();
+    auto vTauVTauT = vTauVTauTM(0, 0);
+    auto predictionM = (vTau * vStar.transpose()) / (1 - vTauVTauT);
+    Matrix<double, kDim - 1, 1> q;
+    for (size_t i = 0; i < kDim - 1; ++i) {
+        q(i, 0) = ts[(kPoints - 1 + kDim - 1) + i - (kDim - 1)];
+    }
+    cout << "q:" << endl << q << endl;
+    cout << "prediction: " << endl << predictionM * q << endl;
+    cout << "real: " << endl << ts[kPoints - 1 + kDim - 1] << endl;
 }
 
 int main(int argc, char* argv[]) {

@@ -26,6 +26,7 @@ cxx_library(
         "src/Core/arch/SSE/Complex.h",
         "src/Core/arch/SSE/MathFunctions.h",
         "src/Core/arch/SSE/PacketMath.h",
+        "src/Core/arch/SSE/TypeCasting.h",
         "src/Core/ArithmeticSequence.h",
         "src/Core/ArrayBase.h",
         "src/Core/Array.h",
@@ -178,6 +179,8 @@ cxx_library(
         "src/SVD/JacobiSVD.h",
         "src/SVD/SVDBase.h",
         "src/SVD/UpperBidiagonalization.h",
+        "src/LU/arch/Inverse_SSE.h",
+        "src/Geometry/arch/Geometry_SSE.h",
     ],
     visibility=[
         "PUBLIC",

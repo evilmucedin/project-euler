@@ -4,12 +4,13 @@ cxx_binary(
     "TimeSeries.cpp"
   ],
   deps=[
-    "//lib:init",
+    "//eigen:eigen",
     "//lib:datetime",
-    "//lib:string",
+    "//lib:init",
     "//lib/io:csv",
     "//lib/io:fstream",
     "//lib/io:zstream",
+    "//lib:string",
     "//lib:timer",
   ],
 )
