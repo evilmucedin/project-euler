@@ -6,6 +6,7 @@ cxx_binary(
   deps=[
     "//glog:glog",
     "//lib:header",
+    "//lib:matrix",
     "//lib:random",
     "//lib:timer",
   ],

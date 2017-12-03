@@ -54,17 +54,18 @@ void parseReuters() {
     LOG(INFO) << OUT(reader.line());
 }
 
+constexpr size_t kN = 1000;
+
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
     IFStream fIn(kAaplFilename);
     string line;
     constexpr double kTimeMin = 0.60417;
     constexpr double kTimeMax = 0.875004;
-    constexpr size_t kN = 1000;
     DoubleVector dv(kN);
     DoubleVector vol(kN);
     IntVector n(kN);
-    while (getline(fIn, line)) {
+    while (fIn.readLine(line)) {
         auto tokens = split(line, '\t');
         double time = stod(tokens[0]);
         double price = stod(tokens[1]);
@@ -80,9 +81,21 @@ void produceTimeSeries() {
     }
 }
 
+void predict() {
+    Timer tPreict("Predict");
+    IFStream fIn(kAaplTimeSeries);
+    DoubleVector ts(kN);
+    for (size_t i = 0; i < kN; ++i) {
+        ts[i] = stod(split(fIn.readLine(), '\t')[1]);
+    }
+    constexpr size_t kDim = 10;
+    constexpr size_t kPoints = kN / 2;
+}
+
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
     // parseReuters();
-    produceTimeSeries();
+    // produceTimeSeries();
+    predict();
     return 0;
 }

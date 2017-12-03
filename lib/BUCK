@@ -31,6 +31,22 @@ cxx_library(
 )
 
 cxx_library(
+    name="matrix",
+    exported_headers=[
+        "matrix.h",
+    ],
+    srcs=[
+        "matrix.cpp",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
     name="string",
     exported_headers=[
         "string.h",

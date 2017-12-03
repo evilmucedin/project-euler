@@ -68,6 +68,18 @@ void IFStream::open(const string& filename, ios_base::openmode mode) {
     checkPeek(this, filename, mode);
 }
 
+bool IFStream::readLine(string& line) {
+    return (bool)std::getline(*this, line);
+}
+
+string IFStream::readLine() {
+    string line;
+    if (!readLine(line)) {
+        throw Exception("Read failed");
+    }
+    return line;
+}
+
 OFStream::OFStream(const string& filename, ios_base::openmode mode) { open(filename, mode); }
 
 void OFStream::open(const string& filename, ios_base::openmode mode) {
