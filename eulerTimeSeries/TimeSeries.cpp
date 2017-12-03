@@ -13,8 +13,10 @@
 
 using namespace Eigen;
 
-static const string kAaplFilename = "aapl.tsv";
-static const string kAaplTimeSeries = "aapl.ts";
+static const string kStock = "AAPL.O";
+// static const string kStock = "YNDX.O";
+static const string kAaplFilename = kStock + ".tsv";
+static const string kAaplTimeSeries = kStock + ".ts";
 
 void parseReuters() {
     Timer tTotal("Parse Reuters");
@@ -47,7 +49,7 @@ void parseReuters() {
                     volume = reader.getDouble(iFidValue);
                 }
             }
-            if (ric == "AAPL.O") {
+            if (ric == kStock) {
                 if (volume > 0) {
                     fOut << dateTime.time_.time_ << "\t" << price << "\t" << volume << endl;
                 }
@@ -82,8 +84,12 @@ void produceTimeSeries() {
         ++n[iBucket];
     }
     OFStream fOut(kAaplTimeSeries);
+    double price = 0;
     for (size_t i = 0; i < kN; ++i) {
-        fOut << i << "\t" << dv[i]/vol[i] << "\t" << vol[i] << "\t" << n[i] << endl;
+        if (vol[i] != 0) {
+            price = dv[i]/vol[i];
+        }
+        fOut << i << "\t" << price << "\t" << vol[i] << "\t" << n[i] << endl;
     }
 }
 
@@ -124,6 +130,7 @@ struct SpectralPredictor {
 
         SelfAdjointEigenSolver<MatrixXd> esC(c);
         auto v = esC.eigenvectors();
+        // LOG(INFO) << OUTLN(esC.eigenvalues()) << OUTLN(v);
 
         for (size_t i = 0; i < nDim_ - 1; ++i) {
             for (size_t j = 0; j < nEigen_; ++j) {
@@ -136,6 +143,7 @@ struct SpectralPredictor {
         }
 
         auto predictionM = (vTau_ * vStar_.transpose()) / (1.0 - (vTau_ * vTau_.transpose())(0, 0));
+        cout << OUTLN(predictionM) << OUTLN(predictionM.sum());
 
         DoubleVector computed;
         auto getPoint = [&](size_t index) {
@@ -147,7 +155,7 @@ struct SpectralPredictor {
 
         for (size_t iStep = 0; iStep < steps; ++iStep) {
             for (size_t i = 0; i < nDim_ - 1; ++i) {
-                q_(i, 0) = getPoint((nPoints_ - 1 + nDim_ - 1) + i - (nDim_ - 1) + iStep);
+                q_(i, 0) = getPoint((nPoints_ - 1 + nDim_) + i - (nDim_ - 1) + iStep);
             }
 
             computed.emplace_back((predictionM * q_)(0, 0));
@@ -176,14 +184,14 @@ void predict() {
         // ts[i] = i;
     }
 
-    constexpr size_t kPoints = kN/2;
+    constexpr size_t kPoints = 700;
     constexpr size_t kDim = 32;
-    constexpr size_t kR = 8;
+    constexpr size_t kR = 5;
     SpectralPredictor sp(kPoints, kDim, kR);
 
     double errorSpectral = 0;
     double errorLast = 0;
-    constexpr size_t kSteps = 5;
+    constexpr size_t kSteps = 10;
 
     for (size_t i = 0; i < ts.size(); ++i) {
         sp.addPoint(ts[i]);
