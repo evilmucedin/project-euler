@@ -7,60 +7,46 @@
 
 #include <unistd.h>
 
-class Semaphore
-{
-private:
+class Semaphore {
+   private:
     std::mutex mutex_;
     std::condition_variable condition_;
-    unsigned long count_ = 0; // Initialized as locked.
+    size_t count_ = 0;
 
-public:
-    Semaphore(unsigned long count) {
-        count_ = count;
-    }
+   public:
+    Semaphore(size_t count) { count_ = count; }
 
-    void notify(int count = 1) {
+    void notify(size_t count = 1) {
         std::unique_lock<decltype(mutex_)> lock(mutex_);
         count_ += count;
         condition_.notify_one();
     }
 
-    void wait(int count = 1) {
+    void wait(size_t count = 1) {
         std::unique_lock<decltype(mutex_)> lock(mutex_);
-        while (count_ < count) // Handle spurious wake-ups.
+        while (count_ < count) {
             condition_.wait(lock);
+        }
         count_ -= count;
     }
 };
 
-
 class ReadWriteLock {
-private:
+   private:
     static constexpr size_t kMaxReads = 1000;
 
-public:
-    ReadWriteLock()
-        : s_(kMaxReads)
-    {
-    }
+   public:
+    ReadWriteLock() : s_(kMaxReads) {}
 
-    void acquireReadLock() {
-        s_.wait();
-    }
+    void acquireReadLock() { s_.wait(); }
 
-    void releaseReadLock() {
-        s_.notify();
-    }
+    void releaseReadLock() { s_.notify(); }
 
-    void acquireWriteLock() {
-        s_.wait(kMaxReads);
-    }
+    void acquireWriteLock() { s_.wait(kMaxReads); }
 
-    void releaseWriteLock() {
-        s_.notify(kMaxReads);
-    }
+    void releaseWriteLock() { s_.notify(kMaxReads); }
 
-private:
+   private:
     Semaphore s_;
 };
 
@@ -75,7 +61,7 @@ void testOneWrite() {
     ReadWriteLock rw;
     for (size_t i = 0; i < kThreads; ++i) {
         threads[i] = thread([&]() {
-            for (size_t j  = 0; j < nTries; ++j) {
+            for (size_t j = 0; j < nTries; ++j) {
                 if (rand() & 1) {
                     rw.acquireWriteLock();
                     if (0 != readCounter) {
@@ -127,7 +113,7 @@ void testOneWrite() {
             }
         });
     }
-    for (auto& t: threads) {
+    for (auto& t : threads) {
         t.join();
     }
     cout << "ReadCounter: " << readCounter << " WriteCounter: " << writeCounter << " MaxReadCounter: " << maxReadCounter << endl;
