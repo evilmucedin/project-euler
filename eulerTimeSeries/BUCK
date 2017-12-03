@@ -10,6 +10,7 @@ cxx_binary(
     "//lib/io:csv",
     "//lib/io:fstream",
     "//lib/io:zstream",
+    "//lib:math",
     "//lib:string",
     "//lib:timer",
   ],

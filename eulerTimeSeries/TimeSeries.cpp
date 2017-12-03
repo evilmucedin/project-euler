@@ -4,6 +4,7 @@
 #include "lib/datetime.h"
 #include "lib/header.h"
 #include "lib/init.h"
+#include "lib/math.h"
 #include "lib/io/csv.h"
 #include "lib/io/fstream.h"
 #include "lib/io/zstream.h"
@@ -17,7 +18,8 @@ static const string kAaplTimeSeries = "aapl.ts";
 
 void parseReuters() {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz", std::ifstream::binary);
+    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz",
+                                     std::ifstream::binary);
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
@@ -85,55 +87,113 @@ void produceTimeSeries() {
     }
 }
 
+struct SpectralPredictor {
+   public:
+    SpectralPredictor(size_t nPoints, size_t nDim, size_t nEigen)
+        : nPoints_(nPoints),
+          nDim_(nDim),
+          nEigen_(nEigen),
+          x_(nDim_, nPoints_),
+          vStar_(nDim_ - 1, nEigen_),
+          vTau_(1, nEigen_),
+          q_(nDim_ - 1, 1) {}
+
+    void addPoint(double value) {
+        points_.emplace_back(value);
+        while (points_.size() > nPoints_ - 1 + nDim_) {
+            points_.pop_front();
+        }
+    }
+
+    double predict(size_t steps) {
+        if (points_.empty()) {
+            return 0;
+        }
+
+        if (points_.size() != nPoints_ - 1 + nDim_) {
+            return points_.back();
+        }
+
+        for (size_t i = 0; i < nDim_; ++i) {
+            for (size_t j = 0; j < nPoints_; ++j) {
+                x_(i, j) = points_[i + j];
+            }
+        }
+
+        auto c = x_ * x_.transpose() / nPoints_;
+
+        SelfAdjointEigenSolver<MatrixXd> esC(c);
+        auto v = esC.eigenvectors();
+
+        for (size_t i = 0; i < nDim_ - 1; ++i) {
+            for (size_t j = 0; j < nEigen_; ++j) {
+                vStar_(i, j) = v(i, nDim_ - 1 - j);
+            }
+        }
+
+        for (size_t i = 0; i < nEigen_; ++i) {
+            vTau_(0, i) = v(nDim_ - 1, nDim_ - 1 - i);
+        }
+
+        auto predictionM = (vTau_ * vStar_.transpose()) / (1.0 - (vTau_ * vTau_.transpose())(0, 0));
+
+        DoubleVector computed;
+        auto getPoint = [&](size_t index) {
+            if (index < points_.size()) {
+                return points_[index];
+            }
+            return computed[index - points_.size()];
+        };
+
+        for (size_t iStep = 0; iStep < steps; ++iStep) {
+            for (size_t i = 0; i < nDim_ - 1; ++i) {
+                q_(i, 0) = getPoint((nPoints_ - 1 + nDim_ - 1) + i - (nDim_ - 1) + iStep);
+            }
+
+            computed.emplace_back((predictionM * q_)(0, 0));
+        }
+
+        return computed.back();
+    }
+
+   private:
+    size_t nPoints_;
+    size_t nDim_;
+    size_t nEigen_;
+    MatrixXd x_;
+    MatrixXd vStar_;
+    MatrixXd vTau_;
+    MatrixXd q_;
+    deque<double> points_;
+};
+
 void predict() {
     Timer tPreict("Predict");
     IFStream fIn(kAaplTimeSeries);
     DoubleVector ts(kN);
     for (size_t i = 0; i < kN; ++i) {
         ts[i] = stod(split(fIn.readLine(), '\t')[1]);
+        // ts[i] = i;
     }
-    constexpr size_t kDim = 32;
+
     constexpr size_t kPoints = kN/2;
-    // Rows Cols
-    Matrix<double, kDim, kPoints> x;
-    for (size_t i = 0; i < kDim; ++i) {
-        for (size_t j = 0; j < kPoints; ++j) {
-            x(i, j) = ts[i + j];
-        }
-    }
-    // cout << x << endl;
-
-    auto c = x * x.transpose() / kPoints;
-    SelfAdjointEigenSolver<MatrixXd> esC(c);
-    // cout << c << endl;
-    cout << esC.eigenvalues() << endl;
-    auto v = esC.eigenvectors();
-    //cout << "v:" << endl << v << endl;
-
+    constexpr size_t kDim = 32;
     constexpr size_t kR = 8;
+    SpectralPredictor sp(kPoints, kDim, kR);
 
-    Matrix<double, kDim - 1, kR> vStar;
-    for (size_t i = 0; i < kDim - 1; ++i) {
-        for (size_t j = 0; j < kR; ++j) {
-            vStar(i, j) = v(i, kDim - 1 - j);
+    double errorSpectral = 0;
+    double errorLast = 0;
+    constexpr size_t kSteps = 5;
+
+    for (size_t i = 0; i < ts.size(); ++i) {
+        sp.addPoint(ts[i]);
+        if (i != 0 && i + kSteps < ts.size()) {
+            errorSpectral += sqr(sp.predict(kSteps) - ts[i + kSteps]);
+            errorLast += sqr(ts[i] - ts[i + kSteps]);
         }
     }
-    // cout << "vStar:" << endl << vStar << endl;
-    Matrix<double, 1, kR> vTau;
-    for (size_t i = 0; i < kR; ++i) {
-        vTau(0, i) = v(kDim - 1, kDim - 1 - i);
-    }
 
-    auto vTauVTauTM = vTau*vTau.transpose();
-    auto vTauVTauT = vTauVTauTM(0, 0);
-    auto predictionM = (vTau * vStar.transpose()) / (1 - vTauVTauT);
-    Matrix<double, kDim - 1, 1> q;
-    for (size_t i = 0; i < kDim - 1; ++i) {
-        q(i, 0) = ts[(kPoints - 1 + kDim - 1) + i - (kDim - 1)];
-    }
-    cout << "q:" << endl << q << endl;
-    cout << "prediction: " << endl << predictionM * q << endl;
-    cout << "real: " << endl << ts[kPoints - 1 + kDim - 1] << endl;
+    LOG(INFO) << OUT(kR) << OUT(errorSpectral) << OUT(errorLast);
 }
 
 int main(int argc, char* argv[]) {

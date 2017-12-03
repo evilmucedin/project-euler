@@ -261,3 +261,4 @@ class Exception : public std::exception {
 string homeDir();
 
 #define OUT(X) #X << ": " << X << ", "
+#define OUTLN(X) #X << ": " << endl << X << endl
