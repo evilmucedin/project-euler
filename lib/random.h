@@ -14,6 +14,11 @@ T rand01() {
 }
 
 template<typename T>
+T randAB(T a, T b) {
+    return rand01<T>() * (b - a) + a;
+}
+
+template<typename T>
 T rand1() {
     static std::uniform_real_distribution<T> unif(-1, 1);
     return unif(getRandomNumberGenerator());

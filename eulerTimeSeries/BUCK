@@ -11,6 +11,8 @@ cxx_binary(
     "//lib/io:fstream",
     "//lib/io:zstream",
     "//lib:math",
+    "//lib:matrix",
+    "//lib:random",
     "//lib:string",
     "//lib:timer",
   ],

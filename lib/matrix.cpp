@@ -1,7 +1,6 @@
 #include "lib/matrix.h"
 
 ostream& operator<<(ostream& s, const Matrix& m) {
-    s << endl;
     for (u32 i = 0; i < m.dim_; ++i) {
         for (u32 j = 0; j < m.dim_; ++j) {
             s << m.data_[i][j] << " ";
@@ -13,10 +12,7 @@ ostream& operator<<(ostream& s, const Matrix& m) {
 }
 
 Matrix Matrix::invert() const {
-    Matrix result(dim_);
-    for (u32 i = 0; i < dim_; ++i) {
-        result.data_[i][i] = 1.0;
-    }
+    auto result = Matrix::one(dim_);
 
     constexpr double kEps = 1e-9;
 
@@ -53,9 +49,9 @@ Matrix Matrix::invert() const {
         double mx = fabs(copy.data_[i][i]);
         u32 mxIndex = i;
         for (u32 j = i + 1; j < dim_; ++j) {
-            double mjj = fabs(copy.data_[j][j]);
-            if (mjj > mx) {
-                mx = mjj;
+            double mji = fabs(copy.data_[j][i]);
+            if (mji > mx) {
+                mx = mji;
                 mxIndex = j;
             }
         }
@@ -75,8 +71,8 @@ Matrix Matrix::invert() const {
         }
     }
 
-    // LOG(INFO) << copy;
-    // LOG(INFO) << result;
+    // cout << OUTLN(copy);
+    // cout << OUTLN(result);
     // LOG(INFO) << (*this)*result;
 
     return result;
@@ -156,3 +152,62 @@ Vector Matrix::operator*(const Vector& m) const {
     return result;
 }
 
+Matrix& Matrix::operator/=(double x) {
+    for (u32 i = 0; i < dim_; ++i) {
+        for (u32 j = 0; j < dim_; ++j) {
+            data_[i][j] /= x;
+        }
+    }
+    return *this;
+}
+
+Matrix Matrix::one(u32 dim) {
+    Matrix m(dim);
+    for (u32 i = 0; i < dim; ++i) {
+        m.data_[i][i] = 1.0;
+    }
+    return m;
+}
+
+VectorPoint::VectorPoint() {}
+
+VectorPoint::VectorPoint(u32 dim) : a_(dim) {}
+
+u32 VectorPoint::dimension() const { return a_.size(); }
+
+DoubleVector VectorPoint::asVector() const {
+    auto a = a_;
+    a.emplace_back(b_);
+    return a;
+}
+
+ostream& operator<<(ostream& o, const VectorPoint& p) {
+    o << "(" << p.b_ << ", " << p.a_ << ")";
+    return o;
+}
+
+DoubleVector linearRegression(const VectorPoints& points) {
+    assert(!points.empty());
+
+    Matrix xtx(points[0].dimension());
+    Vector xty(points[0].dimension());
+
+    for (u32 iVectorPoint = 0; iVectorPoint < points.size(); ++iVectorPoint) {
+        const auto& p = points[iVectorPoint];
+        assert(p.dimension() == xty.size());
+        for (size_t i = 0; i < p.dimension(); ++i) {
+            for (size_t j = 0; j < p.dimension(); ++j) {
+                xtx.data_[i][j] += p.a_[i] * p.a_[j];
+            }
+        }
+        for (size_t i = 0; i < p.dimension(); ++i) {
+            xty[i] += p.a_[i] * p.b_;
+        }
+    }
+    xtx /= points.size();
+    for (auto& x : xty) {
+        x /= points.size();
+    }
+
+    return xtx.invert() * xty;
+}

@@ -7,29 +7,7 @@
 
 constexpr u32 kDim = 200;
 
-struct Point {
-    Point() {}
-
-    Point(u32 dim) : a_(dim) {}
-
-    u32 dimension() const { return a_.size(); }
-
-    Vector getVector() const {
-        auto a = a_;
-        a.emplace_back(b_);
-        return a;
-    }
-
-    Vector a_;
-    double b_;
-};
-
-ostream& operator<<(ostream& o, const Point& p) {
-    o << "(" << p.b_ << ", " << p.a_ << ")";
-    return o;
-}
-
-Vector genRandomPoint(u32 dim) {
+Vector genRandomVector(u32 dim) {
     Vector result(dim);
     for (auto& x : result) {
         x = rand1<double>();
@@ -37,8 +15,8 @@ Vector genRandomPoint(u32 dim) {
     return result;
 }
 
-Point getRandomPoint(const Vector& plane) {
-    Point p(plane.size());
+VectorPoint getRandomVectorPoint(const Vector& plane) {
+    VectorPoint p(plane.size());
     p.b_ = rand1<double>();
     for (u32 i = 0; i < plane.size(); ++i) {
         p.a_[i] = rand1<double>();
@@ -48,16 +26,16 @@ Point getRandomPoint(const Vector& plane) {
 }
 
 int main() {
-    auto b = genRandomPoint(kDim);
+    auto b = genRandomVector(kDim);
 
     Matrix xtx(kDim);
     Vector xty(kDim);
 
     {
         Timer tGen("Generate");
-        constexpr u32 kPoints = 4000 * kDim;
-        for (u32 iPoint = 0; iPoint < kPoints; ++iPoint) {
-            auto p = getRandomPoint(b);
+        constexpr u32 kVectorPoints = 4000 * kDim;
+        for (u32 iVectorPoint = 0; iVectorPoint < kVectorPoints; ++iVectorPoint) {
+            auto p = getRandomVectorPoint(b);
             for (size_t i = 0; i < p.dimension(); ++i) {
                 for (size_t j = 0; j < p.dimension(); ++j) {
                     xtx.data_[i][j] += p.a_[i] * p.a_[j];
@@ -71,7 +49,7 @@ int main() {
 
     {
         Timer tSolve("Invert");
-        Matrix inv = xtx.invert();
+        auto inv = xtx.invert();
         tSolve.finish();
         Vector bPrime = inv * xty;
 
@@ -83,7 +61,7 @@ int main() {
 
     {
         Timer tSolve("Cholesky");
-        Matrix chol = xtx.cholesky();
+        auto chol = xtx.cholesky();
         tSolve.finish();
         Matrix xtx2 = chol*chol.transpose();
         LOG(INFO) << OUT(xtx.norm2()) << OUT(xtx2.norm2()) << OUT((xtx - xtx2).norm2());

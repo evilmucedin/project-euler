@@ -1,9 +1,7 @@
 #pragma once
 
 #include <cmath>
-#ifndef NDEBUG
-#   include <cassert>
-#endif
+#include <cassert>
 
 #include <algorithm>
 #include <fstream>
