@@ -64,7 +64,7 @@ void parseReuters() {
     LOG(INFO) << OUT(reader.line());
 }
 
-constexpr size_t kN = 1000;
+constexpr size_t kN = 60*8;
 
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
@@ -132,7 +132,8 @@ class SpectralPredictor {
 
         SelfAdjointEigenSolver<MatrixXd> esC(c);
         auto v = esC.eigenvectors();
-        // LOG(INFO) << OUTLN(esC.eigenvalues()) << OUTLN(v);
+        LOG(INFO) << OUTLN(esC.eigenvalues());
+        // LOG(INFO) << OUTLN(v);
 
         for (size_t i = 0; i < nDim_ - 1; ++i) {
             for (size_t j = 0; j < nEigen_; ++j) {
@@ -183,7 +184,7 @@ struct LinearPredictor {
 
     void addPoint(double value) {
         points_.emplace_back(value);
-        while (points_.size() > nPoints_ - 1 + nDim_) {
+        while (points_.size() > nPoints_ - 1 + nDim_ + 1000) {
             points_.pop_front();
         }
     }
@@ -193,7 +194,7 @@ struct LinearPredictor {
             return 0;
         }
 
-        if (points_.size() < nDim_ + steps + 200) {
+        if (points_.size() < nDim_ + steps + 40) {
             return points_.back();
         }
 
@@ -209,7 +210,8 @@ struct LinearPredictor {
         }
 
         auto b = linearRegression(points);
-        LOG_EVERY_MS(INFO, 100) << OUTLN(b);
+        // LOG_EVERY_MS(INFO, 100) << OUTLN(b);
+        // cout << OUTLN(b);
 
         DoubleVector computed;
         auto getPoint = [&](size_t index) {
@@ -248,9 +250,9 @@ void predict() {
         // ts[i] = 10.0*sin((double)i/100.0);
     }
 
-    constexpr size_t kPoints = 700;
+    constexpr size_t kPoints = 50;
     constexpr size_t kDim = 32;
-    constexpr size_t kR = 5;
+    constexpr size_t kR = 3;
     SpectralPredictor sp(kPoints, kDim, kR);
     LinearPredictor lp(kPoints, kDim);
 
@@ -275,7 +277,7 @@ void predict() {
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
     // parseReuters();
-    // produceTimeSeries();
+    produceTimeSeries();
     predict();
     return 0;
 }

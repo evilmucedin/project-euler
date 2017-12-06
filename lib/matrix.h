@@ -16,6 +16,7 @@ struct Matrix {
     Vector operator*(const Vector& m) const;
     Matrix& operator/=(double x);
     double norm2() const;
+    u32 dimension() const;
 
     static Matrix one(u32 dim);
 

@@ -110,6 +110,8 @@ double Matrix::norm2() const {
     return sqrt(sum);
 }
 
+u32 Matrix::dimension() const { return data_.size(); }
+
 Matrix Matrix::transpose() const {
     Matrix result(dim_);
     for (u32 i = 0; i < dim_; ++i) {
@@ -208,6 +210,8 @@ DoubleVector linearRegression(const VectorPoints& points) {
     for (auto& x : xty) {
         x /= points.size();
     }
+
+    // cout << OUT((xtx.invert() * xtx - Matrix::one(xtx.dimension())).norm2()) << endl;
 
     return xtx.invert() * xty;
 }
