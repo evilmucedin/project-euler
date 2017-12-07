@@ -188,7 +188,7 @@ ostream& operator<<(ostream& o, const VectorPoint& p) {
     return o;
 }
 
-DoubleVector linearRegression(const VectorPoints& points) {
+DoubleVector linearRegression(const VectorPoints& points, double rigid) {
     assert(!points.empty());
 
     Matrix xtx(points[0].dimension());
@@ -205,6 +205,9 @@ DoubleVector linearRegression(const VectorPoints& points) {
         for (size_t i = 0; i < p.dimension(); ++i) {
             xty[i] += p.a_[i] * p.b_;
         }
+    }
+    for (size_t i = 0; i < xtx.dimension(); ++i) {
+        xtx.data_[i][i] += rigid;
     }
     xtx /= points.size();
     for (auto& x : xty) {

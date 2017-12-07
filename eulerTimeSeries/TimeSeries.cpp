@@ -132,7 +132,7 @@ class SpectralPredictor {
 
         SelfAdjointEigenSolver<MatrixXd> esC(c);
         auto v = esC.eigenvectors();
-        LOG(INFO) << OUTLN(esC.eigenvalues());
+        // LOG(INFO) << OUTLN(esC.eigenvalues());
         // LOG(INFO) << OUTLN(v);
 
         for (size_t i = 0; i < nDim_ - 1; ++i) {
@@ -209,9 +209,9 @@ struct LinearPredictor {
             points.emplace_back(std::move(point));
         }
 
-        auto b = linearRegression(points);
+        auto b = linearRegression(points, points_[0]*points_[0]*points_.size()/100000);
         // LOG_EVERY_MS(INFO, 100) << OUTLN(b);
-        // cout << OUTLN(b);
+        cout << OUTLN(b);
 
         DoubleVector computed;
         auto getPoint = [&](size_t index) {

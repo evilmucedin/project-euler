@@ -38,7 +38,7 @@ using VectorPoints = vector<VectorPoint>;
 
 ostream& operator<<(ostream& o, const VectorPoint& p);
 
-DoubleVector linearRegression(const VectorPoints& points);
+DoubleVector linearRegression(const VectorPoints& points, double rigid = 0.0);
 
 template<typename T>
 T dot(const vector<T>& a, const vector<T>& b) {
