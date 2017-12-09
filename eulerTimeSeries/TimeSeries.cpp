@@ -19,6 +19,32 @@ static const string kStock = "AAPL.O";
 // static const string kStock = "YNDX.O";
 static const string kAaplFilename = kStock + ".tsv";
 static const string kAaplTimeSeries = kStock + ".ts";
+static const string kHistogram = "histogram.tsv";
+
+struct Histogramer {
+    void add(const string& ric, double volume) { storage_[ric].emplace_back(volume); }
+
+    void dump() {
+        OFStream fOut(kHistogram);
+        for (auto& kv : storage_) {
+            auto& values = kv.second;
+            sort(values.begin(), values.end());
+
+            auto p = [&](double percentile) {
+                return string("\t") + to_string(values[static_cast<size_t>(percentile * values.size())]);
+            };
+
+            fOut << kv.first;
+            for (auto percentile : {0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999,
+                                    0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
+                fOut << p(percentile);
+            }
+            fOut << endl;
+        }
+    }
+
+    map<string, DoubleVector> storage_;
+};
 
 void parseReuters() {
     Timer tTotal("Parse Reuters");
@@ -34,6 +60,7 @@ void parseReuters() {
     const int iFidValue = reader.getIndex("FID Value");
     const int iRic = reader.getIndex("#RIC");
     OFStream fOut(kAaplFilename);
+    Histogramer h;
     while (reader.readLine()) {
         int nFids = reader.getInt(iFIDNumber);
         auto recordType = reader.get(iType);
@@ -51,6 +78,7 @@ void parseReuters() {
                     volume = reader.getDouble(iFidValue);
                 }
             }
+            h.add(ric, volume);
             if (ric == kStock) {
                 if (volume > 0) {
                     fOut << dateTime.time_.time_ << "\t" << price << "\t" << volume << endl;
@@ -62,6 +90,7 @@ void parseReuters() {
         }
     }
     LOG(INFO) << OUT(reader.line());
+    h.dump();
 }
 
 constexpr size_t kN = 60*8;
@@ -276,7 +305,7 @@ void predict() {
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
-    // parseReuters();
+    parseReuters();
     produceTimeSeries();
     predict();
     return 0;
