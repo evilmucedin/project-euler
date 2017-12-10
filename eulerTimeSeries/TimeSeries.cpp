@@ -93,7 +93,7 @@ void parseReuters() {
     h.dump();
 }
 
-constexpr size_t kN = 60*8;
+constexpr size_t kN = 60*16;
 
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
@@ -243,7 +243,7 @@ struct LinearPredictor {
 
         auto b = linearRegression(points, points_[0]*points_[0]*points_.size()/100000);
         // LOG_EVERY_MS(INFO, 100) << OUTLN(b);
-        cout << OUTLN(b);
+        // cout << OUTLN(b);
 
         DoubleVector computed;
         auto getPoint = [&](size_t index) {
@@ -274,30 +274,71 @@ struct LinearPredictor {
 
 struct SGDPredictor {
    public:
-    SGDPredictor(size_t nDim, size_t nSteps)
-        : nDim_(nDim), nSteps_(nSteps), q_(nDim_ + 1) {
+    SGDPredictor(size_t nDim, size_t nSteps) : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1) {
+        for (auto& x : q_) {
+            x = randAB<double>(-1.0, 1.0) / 100;
+        }
+        x_[0] = 1;
     }
 
     void addPoint(double value) {
         points_.emplace_back(value);
-        while (points_.size() > nSteps_ - 1 + nDim_) {
+        while (points_.size() > nSteps_ + nDim_) {
             points_.pop_front();
+        }
+
+        if (points_.size() == nSteps_ + nDim_) {
+            ++nIt_;
+
+            for (size_t i = 0; i < nDim_; ++i) {
+                x_[i + 1] = points_[i];
+            }
+
+            double y = mul();
+            double err = y - points_.back();
+            // cout << OUT(x_) << OUTLN(q_);
+
+            constexpr double kLambda1 = 0.000001;
+            constexpr double kLambda2 = 0.000001;
+            for (size_t i = 0; i < q_.size(); ++i) {
+                q_[i] -= kLambda1 * err * x_[i];
+                q_[i] -= kLambda2 * q_[i];
+            }
+            cout << OUT(err) << OUTLN(q_);
         }
     }
 
-    double predict(size_t steps) {
+    double mul() const {
+        double res = 0;
+        for (size_t i = 0; i < q_.size(); ++i) {
+            res += q_[i] * x_[i];
+        }
+        return res;
+    }
+
+    double predict() {
         if (points_.empty()) {
             return 0;
         }
 
-        return points_.back();
+        while ((points_.size() < nDim_ + nSteps_) || (nIt_ < 20)) {
+            return points_.back();
+        }
+
+        for (size_t i = 0; i < nDim_; ++i) {
+            x_[i + 1] = points_[i + nSteps_];
+        }
+
+        return mul();
     }
 
    private:
     size_t nDim_;
     size_t nSteps_;
+    size_t nIt_;
     deque<double> points_;
     DoubleVector q_;
+    DoubleVector x_;
 };
 
 void predict() {
@@ -330,7 +371,7 @@ void predict() {
         if (i != 0 && i + kSteps < ts.size()) {
             errorSpectral += sqr(sp.predict(kSteps) - ts[i + kSteps]);
             errorLinear += sqr(lp.predict(kSteps) - ts[i + kSteps]);
-            errorSGD += sqr(sgd.predict(kSteps) - ts[i + kSteps]);
+            errorSGD += sqr(sgd.predict() - ts[i + kSteps]);
             errorLast += sqr(ts[i] - ts[i + kSteps]);
         }
     }
