@@ -35,15 +35,15 @@ struct Histogramer {
             };
 
             fOut << kv.first;
-            for (auto percentile : {0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999,
-                                    0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
+            for (auto percentile :
+                 {0, 0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999, 0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
                 fOut << p(percentile);
             }
             fOut << endl;
         }
     }
 
-    map<string, DoubleVector> storage_;
+    unordered_map<string, DoubleVector> storage_;
 };
 
 void parseReuters() {
@@ -78,7 +78,9 @@ void parseReuters() {
                     volume = reader.getDouble(iFidValue);
                 }
             }
-            h.add(ric, volume);
+            if (0 != volume) {
+                h.add(ric, volume);
+            }
             if (ric == kStock) {
                 if (volume > 0) {
                     fOut << dateTime.time_.time_ << "\t" << price << "\t" << volume << endl;
