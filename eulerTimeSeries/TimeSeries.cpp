@@ -1,4 +1,5 @@
 #include "glog/logging.h"
+#include "gflags/gflags.h"
 #include "eigen/Dense"
 
 #include "lib/datetime.h"
@@ -12,6 +13,8 @@
 #include "lib/random.h"
 #include "lib/string.h"
 #include "lib/timer.h"
+
+DEFINE_bool(generate, false, "parse raw Reuters data");
 
 using namespace Eigen;
 
@@ -36,7 +39,7 @@ struct Histogramer {
 
             fOut << kv.first;
             for (auto percentile :
-                 {0, 0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999, 0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
+                 {0.0, 0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999, 0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
                 fOut << p(percentile);
             }
             fOut << endl;
@@ -383,7 +386,9 @@ void predict() {
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
-    // parseReuters();
+    if (FLAGS_generate) {
+        parseReuters();
+    }
     produceTimeSeries();
     predict();
     return 0;
