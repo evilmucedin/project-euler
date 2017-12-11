@@ -279,7 +279,7 @@ struct LinearPredictor {
 
 struct SGDPredictor {
    public:
-    SGDPredictor(size_t nDim, size_t nSteps) : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1) {
+    SGDPredictor(size_t nDim, size_t nSteps) : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1), sg_(nDim_ + 1) {
         for (auto& x : q_) {
             x = randAB<double>(-1.0, 1.0) / 100;
         }
@@ -305,8 +305,11 @@ struct SGDPredictor {
 
             constexpr double kLambda1 = 0.000001;
             constexpr double kLambda2 = 0.000001;
+            constexpr double kEps = 0.1;
             for (size_t i = 0; i < q_.size(); ++i) {
-                q_[i] -= kLambda1 * err * x_[i];
+                double g = kLambda1 * err * x_[i];
+                q_[i] -= 1.0 / sqrt(sg_[i] + kEps) * g;
+                sg_[i] += sqr(g);
                 q_[i] -= kLambda2 * q_[i];
             }
             cout << OUT(err) << OUTLN(q_);
@@ -344,6 +347,7 @@ struct SGDPredictor {
     deque<double> points_;
     DoubleVector q_;
     DoubleVector x_;
+    DoubleVector sg_;
 };
 
 void predict() {
