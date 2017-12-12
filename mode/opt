@@ -1,6 +1,6 @@
 --config
-cxx.cppflags=-O3 -DNDEBUG -std=c++14 -Wall
+cxx.cppflags=-O3 -DNDEBUG -std=c++14 -Wall -march=native
 --config
-cxx.cflags=-O3 -DNDEBUG -Wall
+cxx.cflags=-O3 -DNDEBUG -Wall -march=native
 --config
-cxx.cxxflags=-O3 -DNDEBUG -std=c++14 -Wall
+cxx.cxxflags=-O3 -DNDEBUG -std=c++14 -Wall -march=native
