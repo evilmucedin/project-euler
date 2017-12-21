@@ -20,6 +20,11 @@ static const string kStock = "AAPL.O";
 static const string kAaplFilename = kStock + ".tsv";
 static const string kAaplTimeSeries = kStock + ".ts";
 
+struct BidAsk {
+    double bid_;
+    double ask_;
+};
+
 void parseReuters() {
     Timer tTotal("Parse Reuters");
     auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz",
@@ -34,6 +39,8 @@ void parseReuters() {
     const int iFidValue = reader.getIndex("FID Value");
     const int iRic = reader.getIndex("#RIC");
     OFStream fOut(kAaplFilename);
+    std::unordered_map<std::string, BidAsk> bidask;
+    OFStream fPriceLevelsOut("priceLevels.tsv");
     while (reader.readLine()) {
         int nFids = reader.getInt(iFIDNumber);
         auto recordType = reader.get(iType);
@@ -47,6 +54,13 @@ void parseReuters() {
                 auto fidName = reader.get(iFidName);
                 if (fidName == "TRDPRC_1") {
                     price = reader.getDouble(iFidValue);
+                    double spread = bidask[ric].bid_ - bidask[ric].ask_;
+                    double bam = (bidask[ric].bid_ + bidask[ric].ask_) / 2;
+                    double priceLevel = 0;
+                    if (spread) {
+                        priceLevel = (price - bam) / spread;
+                    }
+                    fPriceLevelsOut << ric << "\t" << bidask[ric].bid_ << "\t" << bidask[ric].ask_ << "\t" << price << "\t" << priceLevel << std::endl;
                 } else if (fidName == "TRDVOL_1") {
                     volume = reader.getDouble(iFidValue);
                 }
@@ -57,6 +71,21 @@ void parseReuters() {
                 }
             }
             LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume);
+        } else if (recordType == "QUOTE") {
+            auto ric = reader.get(iRic);
+            for (int iFid = 0; iFid < nFids; ++iFid) {
+                reader.readLine();
+                auto fidName = reader.get(iFidName);
+                if (fidName == "BID") {
+                    if (!reader.empty(iFidValue)) {
+                        bidask[ric].bid_ = reader.getDouble(iFidValue);
+                    }
+                } else if (fidName == "ASK") {
+                    if (!reader.empty(iFidValue)) {
+                        bidask[ric].ask_ = reader.getDouble(iFidValue);
+                    }
+                }
+            }
         } else {
             reader.skipLines(nFids);
         }
@@ -276,8 +305,8 @@ void predict() {
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
-    // parseReuters();
-    produceTimeSeries();
-    predict();
+    parseReuters();
+    // produceTimeSeries();
+    // predict();
     return 0;
 }

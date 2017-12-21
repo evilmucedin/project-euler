@@ -63,6 +63,10 @@ double CsvParser::getDouble(size_t index) const {
     return stod(get(index));
 }
 
+bool CsvParser::empty(size_t index) const {
+    return line_[index].empty();
+}
+
 int CsvParser::getIndex(const string &s) const {
   return findWithDefault(fieldToIndex_, s, -1);
 }
