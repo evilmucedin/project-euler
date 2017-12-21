@@ -14,12 +14,12 @@
 #include "lib/string.h"
 #include "lib/timer.h"
 
-DEFINE_bool(generate, false, "parse raw Reuters data");
+DEFINE_bool(generate, true, "parse raw Reuters data");
 
 using namespace Eigen;
 
-static const string kStock = "AAPL.O";
-// static const string kStock = "YNDX.O";
+// static const string kStock = "AAPL.O";
+static const string kStock = "YNDX.O";
 static const string kAaplFilename = kStock + ".tsv";
 static const string kAaplTimeSeries = kStock + ".ts";
 static const string kHistogram = "histogram.tsv";
@@ -52,12 +52,12 @@ struct Histogramer {
 struct BidAsk {
     double bid_;
     double ask_;
+    double quoteTime_;
 };
 
 void parseReuters() {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz",
-                                     std::ifstream::binary);
+    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz", std::ifstream::binary);
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
@@ -67,20 +67,30 @@ void parseReuters() {
     const int iFidName = reader.getIndex("FID Name");
     const int iFidValue = reader.getIndex("FID Value");
     const int iRic = reader.getIndex("#RIC");
+    const int iIndex = reader.getIndex("Key/Msg Sequence Number");
     OFStream fOut(kAaplFilename);
     std::unordered_map<std::string, BidAsk> bidask;
     OFStream fPriceLevelsOut("priceLevels.tsv");
+    OFStream fSubset("subset.csv");
     Histogramer h;
     while (reader.readLine()) {
         int nFids = reader.getInt(iFIDNumber);
         auto recordType = reader.get(iType);
+        auto index = reader.getInt(iIndex);
         if (recordType == "TRADE") {
             auto ric = reader.get(iRic);
-            DateTime dateTime(reader.get(iDateTime));
+            if (ric == kStock) {
+                fSubset << reader.line() << std::endl;
+            }
+            auto timestamp = reader.get(iDateTime);
+            DateTime dateTime(timestamp);
             double price = 0;
             double volume = 0;
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
+                if (ric == kStock) {
+                    fSubset << reader.line() << std::endl;
+                }
                 auto fidName = reader.get(iFidName);
                 if (fidName == "TRDPRC_1") {
                     price = reader.getDouble(iFidValue);
@@ -90,7 +100,8 @@ void parseReuters() {
                     if (spread) {
                         priceLevel = (price - bam) / spread;
                     }
-                    fPriceLevelsOut << ric << "\t" << bidask[ric].bid_ << "\t" << bidask[ric].ask_ << "\t" << price << "\t" << priceLevel << std::endl;
+                    fPriceLevelsOut << ric << "\t" << timestamp << "\t" << dateTime.time_.time_ << "\t" << bidask[ric].quoteTime_ << "\t" << bidask[ric].bid_ << "\t"
+                                    << bidask[ric].ask_ << "\t" << price << "\t" << priceLevel << "\t" << index << std::endl;
                 } else if (fidName == "TRDVOL_1") {
                     volume = reader.getDouble(iFidValue);
                 }
@@ -106,16 +117,26 @@ void parseReuters() {
             LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume);
         } else if (recordType == "QUOTE") {
             auto ric = reader.get(iRic);
+            if (ric == kStock) {
+                fSubset << reader.line() << std::endl;
+            }
+            auto timestamp = reader.get(iDateTime);
+            DateTime dateTime(timestamp);
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
+                if (ric == kStock) {
+                    fSubset << reader.line() << std::endl;
+                }
                 auto fidName = reader.get(iFidName);
                 if (fidName == "BID") {
                     if (!reader.empty(iFidValue)) {
                         bidask[ric].bid_ = reader.getDouble(iFidValue);
+                        bidask[ric].quoteTime_ = dateTime.time_.time_;
                     }
                 } else if (fidName == "ASK") {
                     if (!reader.empty(iFidValue)) {
                         bidask[ric].ask_ = reader.getDouble(iFidValue);
+                        bidask[ric].quoteTime_ = dateTime.time_.time_;
                     }
                 }
             }

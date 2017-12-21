@@ -15,8 +15,9 @@ class CsvParser {
     bool empty(size_t index) const;
 
     int getIndex(const string& s) const;
-    size_t line() const;
+    size_t lineIndex() const;
     bool skipLines(size_t nLines);
+    std::string line() const;
 
    private:
     void unquote(string& s);

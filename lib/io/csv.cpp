@@ -92,8 +92,12 @@ void CsvParser::unquote(string& s) {
     s.resize(w - s.data());
 }
 
-size_t CsvParser::line() const {
+size_t CsvParser::lineIndex() const {
     return iLine_;
+}
+
+std::string CsvParser::line() const {
+    return sLine_;
 }
 
 bool CsvParser::skipLines(size_t nLines) {
