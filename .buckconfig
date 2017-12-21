@@ -1,5 +1,5 @@
 [cxx]
-cflags=-std=c++14 -march=native
+cflags=-march=native
 cppflags=-std=c++14 -march=native
 cxxflags=-std=c++14 -march=native
 ldflags=-pthread -march=native

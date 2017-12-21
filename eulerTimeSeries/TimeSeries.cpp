@@ -1,4 +1,5 @@
 #include "glog/logging.h"
+#include "gflags/gflags.h"
 #include "eigen/Dense"
 
 #include "lib/datetime.h"
@@ -13,12 +14,40 @@
 #include "lib/string.h"
 #include "lib/timer.h"
 
+DEFINE_bool(generate, false, "parse raw Reuters data");
+
 using namespace Eigen;
 
 static const string kStock = "AAPL.O";
 // static const string kStock = "YNDX.O";
 static const string kAaplFilename = kStock + ".tsv";
 static const string kAaplTimeSeries = kStock + ".ts";
+static const string kHistogram = "histogram.tsv";
+
+struct Histogramer {
+    void add(const string& ric, double volume) { storage_[ric].emplace_back(volume); }
+
+    void dump() {
+        OFStream fOut(kHistogram);
+        for (auto& kv : storage_) {
+            auto& values = kv.second;
+            sort(values.begin(), values.end());
+
+            auto p = [&](double percentile) {
+                return string("\t") + to_string(values[static_cast<size_t>(percentile * values.size())]);
+            };
+
+            fOut << kv.first;
+            for (auto percentile :
+                 {0.0, 0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999, 0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
+                fOut << p(percentile);
+            }
+            fOut << endl;
+        }
+    }
+
+    unordered_map<string, DoubleVector> storage_;
+};
 
 struct BidAsk {
     double bid_;
@@ -41,6 +70,7 @@ void parseReuters() {
     OFStream fOut(kAaplFilename);
     std::unordered_map<std::string, BidAsk> bidask;
     OFStream fPriceLevelsOut("priceLevels.tsv");
+    Histogramer h;
     while (reader.readLine()) {
         int nFids = reader.getInt(iFIDNumber);
         auto recordType = reader.get(iType);
@@ -64,6 +94,9 @@ void parseReuters() {
                 } else if (fidName == "TRDVOL_1") {
                     volume = reader.getDouble(iFidValue);
                 }
+            }
+            if (0 != volume) {
+                h.add(ric, volume);
             }
             if (ric == kStock) {
                 if (volume > 0) {
@@ -91,9 +124,10 @@ void parseReuters() {
         }
     }
     LOG(INFO) << OUT(reader.line());
+    h.dump();
 }
 
-constexpr size_t kN = 60*8;
+constexpr size_t kN = 60*16;
 
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
@@ -209,7 +243,10 @@ class SpectralPredictor {
 
 struct LinearPredictor {
    public:
-    LinearPredictor(size_t nPoints, size_t nDim) : nPoints_(nPoints), nDim_(nDim), q_(nDim_ + 1) { q_[nDim_] = 1.0; }
+    LinearPredictor(size_t nPoints, size_t nDim)
+        : nPoints_(nPoints), nDim_(nDim), q_(nDim_ + 1) {
+        q_[nDim_] = 1.0;
+    }
 
     void addPoint(double value) {
         points_.emplace_back(value);
@@ -240,7 +277,7 @@ struct LinearPredictor {
 
         auto b = linearRegression(points, points_[0]*points_[0]*points_.size()/100000);
         // LOG_EVERY_MS(INFO, 100) << OUTLN(b);
-        cout << OUTLN(b);
+        // cout << OUTLN(b);
 
         DoubleVector computed;
         auto getPoint = [&](size_t index) {
@@ -269,6 +306,79 @@ struct LinearPredictor {
     DoubleVector q_;
 };
 
+struct SGDPredictor {
+   public:
+    SGDPredictor(size_t nDim, size_t nSteps) : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1), sg_(nDim_ + 1) {
+        for (auto& x : q_) {
+            x = randAB<double>(-1.0, 1.0) / 100;
+        }
+        x_[0] = 1;
+    }
+
+    void addPoint(double value) {
+        points_.emplace_back(value);
+        while (points_.size() > nSteps_ + nDim_) {
+            points_.pop_front();
+        }
+
+        if (points_.size() == nSteps_ + nDim_) {
+            ++nIt_;
+
+            for (size_t i = 0; i < nDim_; ++i) {
+                x_[i + 1] = points_[i];
+            }
+
+            double y = mul();
+            double err = y - points_.back();
+            // cout << OUT(x_) << OUTLN(q_);
+
+            constexpr double kLambda1 = 0.000001;
+            constexpr double kLambda2 = 0.000001;
+            constexpr double kEps = 0.1;
+            for (size_t i = 0; i < q_.size(); ++i) {
+                double g = kLambda1 * err * x_[i];
+                q_[i] -= 1.0 / sqrt(sg_[i] + kEps) * g;
+                sg_[i] += sqr(g);
+                q_[i] -= kLambda2 * q_[i];
+            }
+            cout << OUT(err) << OUTLN(q_);
+        }
+    }
+
+    double mul() const {
+        double res = 0;
+        for (size_t i = 0; i < q_.size(); ++i) {
+            res += q_[i] * x_[i];
+        }
+        return res;
+    }
+
+    double predict() {
+        if (points_.empty()) {
+            return 0;
+        }
+
+        while ((points_.size() < nDim_ + nSteps_) || (nIt_ < 20)) {
+            return points_.back();
+        }
+
+        for (size_t i = 0; i < nDim_; ++i) {
+            x_[i + 1] = points_[i + nSteps_];
+        }
+
+        return mul();
+    }
+
+   private:
+    size_t nDim_;
+    size_t nSteps_;
+    size_t nIt_;
+    deque<double> points_;
+    DoubleVector q_;
+    DoubleVector x_;
+    DoubleVector sg_;
+};
+
 void predict() {
     Timer tPreict("Predict");
     IFStream fIn(kAaplTimeSeries);
@@ -282,31 +392,37 @@ void predict() {
     constexpr size_t kPoints = 50;
     constexpr size_t kDim = 32;
     constexpr size_t kR = 3;
+    constexpr size_t kSteps = 10;
     SpectralPredictor sp(kPoints, kDim, kR);
     LinearPredictor lp(kPoints, kDim);
+    SGDPredictor sgd(kDim, kSteps);
 
     double errorSpectral = 0;
     double errorLinear = 0;
+    double errorSGD = 0;
     double errorLast = 0;
-    constexpr size_t kSteps = 10;
 
     for (size_t i = 0; i < ts.size(); ++i) {
         sp.addPoint(ts[i]);
         lp.addPoint(ts[i]);
+        sgd.addPoint(ts[i]);
         if (i != 0 && i + kSteps < ts.size()) {
             errorSpectral += sqr(sp.predict(kSteps) - ts[i + kSteps]);
             errorLinear += sqr(lp.predict(kSteps) - ts[i + kSteps]);
+            errorSGD += sqr(sgd.predict() - ts[i + kSteps]);
             errorLast += sqr(ts[i] - ts[i + kSteps]);
         }
     }
 
-    LOG(INFO) << OUT(kR) << OUT(errorSpectral) << OUT(errorLinear) << OUT(errorLast);
+    LOG(INFO) << OUT(kR) << OUT(errorSpectral) << OUT(errorLinear) << OUT(errorLast) << OUT(errorSGD);
 }
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
-    parseReuters();
-    // produceTimeSeries();
-    // predict();
+    if (FLAGS_generate) {
+        parseReuters();
+    }
+    produceTimeSeries();
+    predict();
     return 0;
 }

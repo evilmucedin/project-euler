@@ -1,0 +1,9 @@
+cxx_binary(
+  name="SGD",
+  srcs=[
+    "SGD.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
