@@ -220,3 +220,19 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="fft",
+    srcs=[
+        "fft.cpp",
+    ],
+    exported_headers=[
+        "fft.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

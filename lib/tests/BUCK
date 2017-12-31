@@ -67,3 +67,15 @@ cxx_test(
     "//gtest:gtest",
   ],
 )
+
+cxx_test(
+  name="fftTest",
+  srcs=[
+    "fftTest.cpp",
+  ],
+  deps=[
+    "//lib:fft",
+    "//lib:random",
+    "//gtest:gtest",
+  ],
+)
