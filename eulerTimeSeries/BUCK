@@ -7,6 +7,7 @@ cxx_binary(
     "//eigen:eigen",
     "//gflags:gflags",
     "//lib:datetime",
+    "//lib:fft",
     "//lib:init",
     "//lib/io:csv",
     "//lib/io:fstream",

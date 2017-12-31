@@ -3,6 +3,7 @@
 #include "eigen/Dense"
 
 #include "lib/datetime.h"
+#include "lib/fft.h"
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
@@ -14,12 +15,13 @@
 #include "lib/string.h"
 #include "lib/timer.h"
 
-DEFINE_bool(generate, true, "parse raw Reuters data");
+DEFINE_bool(generate, false, "parse raw Reuters data");
 
 using namespace Eigen;
 
 // static const string kStock = "AAPL.O";
-static const string kStock = "YNDX.O";
+// static const string kStock = "YNDX.O";
+static const string kStock = "AAAP.O";
 static const string kAaplFilename = kStock + ".tsv";
 static const string kAaplTimeSeries = kStock + ".ts";
 static const string kHistogram = "histogram.tsv";
@@ -400,15 +402,35 @@ struct SGDPredictor {
     DoubleVector sg_;
 };
 
-void predict() {
-    Timer tPreict("Predict");
+DoubleVector readTimeSeries(const std::string& filename) {
     IFStream fIn(kAaplTimeSeries);
     DoubleVector ts(kN);
     for (size_t i = 0; i < kN; ++i) {
         ts[i] = stod(split(fIn.readLine(), '\t')[1]);
-        // ts[i] = static_cast<double>(i) + 10*sin(i);
-        // ts[i] = 10.0*sin((double)i/100.0);
     }
+
+    return ts;
+}
+
+void fftTimeSeries() {
+    Timer tFFT("FFT");
+    auto ts = readTimeSeries(kAaplTimeSeries);
+    fft::ComplexVector cts(ts.size());
+    for (size_t i = 0; i < ts.size(); ++i) {
+        cts[i] = complex<double>(ts[i], 0);
+    }
+    fft::transform(cts);
+    for (size_t i = 0; i < cts.size(); ++i) {
+        cout << i << "\t" << cts[i] << "\t" << abs(cts[i]) << endl;
+    }
+}
+
+void predict() {
+    Timer tPreict("Predict");
+    auto ts = readTimeSeries(kAaplTimeSeries);
+
+    // ts[i] = static_cast<double>(i) + 10*sin(i);
+    // ts[i] = 10.0*sin((double)i/100.0);
 
     constexpr size_t kPoints = 50;
     constexpr size_t kDim = 32;
@@ -444,6 +466,7 @@ int main(int argc, char* argv[]) {
         parseReuters();
     }
     produceTimeSeries();
-    predict();
+    fftTimeSeries();
+    // predict();
     return 0;
 }

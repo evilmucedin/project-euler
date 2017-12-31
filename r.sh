@@ -24,10 +24,11 @@ shift $((${OPTIND} - 1))
 
 ${buck_bin} build @mode/opt euler$1/...
 res=$?
+args="${@:2}"
 if [ 0 -eq ${res} ]; then
     if [ ${measure_time} -eq 1 ]; then
-       time buck-out/gen/euler$1/$1
+       time buck-out/gen/euler$1/$1 $args
     else
-       buck-out/gen/euler$1/$1
+       buck-out/gen/euler$1/$1 $args
     fi
 fi

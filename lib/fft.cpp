@@ -24,11 +24,13 @@ void transform(ComplexVector& vec) {
 }
 
 void inverseTransform(ComplexVector& vec) {
-    std::transform(vec.cbegin(), vec.cend(), vec.begin(),
-                   static_cast<complex<double> (*)(const complex<double> &)>(std::conj));
+    for (auto& x: vec) {
+        x = std::conj(x);
+    }
     transform(vec);
-    std::transform(vec.cbegin(), vec.cend(), vec.begin(),
-                   static_cast<complex<double> (*)(const complex<double> &)>(std::conj));
+    for (auto& x: vec) {
+        x = std::conj(x);
+    }
 }
 
 void transformRadix2(ComplexVector& vec) {
@@ -42,11 +44,11 @@ void transformRadix2(ComplexVector& vec) {
     }
 
     ComplexVector expTable(n / 2);
-    for (size_t i = 0; i < n / 2; i++) {
-        expTable[i] = std::exp(complex<double>(0, -2 * M_PI * i / n));
+    for (size_t i = 0; i + i < n; ++i) {
+        expTable[i] = std::exp(complex<double>(0, -2.0 * M_PI * i / n));
     }
 
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         size_t j = reverseBits(i, levels);
         if (j > i) {
             std::swap(vec[i], vec[j]);
@@ -88,37 +90,37 @@ void transformBluestein(ComplexVector& vec) {
     }
 
     ComplexVector av(m);
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         av[i] = vec[i] * expTable[i];
     }
     ComplexVector bv(m);
     bv[0] = expTable[0];
-    for (size_t i = 1; i < n; i++) {
+    for (size_t i = 1; i < n; ++i) {
         bv[i] = bv[m - i] = std::conj(expTable[i]);
     }
 
     ComplexVector cv(m);
     convolve(av, bv, cv);
 
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         vec[i] = cv[i] * expTable[i];
     }
 }
 
 void convolve(const ComplexVector& xvec, const ComplexVector& yvec, ComplexVector& outvec) {
     size_t n = xvec.size();
-    if (n != yvec.size() || n != outvec.size()) {
+    if ((n != yvec.size()) || (n != outvec.size())) {
         throw Exception("Mismatched lengths");
     }
     ComplexVector xv = xvec;
     ComplexVector yv = yvec;
     transform(xv);
     transform(yv);
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         xv[i] *= yv[i];
     }
     inverseTransform(xv);
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         outvec[i] = xv[i] / static_cast<double>(n);
     }
 }
