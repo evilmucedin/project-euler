@@ -1,36 +1,14 @@
 #include "fft.h"
 
 namespace {
+using namespace fft;
+
 size_t reverseBits(size_t x, int n) {
     size_t result = 0;
     for (int i = 0; i < n; i++, x >>= 1) {
         result = (result << 1) | (x & 1U);
     }
     return result;
-}
-}  // namespace
-
-namespace fft {
-
-void transform(ComplexVector& vec) {
-    size_t n = vec.size();
-    if (n == 0) {
-        return;
-    } else if ((n & (n - 1)) == 0) {
-        transformRadix2(vec);
-    } else {
-        transformBluestein(vec);
-    }
-}
-
-void inverseTransform(ComplexVector& vec) {
-    for (auto& x: vec) {
-        x = std::conj(x);
-    }
-    transform(vec);
-    for (auto& x: vec) {
-        x = std::conj(x);
-    }
 }
 
 void transformRadix2(ComplexVector& vec) {
@@ -45,7 +23,7 @@ void transformRadix2(ComplexVector& vec) {
 
     ComplexVector expTable(n / 2);
     for (size_t i = 0; i + i < n; ++i) {
-        expTable[i] = std::exp(complex<double>(0, -2.0 * M_PI * i / n));
+        expTable[i] = std::exp(complex<double>(0, (-2.0 * M_PI * i) / n));
     }
 
     for (size_t i = 0; i < n; ++i) {
@@ -107,6 +85,46 @@ void transformBluestein(ComplexVector& vec) {
     }
 }
 
+}  // namespace
+
+namespace fft {
+
+void normalize(ComplexVector& vct) {
+    for (auto& x : vct) {
+        x /= vct.size();
+    }
+}
+
+void transformNotNorm(ComplexVector& vec) {
+    size_t n = vec.size();
+    if (n == 0) {
+        return;
+    } else if ((n & (n - 1)) == 0) {
+        transformRadix2(vec);
+    } else {
+        transformBluestein(vec);
+    }
+}
+
+void inverseTransformNotNorm(ComplexVector& vec) {
+    for (auto& x : vec) {
+        x = std::conj(x);
+    }
+    transformNotNorm(vec);
+    for (auto& x : vec) {
+        x = std::conj(x);
+    }
+}
+void transform(ComplexVector& vec) {
+    transformNotNorm(vec);
+    normalize(vec);
+}
+
+void inverseTransform(ComplexVector& vec) {
+    inverseTransformNotNorm(vec);
+    normalize(vec);
+}
+
 void convolve(const ComplexVector& xvec, const ComplexVector& yvec, ComplexVector& outvec) {
     size_t n = xvec.size();
     if ((n != yvec.size()) || (n != outvec.size())) {
@@ -114,12 +132,12 @@ void convolve(const ComplexVector& xvec, const ComplexVector& yvec, ComplexVecto
     }
     ComplexVector xv = xvec;
     ComplexVector yv = yvec;
-    transform(xv);
-    transform(yv);
+    transformNotNorm(xv);
+    transformNotNorm(yv);
     for (size_t i = 0; i < n; ++i) {
         xv[i] *= yv[i];
     }
-    inverseTransform(xv);
+    inverseTransformNotNorm(xv);
     for (size_t i = 0; i < n; ++i) {
         outvec[i] = xv[i] / static_cast<double>(n);
     }

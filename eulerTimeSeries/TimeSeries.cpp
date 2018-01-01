@@ -415,13 +415,44 @@ DoubleVector readTimeSeries(const std::string& filename) {
 void fftTimeSeries() {
     Timer tFFT("FFT");
     auto ts = readTimeSeries(kAaplTimeSeries);
-    fft::ComplexVector cts(ts.size());
+
+    auto avg = average(ts);
+    DoubleVector nts(ts.size());
     for (size_t i = 0; i < ts.size(); ++i) {
-        cts[i] = complex<double>(ts[i], 0);
+        nts[i] = ts[i] - avg;
     }
-    fft::transform(cts);
+
+    fft::ComplexVector cts(nts.size());
+    for (size_t i = 0; i < nts.size(); ++i) {
+        cts[i] = complex<double>(nts[i], 0);
+    }
+    fft::transformNotNorm(cts);
     for (size_t i = 0; i < cts.size(); ++i) {
         cout << i << "\t" << cts[i] << "\t" << abs(cts[i]) << endl;
+    }
+
+    auto restored = cts;
+    fft::inverseTransform(restored);
+
+    fft::ComplexVector extended(cts.size() + 20);
+    for (size_t i = 0; i < extended.size(); ++i) {
+        for (size_t j = 0; j < cts.size() / 10; ++j) {
+            extended[i] += cts[j] * std::exp(complex<double>(0, (2.0 * M_PI * i * j) / cts.size()));
+        }
+    }
+    for (auto& x: extended) {
+        x /= cts.size();
+    }
+
+    for (size_t i = 0; i < extended.size(); ++i) {
+        complex<double> r;
+        double p = 0;
+        if (i < restored.size()) {
+            r = restored[i];
+            p = nts[i];
+        }
+
+        cout << i << "\t" << p << "\t" << r << "\t" << extended[i] << endl;
     }
 }
 
