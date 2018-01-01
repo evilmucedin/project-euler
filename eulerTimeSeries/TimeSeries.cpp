@@ -422,8 +422,10 @@ void fftTimeSeries() {
         nts[i] = ts[i] - avg;
     }
 
-    fft::ComplexVector cts(nts.size());
-    for (size_t i = 0; i < nts.size(); ++i) {
+    static const size_t kHorizon = 20;
+    auto ctsSize = nts.size() - kHorizon;
+    fft::ComplexVector cts(ctsSize);
+    for (size_t i = 0; i < cts.size(); ++i) {
         cts[i] = complex<double>(nts[i], 0);
     }
     fft::transformNotNorm(cts);
@@ -434,9 +436,9 @@ void fftTimeSeries() {
     auto restored = cts;
     fft::inverseTransform(restored);
 
-    fft::ComplexVector extended(cts.size() + 20);
+    fft::ComplexVector extended(cts.size() + kHorizon);
     for (size_t i = 0; i < extended.size(); ++i) {
-        for (size_t j = 0; j < cts.size() / 10; ++j) {
+        for (size_t j = 0; j < 20; ++j) {
             extended[i] += cts[j] * std::exp(complex<double>(0, (2.0 * M_PI * i * j) / cts.size()));
         }
     }
@@ -449,10 +451,12 @@ void fftTimeSeries() {
         double p = 0;
         if (i < restored.size()) {
             r = restored[i];
+        }
+        if (i < nts.size()) {
             p = nts[i];
         }
 
-        cout << i << "\t" << p << "\t" << r << "\t" << extended[i] << endl;
+        cout << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << endl;
     }
 }
 
