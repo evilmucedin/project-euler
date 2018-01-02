@@ -1,6 +1,7 @@
 #include "glog/logging.h"
 #include "gflags/gflags.h"
 #include "eigen/Dense"
+#include "armadillo/armadillo"
 
 #include "lib/datetime.h"
 #include "lib/fft.h"
@@ -422,15 +423,23 @@ void fftTimeSeries() {
         nts[i] = ts[i] - avg;
     }
 
-    static const size_t kHorizon = 20;
+    static const size_t kHorizon = nts.size() / 2;
     auto ctsSize = nts.size() - kHorizon;
     fft::ComplexVector cts(ctsSize);
     for (size_t i = 0; i < cts.size(); ++i) {
         cts[i] = complex<double>(nts[i], 0);
     }
     fft::transformNotNorm(cts);
+
+    arma::cx_vec acts;
+    acts.zeros(cts.size());
     for (size_t i = 0; i < cts.size(); ++i) {
-        cout << i << "\t" << cts[i] << "\t" << abs(cts[i]) << endl;
+        acts[i] = complex<double>(nts[i], 0);
+    }
+    acts = arma::fft(acts);
+
+    for (size_t i = 0; i < cts.size(); ++i) {
+        cout << i << "\t" << cts[i] << "\t" << abs(cts[i]) << "\t" << acts[i] << endl;
     }
 
     auto restored = cts;
@@ -438,7 +447,7 @@ void fftTimeSeries() {
 
     fft::ComplexVector extended(cts.size() + kHorizon);
     for (size_t i = 0; i < extended.size(); ++i) {
-        for (size_t j = 0; j < 20; ++j) {
+        for (size_t j = 0; j < 7; ++j) {
             extended[i] += cts[j] * std::exp(complex<double>(0, (2.0 * M_PI * i * j) / cts.size()));
         }
     }
@@ -446,6 +455,7 @@ void fftTimeSeries() {
         x /= cts.size();
     }
 
+    OFStream fOut(kAaplTimeSeries + ".fft.tsv");
     for (size_t i = 0; i < extended.size(); ++i) {
         complex<double> r;
         double p = 0;
@@ -456,7 +466,7 @@ void fftTimeSeries() {
             p = nts[i];
         }
 
-        cout << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << endl;
+        fOut << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << endl;
     }
 }
 

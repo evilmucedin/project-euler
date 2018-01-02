@@ -4,6 +4,7 @@ cxx_binary(
     "TimeSeries.cpp"
   ],
   deps=[
+    "//armadillo:armadillo",
     "//eigen:eigen",
     "//gflags:gflags",
     "//lib:datetime",
