@@ -23,6 +23,7 @@ cxx_library(
     ],
     deps=[
         ":header",
+        "//gflags:gflags",
         "//glog:glog",
     ],
     visibility=[
