@@ -267,10 +267,7 @@ class SpectralPredictor {
 
 struct LinearPredictor {
    public:
-    LinearPredictor(size_t nPoints, size_t nDim)
-        : nPoints_(nPoints), nDim_(nDim), q_(nDim_ + 1) {
-        q_[nDim_] = 1.0;
-    }
+    LinearPredictor(size_t nPoints, size_t nDim) : nPoints_(nPoints), nDim_(nDim), q_(nDim_ + 1) { q_[nDim_] = 1.0; }
 
     void addPoint(double value) {
         points_.emplace_back(value);
@@ -299,7 +296,7 @@ struct LinearPredictor {
             points.emplace_back(std::move(point));
         }
 
-        auto b = linearRegression(points, points_[0]*points_[0]*points_.size()/100000);
+        auto b = linearRegression(points, points_[0] * points_[0] * points_.size() / 10000000);
         // LOG_EVERY_MS(INFO, 100) << OUTLN(b);
         // cout << OUTLN(b);
 
@@ -365,7 +362,7 @@ struct SGDPredictor {
                 sg_[i] += sqr(g);
                 q_[i] -= kLambda2 * q_[i];
             }
-            cout << OUT(err) << OUTLN(q_);
+            // cout << OUT(err) << OUTLN(q_);
         }
     }
 
@@ -477,7 +474,7 @@ void predict() {
     // ts[i] = static_cast<double>(i) + 10*sin(i);
     // ts[i] = 10.0*sin((double)i/100.0);
 
-    constexpr size_t kPoints = 50;
+    constexpr size_t kPoints = 200;
     constexpr size_t kDim = 32;
     constexpr size_t kR = 3;
     constexpr size_t kSteps = 10;
@@ -512,6 +509,6 @@ int main(int argc, char* argv[]) {
     }
     produceTimeSeries();
     fftTimeSeries();
-    // predict();
+    predict();
     return 0;
 }

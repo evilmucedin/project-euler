@@ -214,7 +214,15 @@ DoubleVector linearRegression(const VectorPoints& points, double rigid) {
         x /= points.size();
     }
 
-    // cout << OUT((xtx.invert() * xtx - Matrix::one(xtx.dimension())).norm2()) << endl;
+    auto b = xtx.invert() * xty;
 
-    return xtx.invert() * xty;
+    // cout << OUT((xtx.invert() * xtx - Matrix::one(xtx.dimension())).norm2()) << endl;
+    /*
+    for (size_t i = 0; i < points.size(); ++i) {
+        const auto& p = points[i];
+        cout << OUT(p.b_) << OUT(dot(p.a_, b)) << OUT(p.a_[p.a_.size() - 2]) << endl;
+    }
+    */
+
+    return b;
 }
