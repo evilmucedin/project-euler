@@ -2,7 +2,6 @@
 #include "gflags/gflags.h"
 #include "eigen/Dense"
 #include "armadillo/armadillo"
-#include "tiny_dnn/tiny_dnn.h"
 
 #include "lib/datetime.h"
 #include "lib/fft.h"
