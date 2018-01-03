@@ -17,6 +17,9 @@
 #include "lib/timer.h"
 
 DEFINE_bool(generate, false, "parse raw Reuters data");
+DEFINE_bool(fft, false, "fft");
+DEFINE_bool(linear, false, "linear");
+DEFINE_bool(dnn, false, "dnn");
 
 using namespace Eigen;
 
@@ -41,8 +44,8 @@ struct Histogramer {
             };
 
             fOut << kv.first;
-            for (auto percentile :
-                 {0.0, 0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999, 0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
+            for (auto percentile : {0.0, 0.683772233983162, 0.9, 0.9683772233983162, 0.99, 0.9968377223398316, 0.999,
+                                    0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
                 fOut << p(percentile);
             }
             fOut << endl;
@@ -60,7 +63,8 @@ struct BidAsk {
 
 void parseReuters() {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz", std::ifstream::binary);
+    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz",
+                                     std::ifstream::binary);
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
@@ -103,8 +107,9 @@ void parseReuters() {
                     if (spread) {
                         priceLevel = (price - bam) / spread;
                     }
-                    fPriceLevelsOut << ric << "\t" << timestamp << "\t" << dateTime.time_.time_ << "\t" << bidask[ric].quoteTime_ << "\t" << bidask[ric].bid_ << "\t"
-                                    << bidask[ric].ask_ << "\t" << price << "\t" << priceLevel << "\t" << index << std::endl;
+                    fPriceLevelsOut << ric << "\t" << timestamp << "\t" << dateTime.time_.time_ << "\t"
+                                    << bidask[ric].quoteTime_ << "\t" << bidask[ric].bid_ << "\t" << bidask[ric].ask_
+                                    << "\t" << price << "\t" << priceLevel << "\t" << index << std::endl;
                 } else if (fidName == "TRDVOL_1") {
                     volume = reader.getDouble(iFidValue);
                 }
@@ -507,8 +512,14 @@ int main(int argc, char* argv[]) {
     if (FLAGS_generate) {
         parseReuters();
     }
-    produceTimeSeries();
-    fftTimeSeries();
-    predict();
+    if (FLAGS_linear || FLAGS_fft) {
+        produceTimeSeries();
+    }
+    if (FLAGS_fft) {
+        fftTimeSeries();
+    }
+    if (FLAGS_linear) {
+        predict();
+    }
     return 0;
 }
