@@ -6,6 +6,7 @@ cxx_binary(
   deps=[
     "//armadillo:armadillo",
     "//eigen:eigen",
+    "//tiny_dnn:tiny_dnn",
     "//gflags:gflags",
     "//lib:datetime",
     "//lib:fft",
