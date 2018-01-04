@@ -614,11 +614,8 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
     StockStats data_;
 };
 
-using StockFeatures = vector<DoubleVector>;
 using StocksFeatures = unordered_map<string, StockFeatures>;
 
-static constexpr double kDNNFeatures = 3;
-static constexpr double kQuants = 24.0 * 60.0;
 static constexpr double kTimeQuant = 1.0 / kQuants;
 
 struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
