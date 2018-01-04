@@ -16,6 +16,8 @@
 #include "lib/string.h"
 #include "lib/timer.h"
 
+#include "DNN.h"
+
 DEFINE_bool(generate, false, "parse raw Reuters data");
 DEFINE_bool(fft, false, "fft");
 DEFINE_bool(linear, false, "linear");
