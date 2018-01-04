@@ -32,7 +32,7 @@ public:
 };
 
 using StockFeatures = vector<DoubleVector>;
-static constexpr size_t kDNNFeatures = 4;
-static constexpr double kQuants = 24.0 * 60.0;
+static constexpr size_t kDNNFeatures = 5;
+static constexpr size_t kQuants = 24 * 60;
 static constexpr size_t kDNNWindow = 100;
 static constexpr size_t kDNNHorizon = 10;

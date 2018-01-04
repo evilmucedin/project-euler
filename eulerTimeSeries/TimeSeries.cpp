@@ -188,7 +188,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
                 }
             }
             callback.onTrade(ric, dateTime, price, volume, bidasks[ric], index);
-            LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume);
+            LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume) << OUT(iMessage);
         } else if (recordType == "QUOTE") {
             auto ric = reader.get(iRic);
             if (ric == kStock) {
@@ -643,6 +643,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             }
             const auto& sd = toSd->second;
             double last = 0;
+            size_t index = 0;
             for (auto& features: stockPair.second) {
                 if (features[2]) {
                     features[1] /= features[2];
@@ -660,6 +661,8 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 } else {
                     features[3] = last;
                 }
+                features[4] = static_cast<double>(index)/kQuants;
+                ++index;
             }
         }
     }
@@ -675,32 +678,33 @@ void dnn() {
     StockFeaturizerReutersParserCallback featurizerCallback;
     parseReuters(kFilename, featurizerCallback);
     featurizerCallback.finish(stockStats);
+    const auto& features = featurizerCallback.features_;
+    LOG(INFO) << OUT(features.size());
 
-    auto genFeatures = [](const StockFeatures& features, size_t offset) {
+    auto genFeatures = [](const StockFeatures& sfeatures, size_t offset) {
         DoubleVector dnnFeatures;
         for (size_t j = offset; j < offset + kDNNWindow; ++j) {
             for (size_t k = 0; k < kDNNFeatures; ++k) {
-                dnnFeatures.emplace_back(features[j][k]);
+                dnnFeatures.emplace_back(sfeatures[j][k]);
             }
         }
         return dnnFeatures;
     };
 
-    auto genRet = [](const StockFeatures& features, size_t offset) {
-        return features[offset + kDNNWindow + kDNNHorizon - 1][3];
+    auto genRet = [](const StockFeatures& sfeatures, size_t offset) {
+        return sfeatures[offset + kDNNWindow + kDNNHorizon - 1][3];
     };
 
     DNNModelTrainer trainer;
     for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
-        const auto& features = featurizerCallback.features_;
         for (const auto& stockPair : features) {
             // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
-            const auto& features = stockPair.second;
+            const auto& sfeatures = stockPair.second;
             vector<DoubleVector> feats;
             DoubleVector label;
-            for (size_t i = 0; i + kDNNWindow + kDNNHorizon < features.size(); ++i) {
-                auto dnnFeatures = genFeatures(features, i);
-                double ret = genRet(features, i);
+            for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+                auto dnnFeatures = genFeatures(sfeatures, i);
+                double ret = genRet(sfeatures, i);
                 feats.emplace_back(std::move(dnnFeatures));
                 label.emplace_back(ret);
                 // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
@@ -714,19 +718,19 @@ void dnn() {
         double error0 = 0;
         size_t count = 0;
         for (const auto& stockPair : features) {
-            const auto& features = stockPair.second;
-            for (size_t i = 0; i + kDNNWindow + kDNNHorizon < features.size(); ++i) {
-                auto dnnFeatures = genFeatures(features, i);
-                double ret = genRet(features, i);
+            const auto& sfeatures = stockPair.second;
+            for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+                auto dnnFeatures = genFeatures(sfeatures, i);
+                double ret = genRet(sfeatures, i);
                 auto prediction = model->predict(dnnFeatures);
                 LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction);
                 error += sqr(prediction - ret);
-                error0 += sqr(dnnFeatures.back() - ret);
+                error0 += sqr(dnnFeatures[dnnFeatures.size() - 2] - ret);
                 ++count;
             }
         }
 
-        cout << "Predict error: " << error / count << " " << error0 / count << endl;
+        cout << "Predict error: " << error / count << " " << error0 / count << ", samples: " << count << endl;
         trainer.slowdown();
     }
 }

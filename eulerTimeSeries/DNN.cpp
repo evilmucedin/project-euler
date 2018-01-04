@@ -30,13 +30,13 @@ class DNNModel::Impl {
 
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
-        // nn_ << ll(kDNNWindow * kDNNFeatures);
-        nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();
-        nn_.weight_init(tiny_dnn::weight_init::he(1e-6));
-        nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::xavier());
-        // nn_.bias_init(tiny_dnn::weight_init::xavier());
-        // nn_.init_weight();
+        nn_ << fc(kDNNWindow * kDNNFeatures, 1) << ll(1);
+        // nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();
+        // nn_.weight_init(tiny_dnn::weight_init::he(1e-6));
+        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
+        nn_.weight_init(tiny_dnn::weight_init::xavier());
+        nn_.bias_init(tiny_dnn::weight_init::xavier());
+        nn_.init_weight();
     }
 
     Impl(const Impl& impl) { nn_ = impl.nn_; }
@@ -64,7 +64,7 @@ double DNNModel::predict(const DoubleVector& features) { return impl_->predict(f
 class DNNModelTrainer::Impl {
    public:
     Impl() {
-        optimizer_.alpha *= 0.001;
+        optimizer_.alpha *= 0.01;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
