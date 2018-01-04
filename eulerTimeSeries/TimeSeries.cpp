@@ -20,6 +20,7 @@ DEFINE_bool(generate, false, "parse raw Reuters data");
 DEFINE_bool(fft, false, "fft");
 DEFINE_bool(linear, false, "linear");
 DEFINE_bool(dnn, false, "dnn");
+DEFINE_int64(limit, numeric_limits<int64_t>::max(), "limit number of messages");
 
 using namespace Eigen;
 
@@ -29,6 +30,7 @@ static const string kStock = "AAAP.O";
 static const string kAaplFilename = kStock + ".tsv";
 static const string kAaplTimeSeries = kStock + ".ts";
 static const string kHistogram = "histogram.tsv";
+static const string kFilename = homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz";
 
 struct Histogramer {
     void add(const string& ric, double volume) { storage_[ric].emplace_back(volume); }
@@ -61,10 +63,84 @@ struct BidAsk {
     double quoteTime_;
 };
 
-void parseReuters() {
+struct IReutersParserCallback {
+    virtual void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                         int index) {}
+
+    virtual void onQuote(const std::string& ric, const DateTime& dt, const BidAsk& bidask) {}
+
+    virtual ~IReutersParserCallback() {}
+};
+
+struct ComplexReutersParserCallback : public IReutersParserCallback {
+    void addCallback(unique_ptr<IReutersParserCallback> callback) { callbacks_.emplace_back(std::move(callback)); }
+
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        for (auto& c : callbacks_) {
+            c->onTrade(ric, dt, price, volume, bidask, index);
+        }
+    }
+
+    void onQuote(const std::string& ric, const DateTime& dt, const BidAsk& bidask) override {
+        for (auto& c : callbacks_) {
+            c->onQuote(ric, dt, bidask);
+        }
+    }
+
+    vector<unique_ptr<IReutersParserCallback>> callbacks_;
+};
+
+struct HistogramerCallback : public IReutersParserCallback {
+    Histogramer h_;
+
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        if (0 != volume) {
+            h_.add(ric, volume);
+        }
+    }
+
+    ~HistogramerCallback() { h_.dump(); }
+};
+
+struct DumpCallback : public IReutersParserCallback {
+    DumpCallback() : fPriceLevelsOut("priceLevels.tsv") {}
+
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        double spread = bidask.bid_ - bidask.ask_;
+        double bam = (bidask.bid_ + bidask.ask_) / 2;
+        double priceLevel = 0;
+        if (spread) {
+            priceLevel = (price - bam) / spread;
+        }
+        fPriceLevelsOut << ric << "\t" << dt.str() << "\t" << dt.time_.time_ << "\t" << bidask.quoteTime_ << "\t"
+                        << bidask.bid_ << "\t" << bidask.ask_ << "\t" << price << "\t" << priceLevel << "\t" << index
+                        << std::endl;
+    }
+
+    OFStream fPriceLevelsOut;
+};
+
+struct DumpTSCallback : public IReutersParserCallback {
+    DumpTSCallback() : fOut(kAaplFilename) {}
+
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        if (ric == kStock) {
+            if (volume > 0) {
+                fOut << dt.time_.time_ << "\t" << price << "\t" << volume << endl;
+            }
+        }
+    }
+
+    OFStream fOut;
+};
+
+void parseReuters(const std::string& filename, IReutersParserCallback& callback) {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<IFStream>(homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz",
-                                     std::ifstream::binary);
+    auto fIn = make_shared<IFStream>(filename, std::ifstream::binary);
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
@@ -75,12 +151,16 @@ void parseReuters() {
     const int iFidValue = reader.getIndex("FID Value");
     const int iRic = reader.getIndex("#RIC");
     const int iIndex = reader.getIndex("Key/Msg Sequence Number");
-    OFStream fOut(kAaplFilename);
-    std::unordered_map<std::string, BidAsk> bidask;
-    OFStream fPriceLevelsOut("priceLevels.tsv");
+    unordered_map<std::string, BidAsk> bidasks;
+
     OFStream fSubset("subset.csv");
-    Histogramer h;
+    int64_t iMessage = 0;
     while (reader.readLine()) {
+        if (iMessage >= FLAGS_limit) {
+            break;
+        }
+        ++iMessage;
+
         int nFids = reader.getInt(iFIDNumber);
         auto recordType = reader.get(iType);
         auto index = reader.getInt(iIndex);
@@ -101,27 +181,11 @@ void parseReuters() {
                 auto fidName = reader.get(iFidName);
                 if (fidName == "TRDPRC_1") {
                     price = reader.getDouble(iFidValue);
-                    double spread = bidask[ric].bid_ - bidask[ric].ask_;
-                    double bam = (bidask[ric].bid_ + bidask[ric].ask_) / 2;
-                    double priceLevel = 0;
-                    if (spread) {
-                        priceLevel = (price - bam) / spread;
-                    }
-                    fPriceLevelsOut << ric << "\t" << timestamp << "\t" << dateTime.time_.time_ << "\t"
-                                    << bidask[ric].quoteTime_ << "\t" << bidask[ric].bid_ << "\t" << bidask[ric].ask_
-                                    << "\t" << price << "\t" << priceLevel << "\t" << index << std::endl;
                 } else if (fidName == "TRDVOL_1") {
                     volume = reader.getDouble(iFidValue);
                 }
             }
-            if (0 != volume) {
-                h.add(ric, volume);
-            }
-            if (ric == kStock) {
-                if (volume > 0) {
-                    fOut << dateTime.time_.time_ << "\t" << price << "\t" << volume << endl;
-                }
-            }
+            callback.onTrade(ric, dateTime, price, volume, bidasks[ric], index);
             LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume);
         } else if (recordType == "QUOTE") {
             auto ric = reader.get(iRic);
@@ -130,6 +194,7 @@ void parseReuters() {
             }
             auto timestamp = reader.get(iDateTime);
             DateTime dateTime(timestamp);
+            auto& bidask = bidasks[ric];
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
                 if (ric == kStock) {
@@ -138,22 +203,30 @@ void parseReuters() {
                 auto fidName = reader.get(iFidName);
                 if (fidName == "BID") {
                     if (!reader.empty(iFidValue)) {
-                        bidask[ric].bid_ = reader.getDouble(iFidValue);
-                        bidask[ric].quoteTime_ = dateTime.time_.time_;
+                        bidask.bid_ = reader.getDouble(iFidValue);
+                        bidask.quoteTime_ = dateTime.time_.time_;
                     }
                 } else if (fidName == "ASK") {
                     if (!reader.empty(iFidValue)) {
-                        bidask[ric].ask_ = reader.getDouble(iFidValue);
-                        bidask[ric].quoteTime_ = dateTime.time_.time_;
+                        bidask.ask_ = reader.getDouble(iFidValue);
+                        bidask.quoteTime_ = dateTime.time_.time_;
                     }
                 }
             }
+            callback.onQuote(ric, dateTime, bidask);
         } else {
             reader.skipLines(nFids);
         }
     }
     LOG(INFO) << OUT(reader.line());
-    h.dump();
+}
+
+void generate() {
+    ComplexReutersParserCallback callback;
+    callback.addCallback(std::make_unique<DumpTSCallback>());
+    callback.addCallback(std::make_unique<DumpCallback>());
+    callback.addCallback(std::make_unique<HistogramerCallback>());
+    parseReuters(kFilename, callback);
 }
 
 constexpr size_t kN = 60*16;
@@ -507,10 +580,91 @@ void predict() {
     LOG(INFO) << OUT(kR) << OUT(errorSpectral) << OUT(errorLinear) << OUT(errorLast) << OUT(errorSGD);
 }
 
+struct StockStat {
+    double sumVolume_{0};
+    double sumPrice_{0};
+    size_t count_{0};
+
+    double avgPrice() const {
+        if (count_) {
+            return sumPrice_ / count_;
+        } else {
+            return 0.;
+        }
+    }
+};
+
+using StockStats = unordered_map<string, StockStat>;
+
+struct StockStatReutersParserCallback : public IReutersParserCallback {
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        auto& stat = data_[ric];
+        stat.sumVolume_ += volume;
+        stat.sumPrice_ += price;
+        ++stat.count_;
+    }
+
+    const StockStat& get(const std::string& ric) const { return data_.find(ric)->second; }
+
+    const StockStats& get() const { return data_; }
+
+    StockStats data_;
+};
+
+using StockFeatures = vector<DoubleVector>;
+using StocksFeatures = unordered_map<string, StockFeatures>;
+
+static constexpr double kDNNFeatures = 3;
+static constexpr double kQuants = 24.0 * 60.0;
+static constexpr double kTimeQuant = 1.0 / kQuants;
+
+struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        auto& stockFeatures = features_[ric];
+        if (stockFeatures.empty()) {
+            stockFeatures.resize(kQuants, DoubleVector(kDNNFeatures));
+        }
+        int quant = static_cast<int>(dt.time_.time_ / kTimeQuant);
+        auto& features = stockFeatures[quant];
+        features[0] += volume;
+        features[1] += price;
+        ++features[2];
+    }
+
+    void finish(const StockStats& ss) {
+        for (auto& stockPair : features_) {
+            const auto& sd = ss.find(stockPair.first)->second;
+            for (auto& features: stockPair.second) {
+                if (features[2]) {
+                    features[1] /= features[2];
+                }
+                features[0] /= sd.sumVolume_;
+                if (sd.avgPrice()) {
+                    features[1] /= sd.avgPrice();
+                }
+            }
+        }
+    }
+
+    StocksFeatures features_;
+};
+
+void dnn() {
+    Timer tTotal("DNN");
+    StockStatReutersParserCallback statCallback;
+    parseReuters(kFilename, statCallback);
+    auto stockStats = statCallback.get();
+    StockFeaturizerReutersParserCallback featurizerCallback;
+    parseReuters(kFilename, featurizerCallback);
+    featurizerCallback.finish(stockStats);
+}
+
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
     if (FLAGS_generate) {
-        parseReuters();
+        generate();
     }
     if (FLAGS_linear || FLAGS_fft) {
         produceTimeSeries();
@@ -521,5 +675,6 @@ int main(int argc, char* argv[]) {
     if (FLAGS_linear) {
         predict();
     }
+    dnn();
     return 0;
 }
