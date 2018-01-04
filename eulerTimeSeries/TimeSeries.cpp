@@ -661,7 +661,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 } else {
                     features[3] = last;
                 }
-                features[4] = static_cast<double>(index)/kQuants;
+                features[4] = static_cast<double>(index) / kQuants;
                 ++index;
             }
         }
