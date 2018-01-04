@@ -362,7 +362,7 @@ struct SGDPredictor {
                 sg_[i] += sqr(g);
                 q_[i] -= kLambda2 * q_[i];
             }
-            // cout << OUT(err) << OUTLN(q_);
+            cout << OUT(err) << OUTLN(q_);
         }
     }
 
