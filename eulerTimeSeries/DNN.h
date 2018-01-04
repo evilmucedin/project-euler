@@ -24,13 +24,15 @@ public:
 
     PDNNModel getModel();
     void train(const DoubleVector& features, double label);
+    void train(const vector<DoubleVector>& features, const DoubleVector& label);
+    void slowdown();
 
     class Impl;
     unique_ptr<Impl> impl_;
 };
 
 using StockFeatures = vector<DoubleVector>;
-static constexpr size_t kDNNFeatures = 3;
+static constexpr size_t kDNNFeatures = 4;
 static constexpr double kQuants = 24.0 * 60.0;
 static constexpr size_t kDNNWindow = 100;
 static constexpr size_t kDNNHorizon = 10;
