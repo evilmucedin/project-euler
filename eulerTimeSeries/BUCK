@@ -1,11 +1,16 @@
 cxx_binary(
   name="TimeSeries",
   srcs=[
+    "DNN.cpp",
     "TimeSeries.cpp"
+  ],
+  headers=[
+    "DNN.h",
   ],
   deps=[
     "//armadillo:armadillo",
     "//eigen:eigen",
+    "//tiny_dnn:tiny_dnn",
     "//gflags:gflags",
     "//lib:datetime",
     "//lib:fft",
