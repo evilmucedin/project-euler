@@ -32,7 +32,7 @@ class DNNModel::Impl {
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
         // nn_ << ll(kDNNWindow * kDNNFeatures);
         nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();
-        nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        nn_.weight_init(tiny_dnn::weight_init::he(1e-6));
         nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::xavier());
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
@@ -64,7 +64,7 @@ double DNNModel::predict(const DoubleVector& features) { return impl_->predict(f
 class DNNModelTrainer::Impl {
    public:
     Impl() {
-        optimizer_.alpha *= 0.01;
+        optimizer_.alpha *= 0.001;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
@@ -97,7 +97,7 @@ class DNNModelTrainer::Impl {
         for (auto l : label) {
             output.emplace_back(l);
         }
-        ENFORCE(model_.getNN().train<tiny_dnn::mse>(optimizer_, vInput, output, features.size(), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().train<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 32), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
