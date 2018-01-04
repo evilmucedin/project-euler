@@ -45,7 +45,7 @@
  */
 #define CNN_USE_STDOUT
 
-// #define CNN_SINGLE_THREAD
+#define CNN_SINGLE_THREAD
 
 /**
  * disable serialization/deserialization function

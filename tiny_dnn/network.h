@@ -182,7 +182,9 @@ class network {
   }
 
   vec_t fprop(const vec_t &in) {
-    if (in.size() != (size_t)in_data_size()) data_mismatch(**net_.begin(), in);
+    if (in.size() != (size_t)in_data_size()) {
+      data_mismatch(**net_.begin(), in);
+    }
 #if 0
     return fprop(std::vector<vec_t>{ in })[0];
 #else

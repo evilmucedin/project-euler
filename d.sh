@@ -21,6 +21,7 @@ shift $((${OPTIND} - 1))
 
 ${buck_bin} build @mode/dbg euler$1/...
 res=$?
+args="${@:2}"
 if [ 0 -eq ${res} ]; then
-    gdb buck-out/gen/euler$1/$1
+    gdb --args buck-out/gen/euler$1/$1 $args
 fi
