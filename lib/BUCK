@@ -86,6 +86,9 @@ cxx_library(
     exported_headers=[
         "random.h",
     ],
+    srcs=[
+        "random.cpp",
+    ],
     visibility=[
         "PUBLIC",
     ],

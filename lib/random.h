@@ -2,10 +2,7 @@
 
 #include <random>
 
-std::mt19937_64& getRandomNumberGenerator() {
-    thread_local std::mt19937_64 rng;
-    return rng;
-}
+std::mt19937_64& getRandomNumberGenerator();
 
 template<typename T>
 T rand01() {
@@ -32,4 +29,9 @@ T dice(T n) {
 template<typename T>
 bool oneIn(T n) {
     return 0 == dice(n);
+}
+
+template<typename T>
+void shuffle(T& vct) {
+    random_shuffle(vct.begin(), vct.end());
 }
