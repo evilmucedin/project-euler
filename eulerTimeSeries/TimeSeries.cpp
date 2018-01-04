@@ -691,10 +691,10 @@ void dnn() {
     };
 
     DNNModelTrainer trainer;
-    for (int iEpoch = 0; iEpoch < 10; ++iEpoch) {
+    for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
         const auto& features = featurizerCallback.features_;
         for (const auto& stockPair : features) {
-            LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
+            // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
             const auto& features = stockPair.second;
             vector<DoubleVector> feats;
             DoubleVector label;
@@ -711,6 +711,7 @@ void dnn() {
         auto model = trainer.getModel();
 
         double error = 0;
+        double error0 = 0;
         size_t count = 0;
         for (const auto& stockPair : features) {
             const auto& features = stockPair.second;
@@ -718,13 +719,14 @@ void dnn() {
                 auto dnnFeatures = genFeatures(features, i);
                 double ret = genRet(features, i);
                 auto prediction = model->predict(dnnFeatures);
-                // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction);
+                LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction);
                 error += sqr(prediction - ret);
+                error0 += sqr(dnnFeatures.back() - ret);
                 ++count;
             }
         }
 
-        cout << "Predict error: " << error / count << endl;
+        cout << "Predict error: " << error / count << " " << error0 / count << endl;
         trainer.slowdown();
     }
 }

@@ -24,12 +24,19 @@ class DNNModel::Impl {
         using fc = tiny_dnn::layers::fc;
         using tanh = tiny_dnn::activation::tanh;
         using relu = tiny_dnn::activation::relu;
+        using ll = tiny_dnn::linear_layer;
 
         const auto backend_type = tiny_dnn::core::backend_t::internal;
 
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
-        nn_ << fc(kDNNWindow * kDNNFeatures, 1, true, backend_type) << tanh();
-        nn_.weight_init(tiny_dnn::weight_init::xavier());
+        // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
+        // nn_ << ll(kDNNWindow * kDNNFeatures);
+        nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();
+        nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        nn_.bias_init(tiny_dnn::weight_init::constant(0));
+        // nn_.weight_init(tiny_dnn::weight_init::xavier());
+        // nn_.bias_init(tiny_dnn::weight_init::xavier());
+        // nn_.init_weight();
     }
 
     Impl(const Impl& impl) { nn_ = impl.nn_; }
@@ -57,13 +64,13 @@ double DNNModel::predict(const DoubleVector& features) { return impl_->predict(f
 class DNNModelTrainer::Impl {
    public:
     Impl() {
-        optimizer_.alpha *= 0.1;
+        optimizer_.alpha *= 0.01;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
 
     void slowdown() {
-        optimizer_.alpha *= 0.8;
+        optimizer_.alpha *= 0.95;
     }
 
     void train(const DoubleVector& features, double label) {
@@ -72,7 +79,7 @@ class DNNModelTrainer::Impl {
         vInput.emplace_back(doubleVectorToTensor(features));
         vector<tiny_dnn::label_t> output;
         output.emplace_back(label);
-        model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, 1, 1, [] {}, [] {});
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, 1, 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
     void train(const vector<DoubleVector>& features, const DoubleVector& label) {
@@ -90,12 +97,12 @@ class DNNModelTrainer::Impl {
         for (auto l : label) {
             output.emplace_back(l);
         }
-        model_.getNN().train<tiny_dnn::mse>(optimizer_, vInput, output, features.size(), 1, tiny_dnn::nop, tiny_dnn::nop);
+        ENFORCE(model_.getNN().train<tiny_dnn::mse>(optimizer_, vInput, output, features.size(), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::nesterov_momentum optimizer_;
+    tiny_dnn::adagrad optimizer_;
 };
 
 DNNModelTrainer::DNNModelTrainer() : impl_(make_unique<DNNModelTrainer::Impl>()) {}
