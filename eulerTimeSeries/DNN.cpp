@@ -30,8 +30,8 @@ class DNNModel::Impl {
 
         const auto backend_type = tiny_dnn::core::backend_t::internal;
 
-        nn_ << ll(kDNNWindow * kDNNFeatures) << fc(kDNNWindow * kDNNFeatures, 16, true, backend_type) << tanh()
-            << fc(16, 1, true, backend_type) << tanh() << ll(1);
+        nn_ << ll(kDNNWindow * kDNNFeatures) << fc(kDNNWindow * kDNNFeatures, 50, true, backend_type) << relu()
+            << fc(50, 1, true, backend_type) << tanh() << ll(1);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh();
         // nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();

@@ -723,7 +723,7 @@ void dnn() {
                 auto dnnFeatures = genFeatures(sfeatures, i);
                 double ret = genRet(sfeatures, i);
                 auto prediction = model->predict(dnnFeatures);
-                LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction);
+                // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction);
                 error += sqr(prediction - ret);
                 error0 += sqr(dnnFeatures[dnnFeatures.size() - 2] - ret);
                 ++count;
