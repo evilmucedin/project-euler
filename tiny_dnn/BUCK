@@ -104,7 +104,6 @@ cxx_library(
 "util/product.h",
 "util/colored_print.h",
 "util/macro.h",
-"util/image.h",
 "util/graph_visualizer.h",
 "util/util.h",
 "util/serialization_layer_list.h",
@@ -117,12 +116,6 @@ cxx_library(
 "util/serialization_functions.h",
 "util/deserialization_helper.h",
 "util/aligned_allocator.h",
-"io/cifar10_parser.h",
-"io/mnist_parser.h",
-"io/layer_factory.h",
-"io/caffe/layer_factory.h",
-"io/caffe/layer_factory_impl.h",
-"io/display.h",
 "tiny_dnn.h",
 "lossfunctions/loss_function.h",
 "activations/leaky_relu_layer.h",
@@ -179,6 +172,25 @@ cxx_library(
 "xtensor/xoptional.hpp",
 "xtensor/xfunction.hpp",
 "xtensor/xgenerator.hpp",
+    ],
+    deps=[
+        "//tiny_dnn/cereal:cereal",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="tiny_dnn_io",
+    exported_headers=[
+"io/cifar10_parser.h",
+"io/mnist_parser.h",
+"io/layer_factory.h",
+"io/caffe/layer_factory.h",
+"io/caffe/layer_factory_impl.h",
+"io/display.h",
+"util/image.h",
     ],
     deps=[
         "//tiny_dnn/cereal:cereal",
