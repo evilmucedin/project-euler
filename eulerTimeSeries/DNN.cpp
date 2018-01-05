@@ -156,7 +156,7 @@ class DNNModelTrainer::Impl {
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::avg_nesterov_momentum optimizer_;
+    tiny_dnn::nesterov_momentum optimizer_;
     double scaleRate_;
 };
 
