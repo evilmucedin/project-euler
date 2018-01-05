@@ -25,6 +25,7 @@ DEFINE_bool(dnn, false, "dnn");
 DEFINE_int64(limit, numeric_limits<int64_t>::max(), "limit number of messages");
 DEFINE_double(learning_rate, 1.0, "learning rate");
 DEFINE_double(regularization, 0, "learning rate");
+DEFINE_int64(epochs, 100, "epochs");
 
 using namespace Eigen;
 
@@ -764,6 +765,7 @@ void dnn() {
 
     auto genFeatures = [](const StockFeatures& sfeatures, size_t offset) {
         DoubleVector dnnFeatures;
+        dnnFeatures.reserve(kDNNWindow * kDNNFeatures);
         for (size_t j = offset; j < offset + kDNNWindow; ++j) {
             for (size_t k = 0; k < kDNNFeatures; ++k) {
                 dnnFeatures.emplace_back(sfeatures[j][k]);
@@ -792,7 +794,7 @@ void dnn() {
 
     DNNModelTrainer trainer(FLAGS_learning_rate, 1.0 - FLAGS_regularization);
     TimerTracker tt;
-    for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
+    for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         trainer.slowdown();
 
         auto stocks = keys(features);

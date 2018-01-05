@@ -36,14 +36,15 @@ class DNNModel::Impl {
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << fc(1, 1);
-        nn_ << fc(kFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        nn_ << fc(kFeatures, 50, true, backend_type) << relu() << fc(50, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         nn_.bias_init(tiny_dnn::weight_init::constant(0));
         nn_.weight_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
-        // nn_.bias_init(tiny_dnn::weight_init::xavier());
+        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.0001));
         // nn_.init_weight();
 
+        /*
         auto w = nn_[0]->weights();
         auto w0 = *(w[0]);
         for (size_t i = 0; i < w0.size(); ++i) {
@@ -51,7 +52,10 @@ class DNNModel::Impl {
                 w0[i] = 1.0;
             }
         }
-        /*
+
+        auto w = nn_[nn->layer_size() - 1];
+        auto w0 = *(w[0]);
+        w
         */
     }
 
