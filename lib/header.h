@@ -198,7 +198,7 @@ bool detectCycle(const T& vector, Cycle* result) {
 }
 
 template<typename T>
-typename T::value_type getFromCycle(const T &vector, const Cycle &c,
+typename T::value_type getFromCycle(const T& vector, const Cycle& c,
                                     size_t index) {
   if (index < vector.size()) {
     return vector[index];
@@ -206,15 +206,15 @@ typename T::value_type getFromCycle(const T &vector, const Cycle &c,
   return vector[(index - c.start_) % c.period_ + c.start_];
 }
 
-template<typename T> T subVector(const T &vct, size_t start) {
+template<typename T> T subVector(const T& vct, size_t start) {
   return T(vct.begin() + start, vct.end());
 }
 
-template<typename T> T subVector(const T &vct, size_t start, size_t end) {
+template<typename T> T subVector(const T& vct, size_t start, size_t end) {
   return T(vct.begin() + start, vct.begin() + end);
 }
 
-template<typename T> void sort(T &v) { std::sort(v.begin(), v.end()); }
+template<typename T> void sort(T& v) { std::sort(v.begin(), v.end()); }
 
 template<typename T> T sorted(const T &x) {
   T copy(x);
@@ -228,13 +228,23 @@ template<typename T> void sortAndUnique(vector<T> &v) {
 }
 
 template<typename K, typename V>
-V findWithDefault(const unordered_map<K, V> &map, const K &key,
+V findWithDefault(const unordered_map<K, V>& map, const K &key,
                   const V &value) {
   auto it = map.find(key);
   if (it != map.end()) {
     return it->second;
   }
   return value;
+}
+
+template<typename K, typename V>
+vector<K> keys(const unordered_map<K, V>& map) {
+    vector<K> result(map.size());
+    size_t index = 0;
+    for (const auto& it: map) {
+        result[index++] = it.first;
+    }
+    return result;
 }
 
 class Exception : public std::exception {

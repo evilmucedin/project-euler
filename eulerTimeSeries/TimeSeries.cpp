@@ -782,15 +782,25 @@ void dnn() {
         return getPrice(future);
     };
 
+    auto train = [](const std::string& stock) {
+        return (hash<string>()(stock) % 100) < 80;
+    };
+
     DNNModelTrainer trainer;
     for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
-        for (const auto& stockPair : features) {
-            if (!stockStats.count(stockPair.first)) {
+        auto stocks = keys(features);
+        shuffle(stocks);
+        for (const auto& stock : stocks) {
+            if (!train(stock)) {
+                continue;
+            }
+
+            if (!stockStats.count(stock)) {
                 continue;
             }
 
             // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
-            const auto& sfeatures = stockPair.second;
+            const auto& sfeatures = features.find(stock)->second;
             vector<DoubleVector> feats;
             DoubleVector label;
             for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
@@ -810,6 +820,10 @@ void dnn() {
         double error0 = 0;
         size_t count = 0;
         for (const auto& stockPair : features) {
+            if (train(stockPair.first)) {
+                continue;
+            }
+
             if (!stockStats.count(stockPair.first)) {
                 continue;
             }
