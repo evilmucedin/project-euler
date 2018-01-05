@@ -12,6 +12,7 @@ public:
 
     double predict(const DoubleVector& features);
     void save(const std::string& filename);
+    void saveJson(const std::string& filename);
 
     unique_ptr<Impl> impl_;
 };
@@ -20,13 +21,14 @@ using PDNNModel = shared_ptr<DNNModel>;
 
 struct DNNModelTrainer {
 public:
-    DNNModelTrainer();
+    DNNModelTrainer(double learningRate, double scaleRate);
     ~DNNModelTrainer();
 
     PDNNModel getModel();
     void train(const DoubleVector& features, double label);
     void train(const vector<DoubleVector>& features, const DoubleVector& label);
     void slowdown();
+    void scale(double value);
 
     class Impl;
     unique_ptr<Impl> impl_;

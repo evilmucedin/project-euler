@@ -23,6 +23,8 @@ DEFINE_bool(fft, false, "fft");
 DEFINE_bool(linear, false, "linear");
 DEFINE_bool(dnn, false, "dnn");
 DEFINE_int64(limit, numeric_limits<int64_t>::max(), "limit number of messages");
+DEFINE_double(learning_rate, 1.0, "learning rate");
+DEFINE_double(regularization, 0, "learning rate");
 
 using namespace Eigen;
 
@@ -770,7 +772,7 @@ void dnn() {
         return dnnFeatures;
     };
 
-    auto genRet = [](const StockFeatures& sfeatures, size_t offset) {
+    auto genRet = [](const StockFeatures& sfeatures, int offset) {
         auto getPrice = [](const DoubleVector& slice) {
             if (slice[FI_BID] && slice[FI_ASK]) {
                 return (slice[FI_ASK] + slice[FI_BID]) / 2.0;
@@ -778,7 +780,9 @@ void dnn() {
             return slice[FI_LAST];
         };
 
-        const auto& future = sfeatures[offset + kDNNWindow + kDNNHorizon - 1];
+        int index = offset + kDNNWindow + kDNNHorizon - 1;
+        ENFORCE(index >= 0 && index < static_cast<int>(sfeatures.size()));
+        const auto& future = sfeatures[index];
         return getPrice(future);
     };
 
@@ -786,8 +790,10 @@ void dnn() {
         return (hash<string>()(stock) % 100) < 80;
     };
 
-    DNNModelTrainer trainer;
+    DNNModelTrainer trainer(FLAGS_learning_rate, 1.0 - FLAGS_regularization);
     for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
+        trainer.slowdown();
+
         auto stocks = keys(features);
         shuffle(stocks);
         for (const auto& stock : stocks) {
@@ -815,6 +821,7 @@ void dnn() {
 
         auto model = trainer.getModel();
         model->save("dnn");
+        model->saveJson("dnn.json");
 
         double error = 0;
         double error0 = 0;
@@ -829,7 +836,7 @@ void dnn() {
             }
 
             const auto& sfeatures = stockPair.second;
-            for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+            for (int i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
                 auto ret = genRet(sfeatures, i);
                 auto prediction = model->predict(dnnFeatures);
@@ -838,7 +845,7 @@ void dnn() {
                     LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction) << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
                 }
                 error += sqr(sampleError);
-                error0 += sqr(dnnFeatures[dnnFeatures.size() - kDNNFeatures + FI_LAST] - ret);
+                error0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
                 ++count;
             }
         }
@@ -847,7 +854,6 @@ void dnn() {
         double pBaseline = error0 / count;
         cout << "Epoch: " << iEpoch << ", predict error: " << pError << ", baseline: " << pBaseline
              << ", ratio: " << pError / pBaseline << ", samples: " << count << endl;
-        trainer.slowdown();
     }
 }
 

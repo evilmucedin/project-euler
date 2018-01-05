@@ -3,6 +3,7 @@
 #include "tiny_dnn/tiny_dnn.h"
 
 #include "lib/random.h"
+#include "lib/io/fstream.h"
 
 namespace {
 tiny_dnn::vec_t doubleVectorToVector(const DoubleVector& features) {
@@ -30,11 +31,10 @@ class DNNModel::Impl {
 
         const auto backend_type = tiny_dnn::core::backend_t::internal;
 
-        nn_ << fc(kDNNWindow * kDNNFeatures, 50, true, backend_type) << relu() << fc(50, 10, true, backend_type)
-            << tanh() << fc(10, 1, true, backend_type) << tanh() << ll(1);
+        // nn_ << fc(kDNNWindow * kDNNFeatures, 50, true, backend_type) << relu() << fc(50, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << ll(1);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh();
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();
+        // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << ll(1);
+        nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         nn_.bias_init(tiny_dnn::weight_init::constant(0));
         nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
@@ -48,8 +48,29 @@ class DNNModel::Impl {
         return nn_.predict(doubleVectorToTensor(features))[0][0];
     }
 
+    void scale(double value) {
+        if (value == 1.0) {
+            return;
+        }
+
+        for (size_t i = 0; i < nn_.layer_size(); ++i) {
+            auto weights = nn_[i]->weights();
+            for (auto& pv: weights) {
+                for (auto& x: *pv) {
+                    x *= value;
+                }
+            }
+        }
+    }
+
     void save(const std::string& filename) {
         nn_.save(filename);
+    }
+
+    void saveJson(const std::string& filename) {
+        auto json = nn_.to_json(tiny_dnn::content_type::weights_and_model);
+        OFStream ofs(filename);
+        ofs << json;
     }
 
     using NN = tiny_dnn::network<tiny_dnn::sequential>;
@@ -70,16 +91,20 @@ double DNNModel::predict(const DoubleVector& features) { return impl_->predict(f
 
 void DNNModel::save(const std::string& filename) { impl_->save(filename); }
 
+void DNNModel::saveJson(const std::string& filename) { impl_->saveJson(filename); }
+
 class DNNModelTrainer::Impl {
    public:
-    Impl() {
-        optimizer_.alpha *= 10.0;
+    Impl(double learningRate, double scaleRate) {
+        optimizer_.alpha *= learningRate;
+        scaleRate_ = scaleRate;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
 
     void slowdown() {
         optimizer_.alpha *= 0.95;
+        model_.scale(scaleRate_);
     }
 
     void train(const DoubleVector& features, double label) {
@@ -113,15 +138,20 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 64), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 128), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
     DNNModel::Impl model_;
     tiny_dnn::adagrad optimizer_;
+    double scaleRate_;
 };
 
-DNNModelTrainer::DNNModelTrainer() : impl_(make_unique<DNNModelTrainer::Impl>()) {}
+DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate)
+    : impl_(make_unique<DNNModelTrainer::Impl>(learningRate, scaleRate)) {
+}
+
+DNNModelTrainer::~DNNModelTrainer() {}
 
 PDNNModel DNNModelTrainer::getModel() { return impl_->getModel(); }
 
@@ -133,4 +163,4 @@ void DNNModelTrainer::train(const vector<DoubleVector>& features, const DoubleVe
 
 void DNNModelTrainer::slowdown() { impl_->slowdown(); }
 
-DNNModelTrainer::~DNNModelTrainer() {}
+
