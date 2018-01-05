@@ -792,12 +792,31 @@ void dnn() {
         return (hash<string>()(stock) % 100) < 80;
     };
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, 1.0 - FLAGS_regularization);
+    auto stocks = keys(features);
+    /*
+    size_t samples = 0;
+    for (const auto& stock : stocks) {
+        if (!train(stock)) {
+            continue;
+        }
+
+        if (!stockStats.count(stock)) {
+            continue;
+        }
+
+        const auto& sfeatures = features.find(stock)->second;
+        for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+            ++samples;
+        }
+    }
+    LOG(INFO) << "Training samples: " << samples;
+    */
+
+    DNNModelTrainer trainer(FLAGS_learning_rate, 1.0 - FLAGS_regularization, stocks.size());
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         trainer.slowdown();
 
-        auto stocks = keys(features);
         shuffle(stocks);
         for (const auto& stock : stocks) {
             if (!train(stock)) {

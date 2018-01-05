@@ -36,10 +36,10 @@ class DNNModel::Impl {
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << fc(1, 1);
-        nn_ << fc(kFeatures, 50, true, backend_type) << relu() << fc(50, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        nn_ << fc(kFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
-        nn_.bias_init(tiny_dnn::weight_init::constant(0));
         nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
         // nn_.bias_init(tiny_dnn::weight_init::xavier(0.0001));
         // nn_.init_weight();
@@ -52,11 +52,14 @@ class DNNModel::Impl {
                 w0[i] = 1.0;
             }
         }
-
-        auto w = nn_[nn->layer_size() - 1];
-        auto w0 = *(w[0]);
-        w
         */
+
+        auto w = nn_[nn_.layer_size() - 1]->weights();
+        ENFORCE_EQ(w.size(), 2);
+        auto& w0 = *(w[0]);
+        w0[0] = 0.5;
+        auto& w1 = *(w[1]);
+        w1[0] = 0.5;
     }
 
     Impl(const Impl& impl) { nn_ = impl.nn_; }
@@ -112,8 +115,10 @@ void DNNModel::saveJson(const std::string& filename) { impl_->saveJson(filename)
 
 class DNNModelTrainer::Impl {
    public:
-    Impl(double learningRate, double scaleRate) {
+    Impl(double learningRate, double scaleRate, size_t samples) {
         optimizer_.alpha *= learningRate;
+        optimizer_.alpha *= 1000000;
+        optimizer_.alpha /= samples;
         scaleRate_ = scaleRate;
     }
 
@@ -164,8 +169,8 @@ class DNNModelTrainer::Impl {
     double scaleRate_;
 };
 
-DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate)
-    : impl_(make_unique<DNNModelTrainer::Impl>(learningRate, scaleRate)) {
+DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate, size_t samples)
+    : impl_(make_unique<DNNModelTrainer::Impl>(learningRate, scaleRate, samples)) {
 }
 
 DNNModelTrainer::~DNNModelTrainer() {}

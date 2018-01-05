@@ -21,7 +21,7 @@ using PDNNModel = shared_ptr<DNNModel>;
 
 struct DNNModelTrainer {
 public:
-    DNNModelTrainer(double learningRate, double scaleRate);
+    DNNModelTrainer(double learningRate, double scaleRate, size_t samples);
     ~DNNModelTrainer();
 
     PDNNModel getModel();
