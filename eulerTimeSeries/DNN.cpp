@@ -31,16 +31,28 @@ class DNNModel::Impl {
 
         const auto backend_type = tiny_dnn::core::backend_t::avx;
 
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
+        static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
+
+        // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << fc(1, 1);
-        nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        nn_ << fc(kFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         nn_.bias_init(tiny_dnn::weight_init::constant(0));
         nn_.weight_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         // nn_.init_weight();
+
+        auto w = nn_[0]->weights();
+        auto w0 = *(w[0]);
+        for (size_t i = 0; i < w0.size(); ++i) {
+            if (oneIn(100)) {
+                w0[i] = 1.0;
+            }
+        }
+        /*
+        */
     }
 
     Impl(const Impl& impl) { nn_ = impl.nn_; }
@@ -144,7 +156,7 @@ class DNNModelTrainer::Impl {
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::adagrad optimizer_;
+    tiny_dnn::avg_nesterov_momentum optimizer_;
     double scaleRate_;
 };
 

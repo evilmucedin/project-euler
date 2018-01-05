@@ -70,6 +70,37 @@ struct adagrad : public stateful_optimizer<1> {
   float_t eps;
 };
 
+struct avgadagrad : public stateful_optimizer<1> {
+  avgadagrad() : alpha(float_t(0.01)), eps(float_t(1e-8)), count(0) {}
+
+  void update(const vec_t &dW, vec_t &W, bool parallelize) {
+    vec_t g = get<0>(W);
+    for_i(parallelize, W.size(), [&](size_t i) {
+      g[i] += dW[i] * dW[i];
+      W[i] -= alpha * dW[i] / (std::sqrt(g[i]) + eps);
+    });
+
+    if (count == 0) {
+        sum = g;
+    } else {
+        for (size_t i = 0; i < g.size(); ++i) {
+            sum[i] += g[i];
+        }
+    }
+    ++count;
+    get<0>(W) = sum;
+    for (auto& x : get<0>(W)) {
+        x /= count;
+    }
+  }
+
+  float_t alpha;  // learning rate
+ private:
+  float_t eps;
+  vec_t sum;
+  size_t count;
+};
+
 /**
  * RMSprop
  *
@@ -242,6 +273,43 @@ struct nesterov_momentum : public stateful_optimizer<1> {
   float_t alpha;   // learning rate
   float_t lambda;  // weight decay
   float_t mu;      // momentum
+};
+
+struct avg_nesterov_momentum : public stateful_optimizer<1> {
+ public:
+  avg_nesterov_momentum()
+    : alpha(float_t(0.01)), lambda(float_t(0)), mu(float_t(0.9)) {}
+
+  void update(const vec_t &dW, vec_t &W, bool parallelize) {
+    vec_t dWprev = get<0>(W);
+
+    for_i(parallelize, W.size(), [&](size_t i) {
+      float_t V = mu * dWprev[i] - alpha * (dW[i] + W[i] * lambda);
+      W[i] += (-mu) * dWprev[i] + (1 + mu) * V;
+      dWprev[i] = V;
+    });
+
+    if (count == 0) {
+        sum = dWprev;
+    } else {
+        for (size_t i = 0; i < dWprev.size(); ++i) {
+            sum[i] += dWprev[i];
+        }
+    }
+    ++count;
+    get<0>(W) = sum;
+    for (auto& x : get<0>(W)) {
+        x /= count;
+    }
+  }
+
+  float_t alpha;   // learning rate
+  float_t lambda;  // weight decay
+  float_t mu;      // momentum
+
+private:
+  vec_t sum;
+  size_t count;
 };
 
 }  // namespace tiny_dnn
