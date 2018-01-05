@@ -30,14 +30,14 @@ class DNNModel::Impl {
 
         const auto backend_type = tiny_dnn::core::backend_t::internal;
 
-        nn_ << ll(kDNNWindow * kDNNFeatures) << fc(kDNNWindow * kDNNFeatures, 50, true, backend_type) << relu()
-            << fc(50, 1, true, backend_type) << tanh() << ll(1);
+        nn_ << fc(kDNNWindow * kDNNFeatures, 50, true, backend_type) << relu() << fc(50, 10, true, backend_type)
+            << tanh() << fc(10, 1, true, backend_type) << tanh() << ll(1);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh();
         // nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << relu();
-        nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
+        // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::xavier());
+        nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         // nn_.init_weight();
     }
@@ -46,6 +46,10 @@ class DNNModel::Impl {
 
     double predict(const DoubleVector& features) {
         return nn_.predict(doubleVectorToTensor(features))[0][0];
+    }
+
+    void save(const std::string& filename) {
+        nn_.save(filename);
     }
 
     using NN = tiny_dnn::network<tiny_dnn::sequential>;
@@ -64,10 +68,12 @@ DNNModel::~DNNModel() {}
 
 double DNNModel::predict(const DoubleVector& features) { return impl_->predict(features); }
 
+void DNNModel::save(const std::string& filename) { impl_->save(filename); }
+
 class DNNModelTrainer::Impl {
    public:
     Impl() {
-        // optimizer_.alpha *= 0.1;
+        optimizer_.alpha *= 10.0;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }

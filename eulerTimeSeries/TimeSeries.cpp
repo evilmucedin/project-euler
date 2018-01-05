@@ -60,9 +60,20 @@ struct Histogramer {
 };
 
 struct BidAsk {
-    double bid_;
-    double ask_;
-    double quoteTime_;
+    double bid_{0};
+    double ask_{0};
+    double bidSize_{0};
+    double askSize_{0};
+    double quoteTime_{0};
+    bool open_{false};
+
+    void clear() {
+        bid_ = 0;
+        ask_ = 0;
+        bidSize_ = 0;
+        askSize_ = 0;
+        quoteTime_ = 0;
+    }
 };
 
 struct IReutersParserCallback {
@@ -207,11 +218,46 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
                     if (!reader.empty(iFidValue)) {
                         bidask.bid_ = reader.getDouble(iFidValue);
                         bidask.quoteTime_ = dateTime.time_.time_;
+                    } else {
+                        bidask.bid_ = 0;
                     }
                 } else if (fidName == "ASK") {
                     if (!reader.empty(iFidValue)) {
                         bidask.ask_ = reader.getDouble(iFidValue);
                         bidask.quoteTime_ = dateTime.time_.time_;
+                    } else {
+                        bidask.ask_ = 0;
+                    }
+                } else if (fidName == "BIDSIZE") {
+                    if (!reader.empty(iFidValue)) {
+                        bidask.bidSize_ = reader.getDouble(iFidValue);
+                    } else {
+                        bidask.bidSize_ = 0;
+                    }
+                } else if (fidName == "ASKSIZE") {
+                    if (!reader.empty(iFidValue)) {
+                        bidask.askSize_ = reader.getDouble(iFidValue);
+                    } else {
+                        bidask.askSize_ = 0;
+                    }
+                }
+            }
+            callback.onQuote(ric, dateTime, bidask);
+        } else if (recordType == "UNSPECIFIED") {
+            auto ric = reader.get(iRic);
+            auto timestamp = reader.get(iDateTime);
+            DateTime dateTime(timestamp);
+            auto& bidask = bidasks[ric];
+            for (int iFid = 0; iFid < nFids; ++iFid) {
+                reader.readLine();
+                auto fidName = reader.get(iFidName);
+                if (fidName == "INST_PHASE") {
+                    if (!reader.empty(iFidValue)) {
+                        int value = reader.getInt(iFidValue);
+                        if (value == 14) {
+                            bidask.clear();
+                        }
+                        bidask.open_ = value == 3;
                     }
                 }
             }
@@ -621,18 +667,32 @@ using StocksFeatures = unordered_map<string, StockFeatures>;
 static constexpr double kTimeQuant = 1.0 / kQuants;
 
 struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
-    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
-                 int index) override {
+    DoubleVector& getFeatures(const std::string& ric, const DateTime& dt) {
         auto& stockFeatures = features_[ric];
         if (stockFeatures.empty()) {
             stockFeatures.resize(kQuants, DoubleVector(kDNNFeatures));
         }
         int quant = static_cast<int>(dt.time_.time_ / kTimeQuant);
-        auto& features = stockFeatures[quant];
-        features[0] += volume;
-        features[1] += price;
-        ++features[2];
-        features[3] = price;
+        return stockFeatures[quant];
+    }
+
+    void onQuote(const std::string& ric, const DateTime& dt, const BidAsk& bidask) override {
+        if (bidask.open_) {
+            auto& features = getFeatures(ric, dt);
+            features[FI_BID] = bidask.bid_;
+            features[FI_ASK] = bidask.ask_;
+            features[FI_BIDSIZE] = bidask.bidSize_;
+            features[FI_ASKSIZE] = bidask.askSize_;
+        }
+    }
+
+    void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
+                 int index) override {
+        auto& features = getFeatures(ric, dt);
+        features[FI_VOLUME] += volume;
+        features[FI_PRICE] += price;
+        ++features[FI_TRADES];
+        features[FI_LAST] = price;
     }
 
     void finish(const StockStats& ss) {
@@ -643,25 +703,44 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             }
             const auto& sd = toSd->second;
             double last = 0;
+            double lastBid = 0;
+            double lastAsk = 0;
+            double lastBidSize = 0;
+            double lastAskSize = 0;
             size_t index = 0;
             for (auto& features: stockPair.second) {
-                if (features[2]) {
-                    features[1] /= features[2];
+                if (features[FI_TRADES]) {
+                    features[FI_PRICE] /= features[FI_TRADES];
                 }
                 if (sd.sumVolume_) {
-                    features[0] /= sd.sumVolume_;
+                    features[FI_VOLUME] /= sd.sumVolume_;
                 }
-                if (sd.avgPrice()) {
-                    features[1] /= sd.avgPrice();
-                    features[3] /= sd.avgPrice();
+                auto avgPrice = sd.avgPrice();
+                if (avgPrice) {
+                    features[FI_PRICE] /= avgPrice;
+                    features[FI_LAST] /= avgPrice;
+                    features[FI_BID] /= avgPrice;
+                    features[FI_ASK] /= avgPrice;
                 }
-                features[2] = log(1.0 + features[2]);
-                if (features[3]) {
-                    last = features[3];
-                } else {
-                    features[3] = last;
-                }
-                features[4] = static_cast<double>(index) / kQuants;
+                features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
+                features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
+                features[FI_BIDSIZE] = log(1.0 + features[FI_BIDSIZE]);
+
+                auto updateLast = [](double& featureVar, double& lastVar) {
+                    if (featureVar) {
+                        lastVar = featureVar;
+                    } else {
+                        featureVar = lastVar;
+                    }
+                };
+
+                updateLast(features[FI_LAST], last);
+                updateLast(features[FI_BID], lastBid);
+                updateLast(features[FI_ASK], lastAsk);
+                updateLast(features[FI_BIDSIZE], lastBidSize);
+                updateLast(features[FI_ASKSIZE], lastAskSize);
+
+                features[FI_TDF] = static_cast<double>(index) / kQuants;
                 ++index;
             }
         }
@@ -692,19 +771,31 @@ void dnn() {
     };
 
     auto genRet = [](const StockFeatures& sfeatures, size_t offset) {
-        return sfeatures[offset + kDNNWindow + kDNNHorizon - 1][3];
+        auto getPrice = [](const DoubleVector& slice) {
+            if (slice[FI_BID] && slice[FI_ASK]) {
+                return (slice[FI_ASK] + slice[FI_BID]) / 2.0;
+            }
+            return slice[FI_LAST];
+        };
+
+        const auto& future = sfeatures[offset + kDNNWindow + kDNNHorizon - 1];
+        return getPrice(future);
     };
 
     DNNModelTrainer trainer;
     for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
         for (const auto& stockPair : features) {
+            if (!stockStats.count(stockPair.first)) {
+                continue;
+            }
+
             // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
             const auto& sfeatures = stockPair.second;
             vector<DoubleVector> feats;
             DoubleVector label;
             for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
-                double ret = genRet(sfeatures, i);
+                auto ret = genRet(sfeatures, i);
                 feats.emplace_back(std::move(dnnFeatures));
                 label.emplace_back(ret);
                 // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
@@ -713,24 +804,35 @@ void dnn() {
         }
 
         auto model = trainer.getModel();
+        model->save("dnn");
 
         double error = 0;
         double error0 = 0;
         size_t count = 0;
         for (const auto& stockPair : features) {
+            if (!stockStats.count(stockPair.first)) {
+                continue;
+            }
+
             const auto& sfeatures = stockPair.second;
             for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
-                double ret = genRet(sfeatures, i);
+                auto ret = genRet(sfeatures, i);
                 auto prediction = model->predict(dnnFeatures);
-                // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction);
-                error += sqr(prediction - ret);
-                error0 += sqr(dnnFeatures[dnnFeatures.size() - 2] - ret);
+                auto sampleError = prediction - ret;
+                if (abs(sampleError) > 2) {
+                    LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction) << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
+                }
+                error += sqr(sampleError);
+                error0 += sqr(dnnFeatures[dnnFeatures.size() - kDNNFeatures + FI_LAST] - ret);
                 ++count;
             }
         }
 
-        cout << "Predict error: " << error / count << " " << error0 / count << ", samples: " << count << endl;
+        double pError = error / count;
+        double pBaseline = error0 / count;
+        cout << "Epoch: " << iEpoch << ", predict error: " << pError << ", baseline: " << pBaseline
+             << ", ratio: " << pError / pBaseline << ", samples: " << count << endl;
         trainer.slowdown();
     }
 }
