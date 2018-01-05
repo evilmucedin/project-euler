@@ -201,7 +201,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
                 }
             }
             callback.onTrade(ric, dateTime, price, volume, bidasks[ric], index);
-            LOG_EVERY_MS(INFO, 1000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume) << OUT(iMessage);
+            LOG_EVERY_MS(INFO, 5000) << OUT(ric) << OUT(dateTime.str()) << OUT(price) << OUT(volume) << OUT(iMessage);
         } else if (recordType == "QUOTE") {
             auto ric = reader.get(iRic);
             if (ric == kStock) {
@@ -791,6 +791,7 @@ void dnn() {
     };
 
     DNNModelTrainer trainer(FLAGS_learning_rate, 1.0 - FLAGS_regularization);
+    TimerTracker tt;
     for (int iEpoch = 0; iEpoch < 100; ++iEpoch) {
         trainer.slowdown();
 
@@ -853,7 +854,8 @@ void dnn() {
         double pError = error / count;
         double pBaseline = error0 / count;
         cout << "Epoch: " << iEpoch << ", predict error: " << pError << ", baseline: " << pBaseline
-             << ", ratio: " << pError / pBaseline << ", samples: " << count << endl;
+             << ", ratio: " << pError / pBaseline << ", samples: " << count << ", elapsed: " << tt.diffAndReset()
+             << endl;
     }
 }
 

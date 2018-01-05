@@ -29,15 +29,16 @@ class DNNModel::Impl {
         using relu = tiny_dnn::activation::relu;
         using ll = tiny_dnn::linear_layer;
 
-        const auto backend_type = tiny_dnn::core::backend_t::internal;
+        const auto backend_type = tiny_dnn::core::backend_t::avx;
 
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 50, true, backend_type) << relu() << fc(50, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << ll(1);
+        // nn_ << fc(kDNNWindow * kDNNFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kDNNWindow * kDNNFeatures, 10, true, backend_type) << ll(10);
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << ll(1);
+        // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << fc(1, 1);
         nn_ << fc(kDNNWindow * kDNNFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
+        nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        // nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         // nn_.init_weight();
     }

@@ -18,12 +18,12 @@
 /**
  * define to enable avx vectorization
  */
-// #define CNN_USE_AVX
+#define CNN_USE_AVX
 
 /**
  * define to enable sse2 vectorization
  */
-// #define CNN_USE_SSE
+#define CNN_USE_SSE
 
 /**
  * define to enable OMP parallelization
