@@ -670,17 +670,27 @@ using StocksFeatures = unordered_map<string, StockFeatures>;
 static constexpr double kTimeQuant = 1.0 / kQuants;
 
 struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
+    StockFeaturizerReutersParserCallback() : goodTick_(kQuants) {}
+
+    static int getQuant(const DateTime& dt) {
+        auto result = static_cast<int>(dt.time_.time_ / kTimeQuant);
+        ENFORCE(result < static_cast<int>(kQuants));
+        ENFORCE(result >= 0);
+        return result;
+    }
+
     DoubleVector& getFeatures(const std::string& ric, const DateTime& dt) {
         auto& stockFeatures = features_[ric];
         if (stockFeatures.empty()) {
             stockFeatures.resize(kQuants, DoubleVector(kDNNFeatures));
         }
-        int quant = static_cast<int>(dt.time_.time_ / kTimeQuant);
+        auto quant = getQuant(dt);
         return stockFeatures[quant];
     }
 
     void onQuote(const std::string& ric, const DateTime& dt, const BidAsk& bidask) override {
         if (bidask.open_) {
+            goodTick_[getQuant(dt)] = true;
             auto& features = getFeatures(ric, dt);
             features[FI_BID] = bidask.bid_;
             features[FI_ASK] = bidask.ask_;
@@ -750,6 +760,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
     }
 
     StocksFeatures features_;
+    BoolVector goodTick_;
 };
 
 void dnn() {
@@ -761,7 +772,16 @@ void dnn() {
     parseReuters(kFilename, featurizerCallback);
     featurizerCallback.finish(stockStats);
     const auto& features = featurizerCallback.features_;
+    const auto& goodTicks = featurizerCallback.goodTick_;
+    for (size_t i = 1; i < goodTicks.size(); ++i) {
+        if (goodTicks[i - 1] != goodTicks[i]) {
+            LOG(INFO) << OUT(i - 1) << OUT(goodTicks[i - 1]) << OUT(i) << OUT(goodTicks[i]);
+        }
+    }
     LOG(INFO) << OUT(features.size());
+
+    static constexpr size_t kFirstTick = 870;
+    static constexpr size_t kLastTick = 1260;
 
     auto genFeatures = [](const StockFeatures& sfeatures, size_t offset) {
         DoubleVector dnnFeatures;
@@ -785,7 +805,9 @@ void dnn() {
         int index = offset + kDNNWindow + kDNNHorizon - 1;
         ENFORCE(index >= 0 && index < static_cast<int>(sfeatures.size()));
         const auto& future = sfeatures[index];
-        return getPrice(future);
+        auto result = getPrice(future);
+        ENFORCE(!isnan(result));
+        return result;
     };
 
     auto train = [](const std::string& stock) {
@@ -812,7 +834,7 @@ void dnn() {
     LOG(INFO) << "Training samples: " << samples;
     */
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, 1.0 - FLAGS_regularization, stocks.size());
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, stocks.size());
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         trainer.slowdown();
@@ -831,7 +853,7 @@ void dnn() {
             const auto& sfeatures = features.find(stock)->second;
             vector<DoubleVector> feats;
             DoubleVector label;
-            for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+            for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
                 auto ret = genRet(sfeatures, i);
                 feats.emplace_back(std::move(dnnFeatures));
@@ -845,38 +867,44 @@ void dnn() {
         model->save("dnn");
         model->saveJson("dnn.json");
 
-        double error = 0;
-        double error0 = 0;
-        size_t count = 0;
+        double trainError = 0;
+        double testError = 0;
+        double testError0 = 0;
+        size_t testCount = 0;
+        size_t trainCount = 0;
         for (const auto& stockPair : features) {
-            if (train(stockPair.first)) {
-                continue;
-            }
-
             if (!stockStats.count(stockPair.first)) {
                 continue;
             }
 
             const auto& sfeatures = stockPair.second;
-            for (int i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+            for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
                 auto ret = genRet(sfeatures, i);
                 auto prediction = model->predict(dnnFeatures);
                 auto sampleError = prediction - ret;
                 if (abs(sampleError) > 2) {
-                    LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction) << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
+                    LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction) << OUT(stockPair.first)
+                                             << OUT(i + kDNNWindow + kDNNHorizon - 1);
                 }
-                error += sqr(sampleError);
-                error0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
-                ++count;
+                if (!train(stockPair.first)) {
+                    testError += sqr(sampleError);
+                    testError0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
+                    ++testCount;
+                } else {
+                    trainError += sqr(sampleError);
+                    ++trainCount;
+                }
             }
         }
 
-        double pError = error / count;
-        double pBaseline = error0 / count;
-        cout << "Epoch: " << iEpoch << ", predict error: " << pError << ", baseline: " << pBaseline
-             << ", ratio: " << pError / pBaseline << ", samples: " << count << ", elapsed: " << tt.diffAndReset()
-             << endl;
+        double pTrainError = trainError / trainCount;
+        double pTestError = testError / testCount;
+        double pTestBaseline = testError0 / testCount;
+        cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
+             << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
+             << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount
+             << ", elapsed: " << tt.diffAndReset() << endl;
     }
 }
 

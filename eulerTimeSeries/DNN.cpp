@@ -1,5 +1,6 @@
 #include "DNN.h"
 
+#include "glog/logging.h"
 #include "tiny_dnn/tiny_dnn.h"
 
 #include "lib/random.h"
@@ -28,6 +29,9 @@ class DNNModel::Impl {
         using tanh = tiny_dnn::activation::tanh;
         using relu = tiny_dnn::activation::relu;
         using ll = tiny_dnn::linear_layer;
+        using conv = tiny_dnn::layers::conv;
+        using ave_pool = tiny_dnn::layers::ave_pool;
+        using padding = tiny_dnn::padding;
 
         const auto backend_type = tiny_dnn::core::backend_t::avx;
 
@@ -35,14 +39,39 @@ class DNNModel::Impl {
 
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
-        // nn_ << fc(kDNNWindow * kDNNFeatures, 1) << tanh() << fc(1, 1);
-        nn_ << fc(kFeatures, 20, true, backend_type) << relu() << fc(20, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        // nn_ << fc(kFeatures, 10, true, backend_type) << relu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        // nn_ << fc(kFeatures, 1, true, backend_type) << ll(1, 10);
+        nn_ << fc(kFeatures, 5*5, true, backend_type) << relu() << conv(5, 5, 3, 1, 1) << tanh() << fc(9, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
-        nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::xavier(0.01));
-        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.0001));
+        // nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
+        // nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
+        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
+
+        /*
+        nn_ << fc(kFeatures, 32 * 32, true, backend_type) << conv(32, 32, 5, 1, 6,  // C1, 1@32x32-in, 6@28x28-out
+                                                                  padding::valid, true, 1, 1, backend_type)
+            << tanh() << ave_pool(28, 28, 6, 2)  // S2, 6@28x28-in, 6@14x14-out
+            << tanh() << conv(14, 14, 5, 6, 16,  // C3, 6@14x14-in, 16@10x10-out
+                                                 // connection_table(tbl, 6, 16),
+                              padding::valid, true, 1, 1, backend_type)
+            << tanh() << ave_pool(10, 10, 16, 2)  // S4, 16@10x10-in, 16@5x5-out
+            << tanh() << conv(5, 5, 5, 16, 120,   // C5, 16@5x5-in, 120@1x1-out
+                              padding::valid, true, 1, 1, backend_type)
+            << tanh() << fc(120, 10, true, backend_type)  // F6, 120-in, 10-out
+            << tanh() << fc(10, 1, true, backend_type);
+        */
+
         // nn_.init_weight();
+
+        /*
+        {
+        auto w = nn_[0]->weights();
+        auto w0 = *(w[0]);
+        w0[kFeatures - kDNNFeatures + FI_PRICE] = 1.0;
+        }
+        */
 
         /*
         auto w = nn_[0]->weights();
@@ -54,12 +83,16 @@ class DNNModel::Impl {
         }
         */
 
+        /*
+        {
         auto w = nn_[nn_.layer_size() - 1]->weights();
         ENFORCE_EQ(w.size(), 2);
         auto& w0 = *(w[0]);
         w0[0] = 0.5;
         auto& w1 = *(w[1]);
-        w1[0] = 0.5;
+        w1[0] = 1.0;
+        }
+        */
     }
 
     Impl(const Impl& impl) { nn_ = impl.nn_; }
@@ -68,16 +101,21 @@ class DNNModel::Impl {
         return nn_.predict(doubleVectorToTensor(features))[0][0];
     }
 
-    void scale(double value) {
-        if (value == 1.0) {
+    void scale(double alpha, double value, size_t samples) {
+        if (value == 0.0) {
             return;
         }
 
+        const double regMul = 1.0 - alpha * value * samples;
+        LOG_EVERY_MS(INFO, 1000) << OUT(regMul) << OUT(alpha*samples);
         for (size_t i = 0; i < nn_.layer_size(); ++i) {
             auto weights = nn_[i]->weights();
             for (auto& pv: weights) {
                 for (auto& x: *pv) {
-                    x *= value;
+                    x *= regMul;
+                    if (abs(x) < 0.01) {
+                        x = 0;
+                    }
                 }
             }
         }
@@ -115,18 +153,20 @@ void DNNModel::saveJson(const std::string& filename) { impl_->saveJson(filename)
 
 class DNNModelTrainer::Impl {
    public:
-    Impl(double learningRate, double scaleRate, size_t samples) {
+    Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.alpha *= 1000000;
+        optimizer_.alpha *= 100;
         optimizer_.alpha /= samples;
+        alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
 
     void slowdown() {
-        optimizer_.alpha *= 0.95;
-        model_.scale(scaleRate_);
+        model_.scale(optimizer_.alpha, scaleRate_, samples_);
+        ++iteration_;
+        optimizer_.alpha = (iteration_ <= 5) ? alpha0_ : alpha0_ / (iteration_ - 5);
     }
 
     void train(const DoubleVector& features, double label) {
@@ -165,8 +205,11 @@ class DNNModelTrainer::Impl {
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::nesterov_momentum optimizer_;
+    tiny_dnn::adagrad optimizer_;
     double scaleRate_;
+    size_t samples_;
+    double alpha0_;
+    size_t iteration_;
 };
 
 DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate, size_t samples)

@@ -257,11 +257,11 @@ class Exception : public std::exception {
     string msg_;
 };
 
-#define ENFORCE(X)             \
-    {                          \
-        if (!(X)) {            \
-            throw Exception(); \
-        }                      \
+#define ENFORCE(X)                                                                                    \
+    {                                                                                                 \
+        if (!(X)) {                                                                                   \
+            throw Exception(string(__FILE__) + " " + string(to_string(__LINE__)) + " " + string(#X)); \
+        }                                                                                             \
     }
 
 #define ENFORCE_EQ(X, Y) ENFORCE((X) == (Y))
