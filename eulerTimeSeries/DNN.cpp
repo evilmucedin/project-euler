@@ -37,7 +37,7 @@ class DNNModel::Impl {
 
         static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
+        nn_ << fc(kFeatures, 150, true, backend_type) << relu() << fc(150, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kFeatures, 10, true, backend_type) << relu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
