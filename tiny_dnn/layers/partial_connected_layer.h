@@ -146,4 +146,18 @@ class partial_connected_layer : public layer {
   float_t scale_factor_;
 };
 
+class pc : public partial_connected_layer {
+   public:
+    pc(size_t in_dim, size_t out_dim, size_t weight_dim, size_t bias_dim, float_t scale_factor = float_t{1})
+        : partial_connected_layer(in_dim, out_dim, weight_dim, bias_dim, scale_factor) {}
+
+    std::vector<index3d<size_t>> out_shape() const override { return {index3d<size_t>(out2wi_.size(), 1, 1)}; }
+
+    std::vector<index3d<size_t>> in_shape() const override {
+        return {index3d<size_t>(in2wo_.size(), 1, 1), index3d<size_t>(in2wo_.size(), 1, 1)};
+    }
+
+    std::string layer_type() const override { return "pc"; }
+};
+
 }  // namespace tiny_dnn

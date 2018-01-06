@@ -26,6 +26,7 @@ class DNNModel::Impl {
    public:
     Impl() {
         using fc = tiny_dnn::layers::fc;
+        using pc = tiny_dnn::pc;
         using tanh = tiny_dnn::activation::tanh;
         using relu = tiny_dnn::activation::relu;
         using ll = tiny_dnn::linear_layer;
@@ -37,7 +38,13 @@ class DNNModel::Impl {
 
         static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        nn_ << fc(kFeatures, 150, true, backend_type) << relu() << fc(150, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
+        auto pcl = pc(kFeatures, kDNNFeatures, kDNNFeatures, 0);
+        for (size_t i = 0; i < kDNNFeatures; ++i) {
+            pcl.connect_weight(kFeatures - kDNNFeatures + i, i, i);
+        }
+        nn_ << pcl << fc(kDNNFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
+        // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
+        // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kFeatures, 10, true, backend_type) << relu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);

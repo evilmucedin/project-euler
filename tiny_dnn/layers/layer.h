@@ -588,7 +588,9 @@ class layer : public node {
     // numbers of output edges.
     if (in_shape().size() != in_channels_ ||
         out_shape().size() != out_channels_) {
-      throw nn_error("Connection mismatch at setup layer");
+        throw nn_error("Connection mismatch at setup layer: " + std::to_string(in_shape().size()) + " != " +
+                       std::to_string(in_channels_) + " || " + std::to_string(out_shape().size()) + " != " +
+                       std::to_string(out_channels_) + " " + layer_type());
     }
 
     // An 'edge' is created in the computational graph from the current
