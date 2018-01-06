@@ -734,6 +734,10 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     features[FI_LAST] /= avgPrice;
                     features[FI_BID] /= avgPrice;
                     features[FI_ASK] /= avgPrice;
+                    features[FI_PRICE] -= 1.0;
+                    features[FI_LAST] -= 1.0;
+                    features[FI_BID] -= 1.0;
+                    features[FI_ASK] -= 1.0;
                 }
                 features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
                 features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
@@ -788,7 +792,9 @@ void dnn() {
         dnnFeatures.reserve(kDNNWindow * kDNNFeatures);
         for (size_t j = offset; j < offset + kDNNWindow; ++j) {
             for (size_t k = 0; k < kDNNFeatures; ++k) {
-                dnnFeatures.emplace_back(sfeatures[j][k]);
+                auto f = sfeatures[j][k];
+                ENFORCE(!isnan(f));
+                dnnFeatures.emplace_back(f);
             }
         }
         return dnnFeatures;
@@ -796,10 +802,13 @@ void dnn() {
 
     auto genRet = [](const StockFeatures& sfeatures, int offset) {
         auto getPrice = [](const DoubleVector& slice) {
-            if (slice[FI_BID] && slice[FI_ASK]) {
+            if ((slice[FI_BID] != -1) && (slice[FI_ASK] != -1)) {
                 return (slice[FI_ASK] + slice[FI_BID]) / 2.0;
             }
-            return slice[FI_LAST];
+            if (slice[FI_LAST] != -1) {
+                return slice[FI_LAST];
+            }
+            return 0.0;
         };
 
         int index = offset + kDNNWindow + kDNNHorizon - 1;
@@ -834,12 +843,14 @@ void dnn() {
     LOG(INFO) << "Training samples: " << samples;
     */
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, stocks.size());
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, 1);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         trainer.slowdown();
 
         shuffle(stocks);
+            vector<DoubleVector> feats;
+            DoubleVector label;
         for (const auto& stock : stocks) {
             if (!train(stock)) {
                 continue;
@@ -851,8 +862,6 @@ void dnn() {
 
             // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
             const auto& sfeatures = features.find(stock)->second;
-            vector<DoubleVector> feats;
-            DoubleVector label;
             for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
                 auto ret = genRet(sfeatures, i);
@@ -860,8 +869,8 @@ void dnn() {
                 label.emplace_back(ret);
                 // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
             }
-            trainer.train(feats, label);
         }
+            trainer.train(feats, label);
 
         auto model = trainer.getModel();
         model->save("dnn");
@@ -883,7 +892,7 @@ void dnn() {
                 auto ret = genRet(sfeatures, i);
                 auto prediction = model->predict(dnnFeatures);
                 auto sampleError = prediction - ret;
-                if (abs(sampleError) > 2) {
+                if (abs(sampleError) > 0.1) {
                     LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction) << OUT(stockPair.first)
                                              << OUT(i + kDNNWindow + kDNNHorizon - 1);
                 }

@@ -41,13 +41,15 @@ class DNNModel::Impl {
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kFeatures, 10, true, backend_type) << relu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        nn_ << fc(kFeatures, 1, false, backend_type) << tanh();
         // nn_ << fc(kFeatures, 1, true, backend_type) << ll(1, 10);
-        nn_ << fc(kFeatures, 5*5, true, backend_type) << relu() << conv(5, 5, 3, 1, 1) << tanh() << fc(9, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        // nn_ << fc(kFeatures, 6*6, true, backend_type) << relu() << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
-        // nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
+        nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
         // nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
+        nn_.init_weight();
 
         /*
         nn_ << fc(kFeatures, 32 * 32, true, backend_type) << conv(32, 32, 5, 1, 6,  // C1, 1@32x32-in, 6@28x28-out
@@ -98,7 +100,7 @@ class DNNModel::Impl {
     Impl(const Impl& impl) { nn_ = impl.nn_; }
 
     double predict(const DoubleVector& features) {
-        return nn_.predict(doubleVectorToTensor(features))[0][0];
+        return nn_.predict(doubleVectorToVector(features))[0];
     }
 
     void scale(double alpha, double value, size_t samples) {
@@ -113,7 +115,7 @@ class DNNModel::Impl {
             for (auto& pv: weights) {
                 for (auto& x: *pv) {
                     x *= regMul;
-                    if (abs(x) < 0.01) {
+                    if (abs(x) < 0.5) {
                         x = 0;
                     }
                 }
@@ -200,7 +202,7 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 128), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 16), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
