@@ -289,6 +289,23 @@ struct LoadAndConstruct<tiny_dnn::linear_layer> {
 };
 
 template <>
+struct LoadAndConstruct<tiny_dnn::pc> {
+  template <class Archive>
+  static void load_and_construct(
+    Archive &ar, cereal::construct<tiny_dnn::pc> &construct) {
+    size_t in_dim;
+    size_t out_dim;
+    std::vector<size_t> connections;
+
+    ::detail::arc(ar, ::detail::make_nvp("in_dim", in_dim),
+                  ::detail::make_nvp("out_dim", out_dim),
+                  ::detail::make_nvp("connections", connections));
+
+    construct(in_dim, out_dim, connections);
+  }
+};
+
+template <>
 struct LoadAndConstruct<tiny_dnn::lrn_layer> {
   template <class Archive>
   static void load_and_construct(
@@ -760,6 +777,13 @@ struct serialization_buddy {
     ::detail::arc(ar, ::detail::make_nvp("in_size", layer.dim_),
                   ::detail::make_nvp("scale", layer.scale_),
                   ::detail::make_nvp("bias", layer.bias_));
+  }
+
+  template <class Archive>
+  static inline void serialize(Archive &ar, tiny_dnn::pc &layer) {
+    ::detail::arc(ar, ::detail::make_nvp("in_dim", layer.in_dim_),
+                  ::detail::make_nvp("out_dim", layer.out_dim_),
+                  ::detail::make_nvp("connections", layer.connections_));
   }
 
   template <class Archive>

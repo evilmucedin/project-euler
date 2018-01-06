@@ -38,11 +38,12 @@ class DNNModel::Impl {
 
         static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        auto pcl = pc(kFeatures, kDNNFeatures, kDNNFeatures, 0);
+        vector<size_t> connections(kDNNFeatures);
         for (size_t i = 0; i < kDNNFeatures; ++i) {
-            pcl.connect_weight(kFeatures - kDNNFeatures + i, i, i);
+            connections[i] = kFeatures - kDNNFeatures + i;
         }
-        nn_ << pcl << fc(kDNNFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
+
+        nn_ <<  pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);

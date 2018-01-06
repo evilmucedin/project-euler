@@ -146,18 +146,50 @@ class partial_connected_layer : public layer {
   float_t scale_factor_;
 };
 
-class pc : public partial_connected_layer {
+class pc : public layer {
    public:
-    pc(size_t in_dim, size_t out_dim, size_t weight_dim, size_t bias_dim, float_t scale_factor = float_t{1})
-        : partial_connected_layer(in_dim, out_dim, weight_dim, bias_dim, scale_factor) {}
+    explicit pc(size_t in_dim, size_t out_dim, std::vector<size_t> connections)
+        : layer({vector_type::data}, {vector_type::data}), in_dim_(in_dim), out_dim_(out_dim), connections_(connections) {}
 
-    std::vector<index3d<size_t>> out_shape() const override { return {index3d<size_t>(out2wi_.size(), 1, 1)}; }
+    std::vector<index3d<size_t>> out_shape() const override { return {index3d<size_t>(out_dim_, 1, 1)}; }
 
-    std::vector<index3d<size_t>> in_shape() const override {
-        return {index3d<size_t>(in2wo_.size(), 1, 1), index3d<size_t>(in2wo_.size(), 1, 1)};
-    }
+    std::vector<index3d<size_t>> in_shape() const override { return {index3d<size_t>(in_dim_, 1, 1)}; }
 
     std::string layer_type() const override { return "pc"; }
+
+    void forward_propagation(const std::vector<tensor_t *> &in_data, std::vector<tensor_t *> &out_data) override {
+        const auto &in = *in_data[0];
+        auto &out = *out_data[0];
+        for (size_t sample = 0, sample_count = in.size(); sample < sample_count; ++sample) {
+            const vec_t &in_sample = in[sample];
+            vec_t &out_sample = out[sample];
+            for (size_t i = 0; i < out_dim_; ++i) {
+                out_sample[i] = in_sample[connections_[i]];
+            }
+        }
+    }
+
+    void back_propagation(const std::vector<tensor_t *> &in_data, const std::vector<tensor_t *> &out_data,
+                          std::vector<tensor_t *> &out_grad, std::vector<tensor_t *> &in_grad) override {
+        auto &prev_delta = *in_grad[0];
+        auto &curr_delta = *out_grad[0];
+        for (size_t sample = 0, sample_count = curr_delta.size(); sample < sample_count; ++sample) {
+            const vec_t &in_sample = curr_delta[sample];
+            vec_t &out_sample = prev_delta[sample];
+            ENFORCE_EQ(out_sample.size(), in_dim_);
+            ENFORCE_EQ(in_sample.size(), out_dim_);
+            for (size_t i = 0; i < out_dim_; ++i) {
+                out_sample[connections_[i]] = in_sample[i];
+            }
+        }
+    }
+
+    friend struct serialization_buddy;
+
+   protected:
+    size_t in_dim_;
+    size_t out_dim_;
+    std::vector<size_t> connections_;
 };
 
 }  // namespace tiny_dnn

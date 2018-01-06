@@ -438,7 +438,7 @@ class network {
    * @param phase phase of network, could be train or test
    */
   void set_netphase(net_phase phase) {
-    for (auto n : net_) {
+    for (auto& n : net_) {
       n->set_context(phase);
     }
   }
