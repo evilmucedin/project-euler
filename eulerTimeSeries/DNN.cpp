@@ -43,7 +43,7 @@ class DNNModel::Impl {
             connections[i] = kFeatures - kDNNFeatures + i;
         }
 
-        nn_ <<  pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
+        nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true, backend_type) << relu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);

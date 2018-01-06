@@ -51,7 +51,7 @@ void register_layers(T* h) {
   h->template register_layer<softplus_layer>("softplus");
   h->template register_layer<softsign_layer>("softsign");
   h->template register_layer<selu_layer>("selu");
-  h->template register_layer<partial_connected_layer>("pc");
+  h->template register_layer<pc>("pc");
 }
 
 }  // namespace tiny_dnn
