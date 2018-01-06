@@ -37,18 +37,18 @@ class DNNModel::Impl {
 
         static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
         // nn_ << fc(kFeatures, 10, true, backend_type) << relu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
-        nn_ << fc(kFeatures, 1, false, backend_type) << tanh();
+        // nn_ << fc(kFeatures, 1, false, backend_type) << tanh();
         // nn_ << fc(kFeatures, 1, true, backend_type) << ll(1, 10);
         // nn_ << fc(kFeatures, 6*6, true, backend_type) << relu() << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
-        nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
-        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
+        // nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
+        nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
+        nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
         nn_.init_weight();
 
         /*
@@ -71,7 +71,7 @@ class DNNModel::Impl {
         {
         auto w = nn_[0]->weights();
         auto w0 = *(w[0]);
-        w0[kFeatures - kDNNFeatures + FI_PRICE] = 1.0;
+        w0[kFeatures - kDNNFeatures + FI_LAST] = 1.0;
         }
         */
 

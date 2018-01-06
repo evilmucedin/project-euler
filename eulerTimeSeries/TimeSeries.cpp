@@ -846,11 +846,54 @@ void dnn() {
     DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, 1);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
+        auto modelStat = [&]() {
+            auto model = trainer.getModel();
+
+            double trainError = 0;
+            double testError = 0;
+            double testError0 = 0;
+            size_t testCount = 0;
+            size_t trainCount = 0;
+            for (const auto& stockPair : features) {
+                if (!stockStats.count(stockPair.first)) {
+                    continue;
+                }
+
+                const auto& sfeatures = stockPair.second;
+                for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                    auto dnnFeatures = genFeatures(sfeatures, i);
+                    auto ret = genRet(sfeatures, i);
+                    auto prediction = model->predict(dnnFeatures);
+                    auto sampleError = prediction - ret;
+                    if (abs(sampleError) > 0.1) {
+                        LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction)
+                                                 << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
+                    }
+                    if (!train(stockPair.first)) {
+                        testError += sqr(sampleError);
+                        testError0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
+                        ++testCount;
+                    } else {
+                        trainError += sqr(sampleError);
+                        ++trainCount;
+                    }
+                }
+            }
+
+            double pTrainError = trainError / trainCount;
+            double pTestError = testError / testCount;
+            double pTestBaseline = testError0 / testCount;
+            cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
+                 << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
+                 << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount
+                 << ", elapsed: " << tt.diffAndReset() << endl;
+        };
+
         trainer.slowdown();
 
         shuffle(stocks);
-            vector<DoubleVector> feats;
-            DoubleVector label;
+        vector<DoubleVector> feats;
+        DoubleVector label;
         for (const auto& stock : stocks) {
             if (!train(stock)) {
                 continue;
@@ -870,50 +913,12 @@ void dnn() {
                 // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
             }
         }
-            trainer.train(feats, label);
+        trainer.train(feats, label);
 
         auto model = trainer.getModel();
         model->save("dnn");
         model->saveJson("dnn.json");
-
-        double trainError = 0;
-        double testError = 0;
-        double testError0 = 0;
-        size_t testCount = 0;
-        size_t trainCount = 0;
-        for (const auto& stockPair : features) {
-            if (!stockStats.count(stockPair.first)) {
-                continue;
-            }
-
-            const auto& sfeatures = stockPair.second;
-            for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
-                auto dnnFeatures = genFeatures(sfeatures, i);
-                auto ret = genRet(sfeatures, i);
-                auto prediction = model->predict(dnnFeatures);
-                auto sampleError = prediction - ret;
-                if (abs(sampleError) > 0.1) {
-                    LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction) << OUT(stockPair.first)
-                                             << OUT(i + kDNNWindow + kDNNHorizon - 1);
-                }
-                if (!train(stockPair.first)) {
-                    testError += sqr(sampleError);
-                    testError0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
-                    ++testCount;
-                } else {
-                    trainError += sqr(sampleError);
-                    ++trainCount;
-                }
-            }
-        }
-
-        double pTrainError = trainError / trainCount;
-        double pTestError = testError / testCount;
-        double pTestBaseline = testError0 / testCount;
-        cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
-             << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
-             << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount
-             << ", elapsed: " << tt.diffAndReset() << endl;
+        modelStat();
     }
 }
 
