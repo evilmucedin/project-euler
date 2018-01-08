@@ -55,8 +55,10 @@ class DNNModel::Impl {
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         // nn_.weight_init(tiny_dnn::weight_init::constant(0));
         // nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
-        nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
+        // nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
+        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
+        nn_.weight_init(tiny_dnn::weight_init::xavier());
+        nn_.bias_init(tiny_dnn::weight_init::xavier());
         nn_.init_weight();
 
         /*
@@ -123,7 +125,7 @@ class DNNModel::Impl {
             for (auto& pv: weights) {
                 for (auto& x: *pv) {
                     x *= regMul;
-                    if (abs(x) < 0.5) {
+                    if (abs(x) < 0.05) {
                         x = 0;
                     }
                 }
@@ -215,7 +217,7 @@ class DNNModelTrainer::Impl {
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::adagrad optimizer_;
+    tiny_dnn::nesterov_momentum optimizer_;
     double scaleRate_;
     size_t samples_;
     double alpha0_;
