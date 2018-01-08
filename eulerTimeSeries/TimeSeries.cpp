@@ -824,7 +824,6 @@ void dnn() {
     };
 
     auto stocks = keys(features);
-    /*
     size_t samples = 0;
     for (const auto& stock : stocks) {
         if (!train(stock)) {
@@ -835,15 +834,13 @@ void dnn() {
             continue;
         }
 
-        const auto& sfeatures = features.find(stock)->second;
-        for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+        for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
             ++samples;
         }
     }
     LOG(INFO) << "Training samples: " << samples;
-    */
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, 1);
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         auto modelStat = [&]() {

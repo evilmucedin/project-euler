@@ -29,6 +29,7 @@ class DNNModel::Impl {
         using pc = tiny_dnn::pc;
         using tanh = tiny_dnn::activation::tanh;
         using relu = tiny_dnn::activation::relu;
+        using lrelu = tiny_dnn::activation::leaky_relu;
         using ll = tiny_dnn::linear_layer;
         using conv = tiny_dnn::layers::conv;
         using ave_pool = tiny_dnn::layers::ave_pool;
@@ -43,7 +44,7 @@ class DNNModel::Impl {
             connections[i] = kFeatures - kDNNFeatures + i;
         }
 
-        nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true, backend_type) << relu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
+        nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, true, backend_type) << lrelu() << fc(4, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
@@ -123,7 +124,7 @@ class DNNModel::Impl {
             for (auto& pv: weights) {
                 for (auto& x: *pv) {
                     x *= regMul;
-                    if (abs(x) < 0.5) {
+                    if (abs(x) < 0.01) {
                         x = 0;
                     }
                 }
@@ -165,7 +166,7 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.alpha *= 100;
+        optimizer_.alpha *= 100.0*1000.0;
         optimizer_.alpha /= samples;
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
