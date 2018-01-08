@@ -166,8 +166,6 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.alpha *= 100.0*1000.0;
-        optimizer_.alpha /= samples;
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
@@ -216,7 +214,7 @@ class DNNModelTrainer::Impl {
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::adagrad optimizer_;
+    tiny_dnn::gradient_descent optimizer_;
     double scaleRate_;
     size_t samples_;
     double alpha0_;

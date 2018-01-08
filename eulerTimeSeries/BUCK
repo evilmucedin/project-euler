@@ -18,6 +18,7 @@ cxx_binary(
     "//lib/io:csv",
     "//lib/io:fstream",
     "//lib/io:zstream",
+    "//lib/io:utils",
     "//lib:math",
     "//lib:matrix",
     "//lib:random",
