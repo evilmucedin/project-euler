@@ -47,3 +47,15 @@ cxx_library(
   ],
 )
 
+cxx_library(
+  name="utils",
+  exported_headers=[
+    "utils.h"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

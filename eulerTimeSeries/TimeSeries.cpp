@@ -9,6 +9,7 @@
 #include "lib/init.h"
 #include "lib/io/csv.h"
 #include "lib/io/fstream.h"
+#include "lib/io/utils.h"
 #include "lib/io/zstream.h"
 #include "lib/math.h"
 #include "lib/matrix.h"
@@ -26,6 +27,7 @@ DEFINE_int64(limit, numeric_limits<int64_t>::max(), "limit number of messages");
 DEFINE_double(learning_rate, 1.0, "learning rate");
 DEFINE_double(regularization, 0, "learning rate");
 DEFINE_int64(epochs, 100, "epochs");
+DEFINE_bool(parse_dnn, false, "parse features for DNN");
 
 using namespace Eigen;
 
@@ -663,6 +665,23 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
     const StockStats& get() const { return data_; }
 
     StockStats data_;
+
+    void save(const string& filename) const {
+        OFStream ofs(filename);
+        for (const auto& p: data_) {
+            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << endl;
+        }
+    }
+
+    void load(const string& filename) {
+        IFStream ifs(filename);
+        while (ifs) {
+            string ric;
+            ifs >> ric;
+            auto& stat = data_[ric];
+            ifs >> stat.sumVolume_ >> stat.sumPrice_ >> stat.count_;
+        }
+    }
 };
 
 using StocksFeatures = unordered_map<string, StockFeatures>;
@@ -763,18 +782,52 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         }
     }
 
+    void save(const string& filename) const {
+        OFStream ofs(filename);
+        for (const auto& p: features_) {
+            ofs << p.first;
+            for (size_t i = 0; i < kQuants; ++i) {
+                saveVector(ofs, p.second[i]);
+            }
+            ofs << endl;
+        }
+    }
+
+    void load(const string& filename) {
+        IFStream ifs(filename);
+        while (ifs) {
+            string ric;
+            ifs >> ric;
+            auto& fs = features_[ric];
+            fs.resize(kQuants);
+            for (size_t i = 0; i < kQuants; ++i) {
+                fs[i] = loadVector<double>(ifs);
+            }
+        }
+    }
+
     StocksFeatures features_;
     BoolVector goodTick_;
 };
 
+static const string kDNNStatFilename = "dnnStat.tsv";
+static const string kDNNFeaturesFilename = "dnnFeatures.tsv";
+
 void dnn() {
     Timer tTotal("DNN");
-    StockStatReutersParserCallback statCallback;
-    parseReuters(kFilename, statCallback);
-    auto stockStats = statCallback.get();
     StockFeaturizerReutersParserCallback featurizerCallback;
-    parseReuters(kFilename, featurizerCallback);
-    featurizerCallback.finish(stockStats);
+    StockStatReutersParserCallback statCallback;
+    if (FLAGS_parse_dnn) {
+        parseReuters(kFilename, statCallback);
+        parseReuters(kFilename, featurizerCallback);
+        featurizerCallback.finish(statCallback.get());
+        statCallback.save(kDNNStatFilename);
+        featurizerCallback.save(kDNNFeaturesFilename);
+    } else {
+        statCallback.load(kDNNStatFilename);
+        featurizerCallback.load(kDNNFeaturesFilename);
+    }
+    auto stockStats = statCallback.get();
     const auto& features = featurizerCallback.features_;
     const auto& goodTicks = featurizerCallback.goodTick_;
     for (size_t i = 1; i < goodTicks.size(); ++i) {
@@ -824,7 +877,6 @@ void dnn() {
     };
 
     auto stocks = keys(features);
-    /*
     size_t samples = 0;
     for (const auto& stock : stocks) {
         if (!train(stock)) {
@@ -835,15 +887,13 @@ void dnn() {
             continue;
         }
 
-        const auto& sfeatures = features.find(stock)->second;
-        for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+        for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
             ++samples;
         }
     }
     LOG(INFO) << "Training samples: " << samples;
-    */
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, 1);
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         auto modelStat = [&]() {
