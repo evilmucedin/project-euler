@@ -787,6 +787,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         for (const auto& p: features_) {
             ofs << p.first;
             for (size_t i = 0; i < kQuants; ++i) {
+                ofs << "\t";
                 saveVector(ofs, p.second[i]);
             }
             ofs << endl;
