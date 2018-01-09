@@ -723,8 +723,33 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         auto& features = getFeatures(ric, dt);
         features[FI_VOLUME] += volume;
         features[FI_PRICE] += price;
-        ++features[FI_TRADES];
+        features[FI_TRADES] += 1.0;
         features[FI_LAST] = price;
+    }
+
+    void normalize(size_t featureIndex) {
+        double sum = 0;
+        double sum2 = 0;
+        size_t count = 0;
+        for (auto& stockPair : features_) {
+            for (auto& features : stockPair.second) {
+                sum += features[featureIndex];
+                sum2 += sqr(features[featureIndex]);
+                ++count;
+            }
+        }
+        double mean = 0.0;
+        double sigma = 1.0;
+        if (count > 1) {
+            mean = sum / count;
+            sigma = sqrt((sum2 - sqr(sum) / count) / (count - 1));
+        }
+        for (auto& stockPair : features_) {
+            for (auto& features : stockPair.second) {
+                features[featureIndex] = (features[featureIndex] - mean) / sigma;
+            }
+        }
+        LOG(INFO) << OUT(featureIndex) << OUT(mean) << OUT(sigma);
     }
 
     void finish(const StockStats& ss) {
@@ -753,10 +778,6 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     features[FI_LAST] /= avgPrice;
                     features[FI_BID] /= avgPrice;
                     features[FI_ASK] /= avgPrice;
-                    features[FI_PRICE] -= 1.0;
-                    features[FI_LAST] -= 1.0;
-                    features[FI_BID] -= 1.0;
-                    features[FI_ASK] -= 1.0;
                 }
                 features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
                 features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
@@ -777,8 +798,18 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 updateLast(features[FI_ASKSIZE], lastAskSize);
 
                 features[FI_TDF] = static_cast<double>(index) / kQuants;
+
+                if ((features[FI_BID] != 0) && (features[FI_ASK] != 0)) {
+                    features[FI_RETURN] = (features[FI_ASK] + features[FI_BID]) / 2.0;
+                } else if (features[FI_LAST] != -1) {
+                    features[FI_RETURN] = features[FI_LAST];
+                }
+
                 ++index;
             }
+        }
+        for (size_t iFeature = 0; iFeature < kDNNFeatures; ++iFeature) {
+            normalize(iFeature);
         }
     }
 
@@ -799,10 +830,14 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         while (ifs) {
             string ric;
             ifs >> ric;
+            if (ric.empty()) {
+                break;
+            }
             auto& fs = features_[ric];
             fs.resize(kQuants);
             for (size_t i = 0; i < kQuants; ++i) {
                 fs[i] = loadVector<double>(ifs);
+                ENFORCE_EQ(fs[i].size(), kDNNFeatures);
             }
         }
     }
@@ -820,9 +855,9 @@ void dnn() {
     StockStatReutersParserCallback statCallback;
     if (FLAGS_parse_dnn) {
         parseReuters(kFilename, statCallback);
+        statCallback.save(kDNNStatFilename);
         parseReuters(kFilename, featurizerCallback);
         featurizerCallback.finish(statCallback.get());
-        statCallback.save(kDNNStatFilename);
         featurizerCallback.save(kDNNFeaturesFilename);
     } else {
         statCallback.load(kDNNStatFilename);
@@ -856,13 +891,7 @@ void dnn() {
 
     auto genRet = [](const StockFeatures& sfeatures, int offset) {
         auto getPrice = [](const DoubleVector& slice) {
-            if ((slice[FI_BID] != -1) && (slice[FI_ASK] != -1)) {
-                return (slice[FI_ASK] + slice[FI_BID]) / 2.0;
-            }
-            if (slice[FI_LAST] != -1) {
-                return slice[FI_LAST];
-            }
-            return 0.0;
+            return slice[FI_RETURN];
         };
 
         int index = offset + kDNNWindow + kDNNHorizon - 1;
@@ -873,8 +902,8 @@ void dnn() {
         return result;
     };
 
-    auto train = [](const std::string& stock) {
-        return (hash<string>()(stock) % 100) < 80;
+    auto train = [](const string& stock) {
+        return (hash<string>()(stock) % 100) > 20;
     };
 
     auto stocks = keys(features);
@@ -931,9 +960,9 @@ void dnn() {
                 }
             }
 
-            double pTrainError = trainError / trainCount;
-            double pTestError = testError / testCount;
-            double pTestBaseline = testError0 / testCount;
+            double pTrainError = sqrt(trainError / trainCount);
+            double pTestError = sqrt(testError / testCount);
+            double pTestBaseline = sqrt(testError0 / testCount);
             cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
                  << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
                  << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount

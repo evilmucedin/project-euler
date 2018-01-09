@@ -31,20 +31,36 @@ struct optimizer {
 };
 
 // helper class to hold N values for each weight
-template <int N>
+template <int N, int M = 0>
 struct stateful_optimizer : public optimizer {
-  void reset() override {
-    for (auto &e : E_) e.clear();
-  }
+    void reset() override {
+        for (auto &e : E_) e.clear();
+    }
 
- protected:
-  template <int Index>
-  vec_t &get(const vec_t &key) {
-    static_assert(Index < N, "index out of range");
-    if (E_[Index][&key].empty()) E_[Index][&key].resize(key.size(), float_t());
-    return E_[Index][&key];
-  }
-  std::unordered_map<const vec_t *, vec_t> E_[N];
+   protected:
+    template <int Index>
+    vec_t &get(const vec_t &key) {
+        static_assert(Index < N, "index out of range");
+        if (E_[Index][&key].empty()) E_[Index][&key].resize(key.size(), float_t());
+        return E_[Index][&key];
+    }
+
+    template <int Index>
+    vec_t &getP(const vec_t &key) {
+        static_assert(Index < N, "index out of range");
+        if (P_[Index][&key].empty()) P_[Index][&key].resize(key.size(), float_t());
+        return P_[Index][&key];
+    }
+
+    template <int Index>
+    double& getF(const vec_t &key) {
+        static_assert(Index < M, "index out of range");
+        return F_[Index][&key];
+    }
+
+    std::unordered_map<const vec_t *, vec_t> E_[N];
+    std::unordered_map<const vec_t *, vec_t> P_[N];
+    std::unordered_map<const vec_t *, double> F_[M];
 };
 
 /**
@@ -70,11 +86,12 @@ struct adagrad : public stateful_optimizer<1> {
   float_t eps;
 };
 
-struct avgadagrad : public stateful_optimizer<1> {
+struct avgadagrad : public stateful_optimizer<2> {
   avgadagrad() : alpha(float_t(0.01)), eps(float_t(1e-8)), count(0) {}
 
   void update(const vec_t &dW, vec_t &W, bool parallelize) {
     vec_t g = get<0>(W);
+    auto& sum = get<1>(W);
     for_i(parallelize, W.size(), [&](size_t i) {
       g[i] += dW[i] * dW[i];
       W[i] -= alpha * dW[i] / (std::sqrt(g[i]) + eps);
@@ -97,7 +114,6 @@ struct avgadagrad : public stateful_optimizer<1> {
   float_t alpha;  // learning rate
  private:
   float_t eps;
-  vec_t sum;
   size_t count;
 };
 
@@ -214,8 +230,74 @@ struct gradient_descent : public optimizer {
   gradient_descent() : alpha(float_t(0.01)), lambda(float_t(0)) {}
 
   void update(const vec_t &dW, vec_t &W, bool parallelize) {
-    for_i(parallelize, W.size(),
-          [&](size_t i) { W[i] = W[i] - alpha * (dW[i] + lambda * W[i]); });
+      EVERY_MS(
+          {
+              for (size_t i = 0; i < W.size(); ++i) {
+                  printf("%d %lf %lf %lf\n", (int)i, (double)W[i], (double)dW[i], (double)alpha);
+              }
+          },
+          1000);
+      for_i(parallelize, W.size(), [&](size_t i) { W[i] = W[i] - alpha * (dW[i] + lambda * W[i]); });
+  }
+
+  float_t alpha;   // learning rate
+  float_t lambda;  // weight decay
+};
+
+struct avg_gradient_descent : public stateful_optimizer<1, 1> {
+  avg_gradient_descent() : alpha(float_t(0.01)), lambda(float_t(0)) {}
+
+  void update(const vec_t &dW, vec_t &W, bool parallelize) {
+      auto& sum = getP<0>(W);
+      auto& count = getF<0>(W);
+
+      EVERY_MS(
+          {
+              for (size_t i = 0; i < W.size(); ++i) {
+                  printf("%d %lf %lf %lf %lf %lf\n", (int)i, (double)W[i], (double)dW[i], (double)alpha,
+                         double((i < sum.size()) ? sum[i] : 0), count);
+              }
+              printf("------------------------\n");
+              fflush(stdout);
+          },
+          10000);
+      for_i(parallelize, W.size(), [&](size_t i) { W[i] = W[i] - alpha * (dW[i] + lambda * W[i]); });
+
+      if (0 == count) {
+          sum = W;
+          count = 1.0;
+      } else {
+          static constexpr double kMul = 0.99;
+          for (size_t i = 0; i < W.size(); ++i) {
+              sum[i] = sum[i]*kMul + W[i];
+          }
+          count = count*kMul + 1.0;
+      }
+
+      /*
+      if (count > 16) {
+          W = result(dW, W, parallelize);
+          resetAvg(dW, W, parallelize);
+      }
+      */
+  }
+
+  void resetAvg(const vec_t &dW, vec_t &W, bool parallelize) {
+    auto& sum = get<0>(W);
+    for (auto& x: sum) {
+        x = 0;
+    }
+    auto& count = getF<0>(W);
+    count = 0;
+  }
+
+  vec_t result(const vec_t &dW, vec_t &W, bool parallelize) {
+    auto sum = get<0>(W);
+    auto count = getF<0>(W);
+    for (auto& x: sum) {
+        x /= count;
+    }
+    return sum;
   }
 
   float_t alpha;   // learning rate
@@ -275,13 +357,14 @@ struct nesterov_momentum : public stateful_optimizer<1> {
   float_t mu;      // momentum
 };
 
-struct avg_nesterov_momentum : public stateful_optimizer<1> {
+struct avg_nesterov_momentum : public stateful_optimizer<2> {
  public:
   avg_nesterov_momentum()
     : alpha(float_t(0.01)), lambda(float_t(0)), mu(float_t(0.9)), count(0) {}
 
   void update(const vec_t &dW, vec_t &W, bool parallelize) {
     vec_t dWprev = get<0>(W);
+    auto& sum = get<1>(W);
 
     for_i(parallelize, W.size(), [&](size_t i) {
       float_t V = mu * dWprev[i] - alpha * (dW[i] + W[i] * lambda);
@@ -308,7 +391,6 @@ struct avg_nesterov_momentum : public stateful_optimizer<1> {
   float_t mu;      // momentum
 
 private:
-  vec_t sum;
   size_t count;
 };
 
