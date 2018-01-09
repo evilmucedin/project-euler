@@ -46,7 +46,7 @@ class DNNModel::Impl {
             connections.emplace_back(kFeatures - kPCFeatures + i);
         }
 
-        nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 40, false, backend_type) << lrelu() << fc(40, 1, false, backend_type);
+        nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
         // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 1, false, backend_type);
         // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
         // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true, backend_type) << lrelu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
@@ -217,7 +217,7 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 32), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 256), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
