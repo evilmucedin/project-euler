@@ -39,28 +39,25 @@ class DNNModel::Impl {
 
         static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        vector<size_t> connections(kDNNFeatures);
-        for (size_t i = 0; i < kDNNFeatures; ++i) {
-            connections[i] = kFeatures - kDNNFeatures + i;
+        static constexpr size_t kPCFeatures = kDNNFeatures * 4;
+
+        vector<size_t> connections;
+        for (size_t i = 0; i < kPCFeatures; ++i) {
+            connections.emplace_back(kFeatures - kPCFeatures + i);
         }
 
-        nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, true, backend_type) << lrelu() << fc(4, 1, true, backend_type) << tanh();
+        nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 40, false, backend_type) << lrelu() << fc(40, 1, false, backend_type);
+        // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 1, false, backend_type);
+        // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
+        // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true, backend_type) << lrelu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
         // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
-        // nn_ << fc(kFeatures, 10, true, backend_type) << relu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+        // nn_ << fc(kFeatures, 10, true, backend_type) << lrelu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
         // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
-        // nn_ << fc(kFeatures, 1, false, backend_type) << tanh();
+        // nn_ << fc(kFeatures, 4, false, backend_type) << relu() << fc(4, 1, false, backend_type);
         // nn_ << fc(kFeatures, 1, true, backend_type) << ll(1, 10);
-        // nn_ << fc(kFeatures, 6*6, true, backend_type) << relu() << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
-        // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
-        // nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::xavier(0.0001));
-        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.00001));
-        nn_.weight_init(tiny_dnn::weight_init::xavier());
-        nn_.bias_init(tiny_dnn::weight_init::xavier());
-        nn_.init_weight();
+        // nn_ << fc(kFeatures, 6*6, false, backend_type) << relu() << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
 
         /*
         nn_ << fc(kFeatures, 32 * 32, true, backend_type) << conv(32, 32, 5, 1, 6,  // C1, 1@32x32-in, 6@28x28-out
@@ -76,7 +73,14 @@ class DNNModel::Impl {
             << tanh() << fc(10, 1, true, backend_type);
         */
 
-        // nn_.init_weight();
+        // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
+        // nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
+        // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
+        // nn_.bias_init(tiny_dnn::weight_init::xavier(0.000001));
+        nn_.weight_init(tiny_dnn::weight_init::xavier());
+        // nn_.bias_init(tiny_dnn::weight_init::xavier());
+        nn_.init_weight();
 
         /*
         {
@@ -119,16 +123,18 @@ class DNNModel::Impl {
             return;
         }
 
-        const double regMul = 1.0 - alpha * value * samples;
-        LOG_EVERY_MS(INFO, 1000) << OUT(regMul) << OUT(alpha*samples);
+        const double regMul = 1.0 - alpha * value;
+        LOG_EVERY_MS(INFO, 1000) << OUT(regMul) << OUT(alpha);
         for (size_t i = 0; i < nn_.layer_size(); ++i) {
             auto weights = nn_[i]->weights();
             for (auto& pv: weights) {
                 for (auto& x: *pv) {
                     x *= regMul;
+                    /*
                     if (abs(x) < 0.01) {
                         x = 0;
                     }
+                    */
                 }
             }
         }
@@ -177,7 +183,7 @@ class DNNModelTrainer::Impl {
     void slowdown() {
         model_.scale(optimizer_.alpha, scaleRate_, samples_);
         ++iteration_;
-        optimizer_.alpha = (iteration_ <= 5) ? alpha0_ : alpha0_ / (iteration_ - 5);
+        optimizer_.alpha = (iteration_ <= 5) ? alpha0_ : alpha0_ / (1.0 + 0.02 * (iteration_ - 5));
     }
 
     void train(const DoubleVector& features, double label) {
@@ -211,16 +217,12 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 16), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 32), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
     DNNModel::Impl model_;
-<<<<<<< HEAD
-    tiny_dnn::nesterov_momentum optimizer_;
-=======
-    tiny_dnn::gradient_descent optimizer_;
->>>>>>> 89634f0ca50540770171102806da58f7f8027852
+    tiny_dnn::adagrad optimizer_;
     double scaleRate_;
     size_t samples_;
     double alpha0_;

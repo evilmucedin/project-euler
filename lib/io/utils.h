@@ -8,7 +8,7 @@ template<typename T>
 void saveVector(ostream& s, const vector<T>& vct) {
     s << vct.size();
     for (const auto& x: vct) {
-        s << x;
+        s << "\t" << x;
     }
 }
 

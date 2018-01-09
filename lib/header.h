@@ -54,8 +54,8 @@ struct hash<vector<T>> {
 };
 }
 
-template<typename T>
-ostream& operator<<(ostream& o, const vector<T>& v) {
+template<typename T, typename A>
+ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
     o << "[";
     bool first = true;
     for (auto n : v) {
@@ -270,3 +270,15 @@ string homeDir();
 
 #define OUT(X) #X << ": " << X << ", "
 #define OUTLN(X) #X << ": " << endl << X << endl
+
+#define EVERY_MS(LAMBDA, DELAY_MS)                                            \
+    {                                                                         \
+        static ::std::chrono::milliseconds::rep prev = -1;                    \
+        auto now = ::std::chrono::duration_cast<::std::chrono::milliseconds>( \
+                       ::std::chrono::system_clock::now().time_since_epoch()) \
+                       .count();                                              \
+        if (prev == -1 || now > prev + DELAY_MS) {                            \
+            LAMBDA;                                                           \
+            prev = now;                                                       \
+        }                                                                     \
+    }
