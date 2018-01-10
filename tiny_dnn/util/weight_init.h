@@ -93,6 +93,21 @@ class constant : public scalable {
   }
 };
 
+class uniform : public scalable {
+   public:
+    uniform(float_t a, float_t b) : scalable(a_), a_(a), b_(b) {}
+
+    void fill(vec_t *weight, size_t fan_in, size_t fan_out) override {
+        CNN_UNREFERENCED_PARAMETER(fan_in);
+        CNN_UNREFERENCED_PARAMETER(fan_out);
+
+        uniform_rand(weight->begin(), weight->end(), a_, b_);
+    }
+
+    float_t a_;
+    float_t b_;
+};
+
 class he : public scalable {
  public:
   he() : scalable(float_t{2}) {}
