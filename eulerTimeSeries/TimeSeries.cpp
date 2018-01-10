@@ -899,7 +899,7 @@ void dnn() {
         const auto& future = sfeatures[index];
         auto result = getPrice(future);
         ENFORCE(!isnan(result));
-        return result;
+        return make_pair(result, result != 0);
     };
 
     auto train = [](const string& stock) {
@@ -942,16 +942,22 @@ void dnn() {
                 const auto& sfeatures = stockPair.second;
                 for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                     auto dnnFeatures = genFeatures(sfeatures, i);
-                    auto ret = genRet(sfeatures, i);
+                    auto futureRet = genRet(sfeatures, i);
+                    auto ret = genRet(sfeatures, i - kDNNHorizon);
+
+                    if (!ret.second || !futureRet.second) {
+                        continue;
+                    }
+
                     auto prediction = model->predict(dnnFeatures);
-                    auto sampleError = prediction - ret;
+                    auto sampleError = prediction - futureRet.first;
                     if (abs(sampleError) > 0.1) {
-                        LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction)
+                        LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(futureRet.first) << OUT(prediction)
                                                  << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
                     }
                     if (!train(stockPair.first)) {
                         testError += sqr(sampleError);
-                        testErrorBaseline += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
+                        testErrorBaseline += sqr(futureRet.first - ret.first);
                         ++testCount;
                     } else {
                         trainError += sqr(sampleError);
@@ -988,8 +994,11 @@ void dnn() {
             for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);
                 auto ret = genRet(sfeatures, i);
+                if (!ret.second) {
+                    continue;
+                }
                 feats.emplace_back(std::move(dnnFeatures));
-                label.emplace_back(ret);
+                label.emplace_back(ret.first);
                 // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
             }
             trainer.train(feats, label);

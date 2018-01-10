@@ -64,7 +64,7 @@ class DNNModel::Impl {
         */
 
         // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 6*6, false, backend_type) << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
-        nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
+        nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 5*5, false, backend_type) << lrelu() << fc(5*5, 5, false, backend_type) << lrelu() << fc(5, 1, false, backend_type);
         // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 1, false, backend_type);
         // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 2, false, backend_type) << lrelu() << mul(2) << fc(2*2, 1, false, backend_type);
         // nn_ << fc(kFeatures, 80, false, backend_type) << lrelu() << fc(80, 1, false, backend_type);
@@ -244,7 +244,7 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 1), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 16), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
