@@ -230,6 +230,7 @@ struct gradient_descent : public optimizer {
   gradient_descent() : alpha(float_t(0.01)), lambda(float_t(0)) {}
 
   void update(const vec_t &dW, vec_t &W, bool parallelize) {
+      /*
       EVERY_MS(
           {
               for (size_t i = 0; i < W.size(); ++i) {
@@ -237,6 +238,7 @@ struct gradient_descent : public optimizer {
               }
           },
           1000);
+      */
       for_i(parallelize, W.size(), [&](size_t i) { W[i] = W[i] - alpha * (dW[i] + lambda * W[i]); });
   }
 

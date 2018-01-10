@@ -903,7 +903,7 @@ void dnn() {
     };
 
     auto train = [](const string& stock) {
-        return (hash<string>()(stock) % 100) > 20;
+        return (hash<string>()(stock) % 5) != 4;
     };
 
     auto stocks = keys(features);
@@ -931,7 +931,7 @@ void dnn() {
 
             double trainError = 0;
             double testError = 0;
-            double testError0 = 0;
+            double testErrorBaseline = 0;
             size_t testCount = 0;
             size_t trainCount = 0;
             for (const auto& stockPair : features) {
@@ -951,7 +951,7 @@ void dnn() {
                     }
                     if (!train(stockPair.first)) {
                         testError += sqr(sampleError);
-                        testError0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
+                        testErrorBaseline += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
                         ++testCount;
                     } else {
                         trainError += sqr(sampleError);
@@ -962,7 +962,7 @@ void dnn() {
 
             double pTrainError = sqrt(trainError / trainCount);
             double pTestError = sqrt(testError / testCount);
-            double pTestBaseline = sqrt(testError0 / testCount);
+            double pTestBaseline = sqrt(testErrorBaseline / testCount);
             cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
                  << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
                  << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount
@@ -972,8 +972,6 @@ void dnn() {
         trainer.slowdown();
 
         shuffle(stocks);
-        vector<DoubleVector> feats;
-        DoubleVector label;
         for (const auto& stock : stocks) {
             if (!train(stock)) {
                 continue;
@@ -983,6 +981,8 @@ void dnn() {
                 continue;
             }
 
+            vector<DoubleVector> feats;
+            DoubleVector label;
             // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
             const auto& sfeatures = features.find(stock)->second;
             for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
@@ -992,8 +992,8 @@ void dnn() {
                 label.emplace_back(ret);
                 // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
             }
+            trainer.train(feats, label);
         }
-        trainer.train(feats, label);
 
         auto model = trainer.getModel();
         model->save("dnn");

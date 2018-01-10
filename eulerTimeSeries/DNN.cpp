@@ -27,6 +27,7 @@ class DNNModel::Impl {
     Impl() {
         using fc = tiny_dnn::layers::fc;
         using pc = tiny_dnn::pc;
+        using pc2 = tiny_dnn::partial_connected;
         using tanh = tiny_dnn::activation::tanh;
         using relu = tiny_dnn::activation::relu;
         using lrelu = tiny_dnn::activation::leaky_relu;
@@ -34,19 +35,41 @@ class DNNModel::Impl {
         using conv = tiny_dnn::layers::conv;
         using ave_pool = tiny_dnn::layers::ave_pool;
         using padding = tiny_dnn::padding;
+        using mul = tiny_dnn::mul_layer;
 
         const auto backend_type = tiny_dnn::core::backend_t::avx;
 
         static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        static constexpr size_t kPCFeatures = kDNNFeatures * 4;
+        static constexpr size_t kPCFeatures = kDNNFeatures;
 
+        /*
         vector<size_t> connections;
         for (size_t i = 0; i < kPCFeatures; ++i) {
             connections.emplace_back(kFeatures - kPCFeatures + i);
         }
+        */
 
-        nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
+        vector<tiny_dnn::partial_connection> connections;
+        for (size_t i = 0; i < kDNNWindow; ++i) {
+            for (size_t j = 0; j < kDNNFeatures; ++j) {
+                tiny_dnn::partial_connection c;
+                c.in_index_ = i*kDNNFeatures + j;
+                c.out_index_ = i;
+                c.weight_index_ = c.in_index_;
+                connections.emplace_back(std::move(c));
+            }
+        }
+        /*
+        */
+
+        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 6*6, false, backend_type) << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
+        nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
+        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 1, false, backend_type);
+        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 2, false, backend_type) << lrelu() << mul(2) << fc(2*2, 1, false, backend_type);
+        // nn_ << fc(kFeatures, 80, false, backend_type) << lrelu() << fc(80, 1, false, backend_type);
+        // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
+        // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 1, false, backend_type);
         // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 1, false, backend_type);
         // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
         // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true, backend_type) << lrelu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
@@ -75,10 +98,13 @@ class DNNModel::Impl {
 
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         // nn_.weight_init(tiny_dnn::weight_init::constant(0));
+        nn_.weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
+        // nn_.weight_init(tiny_dnn::weight_init::constant(1e-7));
+        // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
         // nn_.bias_init(tiny_dnn::weight_init::xavier(0.000001));
-        nn_.weight_init(tiny_dnn::weight_init::xavier());
+        // nn_.weight_init(tiny_dnn::weight_init::xavier());
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         nn_.init_weight();
 
@@ -174,6 +200,7 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
+        optimizer_.mu = 1.0 - 0.001 * (1.0 - optimizer_.mu);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
@@ -183,7 +210,7 @@ class DNNModelTrainer::Impl {
     void slowdown() {
         model_.scale(optimizer_.alpha, scaleRate_, samples_);
         ++iteration_;
-        optimizer_.alpha = (iteration_ <= 5) ? alpha0_ : alpha0_ / (1.0 + 0.02 * (iteration_ - 5));
+        optimizer_.alpha = (iteration_ <= 5) ? alpha0_ : alpha0_ / (1.0 + 0.1 * (iteration_ - 5));
     }
 
     void train(const DoubleVector& features, double label) {
@@ -222,7 +249,7 @@ class DNNModelTrainer::Impl {
 
    private:
     DNNModel::Impl model_;
-    tiny_dnn::adagrad optimizer_;
+    tiny_dnn::RMSprop optimizer_;
     double scaleRate_;
     size_t samples_;
     double alpha0_;

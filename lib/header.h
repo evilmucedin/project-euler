@@ -152,6 +152,16 @@ T sqr(const T& x) {
 }
 
 template<typename T>
+T clamp(T x, T scale) {
+    if (x < -scale) {
+        return -scale;
+    } else if (x > scale) {
+        return scale;
+    }
+    return x;
+}
+
+template<typename T>
 double length(const vector<T>& a) {
     double l2 = 0.0;
     for (const auto& x: a) {

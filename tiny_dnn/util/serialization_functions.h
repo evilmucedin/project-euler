@@ -306,6 +306,39 @@ struct LoadAndConstruct<tiny_dnn::pc> {
 };
 
 template <>
+struct LoadAndConstruct<tiny_dnn::mul_layer> {
+  template <class Archive>
+  static void load_and_construct(
+    Archive &ar, cereal::construct<tiny_dnn::mul_layer> &construct) {
+    size_t dim;
+
+    ::detail::arc(ar, ::detail::make_nvp("dim", dim));
+
+    construct(dim);
+  }
+};
+
+template <>
+struct LoadAndConstruct<tiny_dnn::partial_connected> {
+  template <class Archive>
+  static void load_and_construct(
+    Archive &ar, cereal::construct<tiny_dnn::partial_connected> &construct) {
+      size_t in_dim;
+      size_t out_dim;
+      size_t weight_dim;
+      std::vector<tiny_dnn::partial_connected_layer::wo_connections> in2wo;
+      std::vector<tiny_dnn::partial_connected_layer::wi_connections> out2wi;
+      std::vector<tiny_dnn::partial_connected_layer::io_connections> weight2io;
+
+      ::detail::arc(ar, ::detail::make_nvp("in_dim", in_dim), ::detail::make_nvp("out_dim", out_dim),
+                    ::detail::make_nvp("weight_dim", weight_dim), ::detail::make_nvp("in2wo", in2wo),
+                    ::detail::make_nvp("out2wi", out2wi), ::detail::make_nvp("weight2io", weight2io));
+
+      construct(in_dim, out_dim, weight_dim, in2wo, out2wi, weight2io);
+  }
+};
+
+template <>
 struct LoadAndConstruct<tiny_dnn::lrn_layer> {
   template <class Archive>
   static void load_and_construct(
@@ -784,6 +817,18 @@ struct serialization_buddy {
     ::detail::arc(ar, ::detail::make_nvp("in_dim", layer.in_dim_),
                   ::detail::make_nvp("out_dim", layer.out_dim_),
                   ::detail::make_nvp("connections", layer.connections_));
+  }
+
+  template <class Archive>
+  static inline void serialize(Archive &ar, tiny_dnn::mul_layer &layer) {
+    ::detail::arc(ar, ::detail::make_nvp("dim", layer.dim_));
+  }
+
+  template <class Archive>
+  static inline void serialize(Archive &ar, tiny_dnn::partial_connected &layer) {
+      ::detail::arc(ar, ::detail::make_nvp("in_dim", layer.in_dim_), ::detail::make_nvp("out_dim", layer.out_dim_),
+                    ::detail::make_nvp("weight_dim", layer.weight_dim_), ::detail::make_nvp("in2wo", layer.in2wo_),
+                    ::detail::make_nvp("out2wi", layer.out2wi_), ::detail::make_nvp("weight2io", layer.weight2io_));
   }
 
   template <class Archive>
