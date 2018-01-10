@@ -800,9 +800,9 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 features[FI_TDF] = static_cast<double>(index) / kQuants;
 
                 if ((features[FI_BID] != 0) && (features[FI_ASK] != 0)) {
-                    features[FI_RETURN] = (features[FI_ASK] + features[FI_BID]) / 2.0;
+                    features[FI_CURRENT_PRICE] = (features[FI_ASK] + features[FI_BID]) / 2.0;
                 } else if (features[FI_LAST] != -1) {
-                    features[FI_RETURN] = features[FI_LAST];
+                    features[FI_CURRENT_PRICE] = features[FI_LAST];
                 }
 
                 ++index;
@@ -891,15 +891,30 @@ void dnn() {
 
     auto genRet = [](const StockFeatures& sfeatures, int offset) {
         auto getPrice = [](const DoubleVector& slice) {
-            return slice[FI_RETURN];
+            return slice[FI_CURRENT_PRICE];
         };
 
-        int index = offset + kDNNWindow + kDNNHorizon - 1;
-        ENFORCE(index >= 0 && index < static_cast<int>(sfeatures.size()));
-        const auto& future = sfeatures[index];
-        auto result = getPrice(future);
+        int futureIndex = offset + kDNNWindow + kDNNHorizon - 1;
+        ENFORCE(futureIndex >= 0 && futureIndex < static_cast<int>(sfeatures.size()));
+
+        const auto& future = sfeatures[futureIndex];
+        auto futureResult = getPrice(future);
+        ENFORCE(!isnan(futureResult));
+
+        int index = offset + kDNNWindow - 1;
+        if (index < 0) {
+            return make_pair(0.0, false);
+        }
+
+        const auto& now = sfeatures[index];
+        auto result = getPrice(now);
         ENFORCE(!isnan(result));
-        return make_pair(result, result != 0);
+
+        if (!result) {
+            return make_pair(0.0, false);
+        }
+
+        return make_pair(futureResult / result - 1.0, true);
     };
 
     auto train = [](const string& stock) {
@@ -931,9 +946,12 @@ void dnn() {
 
             double trainError = 0;
             double testError = 0;
-            double testErrorBaseline = 0;
+            double testErrorBaseline1 = 0;
+            double testErrorBaseline2 = 0;
             size_t testCount = 0;
             size_t trainCount = 0;
+            double sum = 0;
+            double sum2 = 0;
             for (const auto& stockPair : features) {
                 if (!stockStats.count(stockPair.first)) {
                     continue;
@@ -957,7 +975,10 @@ void dnn() {
                     }
                     if (!train(stockPair.first)) {
                         testError += sqr(sampleError);
-                        testErrorBaseline += sqr(futureRet.first - ret.first);
+                        testErrorBaseline1 += sqr(futureRet.first - ret.first);
+                        testErrorBaseline2 += sqr(futureRet.first);
+                        sum += futureRet.first;
+                        sum2 += sqr(futureRet.first);
                         ++testCount;
                     } else {
                         trainError += sqr(sampleError);
@@ -968,11 +989,15 @@ void dnn() {
 
             double pTrainError = sqrt(trainError / trainCount);
             double pTestError = sqrt(testError / testCount);
-            double pTestBaseline = sqrt(testErrorBaseline / testCount);
-            cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
-                 << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
-                 << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount
-                 << ", elapsed: " << tt.diffAndReset() << endl;
+            double pTestBaseline1 = sqrt(testErrorBaseline1 / testCount);
+            double pTestBaseline2 = sqrt(testErrorBaseline2 / testCount);
+            double mean = sum / testCount;
+            double variance = sum2 - 2.0 * mean * sum + testCount * sqr(mean);
+            cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline1 error: " << pTestBaseline1
+                 << ", baseline2 error: " << pTestBaseline2 << ", train error: " << pTrainError
+                 << ", test/train: " << pTestError / pTrainError << ", ratio1: " << pTestError / pTestBaseline1
+                 << ", ratio2: " << pTestError / pTestBaseline2 << ", samples: " << testCount << ", mean: " << mean
+                 << ", r2: " << 1.0 - (testError / variance) << ", elapsed: " << tt.diffAndReset() << endl;
         };
 
         trainer.slowdown();
@@ -987,9 +1012,9 @@ void dnn() {
                 continue;
             }
 
+            // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
             vector<DoubleVector> feats;
             DoubleVector label;
-            // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
             const auto& sfeatures = features.find(stock)->second;
             for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                 auto dnnFeatures = genFeatures(sfeatures, i);

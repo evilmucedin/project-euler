@@ -50,5 +50,5 @@ enum DNNFeature {
     FI_ASK = 6,
     FI_BIDSIZE = 7,
     FI_ASKSIZE = 8,
-    FI_RETURN = 9,
+    FI_CURRENT_PRICE = 9,
 };
