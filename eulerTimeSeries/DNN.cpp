@@ -66,7 +66,7 @@ class DNNModel::Impl {
         // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 6*6, false, backend_type) << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
         nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
         // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 1, false, backend_type);
-        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 2, false, backend_type) << tanh() << mul(2) << fc(2*2, 1, false, backend_type);
+        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 2, false, backend_type) << lrelu() << mul(2) << fc(2*2, 1, false, backend_type);
         // nn_ << fc(kFeatures, 80, false, backend_type) << lrelu() << fc(80, 1, false, backend_type);
         // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
         // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 1, false, backend_type);
@@ -98,13 +98,13 @@ class DNNModel::Impl {
 
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         // nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        nn_.weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
+        // nn_.weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
         // nn_.weight_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
         // nn_.bias_init(tiny_dnn::weight_init::xavier(0.000001));
-        // nn_.weight_init(tiny_dnn::weight_init::xavier());
+        nn_.weight_init(tiny_dnn::weight_init::xavier());
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         nn_.init_weight();
 
@@ -200,7 +200,7 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.mu = 1.0 - 0.01 * (1.0 - optimizer_.mu);
+        optimizer_.mu = 1.0 - 0.001 * (1.0 - optimizer_.mu);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
