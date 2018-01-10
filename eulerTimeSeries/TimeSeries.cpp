@@ -742,7 +742,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         double sigma = 1.0;
         if (count > 1) {
             mean = sum / count;
-            sigma = sqrt((sum2 - sqr(sum) / count) / (count - 1));
+            sigma = sqrt((sum2 - (sqr(sum) / count)) / (count - 1));
         }
         for (auto& stockPair : features_) {
             for (auto& features : stockPair.second) {

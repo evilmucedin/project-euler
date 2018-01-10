@@ -98,13 +98,13 @@ class DNNModel::Impl {
 
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         // nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
+        nn_.weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
         // nn_.weight_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
         // nn_.bias_init(tiny_dnn::weight_init::xavier(0.000001));
-        nn_.weight_init(tiny_dnn::weight_init::xavier());
+        // nn_.weight_init(tiny_dnn::weight_init::xavier());
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         nn_.init_weight();
 
