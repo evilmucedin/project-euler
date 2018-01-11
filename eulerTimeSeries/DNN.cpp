@@ -69,13 +69,14 @@ class DNNModel::Impl {
 
         auto in = make_shared<tiny_dnn::layers::input>(tiny_dnn::shape3d(kFeatures, 1, 1));
         auto partial1 = make_shared<pc2>(kFeatures, kDNNWindow, kFeatures, connections);
-        auto fc1 = make_shared<fc>(kDNNWindow, 1, false, backend_type);
-        *in << *partial1 << *fc1;
+        auto fc1 = make_shared<fc>(kDNNWindow, 5, false, backend_type);
+        auto relu1 = make_shared<relu>();
+        *in << *partial1 << *fc1 << *relu1;
         auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
         *in << *partial2;
-        auto c = shared_ptr<cc>(new cc({tiny_dnn::shape3d(1, 1, 1), tiny_dnn::shape3d(1, 1, connections2.size())}));
-        (*fc1, *partial2) << *c;
-        auto out = make_shared<fc>(connections2.size() + 1, 1, false, backend_type);
+        auto c = shared_ptr<cc>(new cc({tiny_dnn::shape3d(1, 1, 5), tiny_dnn::shape3d(1, 1, connections2.size())}));
+        (*relu1, *partial2) << *c;
+        auto out = make_shared<fc>(connections2.size() + 5, 1, false, backend_type);
         *c << *out;
         // auto out = make_shared<fc>(1, 1, false, backend_type);
         // *fc1 << *out;
@@ -84,6 +85,7 @@ class DNNModel::Impl {
         layers_.emplace_back(in);
         layers_.emplace_back(partial1);
         layers_.emplace_back(fc1);
+        layers_.emplace_back(relu1);
         layers_.emplace_back(partial2);
         layers_.emplace_back(c);
         layers_.emplace_back(out);
@@ -228,7 +230,7 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.mu = 1.0 - 0.001 * (1.0 - optimizer_.mu);
+        optimizer_.mu = 1.0 - 0.01 * (1.0 - optimizer_.mu);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }

@@ -808,9 +808,11 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 ++index;
             }
         }
+        /*
         for (size_t iFeature = 0; iFeature < kDNNFeatures; ++iFeature) {
             normalize(iFeature);
         }
+        */
     }
 
     void save(const string& filename) const {
