@@ -232,7 +232,7 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.mu = 1.0 - 0.01 * (1.0 - optimizer_.mu);
+        optimizer_.mu = 1.0 - 0.0001 * (1.0 - optimizer_.mu);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
