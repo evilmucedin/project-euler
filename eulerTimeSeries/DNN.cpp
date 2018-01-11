@@ -71,6 +71,7 @@ class DNNModel::Impl {
         auto partial1 = make_shared<pc2>(kFeatures, kDNNWindow, kFeatures, connections);
         auto fc1 = make_shared<fc>(kDNNWindow, 5, false, backend_type);
         auto relu1 = make_shared<relu>();
+        auto ll0 = make_shared<ll>(5, 0);
         *in << *partial1 << *fc1 << *relu1;
         auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
         *in << *partial2;
@@ -86,6 +87,7 @@ class DNNModel::Impl {
         layers_.emplace_back(partial1);
         layers_.emplace_back(fc1);
         layers_.emplace_back(relu1);
+        layers_.emplace_back(ll0);
         layers_.emplace_back(partial2);
         layers_.emplace_back(c);
         layers_.emplace_back(out);
@@ -124,7 +126,7 @@ class DNNModel::Impl {
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         // nn_.weight_init(tiny_dnn::weight_init::constant(0));
         // nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
-        nn_->weight_init(tiny_dnn::weight_init::constant(1e-7));
+        // nn_->weight_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
