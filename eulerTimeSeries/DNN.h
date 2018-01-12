@@ -35,7 +35,7 @@ public:
 };
 
 using StockFeatures = vector<DoubleVector>;
-static constexpr size_t kDNNFeatures = 10;
+static constexpr size_t kDNNFeatures = 11;
 static constexpr size_t kQuants = 24 * 60;
 static constexpr size_t kDNNWindow = 100;
 static constexpr size_t kDNNHorizon = 10;
@@ -51,4 +51,5 @@ enum DNNFeature {
     FI_BIDSIZE = 7,
     FI_ASKSIZE = 8,
     FI_CURRENT_PRICE = 9,
+    FI_INTERCEPT = 10,
 };

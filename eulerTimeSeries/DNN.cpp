@@ -24,7 +24,12 @@ tiny_dnn::tensor_t doubleVectorToTensor(const DoubleVector& features) {
 
 class DNNModel::Impl {
    public:
-    Impl() : nn_(make_shared<NN>()) {
+    Impl() {
+        construct();
+    }
+
+    void construct() {
+        nn_ = make_shared<NN>();
         using fc = tiny_dnn::layers::fc;
         using pc = tiny_dnn::pc;
         using pc2 = tiny_dnn::partial_connected;
@@ -74,9 +79,12 @@ class DNNModel::Impl {
         auto ll0 = make_shared<ll>(5, 0);
         *in << *partial1 << *fc1 << *relu1;
         auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
-        *in << *partial2;
-        auto c = shared_ptr<cc>(new cc({tiny_dnn::shape3d(1, 1, 5), tiny_dnn::shape3d(1, 1, connections2.size())}));
-        (*relu1, *partial2) << *c;
+        auto ml = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
+        auto relu2 = make_shared<relu>();
+        *in << *partial2 << *ml << *relu2;
+        auto c =
+            shared_ptr<cc>(new cc({tiny_dnn::shape3d(1, 1, 5), tiny_dnn::shape3d(1, 1, connections2.size())}));
+        (*relu1, *relu2) << *c;
         auto out = make_shared<fc>(connections2.size() + 5, 1, false, backend_type);
         *c << *out;
         // auto out = make_shared<fc>(1, 1, false, backend_type);
@@ -89,6 +97,8 @@ class DNNModel::Impl {
         layers_.emplace_back(relu1);
         layers_.emplace_back(ll0);
         layers_.emplace_back(partial2);
+        layers_.emplace_back(ml);
+        layers_.emplace_back(relu2);
         layers_.emplace_back(c);
         layers_.emplace_back(out);
 
@@ -167,11 +177,10 @@ class DNNModel::Impl {
     }
 
     Impl(const Impl& impl) : nn_(make_shared<NN>()) {
-        *nn_ = *(impl.nn_);
+        construct();
         stringstream ss;
         ss << *(impl.nn_);
         ss >> *nn_;
-        layers_ = impl.layers_;
     }
 
     double predict(const DoubleVector& features) {

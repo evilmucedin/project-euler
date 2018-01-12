@@ -808,6 +808,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 } else if (features[FI_LAST] != -1) {
                     features[FI_CURRENT_PRICE] = features[FI_LAST];
                 }
+                features[FI_INTERCEPT] = 1.0;
 
                 ++index;
             }
