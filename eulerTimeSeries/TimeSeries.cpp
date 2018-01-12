@@ -759,6 +759,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 continue;
             }
             const auto& sd = toSd->second;
+            double lastPrice = 0;
             double last = 0;
             double lastBid = 0;
             double lastAsk = 0;
@@ -779,6 +780,8 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     features[FI_BID] /= avgPrice;
                     features[FI_ASK] /= avgPrice;
                 }
+                /*
+                */
                 features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
                 features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
                 features[FI_BIDSIZE] = log(1.0 + features[FI_BIDSIZE]);
@@ -791,6 +794,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     }
                 };
 
+                updateLast(features[FI_PRICE], lastPrice);
                 updateLast(features[FI_LAST], last);
                 updateLast(features[FI_BID], lastBid);
                 updateLast(features[FI_ASK], lastAsk);
@@ -808,10 +812,10 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 ++index;
             }
         }
-        /*
         for (size_t iFeature = 0; iFeature < kDNNFeatures; ++iFeature) {
             normalize(iFeature);
         }
+        /*
         */
     }
 
@@ -943,8 +947,7 @@ void dnn() {
     DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
-        auto modelStat = [&]() {
-            auto model = trainer.getModel();
+        auto modelStat = [&](auto& model) {
 
             double trainError = 0;
             double testError = 0;
@@ -971,7 +974,7 @@ void dnn() {
 
                     auto prediction = model->predict(dnnFeatures);
                     auto sampleError = prediction - futureRet.first;
-                    if (abs(sampleError) > 0.1) {
+                    if (false && abs(sampleError) > 0.1) {
                         LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(futureRet.first) << OUT(prediction)
                                                  << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
                     }
@@ -1002,6 +1005,7 @@ void dnn() {
                  << ", r2: " << 1.0 - (testError / variance) << ", elapsed: " << tt.diffAndReset() << endl;
         };
 
+        auto oldModel = trainer.getModel();
         trainer.slowdown();
 
         shuffle(stocks);
@@ -1034,7 +1038,8 @@ void dnn() {
         auto model = trainer.getModel();
         model->save("dnn");
         model->saveJson("dnn.json");
-        modelStat();
+        // modelStat(oldModel);
+        modelStat(model);
     }
 }
 

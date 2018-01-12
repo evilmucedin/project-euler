@@ -166,8 +166,11 @@ class DNNModel::Impl {
         */
     }
 
-    Impl(const Impl& impl) {
-        nn_ = impl.nn_;
+    Impl(const Impl& impl) : nn_(make_shared<NN>()) {
+        *nn_ = *(impl.nn_);
+        stringstream ss;
+        ss << *(impl.nn_);
+        ss >> *nn_;
         layers_ = impl.layers_;
     }
 
@@ -232,7 +235,8 @@ class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.mu = 1.0 - 0.0001 * (1.0 - optimizer_.mu);
+        optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
+        LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
