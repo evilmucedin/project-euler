@@ -752,6 +752,15 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         LOG(INFO) << OUT(featureIndex) << OUT(mean) << OUT(sigma);
     }
 
+    void normalizeFastSigmoid(size_t featureIndex) {
+        for (auto& stockPair : features_) {
+            for (auto& features : stockPair.second) {
+                auto& f = features[featureIndex];
+                f = f / (1.0 + abs(f));
+            }
+        }
+    }
+
     void finish(const StockStats& ss) {
         for (auto& stockPair : features_) {
             auto toSd = ss.find(stockPair.first);
@@ -808,13 +817,23 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 } else if (features[FI_LAST] != -1) {
                     features[FI_CURRENT_PRICE] = features[FI_LAST];
                 }
-                features[FI_INTERCEPT] = 1.0;
 
                 ++index;
             }
         }
         for (size_t iFeature = 0; iFeature < kDNNFeatures; ++iFeature) {
             normalize(iFeature);
+            // normalizeFastSigmoid(iFeature);
+        }
+
+        for (auto& stockPair : features_) {
+            auto toSd = ss.find(stockPair.first);
+            if (toSd == ss.end()) {
+                continue;
+            }
+            for (auto& features: stockPair.second) {
+                features[FI_INTERCEPT] = 1.0;
+            }
         }
         /*
         */

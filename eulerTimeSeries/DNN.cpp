@@ -79,9 +79,11 @@ class DNNModel::Impl {
         auto ll0 = make_shared<ll>(5, 0);
         *in << *partial1 << *fc1 << *relu1;
         auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
-        auto ml = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
+        auto fc2 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
         auto relu2 = make_shared<relu>();
-        *in << *partial2 << *ml << *relu2;
+        // auto fc3 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
+        // auto relu3 = make_shared<relu>();
+        *in << *partial2 << *fc2 << *relu2;
         auto c =
             shared_ptr<cc>(new cc({tiny_dnn::shape3d(1, 1, 5), tiny_dnn::shape3d(1, 1, connections2.size())}));
         (*relu1, *relu2) << *c;
@@ -97,8 +99,10 @@ class DNNModel::Impl {
         layers_.emplace_back(relu1);
         layers_.emplace_back(ll0);
         layers_.emplace_back(partial2);
-        layers_.emplace_back(ml);
+        layers_.emplace_back(fc2);
         layers_.emplace_back(relu2);
+        // layers_.emplace_back(fc3);
+        // layers_.emplace_back(relu3);
         layers_.emplace_back(c);
         layers_.emplace_back(out);
 
