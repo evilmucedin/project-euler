@@ -822,6 +822,9 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             }
         }
         for (size_t iFeature = 0; iFeature < kDNNFeatures; ++iFeature) {
+            if (iFeature == FI_INTERCEPT) {
+                continue;
+            }
             normalize(iFeature);
             // normalizeFastSigmoid(iFeature);
         }
