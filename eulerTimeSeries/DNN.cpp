@@ -73,21 +73,25 @@ class DNNModel::Impl {
         // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 5*5, false, backend_type) << lrelu() << fc(5*5, 5, false, backend_type) << lrelu() << fc(5, 1, false, backend_type);
 
         static constexpr size_t kHidden1 = 5;
+        static constexpr size_t kHidden2 = 5;
 
         vector<tiny_dnn::partial_connection> connections3;
-        for (size_t i = 0; i < kDNNWindow; ++i) {
-            tiny_dnn::partial_connection c;
-            c.in_index_ = i;
-            c.out_index_ = (i * kHidden1) / kDNNWindow;
-            c.weight_index_ = c.in_index_;
-            connections3.emplace_back(std::move(c));
+        for (size_t j = 0; j < kHidden2; ++j) {
+            for (size_t i = 0; i < kDNNWindow; ++i) {
+                tiny_dnn::partial_connection c;
+                c.in_index_ = i;
+                c.out_index_ = (i * kHidden1) / kDNNWindow + j * kHidden1;
+                c.weight_index_ = c.in_index_;
+                connections3.emplace_back(std::move(c));
+            }
         }
 
         auto in = make_shared<tiny_dnn::layers::input>(tiny_dnn::shape3d(kFeatures, 1, 1));
         auto partial1 = make_shared<pc2>(kFeatures, kDNNWindow, kFeatures, connections);
-        auto partial3 = make_shared<pc2>(kDNNWindow, kHidden1, kDNNWindow, connections3);
+        auto partial3 = make_shared<pc2>(kDNNWindow, kHidden1*kHidden2, kDNNWindow, connections3);
+        auto fc1 = make_shared<fc>(kHidden1 * kHidden2, kHidden1, false, backend_type);
         auto relu1 = make_shared<relu>();
-        *in << *partial1 << *partial3 << *relu1;
+        *in << *partial1 << *partial3 << *fc1 << *relu1;
         auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
         auto fc2 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
         auto relu2 = make_shared<relu>();
@@ -106,6 +110,7 @@ class DNNModel::Impl {
         layers_.emplace_back(in);
         layers_.emplace_back(partial1);
         layers_.emplace_back(partial3);
+        layers_.emplace_back(fc1);
         layers_.emplace_back(relu1);
         layers_.emplace_back(partial2);
         layers_.emplace_back(fc2);
@@ -148,13 +153,13 @@ class DNNModel::Impl {
 
         // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
         // nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        // nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
+        nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
         // nn_->weight_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
         // nn_.bias_init(tiny_dnn::weight_init::constant(0));
         // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
         // nn_->bias_init(tiny_dnn::weight_init::xavier(0.000001));
-        nn_->weight_init(tiny_dnn::weight_init::xavier(0.000001));
+        // nn_->weight_init(tiny_dnn::weight_init::xavier(0.000001));
         // nn_->weight_init(tiny_dnn::weight_init::xavier());
         // nn_.bias_init(tiny_dnn::weight_init::xavier());
         nn_->init_weight();
@@ -302,7 +307,7 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 1), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 16), 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
