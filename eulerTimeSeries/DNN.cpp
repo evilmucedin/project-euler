@@ -232,8 +232,8 @@ class DNNModel::Impl {
 
             tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
 
-            // nn_->weight_init(tiny_dnn::weight_init::xavier());
-            nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-6, 1e-6));
+            nn_->weight_init(tiny_dnn::weight_init::xavier());
+            // nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-6, 1e-6));
             nn_->init_weight();
         }
     }
