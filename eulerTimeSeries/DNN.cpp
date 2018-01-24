@@ -26,6 +26,48 @@ DoubleVector vec_tToDoubleVector(const tiny_dnn::vec_t& v) {
 }
 }  // namespace
 
+namespace {
+template <typename N>
+void clearState(N& nn) {
+    nn.set_netphase(tiny_dnn::net_phase::test);
+    for (unsigned int i = 0; i < nn.layer_size(); i++) {
+        try {
+            nn.template at<tiny_dnn::recurrent_layer>(i).clear_state();
+        } catch (tiny_dnn::nn_error& err) {
+        }
+    }
+}
+
+template <typename N>
+void setTrain(N& nn, const int seq_len) {
+    nn.set_netphase(tiny_dnn::net_phase::train);
+    for (unsigned int i = 0; i < nn.layer_size(); i++) {
+        try {
+            nn.template at<tiny_dnn::dropout_layer>(i).set_context(tiny_dnn::net_phase::train);
+        } catch (tiny_dnn::nn_error& err) {
+        }
+        try {
+            nn.template at<tiny_dnn::recurrent_layer>(i).seq_len(seq_len);
+            nn.template at<tiny_dnn::recurrent_layer>(i).bptt_max(seq_len);
+        } catch (tiny_dnn::nn_error& err) {
+        }
+    }
+    clearState(nn);
+}
+
+template <typename N>
+void setTest(N& nn) {
+    nn.set_netphase(tiny_dnn::net_phase::test);
+    for (unsigned int i = 0; i < nn.layer_size(); i++) {
+        try {
+            nn.template at<tiny_dnn::dropout_layer>(i).set_context(tiny_dnn::net_phase::test);
+        } catch (tiny_dnn::nn_error& err) {
+        }
+    }
+    clearState(nn);
+}
+}  // namespace
+
 class DNNModel::Impl {
    public:
     Impl(bool lstm) {
@@ -220,17 +262,22 @@ class DNNModel::Impl {
             params.clip = 0;
 
             // add recurrent stack
+
+            static constexpr size_t kHidden = 3;
+
             auto in = make_shared<fc>(kDNNFeatures, kDNNFeatures, false, backend_type);
-            auto lstm = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kDNNFeatures), kDNNWindow, params);
+            auto lstm = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kHidden), kDNNWindow, params);
             auto a = make_shared<activation>();
-            auto out = make_shared<fc>(kDNNFeatures, 1, false, backend_type);
-            *in << *lstm << *a << *out;
+            auto out = make_shared<fc>(kHidden, 1, false, backend_type);
+            // *in << *lstm << *a << *out;
+            *lstm << *a << *out;
             layers_.emplace_back(in);
             layers_.emplace_back(lstm);
             layers_.emplace_back(a);
             layers_.emplace_back(out);
 
-            tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
+            // tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
+            tiny_dnn::construct_graph(*nn_, {lstm.get()}, {out.get()});
 
             nn_->weight_init(tiny_dnn::weight_init::xavier());
             // nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-6, 1e-6));
@@ -250,6 +297,7 @@ class DNNModel::Impl {
     }
 
     double predictLSTM(const vector<DoubleVector>& features) {
+        clearState(*nn_);
         vector<tiny_dnn::tensor_t> vInput(features.size());
         for (size_t i = 0; i < features.size(); ++i) {
             vInput[i] = doubleVectorToTensor(features[i]);
@@ -314,47 +362,13 @@ void DNNModel::save(const std::string& filename) { impl_->save(filename); }
 
 void DNNModel::saveJson(const std::string& filename) { impl_->saveJson(filename); }
 
-namespace {
-template <typename N>
-void setTrain(N& nn, const int seq_len) {
-    nn.set_netphase(tiny_dnn::net_phase::train);
-    for (unsigned int i = 0; i < nn.layer_size(); i++) {
-        try {
-            nn.template at<tiny_dnn::dropout_layer>(i).set_context(tiny_dnn::net_phase::train);
-        } catch (tiny_dnn::nn_error& err) {
-        }
-        try {
-            nn.template at<tiny_dnn::recurrent_layer>(i).seq_len(seq_len);
-            nn.template at<tiny_dnn::recurrent_layer>(i).bptt_max(seq_len);
-            nn.template at<tiny_dnn::recurrent_layer>(i).clear_state();
-        } catch (tiny_dnn::nn_error& err) {
-        }
-    }
-}
-
-template <typename N>
-void setTest(N& nn) {
-    nn.set_netphase(tiny_dnn::net_phase::test);
-    for (unsigned int i = 0; i < nn.layer_size(); i++) {
-        try {
-            nn.template at<tiny_dnn::dropout_layer>(i).set_context(tiny_dnn::net_phase::test);
-        } catch (tiny_dnn::nn_error& err) {
-        }
-        try {
-            nn.template at<tiny_dnn::recurrent_layer>(i).clear_state();
-        } catch (tiny_dnn::nn_error& err) {
-        }
-    }
-}
-}  // namespace
-
 class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples, bool lstm)
         : model_(lstm), samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
-        LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu) << OUT(lstm);
+        // optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
+        // LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu) << OUT(lstm);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }
