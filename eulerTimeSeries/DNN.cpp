@@ -354,7 +354,7 @@ class DNNModelTrainer::Impl {
         : model_(lstm), samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
         optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
-        LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu);
+        LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu) << OUT(lstm);
         alpha0_ = optimizer_.alpha;
         scaleRate_ = scaleRate;
     }

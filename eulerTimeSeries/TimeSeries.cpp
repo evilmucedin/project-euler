@@ -24,6 +24,7 @@ DEFINE_bool(fft, false, "fft");
 DEFINE_bool(linear, false, "linear");
 DEFINE_bool(dnn, false, "dnn");
 DEFINE_int64(limit, numeric_limits<int64_t>::max(), "limit number of messages");
+DEFINE_int64(stock_limit, numeric_limits<int64_t>::max(), "limit number of stocks to train");
 DEFINE_double(learning_rate, 1.0, "learning rate");
 DEFINE_double(regularization, 0, "learning rate");
 DEFINE_int64(epochs, 100, "epochs");
@@ -1032,7 +1033,11 @@ void dnn() {
                         ++trainCount;
                     }
                 }
+                printf("+");
+                fflush(stdout);
             }
+            printf("\n");
+            fflush(stdout);
 
             double pTrainError = sqrt(trainError / trainCount);
             double pTestError = sqrt(testError / testCount);
@@ -1054,6 +1059,7 @@ void dnn() {
         if (!FLAGS_dnn_lstm) {
             trainer.startTrainLSTM();
         }
+        size_t iStock = 0;
         for (const auto& stock : stocks) {
             if (!train(stock)) {
                 continue;
@@ -1061,6 +1067,11 @@ void dnn() {
 
             if (!stockStats.count(stock)) {
                 continue;
+            }
+
+            ++iStock;
+            if (iStock > FLAGS_stock_limit) {
+                break;
             }
 
             const auto& sfeatures = features.find(stock)->second;
@@ -1084,13 +1095,15 @@ void dnn() {
                     auto labels = genLSTMRet(sfeatures, i);
                     trainer.trainLSTM(dnnFeatures, labels);
                 }
-                printf(".");
-                fflush(stdout);
             }
+            printf(".");
+            fflush(stdout);
         }
         if (!FLAGS_dnn_lstm) {
             trainer.stopTrainLSTM();
         }
+        printf("\n");
+        fflush(stdout);
 
         auto model = trainer.getModel();
         model->save("dnn");
