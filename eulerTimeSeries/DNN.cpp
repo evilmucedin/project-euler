@@ -234,7 +234,8 @@ class DNNModel::Impl {
 
             tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
 
-            nn_->weight_init(tiny_dnn::weight_init::xavier());
+            // nn_->weight_init(tiny_dnn::weight_init::xavier());
+            nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
             nn_->init_weight();
         }
     }
@@ -250,12 +251,13 @@ class DNNModel::Impl {
         return nn_->predict(doubleVectorToVector(features))[0];
     }
 
-    DoubleVector predictLSTM(const vector<DoubleVector>& features) {
+    double predictLSTM(const vector<DoubleVector>& features) {
         vector<tiny_dnn::tensor_t> vInput(features.size());
         for (size_t i = 0; i < features.size(); ++i) {
             vInput[i] = doubleVectorToTensor(features[i]);
         }
-        return vec_tToDoubleVector(nn_->fprop(vInput)[0][0]);
+        auto res = nn_->fprop(vInput);
+        return res.back()[0];
     }
 
     void scale(double alpha, double value, size_t samples) {
@@ -308,7 +310,7 @@ DNNModel::~DNNModel() {}
 
 double DNNModel::predict(const DoubleVector& features) { return impl_->predict(features); }
 
-DoubleVector DNNModel::predictLSTM(const vector<DoubleVector>& features) { return impl_->predictLSTM(features); }
+double DNNModel::predictLSTM(const vector<DoubleVector>& features) { return impl_->predictLSTM(features); }
 
 void DNNModel::save(const std::string& filename) { impl_->save(filename); }
 

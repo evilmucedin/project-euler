@@ -957,7 +957,7 @@ void dnn() {
     auto genLSTMRet = [](const StockFeatures& sfeatures, size_t offset) {
         DoubleVector ret(kDNNWindow);
         for (size_t j = 0; j < kDNNWindow; ++j) {
-            ret[j] = genRet(sfeatures, offset + j - kDNNWindow - 1).first;
+            ret[j] = genRet(sfeatures, offset + j - kDNNWindow + 1).first;
         }
         return ret;
     };
@@ -1014,7 +1014,7 @@ void dnn() {
                         prediction = model->predict(dnnFeatures);
                     } else {
                         auto dnnFeatures = genLSTMFeatures(sfeatures, i);
-                        prediction = model->predictLSTM(dnnFeatures).back();
+                        prediction = model->predictLSTM(dnnFeatures);
                     }
                     auto sampleError = prediction - futureRet.first;
                     if (false && abs(sampleError) > 0.1) {

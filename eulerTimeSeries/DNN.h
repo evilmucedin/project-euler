@@ -11,7 +11,7 @@ public:
     ~DNNModel();
 
     double predict(const DoubleVector& features);
-    DoubleVector predictLSTM(const vector<DoubleVector>& features);
+    double predictLSTM(const vector<DoubleVector>& features);
     void save(const std::string& filename);
     void saveJson(const std::string& filename);
 
