@@ -24,174 +24,212 @@ tiny_dnn::tensor_t doubleVectorToTensor(const DoubleVector& features) {
 
 class DNNModel::Impl {
    public:
-    Impl() {
-        construct();
+    Impl(bool lstm) {
+        construct(lstm);
     }
 
-    void construct() {
-        nn_ = make_shared<NN>();
-        using fc = tiny_dnn::layers::fc;
-        using pc = tiny_dnn::pc;
-        using pc2 = tiny_dnn::partial_connected;
-        using tanh = tiny_dnn::activation::tanh;
-        using relu = tiny_dnn::activation::relu;
-        using lrelu = tiny_dnn::activation::leaky_relu;
-        using ll = tiny_dnn::linear_layer;
-        using conv = tiny_dnn::layers::conv;
-        using ave_pool = tiny_dnn::layers::ave_pool;
-        using padding = tiny_dnn::padding;
-        using mul = tiny_dnn::mul_layer;
-        using cc = tiny_dnn::layers::concat;
-
+    void construct(bool lstm) {
         const auto backend_type = tiny_dnn::core::backend_t::avx;
 
-        static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
+        if (!lstm) {
+            nn_ = make_shared<NN>();
+            using fc = tiny_dnn::layers::fc;
+            using pc = tiny_dnn::pc;
+            using pc2 = tiny_dnn::partial_connected;
+            using tanh = tiny_dnn::activation::tanh;
+            using relu = tiny_dnn::activation::relu;
+            using lrelu = tiny_dnn::activation::leaky_relu;
+            using ll = tiny_dnn::linear_layer;
+            using conv = tiny_dnn::layers::conv;
+            using ave_pool = tiny_dnn::layers::ave_pool;
+            using padding = tiny_dnn::padding;
+            using mul = tiny_dnn::mul_layer;
+            using cc = tiny_dnn::layers::concat;
 
-        static constexpr size_t kPCFeatures = kDNNFeatures;
+            static constexpr size_t kFeatures = kDNNWindow * kDNNFeatures;
 
-        vector<size_t> connections2;
-        for (size_t i = 0; i < kPCFeatures; ++i) {
-            connections2.emplace_back(kFeatures - kPCFeatures + i);
-        }
-        /*
-        */
+            static constexpr size_t kPCFeatures = kDNNFeatures;
 
-        vector<tiny_dnn::partial_connection> connections;
-        for (size_t i = 0; i < kDNNWindow; ++i) {
-            for (size_t j = 0; j < kDNNFeatures; ++j) {
-                tiny_dnn::partial_connection c;
-                c.in_index_ = i*kDNNFeatures + j;
-                c.out_index_ = i;
-                c.weight_index_ = c.in_index_;
-                connections.emplace_back(std::move(c));
+            vector<size_t> connections2;
+            for (size_t i = 0; i < kPCFeatures; ++i) {
+                connections2.emplace_back(kFeatures - kPCFeatures + i);
             }
-        }
-        /*
-        */
+            /*
+            */
 
-        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 6*6, false, backend_type) << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
-        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 5*5, false, backend_type) << lrelu() << fc(5*5, 5, false, backend_type) << lrelu() << fc(5, 1, false, backend_type);
-
-        static constexpr size_t kHidden1 = 5;
-        static constexpr size_t kHidden2 = 5;
-
-        vector<tiny_dnn::partial_connection> connections3;
-        for (size_t j = 0; j < kHidden2; ++j) {
+            vector<tiny_dnn::partial_connection> connections;
             for (size_t i = 0; i < kDNNWindow; ++i) {
-                tiny_dnn::partial_connection c;
-                c.in_index_ = i;
-                c.out_index_ = (i * kHidden1) / kDNNWindow + j * kHidden1;
-                c.weight_index_ = c.in_index_;
-                connections3.emplace_back(std::move(c));
+                for (size_t j = 0; j < kDNNFeatures; ++j) {
+                    tiny_dnn::partial_connection c;
+                    c.in_index_ = i * kDNNFeatures + j;
+                    c.out_index_ = i;
+                    c.weight_index_ = c.in_index_;
+                    connections.emplace_back(std::move(c));
+                }
             }
-        }
+            /*
+            */
 
-        auto in = make_shared<tiny_dnn::layers::input>(tiny_dnn::shape3d(kFeatures, 1, 1));
-        auto partial1 = make_shared<pc2>(kFeatures, kDNNWindow, kFeatures, connections);
-        auto partial3 = make_shared<pc2>(kDNNWindow, kHidden1*kHidden2, kDNNWindow, connections3);
-        auto fc1 = make_shared<fc>(kHidden1 * kHidden2, kHidden1, false, backend_type);
-        auto relu1 = make_shared<relu>();
-        *in << *partial1 << *partial3 << *fc1 << *relu1;
-        auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
-        auto fc2 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
-        auto relu2 = make_shared<relu>();
-        // auto fc3 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
-        // auto relu3 = make_shared<relu>();
-        *in << *partial2 << *fc2 << *relu2;
-        auto c =
-            shared_ptr<cc>(new cc({tiny_dnn::shape3d(1, 1, kHidden1), tiny_dnn::shape3d(1, 1, connections2.size())}));
-        (*relu1, *relu2) << *c;
-        auto out = make_shared<fc>(connections2.size() + kHidden1, 1, false, backend_type);
-        *c << *out;
-        // auto out = make_shared<fc>(1, 1, false, backend_type);
-        // *fc1 << *out;
-        tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
+            // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 6*6, false, backend_type) <<
+            // conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false,
+            // backend_type);
+            // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 5*5, false, backend_type) <<
+            // lrelu() << fc(5*5, 5, false, backend_type) << lrelu() << fc(5, 1, false, backend_type);
 
-        layers_.emplace_back(in);
-        layers_.emplace_back(partial1);
-        layers_.emplace_back(partial3);
-        layers_.emplace_back(fc1);
-        layers_.emplace_back(relu1);
-        layers_.emplace_back(partial2);
-        layers_.emplace_back(fc2);
-        layers_.emplace_back(relu2);
-        // layers_.emplace_back(fc3);
-        // layers_.emplace_back(relu3);
-        layers_.emplace_back(c);
-        layers_.emplace_back(out);
+            static constexpr size_t kHidden1 = 5;
+            static constexpr size_t kHidden2 = 5;
 
-        // nn_ << pc2() << fc(kDNNWindow, 1, false, backend_type);
-        // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 2, false, backend_type) << lrelu() << mul(2) << fc(2*2, 1, false, backend_type);
-        // nn_ << fc(kFeatures, 80, false, backend_type) << lrelu() << fc(80, 1, false, backend_type);
-        // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type);
-        // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 1, false, backend_type);
-        // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 1, false, backend_type);
-        // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, false, backend_type) << lrelu() << fc(4, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
-        // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true, backend_type) << lrelu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
-        // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
-        // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() << fc(10, 1, true, backend_type) << tanh();
-        // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
-        // nn_ << fc(kFeatures, 10, true, backend_type) << lrelu() << fc(10, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
-        // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
-        // nn_ << fc(kFeatures, 4, false, backend_type) << relu() << fc(4, 1, false, backend_type);
-        // nn_ << fc(kFeatures, 1, true, backend_type) << ll(1, 10);
-        // nn_ << fc(kFeatures, 6*6, false, backend_type) << relu() << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
-
-        /*
-        nn_ << fc(kFeatures, 32 * 32, true, backend_type) << conv(32, 32, 5, 1, 6,  // C1, 1@32x32-in, 6@28x28-out
-                                                                  padding::valid, true, 1, 1, backend_type)
-            << tanh() << ave_pool(28, 28, 6, 2)  // S2, 6@28x28-in, 6@14x14-out
-            << tanh() << conv(14, 14, 5, 6, 16,  // C3, 6@14x14-in, 16@10x10-out
-                                                 // connection_table(tbl, 6, 16),
-                              padding::valid, true, 1, 1, backend_type)
-            << tanh() << ave_pool(10, 10, 16, 2)  // S4, 16@10x10-in, 16@5x5-out
-            << tanh() << conv(5, 5, 5, 16, 120,   // C5, 16@5x5-in, 120@1x1-out
-                              padding::valid, true, 1, 1, backend_type)
-            << tanh() << fc(120, 10, true, backend_type)  // F6, 120-in, 10-out
-            << tanh() << fc(10, 1, true, backend_type);
-        */
-
-        // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
-        // nn_.weight_init(tiny_dnn::weight_init::constant(0));
-        nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
-        // nn_->weight_init(tiny_dnn::weight_init::constant(1e-7));
-        // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
-        // nn_.bias_init(tiny_dnn::weight_init::constant(0));
-        // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
-        // nn_->bias_init(tiny_dnn::weight_init::xavier(0.000001));
-        // nn_->weight_init(tiny_dnn::weight_init::xavier(0.000001));
-        // nn_->weight_init(tiny_dnn::weight_init::xavier());
-        // nn_.bias_init(tiny_dnn::weight_init::xavier());
-        nn_->init_weight();
-
-        /*
-        {
-        auto w = nn_[0]->weights();
-        auto w0 = *(w[0]);
-        w0[kFeatures - kDNNFeatures + FI_LAST] = 1.0;
-        }
-        */
-
-        /*
-        auto w = nn_[0]->weights();
-        auto w0 = *(w[0]);
-        for (size_t i = 0; i < w0.size(); ++i) {
-            if (oneIn(100)) {
-                w0[i] = 1.0;
+            vector<tiny_dnn::partial_connection> connections3;
+            for (size_t j = 0; j < kHidden2; ++j) {
+                for (size_t i = 0; i < kDNNWindow; ++i) {
+                    tiny_dnn::partial_connection c;
+                    c.in_index_ = i;
+                    c.out_index_ = (i * kHidden1) / kDNNWindow + j * kHidden1;
+                    c.weight_index_ = c.in_index_;
+                    connections3.emplace_back(std::move(c));
+                }
             }
-        }
-        */
 
-        /*
-        {
-        auto w = nn_[nn_.layer_size() - 1]->weights();
-        ENFORCE_EQ(w.size(), 2);
-        auto& w0 = *(w[0]);
-        w0[0] = 0.5;
-        auto& w1 = *(w[1]);
-        w1[0] = 1.0;
+            auto in = make_shared<tiny_dnn::layers::input>(tiny_dnn::shape3d(kFeatures, 1, 1));
+            auto partial1 = make_shared<pc2>(kFeatures, kDNNWindow, kFeatures, connections);
+            auto partial3 = make_shared<pc2>(kDNNWindow, kHidden1 * kHidden2, kDNNWindow, connections3);
+            auto fc1 = make_shared<fc>(kHidden1 * kHidden2, kHidden1, false, backend_type);
+            auto relu1 = make_shared<relu>();
+            *in << *partial1 << *partial3 << *fc1 << *relu1;
+            auto partial2 = make_shared<pc>(kFeatures, connections2.size(), connections2);
+            auto fc2 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
+            auto relu2 = make_shared<relu>();
+            // auto fc3 = make_shared<fc>(connections2.size(), connections2.size(), false, backend_type);
+            // auto relu3 = make_shared<relu>();
+            *in << *partial2 << *fc2 << *relu2;
+            auto c = shared_ptr<cc>(
+                new cc({tiny_dnn::shape3d(1, 1, kHidden1), tiny_dnn::shape3d(1, 1, connections2.size())}));
+            (*relu1, *relu2) << *c;
+            auto out = make_shared<fc>(connections2.size() + kHidden1, 1, false, backend_type);
+            *c << *out;
+            // auto out = make_shared<fc>(1, 1, false, backend_type);
+            // *fc1 << *out;
+            tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
+
+            layers_.emplace_back(in);
+            layers_.emplace_back(partial1);
+            layers_.emplace_back(partial3);
+            layers_.emplace_back(fc1);
+            layers_.emplace_back(relu1);
+            layers_.emplace_back(partial2);
+            layers_.emplace_back(fc2);
+            layers_.emplace_back(relu2);
+            // layers_.emplace_back(fc3);
+            // layers_.emplace_back(relu3);
+            layers_.emplace_back(c);
+            layers_.emplace_back(out);
+
+            // nn_ << pc2() << fc(kDNNWindow, 1, false, backend_type);
+            // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 2, false, backend_type) <<
+            // lrelu() << mul(2) << fc(2*2, 1, false, backend_type);
+            // nn_ << fc(kFeatures, 80, false, backend_type) << lrelu() << fc(80, 1, false, backend_type);
+            // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 4, false, backend_type) << lrelu() <<
+            // fc(4, 1, false, backend_type);
+            // nn_ << pc(kFeatures, kPCFeatures, connections) << fc(kPCFeatures, 1, false, backend_type);
+            // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 1, false, backend_type);
+            // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, 4, false, backend_type) << lrelu() <<
+            // fc(4, 1, false, backend_type) << tanh() << fc(1, 1, false, backend_type);
+            // nn_ << pc(kFeatures, kDNNFeatures, connections) << fc(kDNNFeatures, kDNNFeatures*kDNNFeatures, true,
+            // backend_type) << lrelu() << fc(kDNNFeatures*kDNNFeatures, 1, true, backend_type) << tanh();
+            // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() <<
+            // fc(10, 1, true, backend_type) << tanh();
+            // nn_ << fc(kFeatures, 100, true, backend_type) << relu() << fc(100, 10, true, backend_type) << tanh() <<
+            // fc(10, 1, true, backend_type) << tanh();
+            // nn_ << fc(kFeatures, 10, true, backend_type) << ll(10);
+            // nn_ << fc(kFeatures, 10, true, backend_type) << lrelu() << fc(10, 1, true, backend_type) << tanh() <<
+            // fc(1, 1, true, backend_type);
+            // nn_ << fc(kFeatures, 1, true, backend_type) << tanh() << fc(1, 1, true, backend_type);
+            // nn_ << fc(kFeatures, 4, false, backend_type) << relu() << fc(4, 1, false, backend_type);
+            // nn_ << fc(kFeatures, 1, true, backend_type) << ll(1, 10);
+            // nn_ << fc(kFeatures, 6*6, false, backend_type) << relu() << conv(6, 6, 3, 1, 6) << tanh() << fc(16*6, 1,
+            // false, backend_type) << tanh() << fc(1, 1, false, backend_type);
+
+            /*
+            nn_ << fc(kFeatures, 32 * 32, true, backend_type) << conv(32, 32, 5, 1, 6,  // C1, 1@32x32-in, 6@28x28-out
+                                                                      padding::valid, true, 1, 1, backend_type)
+                << tanh() << ave_pool(28, 28, 6, 2)  // S2, 6@28x28-in, 6@14x14-out
+                << tanh() << conv(14, 14, 5, 6, 16,  // C3, 6@14x14-in, 16@10x10-out
+                                                     // connection_table(tbl, 6, 16),
+                                  padding::valid, true, 1, 1, backend_type)
+                << tanh() << ave_pool(10, 10, 16, 2)  // S4, 16@10x10-in, 16@5x5-out
+                << tanh() << conv(5, 5, 5, 16, 120,   // C5, 16@5x5-in, 120@1x1-out
+                                  padding::valid, true, 1, 1, backend_type)
+                << tanh() << fc(120, 10, true, backend_type)  // F6, 120-in, 10-out
+                << tanh() << fc(10, 1, true, backend_type);
+            */
+
+            // nn_.weight_init(tiny_dnn::weight_init::he(1e-3));
+            // nn_.weight_init(tiny_dnn::weight_init::constant(0));
+            nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
+            // nn_->weight_init(tiny_dnn::weight_init::constant(1e-7));
+            // nn_.bias_init(tiny_dnn::weight_init::constant(1e-7));
+            // nn_.bias_init(tiny_dnn::weight_init::constant(0));
+            // nn_.weight_init(tiny_dnn::weight_init::gaussian(0.0000001));
+            // nn_->bias_init(tiny_dnn::weight_init::xavier(0.000001));
+            // nn_->weight_init(tiny_dnn::weight_init::xavier(0.000001));
+            // nn_->weight_init(tiny_dnn::weight_init::xavier());
+            // nn_.bias_init(tiny_dnn::weight_init::xavier());
+            nn_->init_weight();
+
+            /*
+            {
+            auto w = nn_[0]->weights();
+            auto w0 = *(w[0]);
+            w0[kFeatures - kDNNFeatures + FI_LAST] = 1.0;
+            }
+            */
+
+            /*
+            auto w = nn_[0]->weights();
+            auto w0 = *(w[0]);
+            for (size_t i = 0; i < w0.size(); ++i) {
+                if (oneIn(100)) {
+                    w0[i] = 1.0;
+                }
+            }
+            */
+
+            /*
+            {
+            auto w = nn_[nn_.layer_size() - 1]->weights();
+            ENFORCE_EQ(w.size(), 2);
+            auto& w0 = *(w[0]);
+            w0[0] = 0.5;
+            auto& w1 = *(w[1]);
+            w1[0] = 1.0;
+            }
+            */
+        } else {
+            // define layer aliases
+            using activation = tiny_dnn::selu_layer;
+            using dropout = tiny_dnn::dropout_layer;
+            using fc = tiny_dnn::fully_connected_layer;
+            using recurrent = tiny_dnn::recurrent_layer;
+            using softmax = tiny_dnn::softmax_layer;
+
+            // clip gradients
+            tiny_dnn::recurrent_layer_parameters params;
+            params.clip = 0;
+
+            // add recurrent stack
+            int hidden_size = kDNNWindow;
+            auto in = make_shared<fc>(kDNNFeatures, kDNNFeatures, false, backend_type);
+            auto lstm = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, hidden_size), kDNNFeatures, params);
+            *in << *lstm;
+            auto a = make_shared<activation>();
+            *lstm << *a;
+            auto out = make_shared<fc>(hidden_size, 1, false, backend_type);
+            *a << *out;
+            nn_->weight_init(tiny_dnn::weight_init::xavier());
+            nn_->init_weight();
+
+            tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
         }
-        */
     }
 
     Impl(const Impl& impl) : nn_(make_shared<NN>()) {
@@ -258,9 +296,44 @@ void DNNModel::save(const std::string& filename) { impl_->save(filename); }
 
 void DNNModel::saveJson(const std::string& filename) { impl_->saveJson(filename); }
 
+namespace {
+template <typename N>
+void setTrain(N& nn, const int seq_len) {
+    nn.set_netphase(tiny_dnn::net_phase::train);
+    for (unsigned int i = 0; i < nn.layer_size(); i++) {
+        try {
+            nn.template at<tiny_dnn::dropout_layer>(i).set_context(tiny_dnn::net_phase::train);
+        } catch (tiny_dnn::nn_error& err) {
+        }
+        try {
+            nn.template at<tiny_dnn::recurrent_layer>(i).seq_len(seq_len);
+            nn.template at<tiny_dnn::recurrent_layer>(i).bptt_max(seq_len);
+            nn.template at<tiny_dnn::recurrent_layer>(i).clear_state();
+        } catch (tiny_dnn::nn_error& err) {
+        }
+    }
+}
+
+template <typename N>
+void setTest(N& nn) {
+    nn.set_netphase(tiny_dnn::net_phase::test);
+    for (unsigned int i = 0; i < nn.layer_size(); i++) {
+        try {
+            nn.template at<tiny_dnn::dropout_layer>(i).set_context(tiny_dnn::net_phase::test);
+        } catch (tiny_dnn::nn_error& err) {
+        }
+        try {
+            nn.template at<tiny_dnn::recurrent_layer>(i).clear_state();
+        } catch (tiny_dnn::nn_error& err) {
+        }
+    }
+}
+}  // namespace
+
 class DNNModelTrainer::Impl {
    public:
-    Impl(double learningRate, double scaleRate, size_t samples) : samples_(samples), iteration_(0) {
+    Impl(double learningRate, double scaleRate, size_t samples, bool lstm)
+        : model_(lstm), samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
         optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
         LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu);
@@ -285,6 +358,28 @@ class DNNModelTrainer::Impl {
         ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, 1, 1, tiny_dnn::nop, tiny_dnn::nop));
     }
 
+    void startTrainLSTM() {
+        setTrain(model_.getNN(), kDNNWindow);
+    }
+
+    void endTrainLSTM() {
+        setTest(model_.getNN());
+    }
+
+    void trainLSTM(const vector<DoubleVector>& features, const DoubleVector& labels) {
+        ENFORCE_EQ(features.size(), labels.size());
+        vector<tiny_dnn::tensor_t> vInput(1);
+        vector<tiny_dnn::tensor_t> vOutput(1);
+        for (size_t i = 0; i < features.size(); ++i) {
+            vInput[0].emplace_back(doubleVectorToVector(features[i]));
+            vOutput[0].emplace_back(labels[i]);
+        }
+        auto& nn = model_.getNN();
+        vector<tiny_dnn::tensor_t> cost;
+        nn.bprop<tiny_dnn::mse>(vInput, vOutput, cost);
+        nn.update_weights(&optimizer_);
+    }
+
     void train(const vector<DoubleVector>& features, const DoubleVector& label) {
         if (features.empty()) {
             return;
@@ -307,7 +402,8 @@ class DNNModelTrainer::Impl {
         for (size_t i = 0; i < label.size(); ++i) {
             output[perm[i]].emplace_back(label[i]);
         }
-        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 16), 1, tiny_dnn::nop, tiny_dnn::nop));
+        ENFORCE(model_.getNN().fit<tiny_dnn::mse>(optimizer_, vInput, output, min<size_t>(features.size(), 16), 1,
+                                                  tiny_dnn::nop, tiny_dnn::nop));
     }
 
    private:
@@ -319,8 +415,8 @@ class DNNModelTrainer::Impl {
     size_t iteration_;
 };
 
-DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate, size_t samples)
-    : impl_(make_unique<DNNModelTrainer::Impl>(learningRate, scaleRate, samples)) {
+DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate, size_t samples, bool lstm)
+    : impl_(make_unique<DNNModelTrainer::Impl>(learningRate, scaleRate, samples, lstm)) {
 }
 
 DNNModelTrainer::~DNNModelTrainer() {}
@@ -335,4 +431,11 @@ void DNNModelTrainer::train(const vector<DoubleVector>& features, const DoubleVe
 
 void DNNModelTrainer::slowdown() { impl_->slowdown(); }
 
+void DNNModelTrainer::startTrainLSTM() { impl_->startTrainLSTM(); }
+
+void DNNModelTrainer::endTrainLSTM() { impl_->endTrainLSTM(); }
+
+void DNNModelTrainer::trainLSTM(const vector<DoubleVector>& features, const DoubleVector& labels) {
+    lstm_->trainLSTM(features, labels);
+}
 

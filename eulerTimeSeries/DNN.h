@@ -21,7 +21,7 @@ using PDNNModel = shared_ptr<DNNModel>;
 
 struct DNNModelTrainer {
 public:
-    DNNModelTrainer(double learningRate, double scaleRate, size_t samples);
+    DNNModelTrainer(double learningRate, double scaleRate, size_t samples, bool lstm);
     ~DNNModelTrainer();
 
     PDNNModel getModel();
@@ -29,6 +29,10 @@ public:
     void train(const vector<DoubleVector>& features, const DoubleVector& label);
     void slowdown();
     void scale(double value);
+
+    void startTrainLSTM();
+    void endTrainLSTM();
+    void trainLSTM(const vector<DoubleVector>& features, const DoubleVector& labels);
 
     class Impl;
     unique_ptr<Impl> impl_;

@@ -28,6 +28,7 @@ DEFINE_double(learning_rate, 1.0, "learning rate");
 DEFINE_double(regularization, 0, "learning rate");
 DEFINE_int64(epochs, 100, "epochs");
 DEFINE_bool(parse_dnn, false, "parse features for DNN");
+DEFINE_bool(dnn_lstm, true, "DNN LSTM");
 
 using namespace Eigen;
 
@@ -918,6 +919,14 @@ void dnn() {
         return dnnFeatures;
     };
 
+    auto genLSTMFeatures = [](const StockFeatures& sfeatures, size_t offset) {
+        vector<DoubleVector> dnnFeatures(kDNNWindow);
+        for (size_t j = offset; j < offset + kDNNWindow; ++j) {
+            dnnFeatures[j - offset] = sfeatures[j];
+        }
+        return dnnFeatures;
+    };
+
     auto genRet = [](const StockFeatures& sfeatures, int offset) {
         auto getPrice = [](const DoubleVector& slice) {
             return slice[FI_CURRENT_PRICE];
@@ -967,11 +976,10 @@ void dnn() {
     }
     LOG(INFO) << "Training samples: " << samples;
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples);
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
         auto modelStat = [&](auto& model) {
-
             double trainError = 0;
             double testError = 0;
             double testErrorBaseline1 = 0;
@@ -1032,6 +1040,9 @@ void dnn() {
         trainer.slowdown();
 
         shuffle(stocks);
+        if (!FLAGS_dnn_lstm) {
+            trainer.startTrainLSTM();
+        }
         for (const auto& stock : stocks) {
             if (!train(stock)) {
                 continue;
@@ -1041,21 +1052,32 @@ void dnn() {
                 continue;
             }
 
-            // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
-            vector<DoubleVector> feats;
-            DoubleVector label;
-            const auto& sfeatures = features.find(stock)->second;
-            for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
-                auto dnnFeatures = genFeatures(sfeatures, i);
-                auto ret = genRet(sfeatures, i);
-                if (!ret.second) {
-                    continue;
+            if (!FLAGS_dnn_lstm) {
+                // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
+                vector<DoubleVector> feats;
+                DoubleVector label;
+                const auto& sfeatures = features.find(stock)->second;
+                for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                    auto dnnFeatures = genFeatures(sfeatures, i);
+                    auto ret = genRet(sfeatures, i);
+                    if (!ret.second) {
+                        continue;
+                    }
+                    feats.emplace_back(std::move(dnnFeatures));
+                    label.emplace_back(ret.first);
                 }
-                feats.emplace_back(std::move(dnnFeatures));
-                label.emplace_back(ret.first);
-                // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
+                trainer.train(feats, label);
+            } else {
+                const auto& sfeatures = features.find(stock)->second;
+                for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                    auto dnnFeatures = genLSTMFeatures(sfeatures, i);
+                    auto labels = genLSTMRet(sfeatures, i);
+                    trainer.trainLSTM(dnnFeatures, labels);
+                }
             }
-            trainer.train(feats, label);
+        }
+        if (!FLAGS_dnn_lstm) {
+            trainer.stopTrainLSTM();
         }
 
         auto model = trainer.getModel();
