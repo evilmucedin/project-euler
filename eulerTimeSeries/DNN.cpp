@@ -211,11 +211,9 @@ class DNNModel::Impl {
             */
         } else {
             // define layer aliases
-            using activation = tiny_dnn::selu_layer;
-            using dropout = tiny_dnn::dropout_layer;
+            using activation = tiny_dnn::relu_layer;
             using fc = tiny_dnn::fully_connected_layer;
             using recurrent = tiny_dnn::recurrent_layer;
-            using softmax = tiny_dnn::softmax_layer;
 
             // clip gradients
             tiny_dnn::recurrent_layer_parameters params;
@@ -235,7 +233,7 @@ class DNNModel::Impl {
             tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
 
             // nn_->weight_init(tiny_dnn::weight_init::xavier());
-            nn_->weight_init(tiny_dnn::weight_init::uniform(1e-7, 1e-6));
+            nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-6, 1e-6));
             nn_->init_weight();
         }
     }
