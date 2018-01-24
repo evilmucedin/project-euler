@@ -257,7 +257,7 @@ class DNNModel::Impl {
             vInput[i] = doubleVectorToTensor(features[i]);
         }
         auto res = nn_->fprop(vInput);
-        return res.back()[0];
+        return res.back().back().back();
     }
 
     void scale(double alpha, double value, size_t samples) {
