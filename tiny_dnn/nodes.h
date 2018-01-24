@@ -389,7 +389,8 @@ class graph : public nodes {
     size_t input_data_channel_count = in_data[0].size();
 
     if (input_data_channel_count != input_layers_.size()) {
-      throw nn_error("input size mismatch");
+        throw nn_error(std::string("input size mismatch ") + std::to_string(input_data_channel_count) +
+                       " != " + std::to_string(input_layers_.size()));
     }
 
     std::vector<std::vector<const vec_t *>> reordered_data;

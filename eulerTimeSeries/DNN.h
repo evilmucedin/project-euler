@@ -6,11 +6,12 @@ class DNNModel {
 public:
     class Impl;
 
-    DNNModel();
+    DNNModel(bool lstm);
     DNNModel(const Impl& impl);
     ~DNNModel();
 
     double predict(const DoubleVector& features);
+    DoubleVector predictLSTM(const vector<DoubleVector>& features);
     void save(const std::string& filename);
     void saveJson(const std::string& filename);
 
@@ -31,8 +32,8 @@ public:
     void scale(double value);
 
     void startTrainLSTM();
-    void endTrainLSTM();
     void trainLSTM(const vector<DoubleVector>& features, const DoubleVector& labels);
+    void stopTrainLSTM();
 
     class Impl;
     unique_ptr<Impl> impl_;

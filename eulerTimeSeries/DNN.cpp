@@ -20,6 +20,10 @@ tiny_dnn::tensor_t doubleVectorToTensor(const DoubleVector& features) {
     input.emplace_back(doubleVectorToVector(features));
     return input;
 }
+
+DoubleVector vec_tToDoubleVector(const tiny_dnn::vec_t& v) {
+    return DoubleVector(v.begin(), v.end());
+}
 }  // namespace
 
 class DNNModel::Impl {
@@ -29,10 +33,11 @@ class DNNModel::Impl {
     }
 
     void construct(bool lstm) {
+        lstm_ = lstm;
+        nn_ = make_shared<NN>();
         const auto backend_type = tiny_dnn::core::backend_t::avx;
 
         if (!lstm) {
-            nn_ = make_shared<NN>();
             using fc = tiny_dnn::layers::fc;
             using pc = tiny_dnn::pc;
             using pc2 = tiny_dnn::partial_connected;
@@ -217,23 +222,25 @@ class DNNModel::Impl {
             params.clip = 0;
 
             // add recurrent stack
-            int hidden_size = kDNNWindow;
             auto in = make_shared<fc>(kDNNFeatures, kDNNFeatures, false, backend_type);
-            auto lstm = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, hidden_size), kDNNFeatures, params);
-            *in << *lstm;
+            auto lstm = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kDNNFeatures), kDNNWindow, params);
             auto a = make_shared<activation>();
-            *lstm << *a;
-            auto out = make_shared<fc>(hidden_size, 1, false, backend_type);
-            *a << *out;
-            nn_->weight_init(tiny_dnn::weight_init::xavier());
-            nn_->init_weight();
+            auto out = make_shared<fc>(kDNNFeatures, 1, false, backend_type);
+            *in << *lstm << *a << *out;
+            layers_.emplace_back(in);
+            layers_.emplace_back(lstm);
+            layers_.emplace_back(a);
+            layers_.emplace_back(out);
 
             tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
+
+            nn_->weight_init(tiny_dnn::weight_init::xavier());
+            nn_->init_weight();
         }
     }
 
     Impl(const Impl& impl) : nn_(make_shared<NN>()) {
-        construct();
+        construct(impl.lstm_);
         stringstream ss;
         ss << *(impl.nn_);
         ss >> *nn_;
@@ -241,6 +248,14 @@ class DNNModel::Impl {
 
     double predict(const DoubleVector& features) {
         return nn_->predict(doubleVectorToVector(features))[0];
+    }
+
+    DoubleVector predictLSTM(const vector<DoubleVector>& features) {
+        vector<tiny_dnn::tensor_t> vInput(features.size());
+        for (size_t i = 0; i < features.size(); ++i) {
+            vInput[i] = doubleVectorToTensor(features[i]);
+        }
+        return vec_tToDoubleVector(nn_->fprop(vInput)[0][0]);
     }
 
     void scale(double alpha, double value, size_t samples) {
@@ -280,17 +295,20 @@ class DNNModel::Impl {
     NN& getNN() { return *nn_; }
 
    private:
+    bool lstm_;
     shared_ptr<NN> nn_;
     vector<shared_ptr<tiny_dnn::layer>> layers_;
 };
 
-DNNModel::DNNModel() : impl_(make_unique<DNNModel::Impl>()) {}
+DNNModel::DNNModel(bool lstm) : impl_(make_unique<DNNModel::Impl>(lstm)) {}
 
 DNNModel::DNNModel(const DNNModel::Impl& impl) : impl_(make_unique<DNNModel::Impl>(impl)) {}
 
 DNNModel::~DNNModel() {}
 
 double DNNModel::predict(const DoubleVector& features) { return impl_->predict(features); }
+
+DoubleVector DNNModel::predictLSTM(const vector<DoubleVector>& features) { return impl_->predictLSTM(features); }
 
 void DNNModel::save(const std::string& filename) { impl_->save(filename); }
 
@@ -362,20 +380,21 @@ class DNNModelTrainer::Impl {
         setTrain(model_.getNN(), kDNNWindow);
     }
 
-    void endTrainLSTM() {
+    void stopTrainLSTM() {
         setTest(model_.getNN());
     }
 
     void trainLSTM(const vector<DoubleVector>& features, const DoubleVector& labels) {
         ENFORCE_EQ(features.size(), labels.size());
-        vector<tiny_dnn::tensor_t> vInput(1);
-        vector<tiny_dnn::tensor_t> vOutput(1);
+        vector<tiny_dnn::tensor_t> vInput(features.size());
+        vector<tiny_dnn::tensor_t> vOutput(labels.size());
         for (size_t i = 0; i < features.size(); ++i) {
-            vInput[0].emplace_back(doubleVectorToVector(features[i]));
-            vOutput[0].emplace_back(labels[i]);
+            vInput[i] = doubleVectorToTensor(features[i]);
+            vOutput[i] = doubleVectorToTensor({labels[i]});
         }
         auto& nn = model_.getNN();
         vector<tiny_dnn::tensor_t> cost;
+        vInput = nn.fprop(vInput);
         nn.bprop<tiny_dnn::mse>(vInput, vOutput, cost);
         nn.update_weights(&optimizer_);
     }
@@ -433,9 +452,8 @@ void DNNModelTrainer::slowdown() { impl_->slowdown(); }
 
 void DNNModelTrainer::startTrainLSTM() { impl_->startTrainLSTM(); }
 
-void DNNModelTrainer::endTrainLSTM() { impl_->endTrainLSTM(); }
+void DNNModelTrainer::stopTrainLSTM() { impl_->stopTrainLSTM(); }
 
 void DNNModelTrainer::trainLSTM(const vector<DoubleVector>& features, const DoubleVector& labels) {
-    lstm_->trainLSTM(features, labels);
+    impl_->trainLSTM(features, labels);
 }
-
