@@ -986,6 +986,8 @@ void dnn() {
     DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
     TimerTracker tt;
     for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
+        // shuffle(stocks);
+
         auto modelStat = [&](auto& model) {
             double trainError = 0;
             double testError = 0;
@@ -995,12 +997,18 @@ void dnn() {
             size_t trainCount = 0;
             double sum = 0;
             double sum2 = 0;
-            for (const auto& stockPair : features) {
-                if (!stockStats.count(stockPair.first)) {
+            size_t iStock = 0;
+            for (const auto& stock : stocks) {
+                if (!stockStats.count(stock)) {
                     continue;
                 }
 
-                const auto& sfeatures = stockPair.second;
+                ++iStock;
+                if (iStock > FLAGS_stock_limit) {
+                    break;
+                }
+
+                const auto& sfeatures = features.find(stock)->second;
                 for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
                     double prediction;
                     auto ret = genRet(sfeatures, i - kDNNHorizon);
@@ -1018,10 +1026,10 @@ void dnn() {
                     }
                     auto sampleError = prediction - futureRet.first;
                     if (false && abs(sampleError) > 0.1) {
-                        LOG_EVERY_MS(INFO, 1000) << OUT(futureRet.first) << OUT(prediction) << OUT(stockPair.first)
+                        LOG_EVERY_MS(INFO, 1000) << OUT(futureRet.first) << OUT(prediction) << OUT(stock)
                                                  << OUT(i + kDNNWindow + kDNNHorizon - 1);
                     }
-                    if (!train(stockPair.first)) {
+                    if (!train(stock)) {
                         testError += sqr(sampleError);
                         testErrorBaseline1 += sqr(futureRet.first - ret.first);
                         testErrorBaseline2 += sqr(futureRet.first);
@@ -1055,7 +1063,6 @@ void dnn() {
         auto oldModel = trainer.getModel();
         trainer.slowdown();
 
-        shuffle(stocks);
         if (!FLAGS_dnn_lstm) {
             trainer.startTrainLSTM();
         }

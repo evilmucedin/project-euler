@@ -265,22 +265,25 @@ class DNNModel::Impl {
 
             static constexpr size_t kHidden = 3;
 
-            auto in = make_shared<fc>(kDNNFeatures, kDNNFeatures, false, backend_type);
-            auto lstm = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kHidden), kDNNWindow, params);
+            auto in = make_shared<fc>(kDNNFeatures, kHidden, false, backend_type);
+            auto lstm1 = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kHidden), kDNNWindow, params);
+            // auto lstm2 = make_shared<recurrent>(tiny_dnn::lstm(kHidden, kHidden), kDNNWindow, params);
             auto a = make_shared<activation>();
             auto out = make_shared<fc>(kHidden, 1, false, backend_type);
+            *lstm1 << *out;
             // *in << *lstm << *a << *out;
-            *lstm << *a << *out;
+            // *in << *lstm1 << *out;
             layers_.emplace_back(in);
-            layers_.emplace_back(lstm);
+            layers_.emplace_back(lstm1);
+            // layers_.emplace_back(lstm2);
             layers_.emplace_back(a);
             layers_.emplace_back(out);
 
             // tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
-            tiny_dnn::construct_graph(*nn_, {lstm.get()}, {out.get()});
+            tiny_dnn::construct_graph(*nn_, {lstm1.get()}, {out.get()});
 
             nn_->weight_init(tiny_dnn::weight_init::xavier());
-            // nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-6, 1e-6));
+            // nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-1, 1e-1));
             nn_->init_weight();
         }
     }
@@ -367,10 +370,12 @@ class DNNModelTrainer::Impl {
     Impl(double learningRate, double scaleRate, size_t samples, bool lstm)
         : model_(lstm), samples_(samples), iteration_(0) {
         optimizer_.alpha *= learningRate;
-        // optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
-        // LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu) << OUT(lstm);
         alpha0_ = optimizer_.alpha;
+        optimizer_.mu = 1.0 - 0.00005 * (1.0 - optimizer_.mu);
+        LOG(INFO) << OUT(optimizer_.alpha) << OUT(1.0 - optimizer_.mu) << OUT(lstm);
         scaleRate_ = scaleRate;
+        optimizerLSTM_.alpha *= learningRate;
+        alpha0LSTM_ = optimizerLSTM_.alpha;
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
@@ -379,6 +384,7 @@ class DNNModelTrainer::Impl {
         model_.scale(optimizer_.alpha, scaleRate_, samples_);
         ++iteration_;
         optimizer_.alpha = (iteration_ <= 5) ? alpha0_ : alpha0_ / (1.0 + 0.1 * (iteration_ - 5));
+        optimizerLSTM_.alpha = (iteration_ <= 5) ? alpha0LSTM_ : alpha0LSTM_ / (1.0 + 0.1 * (iteration_ - 5));
     }
 
     void train(const DoubleVector& features, double label) {
@@ -410,7 +416,7 @@ class DNNModelTrainer::Impl {
         vector<tiny_dnn::tensor_t> cost;
         vInput = nn.fprop(vInput);
         nn.bprop<tiny_dnn::mse>(vInput, vOutput, cost);
-        nn.update_weights(&optimizer_);
+        nn.update_weights(&optimizerLSTM_);
     }
 
     void train(const vector<DoubleVector>& features, const DoubleVector& label) {
@@ -442,9 +448,11 @@ class DNNModelTrainer::Impl {
    private:
     DNNModel::Impl model_;
     tiny_dnn::rms_prop optimizer_;
+    tiny_dnn::adagrad optimizerLSTM_;
     double scaleRate_;
     size_t samples_;
     double alpha0_;
+    double alpha0LSTM_;
     size_t iteration_;
 };
 
