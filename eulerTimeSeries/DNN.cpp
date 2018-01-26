@@ -266,21 +266,27 @@ class DNNModel::Impl {
             static constexpr size_t kHidden = 3;
 
             auto in = make_shared<fc>(kDNNFeatures, kHidden, false, backend_type);
-            auto lstm1 = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kHidden), kDNNWindow, params);
+            auto fc1 = make_shared<fc>(kHidden, kHidden, false, backend_type);
+            auto fc2 = make_shared<fc>(kHidden, kHidden, false, backend_type);
+            auto fc3 = make_shared<fc>(kHidden, kHidden, false, backend_type);
+            auto lstm1 = make_shared<recurrent>(tiny_dnn::lstm(kHidden, kHidden), kDNNWindow, params);
             // auto lstm2 = make_shared<recurrent>(tiny_dnn::lstm(kHidden, kHidden), kDNNWindow, params);
             auto a = make_shared<activation>();
             auto out = make_shared<fc>(kHidden, 1, false, backend_type);
-            *lstm1 << *out;
+            *in << *lstm1 << *out;
             // *in << *lstm << *a << *out;
             // *in << *lstm1 << *out;
             layers_.emplace_back(in);
+            layers_.emplace_back(fc1);
+            layers_.emplace_back(fc2);
+            layers_.emplace_back(fc3);
             layers_.emplace_back(lstm1);
             // layers_.emplace_back(lstm2);
             layers_.emplace_back(a);
             layers_.emplace_back(out);
 
             // tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
-            tiny_dnn::construct_graph(*nn_, {lstm1.get()}, {out.get()});
+            tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
 
             nn_->weight_init(tiny_dnn::weight_init::xavier());
             // nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-1, 1e-1));
@@ -290,9 +296,17 @@ class DNNModel::Impl {
 
     Impl(const Impl& impl) : nn_(make_shared<NN>()) {
         construct(impl.lstm_);
+        setModel(impl);
+    }
+
+    void setModel(const Impl& impl) {
         stringstream ss;
         ss << *(impl.nn_);
         ss >> *nn_;
+    }
+
+    void setModel(const PDNNModel& m) {
+        setModel(m->getImpl());
     }
 
     double predict(const DoubleVector& features) {
@@ -322,7 +336,7 @@ class DNNModel::Impl {
                 for (auto& x: *pv) {
                     x *= regMul;
                     /*
-                    if (abs(x) < 0.01) {
+                    PDNNModel modelif (abs(x) < 0.01) {
                         x = 0;
                     }
                     */
@@ -365,6 +379,10 @@ void DNNModel::save(const std::string& filename) { impl_->save(filename); }
 
 void DNNModel::saveJson(const std::string& filename) { impl_->saveJson(filename); }
 
+DNNModel::Impl& DNNModel::getImpl() { return *impl_; }
+
+void DNNModel::set(shared_ptr<DNNModel> model) { impl_->setModel(model); }
+
 class DNNModelTrainer::Impl {
    public:
     Impl(double learningRate, double scaleRate, size_t samples, bool lstm)
@@ -379,6 +397,10 @@ class DNNModelTrainer::Impl {
     }
 
     PDNNModel getModel() { return make_shared<DNNModel>(model_); }
+
+    void setModel(PDNNModel model) {
+        model_.setModel(model);
+    }
 
     void slowdown() {
         model_.scale(optimizer_.alpha, scaleRate_, samples_);
@@ -463,6 +485,8 @@ DNNModelTrainer::DNNModelTrainer(double learningRate, double scaleRate, size_t s
 DNNModelTrainer::~DNNModelTrainer() {}
 
 PDNNModel DNNModelTrainer::getModel() { return impl_->getModel(); }
+
+void DNNModelTrainer::setModel(PDNNModel model) { impl_->setModel(model); }
 
 void DNNModelTrainer::train(const DoubleVector& features, double label) { impl_->train(features, label); }
 

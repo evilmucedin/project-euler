@@ -983,84 +983,85 @@ void dnn() {
     }
     LOG(INFO) << "Training samples: " << samples;
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
     TimerTracker tt;
-    for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
-        // shuffle(stocks);
+    auto modelStat = [&](auto& model, size_t stockLimit, bool progress, int iEpoch) {
+        double trainError = 0;
+        double testError = 0;
+        double testErrorBaseline1 = 0;
+        double testErrorBaseline2 = 0;
+        size_t testCount = 0;
+        size_t trainCount = 0;
+        double sum = 0;
+        double sum2 = 0;
+        size_t iStock = 0;
+        for (const auto& stock : stocks) {
+            if (!stockStats.count(stock)) {
+                continue;
+            }
 
-        auto modelStat = [&](auto& model) {
-            double trainError = 0;
-            double testError = 0;
-            double testErrorBaseline1 = 0;
-            double testErrorBaseline2 = 0;
-            size_t testCount = 0;
-            size_t trainCount = 0;
-            double sum = 0;
-            double sum2 = 0;
-            size_t iStock = 0;
-            for (const auto& stock : stocks) {
-                if (!stockStats.count(stock)) {
+            ++iStock;
+            if (iStock > stockLimit) {
+                break;
+            }
+
+            const auto& sfeatures = features.find(stock)->second;
+            for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                double prediction;
+                auto ret = genRet(sfeatures, i - kDNNHorizon);
+                auto futureRet = genRet(sfeatures, i);
+                if (!ret.second || !futureRet.second) {
                     continue;
                 }
 
-                ++iStock;
-                if (iStock > FLAGS_stock_limit) {
-                    break;
+                if (!FLAGS_dnn_lstm) {
+                    auto dnnFeatures = genFeatures(sfeatures, i);
+                    prediction = model->predict(dnnFeatures);
+                } else {
+                    auto dnnFeatures = genLSTMFeatures(sfeatures, i);
+                    prediction = model->predictLSTM(dnnFeatures);
                 }
-
-                const auto& sfeatures = features.find(stock)->second;
-                for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
-                    double prediction;
-                    auto ret = genRet(sfeatures, i - kDNNHorizon);
-                    auto futureRet = genRet(sfeatures, i);
-                    if (!ret.second || !futureRet.second) {
-                        continue;
-                    }
-
-                    if (!FLAGS_dnn_lstm) {
-                        auto dnnFeatures = genFeatures(sfeatures, i);
-                        prediction = model->predict(dnnFeatures);
-                    } else {
-                        auto dnnFeatures = genLSTMFeatures(sfeatures, i);
-                        prediction = model->predictLSTM(dnnFeatures);
-                    }
-                    auto sampleError = prediction - futureRet.first;
-                    if (false && abs(sampleError) > 0.1) {
-                        LOG_EVERY_MS(INFO, 1000) << OUT(futureRet.first) << OUT(prediction) << OUT(stock)
-                                                 << OUT(i + kDNNWindow + kDNNHorizon - 1);
-                    }
-                    if (!train(stock)) {
-                        testError += sqr(sampleError);
-                        testErrorBaseline1 += sqr(futureRet.first - ret.first);
-                        testErrorBaseline2 += sqr(futureRet.first);
-                        sum += futureRet.first;
-                        sum2 += sqr(futureRet.first);
-                        ++testCount;
-                    } else {
-                        trainError += sqr(sampleError);
-                        ++trainCount;
-                    }
+                auto sampleError = prediction - futureRet.first;
+                if (false && abs(sampleError) > 0.1) {
+                    LOG_EVERY_MS(INFO, 1000) << OUT(futureRet.first) << OUT(prediction) << OUT(stock)
+                                             << OUT(i + kDNNWindow + kDNNHorizon - 1);
                 }
+                if (!train(stock)) {
+                    testError += sqr(sampleError);
+                    testErrorBaseline1 += sqr(futureRet.first - ret.first);
+                    testErrorBaseline2 += sqr(futureRet.first);
+                    sum += futureRet.first;
+                    sum2 += sqr(futureRet.first);
+                    ++testCount;
+                } else {
+                    trainError += sqr(sampleError);
+                    ++trainCount;
+                }
+            }
+            if (progress) {
                 printf("+");
                 fflush(stdout);
             }
-            printf("\n");
-            fflush(stdout);
+        }
+        printf("\n");
+        fflush(stdout);
 
-            double pTrainError = sqrt(trainError / trainCount);
-            double pTestError = sqrt(testError / testCount);
-            double pTestBaseline1 = sqrt(testErrorBaseline1 / testCount);
-            double pTestBaseline2 = sqrt(testErrorBaseline2 / testCount);
-            double mean = sum / testCount;
-            double variance = sum2 - 2.0 * mean * sum + testCount * sqr(mean);
-            cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline1 error: " << pTestBaseline1
-                 << ", baseline2 error: " << pTestBaseline2 << ", train error: " << pTrainError
-                 << ", test/train: " << pTestError / pTrainError << ", ratio1: " << pTestError / pTestBaseline1
-                 << ", ratio2: " << pTestError / pTestBaseline2 << ", samples: " << testCount << ", mean: " << mean
-                 << ", r2: " << 1.0 - (testError / variance) << ", elapsed: " << tt.diffAndReset() << endl;
-        };
+        double pTrainError = sqrt(trainError / trainCount);
+        double pTestError = sqrt(testError / testCount);
+        double pTestBaseline1 = sqrt(testErrorBaseline1 / testCount);
+        double pTestBaseline2 = sqrt(testErrorBaseline2 / testCount);
+        double mean = sum / testCount;
+        double variance = sum2 - 2.0 * mean * sum + testCount * sqr(mean);
+        double r2 = 1.0 - (testError / variance);
+        cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline1 error: " << pTestBaseline1
+             << ", baseline2 error: " << pTestBaseline2 << ", train error: " << pTrainError
+             << ", test/train: " << pTestError / pTrainError << ", ratio1: " << pTestError / pTestBaseline1
+             << ", ratio2: " << pTestError / pTestBaseline2 << ", samples: " << testCount << ", mean: " << mean
+             << ", r2: " << r2 << ", elapsed: " << tt.diffAndReset() << endl;
 
-        auto oldModel = trainer.getModel();
+        return r2;
+    };
+
+    auto modelTrain = [&](auto& trainer, size_t stockLimit, bool progress) {
         trainer.slowdown();
 
         if (!FLAGS_dnn_lstm) {
@@ -1077,7 +1078,7 @@ void dnn() {
             }
 
             ++iStock;
-            if (iStock > FLAGS_stock_limit) {
+            if (iStock > stockLimit) {
                 break;
             }
 
@@ -1103,12 +1104,55 @@ void dnn() {
                     trainer.trainLSTM(dnnFeatures, labels);
                 }
             }
-            printf(".");
-            fflush(stdout);
+
+            if (progress) {
+                printf(".");
+                fflush(stdout);
+            }
         }
+
         if (!FLAGS_dnn_lstm) {
             trainer.stopTrainLSTM();
         }
+    };
+
+    const size_t kPopulation = 25;
+    using PTrainer = shared_ptr<DNNModelTrainer>;
+    vector<PTrainer> trainers(kPopulation);
+
+    for (size_t i = 0; i < kPopulation; ++i) {
+        trainers[i] =
+            make_shared<DNNModelTrainer>(10 * FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
+        if (i) {
+            for (size_t j = 0; j < 10; ++j) {
+                shuffle(stocks);
+                modelTrain(*trainers[i], 20, false);
+            }
+        }
+        LOG(INFO) << "Pretrain: " << i;
+    }
+
+    shuffle(stocks);
+    double bestR2 = -1e9;
+    size_t bestIndex = 0;
+    for (size_t i = 0; i < kPopulation; ++i) {
+        auto model = trainers[i]->getModel();
+        auto r2 = modelStat(model, 50, false, -1);
+        if (r2 > bestR2) {
+            bestR2 = r2;
+            bestIndex = i;
+        }
+    }
+
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
+    trainer.setModel(trainers[bestIndex]->getModel());
+    trainers.clear();
+    for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
+        // shuffle(stocks);
+
+        auto oldModel = trainer.getModel();
+        modelTrain(trainer, FLAGS_stock_limit, true);
+
         printf("\n");
         fflush(stdout);
 
@@ -1116,7 +1160,7 @@ void dnn() {
         model->save("dnn");
         model->saveJson("dnn.json");
         // modelStat(oldModel);
-        modelStat(model);
+        modelStat(model, FLAGS_stock_limit, true, iEpoch);
     }
 }
 

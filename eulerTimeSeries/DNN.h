@@ -14,6 +14,8 @@ public:
     double predictLSTM(const vector<DoubleVector>& features);
     void save(const std::string& filename);
     void saveJson(const std::string& filename);
+    void set(shared_ptr<DNNModel> model);
+    Impl& getImpl();
 
     unique_ptr<Impl> impl_;
 };
@@ -26,6 +28,7 @@ public:
     ~DNNModelTrainer();
 
     PDNNModel getModel();
+    void setModel(PDNNModel model);
     void train(const DoubleVector& features, double label);
     void train(const vector<DoubleVector>& features, const DoubleVector& label);
     void slowdown();
