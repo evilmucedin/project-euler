@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <condition_variable>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
@@ -45,7 +46,9 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <vector>
+
+// TODO
+#include <iostream>
 
 namespace tp {
 /**
@@ -210,6 +213,14 @@ class MPMCBoundedQueue {
      */
     bool pop(T& data);
 
+    std::condition_variable& event() {
+        return event_;
+    }
+
+    std::unique_lock<std::mutex>& lock() {
+        return lk_;
+    }
+
    private:
     struct Cell {
         std::atomic<size_t> sequence;
@@ -241,6 +252,9 @@ class MPMCBoundedQueue {
     Cacheline pad2;
     std::atomic<size_t> m_dequeue_pos;
     Cacheline pad3;
+    std::mutex mutex_;
+    std::condition_variable event_;
+    std::unique_lock<std::mutex> lk_;
 };
 
 /**
@@ -460,6 +474,7 @@ inline Worker<Task, Queue>& Worker<Task, Queue>::operator=(Worker&& rhs) noexcep
 template <typename Task, template <typename> class Queue>
 inline void Worker<Task, Queue>::stop() {
     m_running_flag.store(false, std::memory_order_relaxed);
+    m_queue.event().notify_one();
     m_thread.join();
 }
 
@@ -498,7 +513,7 @@ inline void Worker<Task, Queue>::threadFunc(size_t id, Worker* steal_donor) {
                 // suppress all exceptions
             }
         } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            m_queue.event().wait_for(m_queue.lock(), std::chrono::milliseconds(1));
         }
     }
 }
@@ -573,7 +588,7 @@ inline Worker<Task, Queue>& ThreadPoolImpl<Task, Queue>::getWorker() {
 
 template <typename T>
 inline MPMCBoundedQueue<T>::MPMCBoundedQueue(size_t size)
-    : m_buffer(size), m_buffer_mask(size - 1), m_enqueue_pos(0), m_dequeue_pos(0) {
+    : m_buffer(size), m_buffer_mask(size - 1), m_enqueue_pos(0), m_dequeue_pos(0), lk_(mutex_) {
     bool size_is_power_of_2 = (size >= 2) && ((size & (size - 1)) == 0);
     if (!size_is_power_of_2) {
         throw std::invalid_argument("buffer size should be a power of 2");
@@ -623,6 +638,8 @@ inline bool MPMCBoundedQueue<T>::push(U&& data) {
     cell->data = std::forward<U>(data);
 
     cell->sequence.store(pos + 1, std::memory_order_release);
+
+    event_.notify_one();
 
     return true;
 }

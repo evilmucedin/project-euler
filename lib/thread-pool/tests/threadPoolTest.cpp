@@ -1,3 +1,4 @@
+#include <chrono>
 #include <functional>
 #include <future>
 #include <memory>
@@ -50,25 +51,44 @@ TEST(ThreadPool, notBlockingPostJob) {
 }
 
 TEST(ThreadPool, blockingPostJob) {
-    static constexpr size_t kCount = 100000;
+    for (size_t count : {13, 111113}) {
+        static constexpr size_t kTests = 5;
 
-    std::atomic<int> res(0);
+        std::atomic<int> res(0);
+        double sumDelay = 0;
+        double maxDelay = 0;
 
-    {
-        tp::ThreadPool pool;
-        std::vector<std::future<void>> futures;
+        {
+            tp::ThreadPool pool;
 
-        for (size_t i = 0; i < kCount; ++i) {
-            std::packaged_task<void()> t([&res]() { res += 1; });
-            futures.emplace_back(t.get_future());
+            for (size_t j = 0; j < kTests; ++j) {
+                std::vector<std::future<double>> futures;
 
-            pool.blockingPost(t);
+                for (size_t i = 0; i < count; ++i) {
+                    auto create = std::chrono::high_resolution_clock::now();
+                    std::packaged_task<double()> t([&res, create]() {
+                        res += 1;
+                        return std::chrono::duration_cast<std::chrono::microseconds>(
+                                   std::chrono::high_resolution_clock::now() - create)
+                            .count();
+                    });
+                    futures.emplace_back(t.get_future());
+
+                    pool.blockingPost(t);
+                }
+
+                for (auto& f : futures) {
+                    auto d = f.get();
+                    sumDelay += d;
+                    maxDelay = std::max(maxDelay, d);
+                }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(497));
+            }
         }
 
-        for (auto& f: futures) {
-            f.get();
-        }
+        EXPECT_EQ(res, count * kTests);
+        std::cout << "Count: " << count << ", avg. delay: " << sumDelay / count / kTests << ", max delay: " << maxDelay
+                  << std::endl;
     }
-
-    EXPECT_EQ(res, kCount);
 }
