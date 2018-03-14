@@ -1,16 +1,368 @@
 #pragma once
 
+// Copyright (c) 2010-2011 Dmitry Vyukov. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided
+// that the following conditions are met:
+//
+//   1. Redistributions of source code must retain the above copyright notice,
+//   this list of
+//      conditions and the following disclaimer.
+//
+//   2. Redistributions in binary form must reproduce the above copyright
+//   notice, this list
+//      of conditions and the following disclaimer in the documentation and/or
+//      other materials
+//      provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY DMITRY VYUKOV "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT
+// SHALL DMITRY VYUKOV OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+// OR
+// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+// LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
+//
+// The views and conclusions contained in the software and documentation are
+// those of the authors and
+// should not be interpreted as representing official policies, either expressed
+// or implied, of Dmitry Vyukov.
+
+#include <algorithm>
 #include <atomic>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
+#include <thread>
+#include <type_traits>
+#include <utility>
+#include <vector>
 #include <vector>
 
-#include "lib/thread-pool/fixedFunction.h"
-#include "lib/thread-pool/mpmcBoundedQueue.h"
-#include "lib/thread-pool/threadPoolOptions.h"
-#include "lib/thread-pool/worker.h"
-
 namespace tp {
+/**
+ * @brief The Worker class owns task queue and executing thread.
+ * In thread it tries to pop task from queue. If queue is empty then it tries
+ * to steal task from the sibling worker. If steal was unsuccessful then spins
+ * with one millisecond delay.
+ */
+template <typename Task, template <typename> class Queue>
+class Worker {
+   public:
+    /**
+     * @brief Worker Constructor.
+     * @param queue_size Length of undelaying task queue.
+     */
+    explicit Worker(size_t queue_size);
+
+    /**
+     * @brief Move ctor implementation.
+     */
+    Worker(Worker&& rhs) noexcept;
+
+    /**
+     * @brief Move assignment implementaion.
+     */
+    Worker& operator=(Worker&& rhs) noexcept;
+
+    /**
+     * @brief start Create the executing thread and start tasks execution.
+     * @param id Worker ID.
+     * @param steal_donor Sibling worker to steal task from it.
+     */
+    void start(size_t id, Worker* steal_donor);
+
+    /**
+     * @brief stop Stop all worker's thread and stealing activity.
+     * Waits until the executing thread became finished.
+     */
+    void stop();
+
+    /**
+     * @brief post Post task to queue.
+     * @param handler Handler to be executed in executing thread.
+     * @return true on success.
+     */
+    template <typename Handler>
+    bool post(Handler&& handler);
+
+    /**
+     * @brief steal Steal one task from this worker queue.
+     * @param task Place for stealed task to be stored.
+     * @return true on success.
+     */
+    bool steal(Task& task);
+
+    /**
+     * @brief getWorkerIdForCurrentThread Return worker ID associated with
+     * current thread if exists.
+     * @return Worker ID.
+     */
+    static size_t getWorkerIdForCurrentThread();
+
+   private:
+    /**
+     * @brief threadFunc Executing thread function.
+     * @param id Worker ID to be associated with this thread.
+     * @param steal_donor Sibling worker to steal task from it.
+     */
+    void threadFunc(size_t id, Worker* steal_donor);
+
+    Queue<Task> m_queue;
+    std::atomic<bool> m_running_flag;
+    std::thread m_thread;
+};
+
+/**
+ * @brief The ThreadPoolOptions class provides creation options for
+ * ThreadPool.
+ */
+class ThreadPoolOptions {
+   public:
+    /**
+     * @brief ThreadPoolOptions Construct default options for thread pool.
+     */
+    ThreadPoolOptions();
+
+    /**
+     * @brief setThreadCount Set thread count.
+     * @param count Number of threads to be created.
+     */
+    void setThreadCount(size_t count);
+
+    /**
+     * @brief setQueueSize Set single worker queue size.
+     * @param count Maximum length of queue of single worker.
+     */
+    void setQueueSize(size_t size);
+
+    /**
+     * @brief threadCount Return thread count.
+     */
+    size_t threadCount() const;
+
+    /**
+     * @brief queueSize Return single worker queue size.
+     */
+    size_t queueSize() const;
+
+   private:
+    size_t m_thread_count;
+    size_t m_queue_size;
+};
+
+/**
+ * @brief The MPMCBoundedQueue class implements bounded
+ * multi-producers/multi-consumers lock-free queue.
+ * Doesn't accept non-movable types as T.
+ * Inspired by Dmitry Vyukov's mpmc queue.
+ * http://www.1024cores.net/home/lock-free-algorithms/queues/bounded-mpmc-queue
+ */
+template <typename T>
+class MPMCBoundedQueue {
+    static_assert(std::is_move_constructible<T>::value, "Should be of movable type");
+
+   public:
+    /**
+     * @brief MPMCBoundedQueue Constructor.
+     * @param size Power of 2 number - queue length.
+     * @throws std::invalid_argument if size is bad.
+     */
+    explicit MPMCBoundedQueue(size_t size);
+
+    /**
+     * @brief Move ctor implementation.
+     */
+    MPMCBoundedQueue(MPMCBoundedQueue&& rhs) noexcept;
+
+    /**
+     * @brief Move assignment implementaion.
+     */
+    MPMCBoundedQueue& operator=(MPMCBoundedQueue&& rhs) noexcept;
+
+    /**
+     * @brief push Push data to queue.
+     * @param data Data to be pushed.
+     * @return true on success.
+     */
+    template <typename U>
+    bool push(U&& data);
+
+    /**
+     * @brief push Push data to queue.
+     * @param data Data to be pushed.
+     */
+    template <typename U>
+    void blockingPush(U&& data);
+
+    /**
+     * @brief pop Pop data from queue.
+     * @param data Place to store popped data.
+     * @return true on sucess.
+     */
+    bool pop(T& data);
+
+   private:
+    struct Cell {
+        std::atomic<size_t> sequence;
+        T data;
+
+        Cell() = default;
+
+        Cell(const Cell&) = delete;
+        Cell& operator=(const Cell&) = delete;
+
+        Cell(Cell&& rhs) : sequence(rhs.sequence.load()), data(std::move(rhs.data)) {}
+
+        Cell& operator=(Cell&& rhs) {
+            sequence = rhs.sequence.load();
+            data = std::move(rhs.data);
+
+            return *this;
+        }
+    };
+
+   private:
+    using Cacheline = std::array<char, 64>;
+
+    Cacheline pad0;
+    std::vector<Cell> m_buffer;
+    /* const */ size_t m_buffer_mask;
+    Cacheline pad1;
+    std::atomic<size_t> m_enqueue_pos;
+    Cacheline pad2;
+    std::atomic<size_t> m_dequeue_pos;
+    Cacheline pad3;
+};
+
+/**
+ * @brief The FixedFunction<R(ARGS...), STORAGE_SIZE> class implements
+ * functional object.
+ * This function is analog of 'std::function' with limited capabilities:
+ *  - It supports only move semantics.
+ *  - The size of functional objects is limited to storage size.
+ * Due to limitations above it is much faster on creation and copying than
+ * std::function.
+ */
+template <typename SIGNATURE, size_t STORAGE_SIZE = 128>
+class FixedFunction;
+
+template <typename R, typename... ARGS, size_t STORAGE_SIZE>
+class FixedFunction<R(ARGS...), STORAGE_SIZE> {
+    using func_ptr_type = std::function<R(ARGS...)>;
+
+   public:
+    FixedFunction() : m_function_ptr(nullptr), m_method_ptr(nullptr), m_alloc_ptr(nullptr) {}
+
+    /**
+     * @brief FixedFunction Constructor from functional object.
+     * @param object Functor object will be stored in the internal storage
+     * using move constructor. Unmovable objects are prohibited explicitly.
+     */
+    template <typename FUNC>
+    FixedFunction(FUNC&& object) : FixedFunction() {
+        using unref_type = typename std::remove_reference<FUNC>::type;
+
+        static_assert(sizeof(unref_type) < STORAGE_SIZE, "functional object doesn't fit into internal storage");
+        static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
+
+        m_method_ptr = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
+            return static_cast<unref_type*>(object_ptr)->operator()(args...);
+        };
+
+        m_alloc_ptr = [](void* storage_ptr, void* object_ptr) {
+            if (object_ptr) {
+                unref_type* x_object = static_cast<unref_type*>(object_ptr);
+                new (storage_ptr) unref_type(std::move(*x_object));
+            } else {
+                static_cast<unref_type*>(storage_ptr)->~unref_type();
+            }
+        };
+
+        m_alloc_ptr(&m_storage, &object);
+    }
+
+    /**
+     * @brief FixedFunction Constructor from free function or static member.
+     */
+    template <typename RET, typename... PARAMS>
+    FixedFunction(RET (*func_ptr)(PARAMS...)) : FixedFunction() {
+        m_function_ptr = func_ptr;
+        m_method_ptr = [](void*, func_ptr_type f_ptr, ARGS... args) -> R {
+            return static_cast<RET (*)(PARAMS...)>(f_ptr)(args...);
+        };
+    }
+
+    FixedFunction(FixedFunction&& o) : FixedFunction() { moveFromOther(o); }
+
+    FixedFunction& operator=(FixedFunction&& o) {
+        moveFromOther(o);
+        return *this;
+    }
+
+    ~FixedFunction() {
+        if (m_alloc_ptr) {
+            m_alloc_ptr(&m_storage, nullptr);
+        }
+    }
+
+    /**
+     * @brief operator () Execute stored functional object.
+     * @throws std::runtime_error if no functional object is stored.
+     */
+    R operator()(ARGS... args) {
+        if (!m_method_ptr) {
+            throw std::runtime_error("call of empty functor");
+        }
+        return m_method_ptr(&m_storage, m_function_ptr, args...);
+    }
+
+   private:
+    FixedFunction& operator=(const FixedFunction&) = delete;
+    FixedFunction(const FixedFunction&) = delete;
+
+    union {
+        typename std::aligned_storage<STORAGE_SIZE, sizeof(size_t)>::type m_storage;
+        func_ptr_type m_function_ptr;
+    };
+
+    using method_type = std::function<R(void* object_ptr, func_ptr_type free_func_ptr, ARGS... args)>;
+    method_type m_method_ptr;
+
+    using alloc_type = std::function<void(void* storage_ptr, void* object_ptr)>;
+    alloc_type m_alloc_ptr;
+
+    void moveFromOther(FixedFunction& o) {
+        if (this == &o) {
+            return;
+        }
+
+        if (m_alloc_ptr) {
+            m_alloc_ptr(&m_storage, nullptr);
+            m_alloc_ptr = nullptr;
+        } else {
+            m_function_ptr = nullptr;
+        }
+
+        m_method_ptr = o.m_method_ptr;
+        o.m_method_ptr = nullptr;
+
+        if (o.m_alloc_ptr) {
+            m_alloc_ptr = o.m_alloc_ptr;
+            m_alloc_ptr(&m_storage, &o.m_storage);
+        } else {
+            m_function_ptr = o.m_function_ptr;
+        }
+    }
+};
 
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl;
@@ -80,6 +432,77 @@ class ThreadPoolImpl {
 
 /// Implementation
 
+namespace detail {
+inline size_t* thread_id() {
+    static thread_local size_t tss_id = -1u;
+    return &tss_id;
+}
+}
+
+template <typename Task, template <typename> class Queue>
+inline Worker<Task, Queue>::Worker(size_t queue_size) : m_queue(queue_size), m_running_flag(true) {}
+
+template <typename Task, template <typename> class Queue>
+inline Worker<Task, Queue>::Worker(Worker&& rhs) noexcept {
+    *this = rhs;
+}
+
+template <typename Task, template <typename> class Queue>
+inline Worker<Task, Queue>& Worker<Task, Queue>::operator=(Worker&& rhs) noexcept {
+    if (this != &rhs) {
+        m_queue = std::move(rhs.m_queue);
+        m_running_flag = rhs.m_running_flag.load();
+        m_thread = std::move(rhs.m_thread);
+    }
+    return *this;
+}
+
+template <typename Task, template <typename> class Queue>
+inline void Worker<Task, Queue>::stop() {
+    m_running_flag.store(false, std::memory_order_relaxed);
+    m_thread.join();
+}
+
+template <typename Task, template <typename> class Queue>
+inline void Worker<Task, Queue>::start(size_t id, Worker* steal_donor) {
+    m_thread = std::thread(&Worker<Task, Queue>::threadFunc, this, id, steal_donor);
+}
+
+template <typename Task, template <typename> class Queue>
+inline size_t Worker<Task, Queue>::getWorkerIdForCurrentThread() {
+    return *detail::thread_id();
+}
+
+template <typename Task, template <typename> class Queue>
+template <typename Handler>
+inline bool Worker<Task, Queue>::post(Handler&& handler) {
+    return m_queue.push(std::forward<Handler>(handler));
+}
+
+template <typename Task, template <typename> class Queue>
+inline bool Worker<Task, Queue>::steal(Task& task) {
+    return m_queue.pop(task);
+}
+
+template <typename Task, template <typename> class Queue>
+inline void Worker<Task, Queue>::threadFunc(size_t id, Worker* steal_donor) {
+    *detail::thread_id() = id;
+
+    Task handler;
+
+    while (m_running_flag.load(std::memory_order_relaxed)) {
+        if (m_queue.pop(handler) || steal_donor->steal(handler)) {
+            try {
+                handler();
+            } catch (...) {
+                // suppress all exceptions
+            }
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+}
+
 template <typename Task, template <typename> class Queue>
 inline ThreadPoolImpl<Task, Queue>::ThreadPoolImpl(const ThreadPoolOptions& options)
     : m_workers(options.threadCount()), m_next_worker(0) {
@@ -146,5 +569,94 @@ inline Worker<Task, Queue>& ThreadPoolImpl<Task, Queue>::getWorker() {
     }
 
     return *m_workers[id];
+}
+
+template <typename T>
+inline MPMCBoundedQueue<T>::MPMCBoundedQueue(size_t size)
+    : m_buffer(size), m_buffer_mask(size - 1), m_enqueue_pos(0), m_dequeue_pos(0) {
+    bool size_is_power_of_2 = (size >= 2) && ((size & (size - 1)) == 0);
+    if (!size_is_power_of_2) {
+        throw std::invalid_argument("buffer size should be a power of 2");
+    }
+
+    for (size_t i = 0; i < size; ++i) {
+        m_buffer[i].sequence = i;
+    }
+}
+
+template <typename T>
+inline MPMCBoundedQueue<T>::MPMCBoundedQueue(MPMCBoundedQueue&& rhs) noexcept {
+    *this = rhs;
+}
+
+template <typename T>
+inline MPMCBoundedQueue<T>& MPMCBoundedQueue<T>::operator=(MPMCBoundedQueue&& rhs) noexcept {
+    if (this != &rhs) {
+        m_buffer = std::move(rhs.m_buffer);
+        m_buffer_mask = std::move(rhs.m_buffer_mask);
+        m_enqueue_pos = rhs.m_enqueue_pos.load();
+        m_dequeue_pos = rhs.m_dequeue_pos.load();
+    }
+    return *this;
+}
+
+template <typename T>
+template <typename U>
+inline bool MPMCBoundedQueue<T>::push(U&& data) {
+    Cell* cell;
+    size_t pos = m_enqueue_pos.load(std::memory_order_relaxed);
+    for (;;) {
+        cell = &m_buffer[pos & m_buffer_mask];
+        size_t seq = cell->sequence.load(std::memory_order_acquire);
+        intptr_t dif = (intptr_t)seq - (intptr_t)pos;
+        if (dif == 0) {
+            if (m_enqueue_pos.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
+                break;
+            }
+        } else if (dif < 0) {
+            return false;
+        } else {
+            pos = m_enqueue_pos.load(std::memory_order_relaxed);
+        }
+    }
+
+    cell->data = std::forward<U>(data);
+
+    cell->sequence.store(pos + 1, std::memory_order_release);
+
+    return true;
+}
+
+template <typename T>
+template <typename U>
+inline void MPMCBoundedQueue<T>::blockingPush(U&& data) {
+    while (!push(data)) {
+    }
+}
+
+template <typename T>
+inline bool MPMCBoundedQueue<T>::pop(T& data) {
+    Cell* cell;
+    size_t pos = m_dequeue_pos.load(std::memory_order_relaxed);
+    for (;;) {
+        cell = &m_buffer[pos & m_buffer_mask];
+        size_t seq = cell->sequence.load(std::memory_order_acquire);
+        intptr_t dif = (intptr_t)seq - (intptr_t)(pos + 1);
+        if (dif == 0) {
+            if (m_dequeue_pos.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
+                break;
+            }
+        } else if (dif < 0) {
+            return false;
+        } else {
+            pos = m_dequeue_pos.load(std::memory_order_relaxed);
+        }
+    }
+
+    data = std::move(cell->data);
+
+    cell->sequence.store(pos + m_buffer_mask + 1, std::memory_order_release);
+
+    return true;
 }
 }
