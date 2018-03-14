@@ -133,6 +133,7 @@ template <typename Task, template <typename> class Queue>
 template <typename Handler>
 inline void ThreadPoolImpl<Task, Queue>::blockingPost(Handler&& handler) {
     while (!tryPost(handler)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 

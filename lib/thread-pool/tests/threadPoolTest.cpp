@@ -1,9 +1,9 @@
-#include <gtest/gtest.h>
-
 #include <functional>
 #include <future>
 #include <memory>
 #include <thread>
+
+#include <gtest/gtest.h>
 
 #include "lib/thread-pool/threadPool.h"
 
@@ -28,4 +28,47 @@ TEST(ThreadPool, postJob) {
     pool.post(t);
 
     ASSERT_EQ(42, r.get());
+}
+
+TEST(ThreadPool, notBlockingPostJob) {
+    tp::ThreadPool pool;
+
+    std::atomic<int> res(0);
+
+    std::packaged_task<void()> t([&res]() { res += 1; });
+
+    static constexpr size_t kCount = 100000;
+
+    try {
+        for (size_t i = 0; i < kCount; ++i) {
+            pool.post(t);
+        }
+
+        std::cout << res << std::endl;
+    } catch (...) {
+    }
+}
+
+TEST(ThreadPool, blockingPostJob) {
+    static constexpr size_t kCount = 100000;
+
+    std::atomic<int> res(0);
+
+    {
+        tp::ThreadPool pool;
+        std::vector<std::future<void>> futures;
+
+        for (size_t i = 0; i < kCount; ++i) {
+            std::packaged_task<void()> t([&res]() { res += 1; });
+            futures.emplace_back(t.get_future());
+
+            pool.blockingPost(t);
+        }
+
+        for (auto& f: futures) {
+            f.get();
+        }
+    }
+
+    EXPECT_EQ(res, kCount);
 }
