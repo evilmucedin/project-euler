@@ -1122,7 +1122,7 @@ void dnn() {
 
     for (size_t i = 0; i < kPopulation; ++i) {
         trainers[i] =
-            make_shared<DNNModelTrainer>(10 * FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
+            make_shared<DNNModelTrainer>(0.1 * FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
         if (i) {
             for (size_t j = 0; j < 10; ++j) {
                 shuffle(stocks);

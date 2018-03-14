@@ -45,7 +45,7 @@ public:
 using StockFeatures = vector<DoubleVector>;
 static constexpr size_t kDNNFeatures = 11;
 static constexpr size_t kQuants = 24 * 60;
-static constexpr size_t kDNNWindow = 100;
+static constexpr size_t kDNNWindow = 1;
 static constexpr size_t kDNNHorizon = 10;
 
 enum DNNFeature {

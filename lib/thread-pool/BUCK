@@ -1,0 +1,16 @@
+cxx_library(
+    name="thread-pool",
+    srcs=[
+        "threadPoolOptions.cpp",
+    ],
+    exported_headers=[
+        "fixedFunction.h",
+        "mpmcBoundedQueue.h",
+        "threadPool.h",
+        "threadPoolOptions.h",
+        "worker.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)

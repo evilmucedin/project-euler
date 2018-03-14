@@ -123,8 +123,8 @@ class DNNModel::Impl {
             // nn_ << pc2(kFeatures, kDNNWindow, kFeatures, connections) << fc(kDNNWindow, 5*5, false, backend_type) <<
             // lrelu() << fc(5*5, 5, false, backend_type) << lrelu() << fc(5, 1, false, backend_type);
 
-            static constexpr size_t kHidden1 = 5;
-            static constexpr size_t kHidden2 = 5;
+            static constexpr size_t kHidden1 = 1;
+            static constexpr size_t kHidden2 = 1;
 
             vector<tiny_dnn::partial_connection> connections3;
             for (size_t j = 0; j < kHidden2; ++j) {
@@ -269,11 +269,11 @@ class DNNModel::Impl {
             auto fc1 = make_shared<fc>(kHidden, kHidden, false, backend_type);
             auto fc2 = make_shared<fc>(kHidden, kHidden, false, backend_type);
             auto fc3 = make_shared<fc>(kHidden, kHidden, false, backend_type);
-            auto lstm1 = make_shared<recurrent>(tiny_dnn::lstm(kHidden, kHidden), kDNNWindow, params);
+            auto lstm1 = make_shared<recurrent>(tiny_dnn::lstm(kDNNFeatures, kHidden), kDNNWindow, params);
             // auto lstm2 = make_shared<recurrent>(tiny_dnn::lstm(kHidden, kHidden), kDNNWindow, params);
             auto a = make_shared<activation>();
             auto out = make_shared<fc>(kHidden, 1, false, backend_type);
-            *in << *lstm1 << *out;
+            *lstm1 << *out;
             // *in << *lstm << *a << *out;
             // *in << *lstm1 << *out;
             layers_.emplace_back(in);
@@ -286,7 +286,7 @@ class DNNModel::Impl {
             layers_.emplace_back(out);
 
             // tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
-            tiny_dnn::construct_graph(*nn_, {in.get()}, {out.get()});
+            tiny_dnn::construct_graph(*nn_, {lstm1.get()}, {out.get()});
 
             nn_->weight_init(tiny_dnn::weight_init::xavier());
             // nn_->weight_init(tiny_dnn::weight_init::uniform(-1e-1, 1e-1));
