@@ -68,6 +68,9 @@ class ThreadPoolImpl {
     template <typename Handler>
     void post(Handler&& handler);
 
+    template <typename Handler>
+    void blockingPost(Handler&& handler);
+
    private:
     Worker<Task, Queue>& getWorker();
 
@@ -123,6 +126,13 @@ inline void ThreadPoolImpl<Task, Queue>::post(Handler&& handler) {
     const auto ok = tryPost(std::forward<Handler>(handler));
     if (!ok) {
         throw std::runtime_error("thread pool queue is full");
+    }
+}
+
+template <typename Task, template <typename> class Queue>
+template <typename Handler>
+inline void ThreadPoolImpl<Task, Queue>::blockingPost(Handler&& handler) {
+    while (!tryPost(handler)) {
     }
 }
 
