@@ -47,9 +47,6 @@
 #include <utility>
 #include <vector>
 
-// TODO
-#include <iostream>
-
 namespace tp {
 /**
  * @brief The Worker class owns task queue and executing thread.
@@ -119,9 +116,9 @@ class Worker {
      */
     void threadFunc(size_t id, Worker* steal_donor);
 
-    Queue<Task> m_queue;
-    std::atomic<bool> m_running_flag;
-    std::thread m_thread;
+    Queue<Task> queue_;
+    std::atomic<bool> running_flag_;
+    std::thread thread_;
 };
 
 /**
@@ -158,8 +155,8 @@ class ThreadPoolOptions {
     size_t queueSize() const;
 
    private:
-    size_t m_thread_count;
-    size_t m_queue_size;
+    size_t thread_count_;
+    size_t queue_size_;
 };
 
 /**
@@ -244,14 +241,14 @@ class MPMCBoundedQueue {
    private:
     using Cacheline = std::array<char, 64>;
 
-    Cacheline pad0;
-    std::vector<Cell> m_buffer;
-    /* const */ size_t m_buffer_mask;
-    Cacheline pad1;
-    std::atomic<size_t> m_enqueue_pos;
-    Cacheline pad2;
-    std::atomic<size_t> m_dequeue_pos;
-    Cacheline pad3;
+    Cacheline pad0_;
+    std::vector<Cell> buffer_;
+    /* const */ size_t buffer_mask_;
+    Cacheline pad1_;
+    std::atomic<size_t> enqueue_pos_;
+    Cacheline pad2_;
+    std::atomic<size_t> dequeue_pos_;
+    Cacheline pad3_;
     std::mutex mutex_;
     std::condition_variable event_;
     std::unique_lock<std::mutex> lk_;
@@ -274,7 +271,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     using func_ptr_type = std::function<R(ARGS...)>;
 
    public:
-    FixedFunction() : m_function_ptr(nullptr), m_method_ptr(nullptr), m_alloc_ptr(nullptr) {}
+    FixedFunction() : function_ptr_(nullptr), method_ptr_(nullptr), alloc_ptr_(nullptr) {}
 
     /**
      * @brief FixedFunction Constructor from functional object.
@@ -288,11 +285,11 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
         static_assert(sizeof(unref_type) < STORAGE_SIZE, "functional object doesn't fit into internal storage");
         static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
 
-        m_method_ptr = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
+        method_ptr_ = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
             return static_cast<unref_type*>(object_ptr)->operator()(args...);
         };
 
-        m_alloc_ptr = [](void* storage_ptr, void* object_ptr) {
+        alloc_ptr_ = [](void* storage_ptr, void* object_ptr) {
             if (object_ptr) {
                 unref_type* x_object = static_cast<unref_type*>(object_ptr);
                 new (storage_ptr) unref_type(std::move(*x_object));
@@ -301,7 +298,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
             }
         };
 
-        m_alloc_ptr(&m_storage, &object);
+        alloc_ptr_(&storage_, &object);
     }
 
     /**
@@ -309,8 +306,8 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
      */
     template <typename RET, typename... PARAMS>
     FixedFunction(RET (*func_ptr)(PARAMS...)) : FixedFunction() {
-        m_function_ptr = func_ptr;
-        m_method_ptr = [](void*, func_ptr_type f_ptr, ARGS... args) -> R {
+        function_ptr_ = func_ptr;
+        method_ptr_ = [](void*, func_ptr_type f_ptr, ARGS... args) -> R {
             return static_cast<RET (*)(PARAMS...)>(f_ptr)(args...);
         };
     }
@@ -323,8 +320,8 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     }
 
     ~FixedFunction() {
-        if (m_alloc_ptr) {
-            m_alloc_ptr(&m_storage, nullptr);
+        if (alloc_ptr_) {
+            alloc_ptr_(&storage_, nullptr);
         }
     }
 
@@ -333,10 +330,10 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
      * @throws std::runtime_error if no functional object is stored.
      */
     R operator()(ARGS... args) {
-        if (!m_method_ptr) {
+        if (!method_ptr_) {
             throw std::runtime_error("call of empty functor");
         }
-        return m_method_ptr(&m_storage, m_function_ptr, args...);
+        return method_ptr_(&storage_, function_ptr_, args...);
     }
 
    private:
@@ -344,36 +341,36 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     FixedFunction(const FixedFunction&) = delete;
 
     union {
-        typename std::aligned_storage<STORAGE_SIZE, sizeof(size_t)>::type m_storage;
-        func_ptr_type m_function_ptr;
+        typename std::aligned_storage<STORAGE_SIZE, sizeof(size_t)>::type storage_;
+        func_ptr_type function_ptr_;
     };
 
     using method_type = std::function<R(void* object_ptr, func_ptr_type free_func_ptr, ARGS... args)>;
-    method_type m_method_ptr;
+    method_type method_ptr_;
 
     using alloc_type = std::function<void(void* storage_ptr, void* object_ptr)>;
-    alloc_type m_alloc_ptr;
+    alloc_type alloc_ptr_;
 
     void moveFromOther(FixedFunction& o) {
         if (this == &o) {
             return;
         }
 
-        if (m_alloc_ptr) {
-            m_alloc_ptr(&m_storage, nullptr);
-            m_alloc_ptr = nullptr;
+        if (alloc_ptr_) {
+            alloc_ptr_(&storage_, nullptr);
+            alloc_ptr_ = nullptr;
         } else {
-            m_function_ptr = nullptr;
+            function_ptr_ = nullptr;
         }
 
-        m_method_ptr = o.m_method_ptr;
-        o.m_method_ptr = nullptr;
+        method_ptr_ = o.method_ptr_;
+        o.method_ptr_ = nullptr;
 
-        if (o.m_alloc_ptr) {
-            m_alloc_ptr = o.m_alloc_ptr;
-            m_alloc_ptr(&m_storage, &o.m_storage);
+        if (o.alloc_ptr_) {
+            alloc_ptr_ = o.alloc_ptr_;
+            alloc_ptr_(&storage_, &o.storage_);
         } else {
-            m_function_ptr = o.m_function_ptr;
+            function_ptr_ = o.function_ptr_;
         }
     }
 };
@@ -440,8 +437,8 @@ class ThreadPoolImpl {
    private:
     Worker<Task, Queue>& getWorker();
 
-    std::vector<std::unique_ptr<Worker<Task, Queue>>> m_workers;
-    std::atomic<size_t> m_next_worker;
+    std::vector<std::unique_ptr<Worker<Task, Queue>>> workers_;
+    std::atomic<size_t> next_worker_;
 };
 
 /// Implementation
@@ -454,7 +451,7 @@ inline size_t* thread_id() {
 }
 
 template <typename Task, template <typename> class Queue>
-inline Worker<Task, Queue>::Worker(size_t queue_size) : m_queue(queue_size), m_running_flag(true) {}
+inline Worker<Task, Queue>::Worker(size_t queue_size) : queue_(queue_size), running_flag_(true) {}
 
 template <typename Task, template <typename> class Queue>
 inline Worker<Task, Queue>::Worker(Worker&& rhs) noexcept {
@@ -464,23 +461,23 @@ inline Worker<Task, Queue>::Worker(Worker&& rhs) noexcept {
 template <typename Task, template <typename> class Queue>
 inline Worker<Task, Queue>& Worker<Task, Queue>::operator=(Worker&& rhs) noexcept {
     if (this != &rhs) {
-        m_queue = std::move(rhs.m_queue);
-        m_running_flag = rhs.m_running_flag.load();
-        m_thread = std::move(rhs.m_thread);
+        queue_ = std::move(rhs.queue_);
+        running_flag_ = rhs.running_flag_.load();
+        thread_ = std::move(rhs.thread_);
     }
     return *this;
 }
 
 template <typename Task, template <typename> class Queue>
 inline void Worker<Task, Queue>::stop() {
-    m_running_flag.store(false, std::memory_order_relaxed);
-    m_queue.event().notify_one();
-    m_thread.join();
+    running_flag_.store(false, std::memory_order_relaxed);
+    queue_.event().notify_one();
+    thread_.join();
 }
 
 template <typename Task, template <typename> class Queue>
 inline void Worker<Task, Queue>::start(size_t id, Worker* steal_donor) {
-    m_thread = std::thread(&Worker<Task, Queue>::threadFunc, this, id, steal_donor);
+    thread_ = std::thread(&Worker<Task, Queue>::threadFunc, this, id, steal_donor);
 }
 
 template <typename Task, template <typename> class Queue>
@@ -491,12 +488,12 @@ inline size_t Worker<Task, Queue>::getWorkerIdForCurrentThread() {
 template <typename Task, template <typename> class Queue>
 template <typename Handler>
 inline bool Worker<Task, Queue>::post(Handler&& handler) {
-    return m_queue.push(std::forward<Handler>(handler));
+    return queue_.push(std::forward<Handler>(handler));
 }
 
 template <typename Task, template <typename> class Queue>
 inline bool Worker<Task, Queue>::steal(Task& task) {
-    return m_queue.pop(task);
+    return queue_.pop(task);
 }
 
 template <typename Task, template <typename> class Queue>
@@ -505,29 +502,29 @@ inline void Worker<Task, Queue>::threadFunc(size_t id, Worker* steal_donor) {
 
     Task handler;
 
-    while (m_running_flag.load(std::memory_order_relaxed)) {
-        if (m_queue.pop(handler) || steal_donor->steal(handler)) {
+    while (running_flag_.load(std::memory_order_relaxed)) {
+        if (queue_.pop(handler) || steal_donor->steal(handler)) {
             try {
                 handler();
             } catch (...) {
                 // suppress all exceptions
             }
         } else {
-            m_queue.event().wait_for(m_queue.lock(), std::chrono::milliseconds(1));
+            queue_.event().wait_for(queue_.lock(), std::chrono::milliseconds(1));
         }
     }
 }
 
 template <typename Task, template <typename> class Queue>
 inline ThreadPoolImpl<Task, Queue>::ThreadPoolImpl(const ThreadPoolOptions& options)
-    : m_workers(options.threadCount()), m_next_worker(0) {
-    for (auto& worker_ptr : m_workers) {
+    : workers_(options.threadCount()), next_worker_(0) {
+    for (auto& worker_ptr : workers_) {
         worker_ptr = std::make_unique<Worker<Task, Queue>>(options.queueSize());
     }
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        auto steal_donor = m_workers[(i + 1) % m_workers.size()].get();
-        m_workers[i]->start(i, steal_donor);
+    for (size_t i = 0; i < workers_.size(); ++i) {
+        auto steal_donor = workers_[(i + 1) % workers_.size()].get();
+        workers_[i]->start(i, steal_donor);
     }
 }
 
@@ -538,7 +535,7 @@ inline ThreadPoolImpl<Task, Queue>::ThreadPoolImpl(ThreadPoolImpl<Task, Queue>&&
 
 template <typename Task, template <typename> class Queue>
 inline ThreadPoolImpl<Task, Queue>::~ThreadPoolImpl() {
-    for (auto& worker_ptr : m_workers) {
+    for (auto& worker_ptr : workers_) {
         worker_ptr->stop();
     }
 }
@@ -546,8 +543,8 @@ inline ThreadPoolImpl<Task, Queue>::~ThreadPoolImpl() {
 template <typename Task, template <typename> class Queue>
 inline ThreadPoolImpl<Task, Queue>& ThreadPoolImpl<Task, Queue>::operator=(ThreadPoolImpl<Task, Queue>&& rhs) noexcept {
     if (this != &rhs) {
-        m_workers = std::move(rhs.m_workers);
-        m_next_worker = rhs.m_next_worker.load();
+        workers_ = std::move(rhs.workers_);
+        next_worker_ = rhs.next_worker_.load();
     }
     return *this;
 }
@@ -579,23 +576,23 @@ template <typename Task, template <typename> class Queue>
 inline Worker<Task, Queue>& ThreadPoolImpl<Task, Queue>::getWorker() {
     auto id = Worker<Task, Queue>::getWorkerIdForCurrentThread();
 
-    if (id > m_workers.size()) {
-        id = m_next_worker.fetch_add(1, std::memory_order_relaxed) % m_workers.size();
+    if (id > workers_.size()) {
+        id = next_worker_.fetch_add(1, std::memory_order_relaxed) % workers_.size();
     }
 
-    return *m_workers[id];
+    return *workers_[id];
 }
 
 template <typename T>
 inline MPMCBoundedQueue<T>::MPMCBoundedQueue(size_t size)
-    : m_buffer(size), m_buffer_mask(size - 1), m_enqueue_pos(0), m_dequeue_pos(0), lk_(mutex_) {
+    : buffer_(size), buffer_mask_(size - 1), enqueue_pos_(0), dequeue_pos_(0), lk_(mutex_) {
     bool size_is_power_of_2 = (size >= 2) && ((size & (size - 1)) == 0);
     if (!size_is_power_of_2) {
         throw std::invalid_argument("buffer size should be a power of 2");
     }
 
     for (size_t i = 0; i < size; ++i) {
-        m_buffer[i].sequence = i;
+        buffer_[i].sequence = i;
     }
 }
 
@@ -607,10 +604,10 @@ inline MPMCBoundedQueue<T>::MPMCBoundedQueue(MPMCBoundedQueue&& rhs) noexcept {
 template <typename T>
 inline MPMCBoundedQueue<T>& MPMCBoundedQueue<T>::operator=(MPMCBoundedQueue&& rhs) noexcept {
     if (this != &rhs) {
-        m_buffer = std::move(rhs.m_buffer);
-        m_buffer_mask = std::move(rhs.m_buffer_mask);
-        m_enqueue_pos = rhs.m_enqueue_pos.load();
-        m_dequeue_pos = rhs.m_dequeue_pos.load();
+        buffer_ = std::move(rhs.buffer_);
+        buffer_mask_ = std::move(rhs.buffer_mask_);
+        enqueue_pos_ = rhs.enqueue_pos_.load();
+        dequeue_pos_ = rhs.dequeue_pos_.load();
     }
     return *this;
 }
@@ -619,19 +616,19 @@ template <typename T>
 template <typename U>
 inline bool MPMCBoundedQueue<T>::push(U&& data) {
     Cell* cell;
-    size_t pos = m_enqueue_pos.load(std::memory_order_relaxed);
+    size_t pos = enqueue_pos_.load(std::memory_order_relaxed);
     for (;;) {
-        cell = &m_buffer[pos & m_buffer_mask];
+        cell = &buffer_[pos & buffer_mask_];
         size_t seq = cell->sequence.load(std::memory_order_acquire);
         intptr_t dif = (intptr_t)seq - (intptr_t)pos;
         if (dif == 0) {
-            if (m_enqueue_pos.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
+            if (enqueue_pos_.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
                 break;
             }
         } else if (dif < 0) {
             return false;
         } else {
-            pos = m_enqueue_pos.load(std::memory_order_relaxed);
+            pos = enqueue_pos_.load(std::memory_order_relaxed);
         }
     }
 
@@ -654,25 +651,25 @@ inline void MPMCBoundedQueue<T>::blockingPush(U&& data) {
 template <typename T>
 inline bool MPMCBoundedQueue<T>::pop(T& data) {
     Cell* cell;
-    size_t pos = m_dequeue_pos.load(std::memory_order_relaxed);
+    size_t pos = dequeue_pos_.load(std::memory_order_relaxed);
     for (;;) {
-        cell = &m_buffer[pos & m_buffer_mask];
+        cell = &buffer_[pos & buffer_mask_];
         size_t seq = cell->sequence.load(std::memory_order_acquire);
         intptr_t dif = (intptr_t)seq - (intptr_t)(pos + 1);
         if (dif == 0) {
-            if (m_dequeue_pos.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
+            if (dequeue_pos_.compare_exchange_weak(pos, pos + 1, std::memory_order_relaxed)) {
                 break;
             }
         } else if (dif < 0) {
             return false;
         } else {
-            pos = m_dequeue_pos.load(std::memory_order_relaxed);
+            pos = dequeue_pos_.load(std::memory_order_relaxed);
         }
     }
 
     data = std::move(cell->data);
 
-    cell->sequence.store(pos + m_buffer_mask + 1, std::memory_order_release);
+    cell->sequence.store(pos + buffer_mask_ + 1, std::memory_order_release);
 
     return true;
 }
