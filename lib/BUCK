@@ -240,3 +240,19 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="progressBar",
+    srcs=[
+        "progressBar.cpp",
+    ],
+    exported_headers=[
+        "progressBar.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
