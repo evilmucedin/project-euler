@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include "lib/io/fstream.h"
+
 IProgressable::~IProgressable() = default;
 
 ProgressBar& ProgressBar::getInstance() {
@@ -38,6 +40,8 @@ void ProgressBarThreadMethod() {
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(1s);
     }
+    fprintf(stderr, "\x1bk\x1b");
+    fflush(stderr);
 }
 }
 
@@ -48,3 +52,53 @@ void ProgressBar::setProgressable(std::shared_ptr<IProgressable> progressable) {
         progressThread_ = std::make_unique<std::thread>(ProgressBarThreadMethod);
     }
 }
+
+IFStreamProgressable::IFStreamProgressable(std::weak_ptr<IFStream> stream) : stream_(stream) {
+    if (auto s = stream_.lock()) {
+        auto sizeBefore = s->tellg();
+        assert(0 == sizeBefore);
+        s->seekg(0, std::ios::end);
+        size_ = s->tellg();
+        s->seekg(0, std::ios::beg);
+    }
+}
+
+double IFStreamProgressable::progress() {
+    if (auto s = stream_.lock()) {
+        auto size = s->tellg();
+        return static_cast<double>(size) / size_;
+    }
+    return 1.1;
+}
+
+/*
+
+case ${TERM} in
+    xterm-color*)
+        if [ "$TMUX" != "" ] ; then
+            # user command to change default pane title on demand
+            function title {
+                TMUX_PANE_TITLE="$*";
+            }
+
+            # function that performs the title update (invoked as PROMPT_COMMAND)
+            function update_title {
+                s=${1:0:16};
+                printf "\033k;%s\033" "${s:-$TMUX_PANE_TITLE}";
+            }
+
+            # default pane title is the name of the current process (i.e. 'bash')
+            TMUX_PANE_TITLE=$(ps -o comm $$ | tail -1);
+
+            # Reset title to the default before displaying the command prompt
+            PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND; }'update_title'
+
+            # Update title before executing a command: set it to the command
+            trap 'update_title "$BASH_COMMAND"' DEBUG
+        fi
+
+    ;;
+esac
+
+
+*/

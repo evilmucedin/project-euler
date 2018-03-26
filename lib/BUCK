@@ -251,6 +251,7 @@ cxx_library(
     ],
     deps=[
         ":header",
+        "//lib/io:fstream",
     ],
     visibility=[
         'PUBLIC',

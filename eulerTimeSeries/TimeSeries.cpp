@@ -13,6 +13,7 @@
 #include "lib/io/zstream.h"
 #include "lib/math.h"
 #include "lib/matrix.h"
+#include "lib/progressBar.h"
 #include "lib/random.h"
 #include "lib/string.h"
 #include "lib/timer.h"
@@ -161,6 +162,8 @@ struct DumpTSCallback : public IReutersParserCallback {
 void parseReuters(const std::string& filename, IReutersParserCallback& callback) {
     Timer tTotal("Parse Reuters");
     auto fIn = make_shared<IFStream>(filename, std::ifstream::binary);
+    auto fInProgress = make_shared<IFStreamProgressable>(fIn);
+    ProgressBar::getInstance().setProgressable(fInProgress);
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
