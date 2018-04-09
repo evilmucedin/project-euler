@@ -257,3 +257,16 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="geometry",
+    srcs=[
+        "geometry.cpp",
+    ],
+    exported_headers=[
+        "geometry.h",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
