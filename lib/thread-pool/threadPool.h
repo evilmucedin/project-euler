@@ -40,6 +40,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <cstring>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <thread>
