@@ -22,3 +22,7 @@ vector<T> loadVector(istream& s) {
     }
     return result;
 }
+
+string cwd();
+
+string repoRoot();

@@ -5,6 +5,7 @@
 class CsvParser {
    public:
     CsvParser(shared_ptr<istream> stream, char delim = ',', char quote = '\"');
+    CsvParser(const string& filename);
     bool readHeader();
     bool readLine();
     size_t size() const;

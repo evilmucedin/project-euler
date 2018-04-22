@@ -1,9 +1,12 @@
 #include "lib/io/csv.h"
+#include "lib/io/fstream.h"
 
 #include <cassert>
 
 CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote)
     : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
+
+CsvParser::CsvParser(const string& filename) : CsvParser(make_shared<IFStream>(filename)) {}
 
 bool CsvParser::readHeader() {
     if (!readLine()) {

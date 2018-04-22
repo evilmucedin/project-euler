@@ -5,5 +5,8 @@ cxx_binary(
   ],
   deps=[
     "//lib:header",
+    "//lib/io:csv",
+    "//lib/io:utils",
+    "//glog:glog",
   ],
 )
