@@ -1,0 +1,9 @@
+cxx_binary(
+  name="StockModeling",
+  srcs=[
+    "StockModeling.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
