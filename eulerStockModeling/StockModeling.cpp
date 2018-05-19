@@ -22,6 +22,30 @@ struct Data {
     vector<Symbol> symbols_;
 };
 
+struct Order {
+    bool isBid_;
+    double price_;
+    double quantity_;
+};
+
+struct IPlayer {
+    virtual ~IPlayer() = default;
+    virtual vector<Order> getOrders();
+    virtual void updateMoney(double value);
+};
+
+struct PlayerBase : public IPlayer {
+    void updateMoney(double value) override { money_ += value; }
+
+   private:
+    double money_;
+};
+
+class Market {
+
+
+};
+
 int main() {
     Data data;
 
