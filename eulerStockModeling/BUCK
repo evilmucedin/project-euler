@@ -24,7 +24,7 @@ cxx_binary(
 )
 
 cxx_test(
-  name="OrderBookTest",
+  name="StockModelingTest",
   srcs=[
     "StockModelingTest.cpp",
   ],

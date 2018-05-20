@@ -10,7 +10,12 @@ Order::Order(bool isBid, double price, size_t quantity) : isBid_(isBid), price_(
 
 bool Order::operator==(const Order& order) const { return id_ == order.id_; }
 
-bool Order::operator<(const Order& order) const { return price_ < order.price_; }
+bool Order::operator<(const Order& order) const {
+    if (price_ != order.price_) {
+        return price_ < order.price_;
+    }
+    return isBid_ < order.isBid_;
+}
 
 ostream& operator<<(ostream& s, const Order& order) {
     s << "{" << ((order.isBid_) ? "bid" : "ask") << ", " << order.price_ << ", " << order.quantity_ << "}";
