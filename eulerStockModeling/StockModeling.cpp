@@ -4,6 +4,8 @@
 #include "lib/io/csv.h"
 #include "lib/io/utils.h"
 
+#include "orderBook.h"
+
 struct Symbol {
     string name_;
 
@@ -20,12 +22,6 @@ struct Data {
     }
 
     vector<Symbol> symbols_;
-};
-
-struct Order {
-    bool isBid_;
-    double price_;
-    double quantity_;
 };
 
 struct IPlayer {
