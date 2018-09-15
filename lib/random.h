@@ -15,6 +15,11 @@ T randAB(T a, T b) {
     return rand01<T>() * (b - a) + a;
 }
 
+template<>
+inline int randAB<>(int a, int b) {
+    return static_cast<int>(randAB<double>(a, b));
+}
+
 template<typename T>
 T rand1() {
     static std::uniform_real_distribution<T> unif(-1, 1);
