@@ -18,7 +18,9 @@
 /**
  * define to enable avx vectorization
  */
-#define CNN_USE_AVX
+#ifdef __AVX__
+#   define CNN_USE_AVX
+#endif
 
 /**
  * define to enable sse2 vectorization
