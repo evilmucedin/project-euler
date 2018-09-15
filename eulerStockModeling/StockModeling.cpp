@@ -4,6 +4,8 @@
 #include "lib/io/csv.h"
 #include "lib/io/utils.h"
 
+#include "orderBook.h"
+
 struct Symbol {
     string name_;
 
@@ -20,6 +22,24 @@ struct Data {
     }
 
     vector<Symbol> symbols_;
+};
+
+struct IPlayer {
+    virtual ~IPlayer() = default;
+    virtual vector<Order> getOrders();
+    virtual void updateMoney(double value);
+};
+
+struct PlayerBase : public IPlayer {
+    void updateMoney(double value) override { money_ += value; }
+
+   private:
+    double money_;
+};
+
+class Market {
+
+
 };
 
 int main() {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <random>
 
 std::mt19937_64& getRandomNumberGenerator();
@@ -16,9 +17,7 @@ T randAB(T a, T b) {
 }
 
 template<>
-inline int randAB<>(int a, int b) {
-    return static_cast<int>(randAB<double>(a, b));
-}
+int randAB<>(int a, int b);
 
 template<typename T>
 T rand1() {
@@ -40,3 +39,5 @@ template<typename T>
 void shuffle(T& vct) {
     random_shuffle(vct.begin(), vct.end());
 }
+
+int randInt();
