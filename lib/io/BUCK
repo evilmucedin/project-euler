@@ -25,6 +25,7 @@ cxx_library(
   ],
   deps=[
     "//lib:header",
+    "//lib/io:fstream",
   ],
   visibility=[
     "PUBLIC",
@@ -47,3 +48,19 @@ cxx_library(
   ],
 )
 
+cxx_library(
+  name="utils",
+  exported_headers=[
+    "utils.h"
+  ],
+  srcs=[
+    "utils.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:string",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

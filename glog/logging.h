@@ -1633,26 +1633,19 @@ public:
 #include <atomic>
 #include <chrono>
 
-#define LOG_EVERY_MS(severity, milli_interval)                               \
-  LoggingInitializer::get();                                                \
-  for (decltype(milli_interval) FB_LEM_once = 1,                             \
-                                FB_LEM_interval = (milli_interval);          \
-       FB_LEM_once; )                                                        \
-    for (::std::chrono::milliseconds::rep FB_LEM_prev, FB_LEM_now =          \
-             FB_LEM_interval <= 0 ? 0 :                                      \
-             ::std::chrono::duration_cast< ::std::chrono::milliseconds>(     \
-                 ::std::chrono::system_clock::now().time_since_epoch()       \
-                 ).count();                                                  \
-         FB_LEM_once; )                                                      \
-      for (static ::std::atomic< ::std::chrono::milliseconds::rep>           \
-               FB_LEM_hist; FB_LEM_once; FB_LEM_once = 0)                    \
-        if (FB_LEM_interval > 0 &&                                           \
-            (FB_LEM_now - (FB_LEM_prev =                                     \
-                           FB_LEM_hist.load(std::memory_order_acquire)) <    \
-                                                          FB_LEM_interval || \
-             !FB_LEM_hist.compare_exchange_strong(FB_LEM_prev,FB_LEM_now))) {\
-        } else                                                               \
-          LOG(severity)
+#define LOG_EVERY_MS(severity, milli_interval)                                                                      \
+    LoggingInitializer::get();                                                                                      \
+    for (decltype(milli_interval) EU_LEM_once = 1, EU_LEM_interval = (milli_interval); EU_LEM_once;)                \
+        for (::std::chrono::milliseconds::rep EU_LEM_prev,                                                          \
+             EU_LEM_now = EU_LEM_interval <= 0 ? 0 : ::std::chrono::duration_cast< ::std::chrono::milliseconds>(    \
+                                                         ::std::chrono::system_clock::now().time_since_epoch())     \
+                                                         .count();                                                  \
+             EU_LEM_once;)                                                                                          \
+            for (static ::std::atomic< ::std::chrono::milliseconds::rep> EU_LEM_hist; EU_LEM_once; EU_LEM_once = 0) \
+                if (EU_LEM_interval > 0 &&                                                                          \
+                    (EU_LEM_now - (EU_LEM_prev = EU_LEM_hist.load(std::memory_order_acquire)) < EU_LEM_interval ||  \
+                     !EU_LEM_hist.compare_exchange_strong(EU_LEM_prev, EU_LEM_now))) {                              \
+                } else                                                                                              \
+    LOG(severity)
 
-
-#endif // _LOGGING_H_
+#endif  // _LOGGING_H_

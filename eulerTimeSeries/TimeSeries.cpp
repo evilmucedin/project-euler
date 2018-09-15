@@ -9,9 +9,11 @@
 #include "lib/init.h"
 #include "lib/io/csv.h"
 #include "lib/io/fstream.h"
+#include "lib/io/utils.h"
 #include "lib/io/zstream.h"
 #include "lib/math.h"
 #include "lib/matrix.h"
+#include "lib/progressBar.h"
 #include "lib/random.h"
 #include "lib/string.h"
 #include "lib/timer.h"
@@ -23,9 +25,12 @@ DEFINE_bool(fft, false, "fft");
 DEFINE_bool(linear, false, "linear");
 DEFINE_bool(dnn, false, "dnn");
 DEFINE_int64(limit, numeric_limits<int64_t>::max(), "limit number of messages");
+DEFINE_int64(stock_limit, numeric_limits<int64_t>::max(), "limit number of stocks to train");
 DEFINE_double(learning_rate, 1.0, "learning rate");
 DEFINE_double(regularization, 0, "learning rate");
 DEFINE_int64(epochs, 100, "epochs");
+DEFINE_bool(dnn_parse, false, "parse features for DNN");
+DEFINE_bool(dnn_lstm, true, "DNN LSTM");
 
 using namespace Eigen;
 
@@ -157,6 +162,8 @@ struct DumpTSCallback : public IReutersParserCallback {
 void parseReuters(const std::string& filename, IReutersParserCallback& callback) {
     Timer tTotal("Parse Reuters");
     auto fIn = make_shared<IFStream>(filename, std::ifstream::binary);
+    auto fInProgress = make_shared<IFStreamProgressable>(fIn);
+    ProgressBar::getInstance().setProgressable(fInProgress);
     auto zIn = make_shared<ZIStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
@@ -663,6 +670,23 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
     const StockStats& get() const { return data_; }
 
     StockStats data_;
+
+    void save(const string& filename) const {
+        OFStream ofs(filename);
+        for (const auto& p: data_) {
+            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << endl;
+        }
+    }
+
+    void load(const string& filename) {
+        IFStream ifs(filename);
+        while (ifs) {
+            string ric;
+            ifs >> ric;
+            auto& stat = data_[ric];
+            ifs >> stat.sumVolume_ >> stat.sumPrice_ >> stat.count_;
+        }
+    }
 };
 
 using StocksFeatures = unordered_map<string, StockFeatures>;
@@ -704,8 +728,42 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
         auto& features = getFeatures(ric, dt);
         features[FI_VOLUME] += volume;
         features[FI_PRICE] += price;
-        ++features[FI_TRADES];
+        features[FI_TRADES] += 1.0;
         features[FI_LAST] = price;
+    }
+
+    void normalize(size_t featureIndex) {
+        double sum = 0;
+        double sum2 = 0;
+        size_t count = 0;
+        for (auto& stockPair : features_) {
+            for (auto& features : stockPair.second) {
+                sum += features[featureIndex];
+                sum2 += sqr(features[featureIndex]);
+                ++count;
+            }
+        }
+        double mean = 0.0;
+        double sigma = 1.0;
+        if (count > 1) {
+            mean = sum / count;
+            sigma = sqrt((sum2 - (sqr(sum) / count)) / (count - 1));
+        }
+        for (auto& stockPair : features_) {
+            for (auto& features : stockPair.second) {
+                features[featureIndex] = (features[featureIndex] - mean) / sigma;
+            }
+        }
+        LOG(INFO) << OUT(featureIndex) << OUT(mean) << OUT(sigma);
+    }
+
+    void normalizeFastSigmoid(size_t featureIndex) {
+        for (auto& stockPair : features_) {
+            for (auto& features : stockPair.second) {
+                auto& f = features[featureIndex];
+                f = f / (1.0 + abs(f));
+            }
+        }
     }
 
     void finish(const StockStats& ss) {
@@ -715,6 +773,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 continue;
             }
             const auto& sd = toSd->second;
+            double lastPrice = 0;
             double last = 0;
             double lastBid = 0;
             double lastAsk = 0;
@@ -734,11 +793,9 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     features[FI_LAST] /= avgPrice;
                     features[FI_BID] /= avgPrice;
                     features[FI_ASK] /= avgPrice;
-                    features[FI_PRICE] -= 1.0;
-                    features[FI_LAST] -= 1.0;
-                    features[FI_BID] -= 1.0;
-                    features[FI_ASK] -= 1.0;
                 }
+                /*
+                */
                 features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
                 features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
                 features[FI_BIDSIZE] = log(1.0 + features[FI_BIDSIZE]);
@@ -751,6 +808,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     }
                 };
 
+                updateLast(features[FI_PRICE], lastPrice);
                 updateLast(features[FI_LAST], last);
                 updateLast(features[FI_BID], lastBid);
                 updateLast(features[FI_ASK], lastAsk);
@@ -758,7 +816,62 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 updateLast(features[FI_ASKSIZE], lastAskSize);
 
                 features[FI_TDF] = static_cast<double>(index) / kQuants;
+
+                if ((features[FI_BID] != 0) && (features[FI_ASK] != 0)) {
+                    features[FI_CURRENT_PRICE] = (features[FI_ASK] + features[FI_BID]) / 2.0;
+                } else if (features[FI_LAST] != -1) {
+                    features[FI_CURRENT_PRICE] = features[FI_LAST];
+                }
+
                 ++index;
+            }
+        }
+        for (size_t iFeature = 0; iFeature < kDNNFeatures; ++iFeature) {
+            if (iFeature == FI_INTERCEPT) {
+                continue;
+            }
+            normalize(iFeature);
+            // normalizeFastSigmoid(iFeature);
+        }
+
+        for (auto& stockPair : features_) {
+            auto toSd = ss.find(stockPair.first);
+            if (toSd == ss.end()) {
+                continue;
+            }
+            for (auto& features: stockPair.second) {
+                features[FI_INTERCEPT] = 1.0;
+            }
+        }
+        /*
+        */
+    }
+
+    void save(const string& filename) const {
+        OFStream ofs(filename);
+        for (const auto& p: features_) {
+            ofs << p.first;
+            for (size_t i = 0; i < kQuants; ++i) {
+                ofs << "\t";
+                saveVector(ofs, p.second[i]);
+            }
+            ofs << endl;
+        }
+    }
+
+    void load(const string& filename) {
+        IFStream ifs(filename);
+        while (ifs) {
+            string ric;
+            ifs >> ric;
+            if (ric.empty()) {
+                break;
+            }
+            auto& fs = features_[ric];
+            fs.resize(kQuants);
+            for (size_t i = 0; i < kQuants; ++i) {
+                fs[i] = loadVector<double>(ifs);
+                ENFORCE_EQ(fs[i].size(), kDNNFeatures);
             }
         }
     }
@@ -767,14 +880,50 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
     BoolVector goodTick_;
 };
 
+static const string kDNNStatFilename = "dnnStat.tsv";
+static const string kDNNFeaturesFilename = "dnnFeatures.tsv";
+
+std::pair<double, bool> genRet(const StockFeatures& sfeatures, int offset) {
+    auto getPrice = [](const DoubleVector& slice) { return slice[FI_CURRENT_PRICE]; };
+
+    int futureIndex = offset + kDNNWindow + kDNNHorizon - 1;
+    ENFORCE(futureIndex >= 0 && futureIndex < static_cast<int>(sfeatures.size()));
+
+    const auto& future = sfeatures[futureIndex];
+    auto futureResult = getPrice(future);
+    ENFORCE(!isnan(futureResult));
+
+    int index = offset + kDNNWindow - 1;
+    if (index < 0) {
+        return make_pair(0.0, false);
+    }
+
+    const auto& now = sfeatures[index];
+    auto result = getPrice(now);
+    ENFORCE(!isnan(result));
+
+    if (!result) {
+        return make_pair(0.0, false);
+    }
+
+    return make_pair(futureResult / result - 1.0, true);
+}
+
 void dnn() {
     Timer tTotal("DNN");
-    StockStatReutersParserCallback statCallback;
-    parseReuters(kFilename, statCallback);
-    auto stockStats = statCallback.get();
     StockFeaturizerReutersParserCallback featurizerCallback;
-    parseReuters(kFilename, featurizerCallback);
-    featurizerCallback.finish(stockStats);
+    StockStatReutersParserCallback statCallback;
+    if (FLAGS_dnn_parse) {
+        parseReuters(kFilename, statCallback);
+        statCallback.save(kDNNStatFilename);
+        parseReuters(kFilename, featurizerCallback);
+        featurizerCallback.finish(statCallback.get());
+        featurizerCallback.save(kDNNFeaturesFilename);
+    } else {
+        statCallback.load(kDNNStatFilename);
+        featurizerCallback.load(kDNNFeaturesFilename);
+    }
+    auto stockStats = statCallback.get();
     const auto& features = featurizerCallback.features_;
     const auto& goodTicks = featurizerCallback.goodTick_;
     for (size_t i = 1; i < goodTicks.size(); ++i) {
@@ -800,31 +949,27 @@ void dnn() {
         return dnnFeatures;
     };
 
-    auto genRet = [](const StockFeatures& sfeatures, int offset) {
-        auto getPrice = [](const DoubleVector& slice) {
-            if ((slice[FI_BID] != -1) && (slice[FI_ASK] != -1)) {
-                return (slice[FI_ASK] + slice[FI_BID]) / 2.0;
-            }
-            if (slice[FI_LAST] != -1) {
-                return slice[FI_LAST];
-            }
-            return 0.0;
-        };
-
-        int index = offset + kDNNWindow + kDNNHorizon - 1;
-        ENFORCE(index >= 0 && index < static_cast<int>(sfeatures.size()));
-        const auto& future = sfeatures[index];
-        auto result = getPrice(future);
-        ENFORCE(!isnan(result));
-        return result;
+    auto genLSTMFeatures = [](const StockFeatures& sfeatures, size_t offset) {
+        vector<DoubleVector> dnnFeatures(kDNNWindow);
+        for (size_t j = offset; j < offset + kDNNWindow; ++j) {
+            dnnFeatures[j - offset] = sfeatures[j];
+        }
+        return dnnFeatures;
     };
 
-    auto train = [](const std::string& stock) {
-        return (hash<string>()(stock) % 100) < 80;
+    auto genLSTMRet = [](const StockFeatures& sfeatures, size_t offset) {
+        DoubleVector ret(kDNNWindow);
+        for (size_t j = 0; j < kDNNWindow; ++j) {
+            ret[j] = genRet(sfeatures, offset + j - kDNNWindow + 1).first;
+        }
+        return ret;
+    };
+
+    auto train = [](const string& stock) {
+        return (hash<string>()(stock) % 5) != 4;
     };
 
     auto stocks = keys(features);
-    /*
     size_t samples = 0;
     for (const auto& stock : stocks) {
         if (!train(stock)) {
@@ -835,65 +980,97 @@ void dnn() {
             continue;
         }
 
-        const auto& sfeatures = features.find(stock)->second;
-        for (size_t i = 0; i + kDNNWindow + kDNNHorizon < sfeatures.size(); ++i) {
+        for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
             ++samples;
         }
     }
     LOG(INFO) << "Training samples: " << samples;
-    */
 
-    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, 1);
     TimerTracker tt;
-    for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
-        auto modelStat = [&]() {
-            auto model = trainer.getModel();
+    auto modelStat = [&](auto& model, size_t stockLimit, bool progress, int iEpoch) {
+        double trainError = 0;
+        double testError = 0;
+        double testErrorBaseline1 = 0;
+        double testErrorBaseline2 = 0;
+        size_t testCount = 0;
+        size_t trainCount = 0;
+        double sum = 0;
+        double sum2 = 0;
+        size_t iStock = 0;
+        for (const auto& stock : stocks) {
+            if (!stockStats.count(stock)) {
+                continue;
+            }
 
-            double trainError = 0;
-            double testError = 0;
-            double testError0 = 0;
-            size_t testCount = 0;
-            size_t trainCount = 0;
-            for (const auto& stockPair : features) {
-                if (!stockStats.count(stockPair.first)) {
+            ++iStock;
+            if (iStock > stockLimit) {
+                break;
+            }
+
+            const auto& sfeatures = features.find(stock)->second;
+            for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                double prediction;
+                auto ret = genRet(sfeatures, i - kDNNHorizon);
+                auto futureRet = genRet(sfeatures, i);
+                if (!ret.second || !futureRet.second) {
                     continue;
                 }
 
-                const auto& sfeatures = stockPair.second;
-                for (int i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                if (!FLAGS_dnn_lstm) {
                     auto dnnFeatures = genFeatures(sfeatures, i);
-                    auto ret = genRet(sfeatures, i);
-                    auto prediction = model->predict(dnnFeatures);
-                    auto sampleError = prediction - ret;
-                    if (abs(sampleError) > 0.1) {
-                        LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret) << OUT(prediction)
-                                                 << OUT(stockPair.first) << OUT(i + kDNNWindow + kDNNHorizon - 1);
-                    }
-                    if (!train(stockPair.first)) {
-                        testError += sqr(sampleError);
-                        testError0 += sqr(genRet(sfeatures, i - kDNNHorizon) - ret);
-                        ++testCount;
-                    } else {
-                        trainError += sqr(sampleError);
-                        ++trainCount;
-                    }
+                    prediction = model->predict(dnnFeatures);
+                } else {
+                    auto dnnFeatures = genLSTMFeatures(sfeatures, i);
+                    prediction = model->predictLSTM(dnnFeatures);
+                }
+                auto sampleError = prediction - futureRet.first;
+                if (false && abs(sampleError) > 0.1) {
+                    LOG_EVERY_MS(INFO, 1000) << OUT(futureRet.first) << OUT(prediction) << OUT(stock)
+                                             << OUT(i + kDNNWindow + kDNNHorizon - 1);
+                }
+                if (!train(stock)) {
+                    testError += sqr(sampleError);
+                    testErrorBaseline1 += sqr(futureRet.first - ret.first);
+                    testErrorBaseline2 += sqr(futureRet.first);
+                    sum += futureRet.first;
+                    sum2 += sqr(futureRet.first);
+                    ++testCount;
+                } else {
+                    trainError += sqr(sampleError);
+                    ++trainCount;
                 }
             }
+            if (progress) {
+                printf("+");
+                fflush(stdout);
+            }
+        }
+        printf("\n");
+        fflush(stdout);
 
-            double pTrainError = trainError / trainCount;
-            double pTestError = testError / testCount;
-            double pTestBaseline = testError0 / testCount;
-            cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline error: " << pTestBaseline
-                 << ", train error: " << pTrainError << ", test/train: " << pTestError / pTrainError
-                 << ", ratio: " << pTestError / pTestBaseline << ", samples: " << testCount
-                 << ", elapsed: " << tt.diffAndReset() << endl;
-        };
+        double pTrainError = sqrt(trainError / trainCount);
+        double pTestError = sqrt(testError / testCount);
+        double pTestBaseline1 = sqrt(testErrorBaseline1 / testCount);
+        double pTestBaseline2 = sqrt(testErrorBaseline2 / testCount);
+        double mean = sum / testCount;
+        double variance = sum2 - 2.0 * mean * sum + testCount * sqr(mean);
+        double r2 = 1.0 - (testError / variance);
+        cout << "Epoch: " << iEpoch << ", test error: " << pTestError << ", baseline1 error: " << pTestBaseline1
+             << ", baseline2 error: " << pTestBaseline2 << ", train error: " << pTrainError
+             << ", test/train: " << pTestError / pTrainError << ", ratio1: " << pTestError / pTestBaseline1
+             << ", ratio2: " << pTestError / pTestBaseline2 << ", samples: " << testCount << ", mean: " << mean
+             << ", r2: " << r2 << ", elapsed: " << tt.diffAndReset() << endl;
 
+        return r2;
+    };
+
+    auto modelTrain = [&](auto& trainer, size_t stockLimit, bool progress) {
         trainer.slowdown();
 
-        shuffle(stocks);
-        vector<DoubleVector> feats;
-        DoubleVector label;
+        if (!FLAGS_dnn_lstm) {
+            trainer.startTrainLSTM();
+        }
+        size_t iStock = 0;
         for (const auto& stock : stocks) {
             if (!train(stock)) {
                 continue;
@@ -903,22 +1080,90 @@ void dnn() {
                 continue;
             }
 
-            // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
+            ++iStock;
+            if (iStock > stockLimit) {
+                break;
+            }
+
             const auto& sfeatures = features.find(stock)->second;
-            for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
-                auto dnnFeatures = genFeatures(sfeatures, i);
-                auto ret = genRet(sfeatures, i);
-                feats.emplace_back(std::move(dnnFeatures));
-                label.emplace_back(ret);
-                // LOG_EVERY_MS(INFO, 1000) << OUT(dnnFeatures) << OUT(ret);
+            if (!FLAGS_dnn_lstm) {
+                // LOG_EVERY_MS(INFO, 1000) << OUT(stockPair.first);
+                vector<DoubleVector> feats;
+                DoubleVector label;
+                for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                    auto dnnFeatures = genFeatures(sfeatures, i);
+                    auto ret = genRet(sfeatures, i);
+                    if (!ret.second) {
+                        continue;
+                    }
+                    feats.emplace_back(std::move(dnnFeatures));
+                    label.emplace_back(ret.first);
+                }
+                trainer.train(feats, label);
+            } else {
+                for (size_t i = kFirstTick; i + kDNNWindow + kDNNHorizon < kLastTick; ++i) {
+                    auto dnnFeatures = genLSTMFeatures(sfeatures, i);
+                    auto labels = genLSTMRet(sfeatures, i);
+                    trainer.trainLSTM(dnnFeatures, labels);
+                }
+            }
+
+            if (progress) {
+                printf(".");
+                fflush(stdout);
             }
         }
-        trainer.train(feats, label);
+
+        if (!FLAGS_dnn_lstm) {
+            trainer.stopTrainLSTM();
+        }
+    };
+
+    const size_t kPopulation = 25;
+    using PTrainer = shared_ptr<DNNModelTrainer>;
+    vector<PTrainer> trainers(kPopulation);
+
+    for (size_t i = 0; i < kPopulation; ++i) {
+        trainers[i] =
+            make_shared<DNNModelTrainer>(0.1 * FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
+        if (i) {
+            for (size_t j = 0; j < 10; ++j) {
+                shuffle(stocks);
+                modelTrain(*trainers[i], 20, false);
+            }
+        }
+        LOG(INFO) << "Pretrain: " << i;
+    }
+
+    shuffle(stocks);
+    double bestR2 = -1e9;
+    size_t bestIndex = 0;
+    for (size_t i = 0; i < kPopulation; ++i) {
+        auto model = trainers[i]->getModel();
+        auto r2 = modelStat(model, 50, false, -1);
+        if (r2 > bestR2) {
+            bestR2 = r2;
+            bestIndex = i;
+        }
+    }
+
+    DNNModelTrainer trainer(FLAGS_learning_rate, FLAGS_regularization, samples, FLAGS_dnn_lstm);
+    trainer.setModel(trainers[bestIndex]->getModel());
+    trainers.clear();
+    for (int iEpoch = 0; iEpoch < FLAGS_epochs; ++iEpoch) {
+        // shuffle(stocks);
+
+        auto oldModel = trainer.getModel();
+        modelTrain(trainer, FLAGS_stock_limit, true);
+
+        printf("\n");
+        fflush(stdout);
 
         auto model = trainer.getModel();
         model->save("dnn");
         model->saveJson("dnn.json");
-        modelStat();
+        // modelStat(oldModel);
+        modelStat(model, FLAGS_stock_limit, true, iEpoch);
     }
 }
 

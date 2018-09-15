@@ -5,6 +5,7 @@
 #include "lib/random.h"
 #include "lib/timer.h"
 
+namespace {
 constexpr u32 kDim = 200;
 
 Vector genRandomVector(u32 dim) {
@@ -23,6 +24,7 @@ VectorPoint getRandomVectorPoint(const Vector& plane) {
         p.b_ += p.a_[i] * plane[i];
     }
     return p;
+}
 }
 
 int main() {

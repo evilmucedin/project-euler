@@ -1,0 +1,12 @@
+cxx_library(
+    name="thread-pool",
+    srcs=[
+        "threadPool.cpp",
+    ],
+    exported_headers=[
+        "threadPool.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)

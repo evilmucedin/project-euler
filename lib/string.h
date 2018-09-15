@@ -34,3 +34,5 @@ StringVector splitByFunctor(const string& s, T isDelimiter) {
     }
     return result;
 }
+
+string join(const string& delim, const StringVector& parts);

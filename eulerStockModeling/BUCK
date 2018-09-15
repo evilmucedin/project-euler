@@ -1,0 +1,35 @@
+cxx_library(
+  name="stockModelingLib",
+  srcs=[
+    "orderBook.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+  ],
+)
+
+cxx_binary(
+  name="StockModeling",
+  srcs=[
+    "StockModeling.cpp",
+  ],
+  deps=[
+    ":stockModelingLib",
+    "//lib:header",
+    "//lib/io:csv",
+    "//lib/io:utils",
+    "//glog:glog",
+  ],
+)
+
+cxx_test(
+  name="StockModelingTest",
+  srcs=[
+    "StockModelingTest.cpp",
+  ],
+  deps=[
+    ":stockModelingLib",
+    "//gtest:gtest",
+  ],
+)

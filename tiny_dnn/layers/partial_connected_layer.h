@@ -17,9 +17,9 @@ namespace tiny_dnn {
 
 class partial_connected_layer : public layer {
  public:
-  typedef std::vector<std::pair<size_t, size_t>> io_connections;
-  typedef std::vector<std::pair<size_t, size_t>> wi_connections;
-  typedef std::vector<std::pair<size_t, size_t>> wo_connections;
+  using io_connections = std::vector<std::pair<size_t, size_t>>;
+  using wi_connections = std::vector<std::pair<size_t, size_t>>;
+  using wo_connections = std::vector<std::pair<size_t, size_t>>;
 
   partial_connected_layer(size_t in_dim,
                           size_t out_dim,
@@ -148,7 +148,7 @@ class partial_connected_layer : public layer {
 
 class pc : public layer {
    public:
-    explicit pc(size_t in_dim, size_t out_dim, std::vector<size_t> connections)
+    pc(size_t in_dim, size_t out_dim, std::vector<size_t> connections)
         : layer({vector_type::data}, {vector_type::data}), in_dim_(in_dim), out_dim_(out_dim), connections_(connections) {}
 
     std::vector<index3d<size_t>> out_shape() const override { return {index3d<size_t>(out_dim_, 1, 1)}; }
@@ -190,6 +190,101 @@ class pc : public layer {
     size_t in_dim_;
     size_t out_dim_;
     std::vector<size_t> connections_;
+};
+
+struct partial_connection {
+    int in_index_;
+    int out_index_;
+    int weight_index_;
+};
+
+using partial_connections = vector<partial_connection>;
+
+class partial_connected : public partial_connected_layer {
+   public:
+    partial_connected(size_t in_dim, size_t out_dim, size_t weight_dim, partial_connections &connections)
+        : partial_connected_layer(in_dim, out_dim, weight_dim, out_dim),
+          in_dim_(in_dim),
+          out_dim_(out_dim),
+          weight_dim_(weight_dim) {
+        for (const auto &c : connections) {
+            connect_weight(c.in_index_, c.out_index_, c.weight_index_);
+        }
+    }
+
+    partial_connected(size_t in_dim, size_t out_dim, size_t weight_dim, const std::vector<wo_connections> &in2wo,
+                      const std::vector<wi_connections> &out2wi, const std::vector<io_connections> &weight2io)
+        : partial_connected_layer(in_dim, out_dim, weight_dim, out_dim),
+          in_dim_(in_dim),
+          out_dim_(out_dim),
+          weight_dim_(weight_dim) {
+        in2wo_ = in2wo;
+        out2wi_ = out2wi;
+        weight2io_ = weight2io;
+    }
+
+    std::vector<index3d<size_t>> out_shape() const override {
+        return {index3d<size_t>(out2wi_.size(), 1, 1)};
+    }
+
+    std::vector<index3d<size_t>> in_shape() const override {
+        return {index3d<size_t>(in2wo_.size(), 1, 1), index3d<size_t>(weight_dim_, 1, 1),
+                index3d<size_t>(out_dim_, 1, 1)};
+    }
+
+    std::string layer_type() const override { return "partial_connected"; }
+
+    friend struct serialization_buddy;
+
+   protected:
+    size_t in_dim_;
+    size_t out_dim_;
+    size_t weight_dim_;
+};
+
+class mul_layer : public layer {
+   public:
+    explicit mul_layer(size_t dim) : layer({vector_type::data}, {vector_type::data}), dim_(dim) {}
+
+    std::string layer_type() const override { return "mul"; }
+
+    std::vector<shape3d> in_shape() const override { return {index3d<size_t>(dim_, 1, 1)}; }
+
+    std::vector<shape3d> out_shape() const override { return {index3d<size_t>(dim_ * dim_, 1, 1)}; }
+
+    void forward_propagation(const std::vector<tensor_t *> &in_data, std::vector<tensor_t *> &out_data) override {
+        const auto &x = *in_data[0];
+        auto &y = *out_data[0];
+
+        for (size_t i = 0; i < x.size(); i++) {
+            for (size_t j = 0; j < x[i].size(); ++j) {
+                for (size_t k = 0; k < x[i].size(); ++k) {
+                    y[i][j * x[i].size() + j] += x[i][j] * x[i][k];
+                }
+            }
+        }
+    }
+
+    void back_propagation(const std::vector<tensor_t *> &in_data, const std::vector<tensor_t *> &out_data,
+                          std::vector<tensor_t *> &out_grad, std::vector<tensor_t *> &in_grad) override {
+        tensor_t &dx = *in_grad[0];
+        const tensor_t &dy = *out_grad[0];
+        const tensor_t &x = *in_data[0];
+        const tensor_t &y = *out_data[0];
+
+        for (size_t i = 0; i < x.size(); i++) {
+            for (size_t j = 0; j < x[i].size(); j++) {
+                for (size_t k = 0; k < x[i].size(); k++) {
+                    dx[i][j] += dy[i][j * x[i].size() + k] / x[i][k] / x[i].size();
+                }
+            }
+        }
+    }
+
+    friend struct serialization_buddy;
+
+   private:
+    size_t dim_;
 };
 
 }  // namespace tiny_dnn

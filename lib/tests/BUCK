@@ -79,3 +79,14 @@ cxx_test(
     "//gtest:gtest",
   ],
 )
+
+cxx_test(
+  name="progressBarTest",
+  srcs=[
+    "progressBarTest.cpp",
+  ],
+  deps=[
+    "//lib:progressBar",
+    "//gtest:gtest",
+  ],
+)

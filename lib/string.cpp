@@ -16,3 +16,16 @@ StringVector split(const string& s, char delim) {
     }
     return result;
 }
+
+string join(const string& delim, const StringVector& parts) {
+    string result;
+    bool first = true;
+    for (const auto& s: parts) {
+        if (!first) {
+            result += delim;
+        }
+        result += s;
+        first = false;
+    }
+    return result;
+}
