@@ -47,7 +47,7 @@ int main() {
             }
         }
 
-        if ( (bestBid >= bestAsk) && (bestBidIndex != -1 && bestAskIndex != -1) ) {
+        if ((bestBid >= bestAsk) && (bestBidIndex != -1 && bestAskIndex != -1)) {
             stockPrice = (bestAsk + bestBid) / 2.0;
             players[bestBidIndex].cash_ -= stockPrice;
             ++players[bestBidIndex].shares_;
