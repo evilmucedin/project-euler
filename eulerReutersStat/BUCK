@@ -1,0 +1,16 @@
+cxx_binary(
+  name="ReutersStat",
+  srcs=[
+    "ReutersStat.cpp"
+  ],
+  deps=[
+    "//gflags:gflags",
+    "//lib:header",
+    "//lib:init",
+    "//lib/io:csv",
+    "//lib/io:fstream",
+    "//lib/io:zstream",
+    "//lib:progressBar",
+    "//lib:timer",
+  ],
+)
