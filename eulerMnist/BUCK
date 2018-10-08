@@ -4,11 +4,12 @@ cxx_binary(
     "Mnist.cpp"
   ],
   deps=[
+    "//glog:glog",
     "//lib:header",
     "//lib:init",
     "//lib/io:csv",
     "//lib/io:fstream",
     "//lib/io:zstream",
-    "//glog:glog",
+    "//lib:matrix",
   ],
 )
