@@ -20,23 +20,28 @@ struct Data {
 
 static constexpr size_t N_FEATURES = 784;
 
-Data readRows(const std::string& filename) {
+Data readRows(const std::string& filename, bool label) {
     auto fstream = std::make_shared<IFStream>(filename);
     auto zfstream = std::make_shared<ZIStream>(fstream);
     auto csv = std::make_shared<CsvParser>(zfstream);
     ALWAYS_ASSERT(csv->readHeader());
     Rows rows;
-    auto labelIndex = csv->getIndexOrDie("label");
+    int labelIndex = -1;
+    if (label) {
+        labelIndex = csv->getIndexOrDie("label");
+    }
     std::vector<int> pixelIndices;
     for (size_t i = 0; i < N_FEATURES; ++i) {
         pixelIndices.emplace_back(csv->getIndexOrDie("pixel" + std::to_string(i)));
     }
     while (csv->readLine()) {
         Row row;
-        row.label_ = csv->getInt(labelIndex);
+        if (label) {
+            row.label_ = csv->getInt(labelIndex);
+        }
         row.features_.resize(pixelIndices.size());
         for (size_t iPixel = 0; iPixel < pixelIndices.size(); ++iPixel) {
-            row.features_[iPixel] = csv->getFloat(pixelIndices[iPixel]);
+            row.features_[iPixel] = log(csv->getFloat(pixelIndices[iPixel]) + 1.f);
         }
         rows.emplace_back(std::move(row));
     }
@@ -65,6 +70,14 @@ class LinearRegressionClassifier {
         bPrime_ = inv_ * xty_;
     }
 
+    float classify(const Row& row) const {
+        float result = 0;
+        for (size_t i = 0; i < N_FEATURES; ++i) {
+            result += bPrime_[i] * row.features_[i];
+        }
+        return result;
+    }
+
    private:
     Matrix xtx_;
     Vector xty_;
@@ -77,7 +90,7 @@ vector<T> train(const Data& data) {
     vector<T> result(10);
     size_t index = 0;
     for (const auto& row : data.rows) {
-        for (size_t i = 0; i < 10; ++i) {
+        for (int i = 0; i < 10; ++i) {
             result[i].addSample(row.label_ == i, row.features_);
         }
         LOG_EVERY_MS(INFO, 5000) << "Processing " << index;
@@ -89,10 +102,30 @@ vector<T> train(const Data& data) {
     return result;
 }
 
+template <typename T>
+void test(const vector<T>& classifiers) {
+    OFStream fOut("solution.csv");
+    fOut << "ImageId,Label" << endl;
+    auto test = readRows("test.gz", false);
+    for (size_t i = 0; i < test.rows.size(); ++i) {
+        float max = -100.0;
+        int maxIndex = -1;
+        for (size_t j = 0; j < 10; ++j) {
+            auto prob = classifiers[j].classify(test.rows[i]);
+            if (prob > max) {
+                max = prob;
+                maxIndex = j;
+            }
+        }
+        fOut << (i + 1) << "," << maxIndex << endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
-    auto trainData = readRows("train.gz");
+    auto trainData = readRows("train.gz", true);
     LOG(INFO) << OUT(trainData.rows.size());
     auto linear = train<LinearRegressionClassifier>(trainData);
+    test(linear);
     return 0;
 }
