@@ -3,6 +3,7 @@ import requests
 import math
 from json import dumps, loads
 from time import sleep
+import sys
 
 def q(data):
     return requests.post('https://ipsc.ksp.sk/2018/real/problems/m_api', cookies={"ipsc2018ann": "5", "ipscsessid": "0e067cda98ebdbb84b1f8b304d8fedc181098ba9"}, data=data)
@@ -75,11 +76,138 @@ assert(toBin(fromBin("11111")) == "11111")
 assert(romanToInt("XV") == 15)
 assert(intToRoman(romanToInt("XV")) == "XV")
 
+def isNested(s):
+    stack = []
+    for ch in s:
+        if ch == '(' or ch == '[':
+            stack.append(ch)
+        elif ch == ')':
+            if 0 == len(stack):
+                return False
+            if stack[-1] == '(':
+                stack.pop()
+            else:
+                return False
+        elif ch == ']':
+            if 0 == len(stack):
+                return False
+            if stack[-1] == '[':
+                stack.pop()
+            else:
+                return False
+        else:
+             raise Exception('Bad char "%s"' % s)
+    return len(stack) == 0
+
+assert(isNested("([])"))
+assert(not isNested("()("))
+assert(not isNested("([)]"))
+
+def ticTac(s):
+    s = s.replace("\\n", "\n")
+    parts = s.split("\n")
+    assert(len(parts) == 3)
+    for i in range(3):
+        assert(len(parts[i]) == 3)
+    for ch in ['X', 'O']:
+        for i in range(3):
+            if parts[i][0] == ch and parts[i][1] == ch and parts[i][2] == ch:
+                return ch
+            if parts[0][i] == ch and parts[1][i] == ch and parts[2][i] == ch:
+                return ch
+        if parts[0][0] == ch and parts[1][1] == ch and parts[2][2] == ch:
+            return ch
+        if parts[0][2] == ch and parts[1][1] == ch and parts[2][0] == ch:
+            return ch
+    return "NEITHER"
+
+assert(ticTac("OXO\nXXO\nX.O") == 'O')
+assert(ticTac("OXO\nXXO\nX..") == 'NEITHER')
+assert(ticTac("OXO\\nXXO\\nX..") == 'NEITHER')
+assert(ticTac("X.O\nOOX\n..X") == 'NEITHER')
+
+def rotate(s1, s2):
+    s1 = s1.replace("\\n", "\n")
+    parts1 = s1.split("\n")
+    s2 = s2.replace("\\n", "\n")
+    parts2 = s2.split("\n")
+    parts1 = [list(x) for x in parts1]
+    parts2 = [list(x) for x in parts2]
+
+    d1 = list(sorted([len(parts1), len(parts1[0])]))
+    d2 = list(sorted([len(parts2), len(parts2[0])]))
+
+    def rot(x):
+        return list(list(x) for x in list(zip(*x[::-1])))
+
+    if d1 != d2:
+        return False
+
+    r = parts2[:]
+    for i in range(4):
+        if parts1 == r:
+            return True
+        # print(r, rot(r))
+        r = rot(r)
+
+    for i in range(len(parts2)):
+        parts2[i] = parts2[i][::-1]
+
+    r = parts2[:]
+    for i in range(4):
+        if parts1 == r:
+            return True
+        r = rot(r)
+
+    return False
+
+assert(rotate("@..\n@@@\n@..\n@..", '@@@@\n..@.\n..@.'))
+assert(rotate('@@.\n.@@\n.@@', ".@@\n.@@\n@@."))
+assert(rotate('@@.\n.@@\n.@@', '@@.\n.@@\n.@@'))
+assert(rotate('@@..\n.@@@\n.@..', '..@@\n@@@.\n..@.'))
+assert(rotate('@@@@\n@..@', '@@\n@.\n@.\n@@'))
+assert(not rotate('.@@@@\n@@...', '@@@@@\n..@..'))
+
+def islands(s):
+    s = s.replace("\\n", "\n")
+    parts = s.split("\n")
+    for i in range(len(parts)):
+        parts[i] = list(parts[i])
+    count = 0
+    for i in range(len(parts)):
+        for j in range(len(parts[i])):
+            if parts[i][j] == '#':
+                count += 1
+
+                def erase(i, j):
+                    if i >= 0 and i < len(parts):
+                        if j >= 0 and j < len(parts[i]):
+                            if parts[i][j] == '#':
+                                parts[i][j] = '.'
+                                erase(i - 1, j)
+                                erase(i + 1, j)
+                                erase(i, j - 1)
+                                erase(i, j + 1)
+
+                erase(i, j)
+    return count
+
+assert(islands("#.##.\n#....\n..###\n....#\n##...") == 4)
+assert(islands('..#.#\n....#\n..#..\n#.#.#\n#.#..') == 5)
+
+# sys.exit(0)
+
+first = True
+
 while True:
     r = q({"action": "refresh"})
-    # print(r.text)
+    if r.status_code != 200:
+        continue
     resp = loads(r.text)
     if 'active_customers' in resp:
+        if first:
+            print("Serving")
+            first = False
         ac = resp['active_customers']
         if len(ac) > 0:
             customer1 = ac[0]
@@ -112,5 +240,17 @@ while True:
                     if text == "Ave, popina dominus! Lorem ipsum! I heard you have Roman recipes too. Give me food var1 + var2.":
                         var2 = customer1['var2']
                         submit(customerId, intToRoman(romanToInt(var1) + romanToInt(var2)))
+                    if text == "I HEARD var1 IS VERY TASTY, BUT I DO NOT UNDERSTAND THAT FOREIGN LANGUAGE. WHAT IS IT CALLED IN BINARY?":
+                        submit(customerId, toBin(eval(var1)))
+                    if text == "I JUST WANT TO KNOW: IS var1 CORRECTLY NESTED? PLEASE ANSWER YES OR NO.":
+                        submit(customerId, "YES" if isNested(var1) else "NO")
+                    if text == "A STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.\nBUT WHO WON? ANSWER X OR O OR NEITHER.\n\nvar1":
+                        submit(customerId, ticTac(var1))
+                    if text == "HOW MANY ISLANDS ARE ON THIS MAP?\n\nvar1":
+                        submit(customerId, toBin(islands(var1)))
+                    if text == "CAN YOU CHANGE THIS SHAPE TO THAT SHAPE JUST BY ROTATING OR FLIPPING IT? ANSWER YES OR NO.\n\nvar1\n\n\n\nvar2":
+                        var2 = customer1['var2']
+                        submit(customerId, "YES" if rotate(var1, var2) else "NO")
+
 
     sleep(1)

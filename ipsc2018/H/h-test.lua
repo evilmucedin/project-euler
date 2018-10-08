@@ -1,3 +1,4 @@
+#!/usr/bin/env lua5.3
 local N = 13
 local C = 2
 local tests = 1
