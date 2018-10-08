@@ -21,7 +21,7 @@ Rows readRows(const std::string& filename) {
     auto fstream = std::make_shared<IFStream>(filename);
     auto zfstream = std::make_shared<ZIStream>(fstream);
     auto csv = std::make_shared<CsvParser>(zfstream);
-    assert(csv->readHeader());
+    ALWAYS_ASSERT(csv->readHeader());
     Rows rows;
     auto labelIndex = csv->getIndexOrDie("label");
     std::vector<int> pixelIndices;
@@ -31,8 +31,9 @@ Rows readRows(const std::string& filename) {
     while (csv->readLine()) {
         Row row;
         row.label_ = csv->getInt(labelIndex);
-        for (auto pixelIndex : pixelIndices) {
-            row.features_.emplace_back(csv->getFloat(pixelIndex));
+        row.features_.resize(pixelIndices.size());
+        for (size_t iPixel = 0; iPixel < pixelIndices.size(); ++iPixel) {
+            row.features_[iPixel] = csv->getFloat(pixelIndices[iPixel]);
         }
         rows.emplace_back(std::move(row));
     }

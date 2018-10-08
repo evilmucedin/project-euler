@@ -293,3 +293,9 @@ string homeDir();
             prev = now;                                                       \
         }                                                                     \
     }
+
+#ifndef NDEBUG
+#define ALWAYS_ASSERT(...) assert(__VA_ARGS__)
+#else
+#define ALWAYS_ASSERT(...) __VA_ARGS__
+#endif
