@@ -45,7 +45,7 @@ Data readRows(const std::string& filename) {
 
 class LinearRegressionClassifier {
    public:
-    LinearRegressionClassifier() : xtx_(N_FEATURES), xty_((u32)N_FEATURES) {}
+    LinearRegressionClassifier() : xtx_(N_FEATURES), xty_(N_FEATURES), inv_(N_FEATURES), bPrime_(N_FEATURES) {}
 
     void addSample(float y, const FloatVector& features) {
         assert(features.size() == N_FEATURES);
@@ -75,10 +75,13 @@ class LinearRegressionClassifier {
 template <typename T>
 vector<T> train(const Data& data) {
     vector<T> result(10);
+    size_t index = 0;
     for (const auto& row : data.rows) {
         for (size_t i = 0; i < 10; ++i) {
             result[i].addSample(row.label_ == i, row.features_);
         }
+        LOG_EVERY_MS(INFO, 5000) << "Processing " << index;
+        ++index;
     }
     for (auto& c : result) {
         c.train();
