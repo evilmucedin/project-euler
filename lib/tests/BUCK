@@ -90,3 +90,14 @@ cxx_test(
     "//gtest:gtest",
   ],
 )
+
+cxx_test(
+  name="exceptionTest",
+  srcs=[
+    "exceptionTest.cpp",
+  ],
+  deps=[
+    "//lib:exception",
+    "//gtest:gtest",
+  ],
+)
