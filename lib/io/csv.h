@@ -13,9 +13,11 @@ class CsvParser {
     const string& get(size_t index) const;
     int getInt(size_t index) const;
     double getDouble(size_t index) const;
+    float getFloat(size_t index) const;
     bool empty(size_t index) const;
 
     int getIndex(const string& s) const;
+    int getIndexOrDie(const string& column) const;
     size_t lineIndex() const;
     bool skipLines(size_t nLines);
     std::string line() const;

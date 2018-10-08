@@ -1,7 +1,9 @@
 #include "lib/io/csv.h"
-#include "lib/io/fstream.h"
 
 #include <cassert>
+
+#include "lib/io/fstream.h"
+#include "lib/exception.h"
 
 CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote)
     : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
@@ -44,7 +46,9 @@ bool CsvParser::readLine() {
         }
         ++p;
     }
-    line_.emplace_back(begin, p - begin);
+    if (p > begin + 1) {
+        line_.emplace_back(begin, p - begin - 1);
+    }
     for (auto& s : line_) {
         unquote(s);
     }
@@ -66,12 +70,24 @@ double CsvParser::getDouble(size_t index) const {
     return stod(get(index));
 }
 
+float CsvParser::getFloat(size_t index) const {
+    return stof(get(index));
+}
+
 bool CsvParser::empty(size_t index) const {
     return line_[index].empty();
 }
 
-int CsvParser::getIndex(const string &s) const {
-  return findWithDefault(fieldToIndex_, s, -1);
+int CsvParser::getIndex(const string& s) const {
+    return findWithDefault(fieldToIndex_, s, -1);
+}
+
+int CsvParser::getIndexOrDie(const string& column) const {
+    auto result = getIndex(column);
+    if (result == -1) {
+        THROW("Column " << column << " not found");
+    }
+    return result;
 }
 
 void CsvParser::unquote(string& s) {

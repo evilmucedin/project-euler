@@ -270,3 +270,19 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="exception",
+    srcs=[
+        "exception.cpp",
+    ],
+    exported_headers=[
+        "exception.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

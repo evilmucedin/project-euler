@@ -32,6 +32,7 @@ using I128Vector = vector<i128>;
 using U128Vector = vector<u128>;
 using DoubleVector = vector<double>;
 using StringVector = vector<string>;
+using FloatVector = vector<float>;
 
 using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;
@@ -261,7 +262,7 @@ class Exception : public std::exception {
    public:
     Exception();
     Exception(string msg);
-    const char* what() const noexcept;
+    const char* what() const noexcept override;
 
    protected:
     string msg_;
