@@ -7,6 +7,7 @@
 #include "lib/io/fstream.h"
 #include "lib/io/zstream.h"
 #include "lib/matrix.h"
+#include "lib/timer.h"
 
 struct Row {
     int label_;
@@ -87,6 +88,7 @@ class LinearRegressionClassifier {
 
 template <typename T>
 vector<T> train(const Data& data) {
+    Timer tTrain(std::string("Train ") + typeid(T).name());
     vector<T> result(10);
     size_t index = 0;
     for (const auto& row : data.rows) {
@@ -103,8 +105,9 @@ vector<T> train(const Data& data) {
 }
 
 template <typename T>
-void test(const vector<T>& classifiers) {
-    OFStream fOut("solution.csv");
+void test(const vector<T>& classifiers, const std::string& filename) {
+    Timer tTrain(std::string("Test ") + typeid(T).name());
+    OFStream fOut(filename);
     fOut << "ImageId,Label" << endl;
     auto test = readRows("test.gz", false);
     for (size_t i = 0; i < test.rows.size(); ++i) {
@@ -125,7 +128,9 @@ int main(int argc, char* argv[]) {
     standardInit(argc, argv);
     auto trainData = readRows("train.gz", true);
     LOG(INFO) << OUT(trainData.rows.size());
-    auto linear = train<LinearRegressionClassifier>(trainData);
-    test(linear);
+    {
+        auto linear = train<LinearRegressionClassifier>(trainData);
+        test(linear, "linear.csv");
+    }
     return 0;
 }

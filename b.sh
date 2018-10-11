@@ -22,4 +22,8 @@ done
 
 shift $((${OPTIND} - 1))
 
-${buck_bin} build @mode/opt euler$1/... 2>&1 | vim -
+OUT=/tmp/build$1.log
+${buck_bin} build @mode/opt euler$1/... 2>&1 | tee ${OUT}
+if [[ $? != 0 ]]; then
+    vim ${OUT}
+fi
