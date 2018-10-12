@@ -1,13 +1,13 @@
-#include "lib/header.h"
-
 #include "glog/logging.h"
 
+#include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
 #include "lib/io/fstream.h"
 #include "lib/io/zstream.h"
 #include "lib/matrix.h"
 #include "lib/timer.h"
+#include "tiny_dnn/tiny_dnn.h"
 
 struct Row {
     int label_;
@@ -51,7 +51,7 @@ Data readRows(const std::string& filename, bool label) {
 
 class LinearRegressionClassifier {
    public:
-    LinearRegressionClassifier() : xtx_(N_FEATURES), xty_(N_FEATURES), inv_(N_FEATURES), bPrime_(N_FEATURES) {}
+    LinearRegressionClassifier() : xtx_(N_FEATURES), xty_(N_FEATURES), bPrime_(N_FEATURES) {}
 
     void addSample(float y, const FloatVector& features) {
         assert(features.size() == N_FEATURES);
@@ -67,8 +67,8 @@ class LinearRegressionClassifier {
     }
 
     void train() {
-        inv_ = xtx_.invert();
-        bPrime_ = inv_ * xty_;
+        auto inv = xtx_.invert();
+        bPrime_ = inv * xty_;
     }
 
     float classify(const Row& row) const {
@@ -82,8 +82,43 @@ class LinearRegressionClassifier {
    private:
     Matrix xtx_;
     Vector xty_;
-    Matrix inv_;
     Vector bPrime_;
+};
+
+class DNNRegressionClassifier {
+   public:
+    DNNRegressionClassifier() {
+        const auto backend_type = tiny_dnn::core::backend_t::avx;
+        nn_ << tiny_dnn::convolutional_layer(32, 32, 5, 1, 6, tiny_dnn::padding::valid, true, 1, 1, backend_type)
+            << tiny_dnn::tanh_layer(28, 28, 6) << tiny_dnn::average_pooling_layer(28, 28, 6, 2)
+            << tiny_dnn::tanh_layer(14, 14, 6)
+            << tiny_dnn::convolutional_layer(14, 14, 5, 6, 16, tiny_dnn::padding::valid, true, 1, 1, backend_type)
+            << tiny_dnn::tanh_layer(10, 10, 16) << tiny_dnn::average_pooling_layer(10, 10, 16, 2)
+            << tiny_dnn::tanh_layer(5, 5, 16)
+            << tiny_dnn::convolutional_layer(5, 5, 5, 16, 120, tiny_dnn::padding::valid, true, 1, 1, backend_type)
+            << tiny_dnn::tanh_layer(1, 1, 120) << tiny_dnn::fully_connected_layer(120, 10, true, backend_type)
+            << tiny_dnn::tanh_layer(1);
+    }
+
+    void addSample(float y, const FloatVector& features) {
+        features_.emplace_back(features);
+        y_.emplace_back(FloatVector(1, y));
+    }
+
+    void train() {
+        for (size_t i = 0; i < 10; ++i) {
+            optimizer_.alpha *= 0.8;
+            nn_.fit<tiny_dnn::mse>(optimizer_, features_, y_);
+        }
+    }
+
+    float classify(const Row& row) const { return nn_.predict(row.features_)[0]; }
+
+   private:
+    tiny_dnn::network<tiny_dnn::sequential> nn_;
+    tiny_dnn::adagrad optimizer_;
+    std::vector<FloatVector> features_;
+    std::vector<FloatVector> y_;
 };
 
 template <typename T>
