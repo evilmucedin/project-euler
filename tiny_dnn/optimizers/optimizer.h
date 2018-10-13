@@ -230,15 +230,6 @@ struct gradient_descent : public optimizer {
   gradient_descent() : alpha(float_t(0.01)), lambda(float_t(0)) {}
 
   void update(const vec_t &dW, vec_t &W, bool parallelize) {
-      /*
-      EVERY_MS(
-          {
-              for (size_t i = 0; i < W.size(); ++i) {
-                  printf("%d %lf %lf %lf\n", (int)i, (double)W[i], (double)dW[i], (double)alpha);
-              }
-          },
-          1000);
-      */
       for_i(parallelize, W.size(), [&](size_t i) { W[i] = W[i] - alpha * (dW[i] + lambda * W[i]); });
   }
 
@@ -253,16 +244,6 @@ struct avg_gradient_descent : public stateful_optimizer<1, 1> {
       auto& sum = getP<0>(W);
       auto& count = getF<0>(W);
 
-      EVERY_MS(
-          {
-              for (size_t i = 0; i < W.size(); ++i) {
-                  printf("%d %lf %lf %lf %lf %lf\n", (int)i, (double)W[i], (double)dW[i], (double)alpha,
-                         double((i < sum.size()) ? sum[i] : 0), count);
-              }
-              printf("------------------------\n");
-              fflush(stdout);
-          },
-          10000);
       for_i(parallelize, W.size(), [&](size_t i) { W[i] = W[i] - alpha * (dW[i] + lambda * W[i]); });
 
       if (0 == count) {

@@ -41,6 +41,7 @@
 #include <condition_variable>
 #include <cstring>
 #include <functional>
+#include <future>
 #include <memory>
 #include <stdexcept>
 #include <thread>
@@ -421,6 +422,22 @@ class ThreadPoolImpl {
      */
     template <typename Handler>
     bool tryPost(Handler&& handler);
+
+    template <typename F, typename It>
+    void run(F const& f, It begin, It end) {
+        std::vector<std::future<void>> futures;
+        futures.reserve(end - begin);
+
+        for (auto i = begin; i != end; ++i) {
+            std::packaged_task<void()> t([i, &f]() { f(*i); });
+            futures.emplace_back(t.get_future());
+            blockingPost(std::move(t));
+        }
+
+        for (auto& f : futures) {
+            f.get();
+        }
+    }
 
     /**
      * @brief post Post job to thread pool.

@@ -270,7 +270,6 @@ class mul_layer : public layer {
         tensor_t &dx = *in_grad[0];
         const tensor_t &dy = *out_grad[0];
         const tensor_t &x = *in_data[0];
-        const tensor_t &y = *out_data[0];
 
         for (size_t i = 0; i < x.size(); i++) {
             for (size_t j = 0; j < x[i].size(); j++) {

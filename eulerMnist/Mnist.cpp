@@ -6,6 +6,7 @@
 #include "lib/io/fstream.h"
 #include "lib/io/zstream.h"
 #include "lib/matrix.h"
+#include "lib/thread-pool/threadPool.h"
 #include "lib/timer.h"
 #include "tiny_dnn/tiny_dnn.h"
 
@@ -96,17 +97,32 @@ class DNNRegressionClassifier {
             << tiny_dnn::tanh_layer(10, 10, 16) << tiny_dnn::average_pooling_layer(10, 10, 16, 2)
             << tiny_dnn::tanh_layer(5, 5, 16)
             << tiny_dnn::convolutional_layer(5, 5, 5, 16, 120, tiny_dnn::padding::valid, true, 1, 1, backend_type)
-            << tiny_dnn::tanh_layer(1, 1, 120) << tiny_dnn::fully_connected_layer(120, 10, true, backend_type)
+            << tiny_dnn::tanh_layer(1, 1, 120) << tiny_dnn::fully_connected_layer(120, 1, true, backend_type)
             << tiny_dnn::tanh_layer(1);
     }
 
+    tiny_dnn::vec_t floatVectorToVector(const FloatVector& features) {
+        tiny_dnn::vec_t fFeatures(features.size());
+        for (size_t i = 0; i < features.size(); ++i) {
+            fFeatures[i] = features[i];
+        }
+        return fFeatures;
+    }
+
+    tiny_dnn::tensor_t floatVectorToTensor(const FloatVector& features) {
+        tiny_dnn::tensor_t input;
+        input.emplace_back(floatVectorToVector(features));
+        return input;
+    }
+
     void addSample(float y, const FloatVector& features) {
-        features_.emplace_back(features);
-        y_.emplace_back(FloatVector(1, y));
+        features_.emplace_back(floatVectorToTensor(features));
+        y_.emplace_back(tiny_dnn::vec_t(1, y));
     }
 
     void train() {
         for (size_t i = 0; i < 10; ++i) {
+            Timer t(std::string("Train DNN it ") + to_string(i));
             optimizer_.alpha *= 0.8;
             nn_.fit<tiny_dnn::mse>(optimizer_, features_, y_);
         }
@@ -117,30 +133,35 @@ class DNNRegressionClassifier {
    private:
     tiny_dnn::network<tiny_dnn::sequential> nn_;
     tiny_dnn::adagrad optimizer_;
-    std::vector<FloatVector> features_;
-    std::vector<FloatVector> y_;
+    std::vector<tiny_dnn::tensor_t> features_;
+    std::vector<tiny_dnn::vec_t> y_;
 };
 
 template <typename T>
 vector<T> train(const Data& data) {
     Timer tTrain(std::string("Train ") + typeid(T).name());
     vector<T> result(10);
-    size_t index = 0;
-    for (const auto& row : data.rows) {
-        for (int i = 0; i < 10; ++i) {
-            result[i].addSample(row.label_ == i, row.features_);
+
+    auto train_i = [&](int index) {
+        for (const auto& row : data.rows) {
+            result[index].addSample(row.label_ == index, row.features_);
         }
+        result[index].train();
         LOG_EVERY_MS(INFO, 5000) << "Processing " << index;
-        ++index;
+    };
+
+    tp::ThreadPool p;
+    std::vector<int> indices;
+    for (size_t i = 0; i < 10; ++i) {
+        indices.emplace_back(i);
     }
-    for (auto& c : result) {
-        c.train();
-    }
+    p.run(train_i, indices.begin(), indices.end());
+
     return result;
 }
 
 template <typename T>
-void test(const vector<T>& classifiers, const std::string& filename) {
+void test(vector<T>& classifiers, const std::string& filename) {
     Timer tTrain(std::string("Test ") + typeid(T).name());
     OFStream fOut(filename);
     fOut << "ImageId,Label" << endl;
@@ -163,6 +184,10 @@ int main(int argc, char* argv[]) {
     standardInit(argc, argv);
     auto trainData = readRows("train.gz", true);
     LOG(INFO) << OUT(trainData.rows.size());
+    {
+        auto dnn = train<DNNRegressionClassifier>(trainData);
+        test(dnn, "dnn.csv");
+    }
     {
         auto linear = train<LinearRegressionClassifier>(trainData);
         test(linear, "linear.csv");
