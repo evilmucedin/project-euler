@@ -107,7 +107,7 @@ class DNNRegressionClassifier {
             if (i >= 2 && i < 30) {
                 for (size_t j = 0; j < 32; ++j) {
                     if (j >= 2 && j < 30) {
-                        fFeatures[i * 32 + j] = features[(i - 2) * 32 + (j - 2)];
+                        fFeatures[i * 32 + j] = features[(i - 2) * 28 + (j - 2)];
                     }
                 }
             }
