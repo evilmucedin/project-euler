@@ -2,6 +2,8 @@
 
 . ./cCommon.sh
 
+set -o pipefail
+
 measure_time=0
 while getopts "t" opt; do
     case ${opt} in
