@@ -135,7 +135,7 @@ class DNNRegressionClassifier {
         }
     }
 
-    float classify(const Row& row) { return nn_.predict(row.features_)[0]; }
+    float classify(const Row& row) { return nn_.predict(floatVectorToVector(row.features_))[0]; }
 
    private:
     tiny_dnn::network<tiny_dnn::sequential> nn_;
