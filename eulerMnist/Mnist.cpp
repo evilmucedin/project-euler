@@ -102,9 +102,15 @@ class DNNRegressionClassifier {
     }
 
     tiny_dnn::vec_t floatVectorToVector(const FloatVector& features) {
-        tiny_dnn::vec_t fFeatures(features.size());
-        for (size_t i = 0; i < features.size(); ++i) {
-            fFeatures[i] = features[i];
+        tiny_dnn::vec_t fFeatures(32 * 32);
+        for (size_t i = 0; i < 32; ++i) {
+            if (i >= 2 && i < 30) {
+                for (size_t j = 0; j < 32; ++j) {
+                    if (j >= 2 && j < 30) {
+                        fFeatures[i * 32 + j] = features[(i - 2) * 32 + (j - 2)];
+                    }
+                }
+            }
         }
         return fFeatures;
     }
@@ -125,6 +131,7 @@ class DNNRegressionClassifier {
             Timer t(std::string("Train DNN it ") + to_string(i));
             optimizer_.alpha *= 0.8;
             nn_.fit<tiny_dnn::mse>(optimizer_, features_, y_);
+            LOG(INFO) << "Loss on " << i << " = " << nn_.get_loss_b<tiny_dnn::mse>(features_, y_);
         }
     }
 

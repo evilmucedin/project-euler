@@ -520,7 +520,7 @@ class network {
    * calculate loss value (the smaller, the better) for regression task
    **/
   template <typename E, typename T>
-  float_t get_loss(const std::vector<T> &in, const std::vector<tensor_t> &t) {
+  float_t get_loss(const std::vector<T> &in, const std::vector<vec_t> &t) {
     float_t sum_loss = float_t(0);
     std::vector<tensor_t> in_tensor;
     normalize_tensor(in, in_tensor);
@@ -530,6 +530,22 @@ class network {
       for (size_t j = 0; j < predicted.size(); j++) {
         sum_loss += E::f(predicted[j], t[i][j]);
       }
+    }
+    return sum_loss;
+  }
+
+  /**
+   * calculate loss value (the smaller, the better) for regression task
+   **/
+  template <typename E, typename T, typename TT>
+  float_t get_loss_b(const std::vector<T> &in, const std::vector<TT> &t) {
+    float_t sum_loss = float_t(0);
+    std::vector<tensor_t> in_tensor;
+    normalize_tensor(in, in_tensor);
+
+    for (size_t i = 0; i < in.size(); i++) {
+      const tensor_t predicted = predict(in_tensor[i]);
+      sum_loss += E::f(predicted[0], t[i]);
     }
     return sum_loss;
   }
@@ -846,7 +862,9 @@ class network {
     set_netphase(net_phase::train);
     net_.setup(reset_weights);
 
-    for (auto n : net_) n->set_parallelize(true);
+    for (auto n : net_) {
+        n->set_parallelize(true);
+    }
     optimizer.reset();
     stop_training_ = false;
     in_batch_.resize(batch_size);
