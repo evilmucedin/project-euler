@@ -43,6 +43,16 @@ struct MatrixWeirdo {
         return result;
     }
 
+    MatrixWeirdo t() const {
+        MatrixWeirdo result(n_, m_);
+        for (size_t i = 0; i < m_; ++i) {
+            for (size_t j = 0; j < n_; ++j) {
+                result.at(j, i) = at(i, j);
+            }
+        }
+        return result;
+    }
+
     size_t m_;
     size_t n_;
     std::unique_ptr<double[]> data_;
@@ -75,6 +85,22 @@ MatrixWeirdo mulStupid(const MatrixWeirdo& a, const MatrixWeirdo& b) {
             double sum = 0.;
             for (size_t k = 0; k < a.n_; ++k) {
                 sum += a.at(i, k) * b.at(k, j);
+            }
+            result.at(i, j) = sum;
+        }
+    }
+    return result;
+}
+
+MatrixWeirdo mulT(const MatrixWeirdo& a, const MatrixWeirdo& b) {
+    ASSERTEQ(a.n_, b.m_);
+    MatrixWeirdo result(a.m_, b.n_);
+    auto bt = b.t();
+    for (size_t i = 0; i < a.m_; ++i) {
+        for (size_t j = 0; j < b.n_; ++j) {
+            double sum = 0.;
+            for (size_t k = 0; k < a.n_; ++k) {
+                sum += a.at(i, k) * bt.at(j, k);
             }
             result.at(i, j) = sum;
         }
@@ -124,6 +150,10 @@ int main() {
         {
             Timer t("Mul");
             cout << "Mul result: " << mul(a, b).sum() << endl;
+        }
+        {
+            Timer t("MulT");
+            cout << "MulT result: " << mulT(a, b).sum() << endl;
         }
     }
 
