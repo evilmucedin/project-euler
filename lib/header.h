@@ -300,4 +300,4 @@ string homeDir();
 #define ALWAYS_ASSERT(...) __VA_ARGS__
 #endif
 
-#define ASSERTEQ(x, y) assert((X) == (Y))
+#define ASSERTEQ(x, y) assert((x) == (y))
