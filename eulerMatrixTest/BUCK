@@ -4,6 +4,7 @@ cxx_binary(
     "MatrixTest.cpp"
   ],
   deps=[
+    "//armadillo:armadillo",
     "//lib:header",
     "//lib:random",
     "//lib:timer",

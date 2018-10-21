@@ -1,4 +1,7 @@
 #include "lib/header.h"
+
+#include "armadillo/armadillo"
+
 #include "lib/timer.h"
 #include "lib/random.h"
 
@@ -48,6 +51,16 @@ struct MatrixWeirdo {
         for (size_t i = 0; i < m_; ++i) {
             for (size_t j = 0; j < n_; ++j) {
                 result.at(j, i) = at(i, j);
+            }
+        }
+        return result;
+    }
+
+    arma::mat toArma() const {
+        arma::mat result(m_, n_);
+        for (size_t i = 0; i < n_; ++i) {
+            for (size_t j = 0; j < m_; ++j) {
+                result(i, j) = at(i, j);
             }
         }
         return result;
@@ -155,7 +168,11 @@ int main() {
             Timer t("MulT");
             cout << "MulT result: " << mulT(a, b).sum() << endl;
         }
-    }
+        {
+            Timer t("Mul Arma");
+            cout << "Mul arma result: " << accu(a.toArma() * b.toArma()) << endl;
+        }
+     }
 
     return 0;
 }
