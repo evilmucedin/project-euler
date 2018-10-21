@@ -1,0 +1,12 @@
+cxx_binary(
+  name="MatrixTest",
+  srcs=[
+    "MatrixTest.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+    "//lib:timer",
+    "//gflags:gflags",
+  ],
+)
