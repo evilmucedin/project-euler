@@ -33,6 +33,16 @@ struct MatrixWeirdo {
         }
     }
 
+    double sum() const {
+        double result = 0;
+        double* p = data_.get();
+        for (size_t i = 0; i < m_*n_; ++i) {
+            result += *p;
+            ++p;
+        }
+        return result;
+    }
+
     size_t m_;
     size_t n_;
     std::unique_ptr<double[]> data_;
@@ -57,12 +67,46 @@ ostream& operator<<(ostream& s, const MatrixWeirdo& m) {
     return s;
 }
 
+MatrixWeirdo mulStupid(const MatrixWeirdo& a, const MatrixWeirdo& b) {
+    ASSERTEQ(a.n_, b.m_);
+    MatrixWeirdo result(a.m_, b.n_);
+    for (size_t i = 0; i < a.m_; ++i) {
+        for (size_t j = 0; j < b.n_; ++j) {
+            double sum = 0.;
+            for (size_t k = 0; k < a.n_; ++k) {
+                sum += a.at(i, k) * b.at(k, j);
+            }
+            result.at(i, j) = sum;
+        }
+    }
+    return result;
+}
+
+MatrixWeirdo mul(const MatrixWeirdo& a, const MatrixWeirdo& b) {
+    ASSERTEQ(a.n_, b.m_);
+    MatrixWeirdo result(a.m_, b.n_);
+    for (size_t i = 0; i < a.m_; ++i) {
+        for (size_t j = 0; j < b.n_; ++j) {
+            double sum = 0.;
+            const double* toA = &a.at(i, 0);
+            const double* toB = &b.at(0, j);
+            for (size_t k = 0; k < a.n_; ++k) {
+                sum += *toA * *toB;
+                ++toA;
+                toB += b.n_;
+            }
+            result.at(i, j) = sum;
+        }
+    }
+    return result;
+}
+
 int main() {
     size_t n = FLAGS_n;
-    MatrixWeirdo a(n, n);
-    MatrixWeirdo b(n, n);
 
     for (size_t iTest = 0; iTest < 3; ++iTest) {
+        MatrixWeirdo a(n, n);
+        MatrixWeirdo b(n, n);
         {
             Timer t("Fill stupid");
             a.fillStupid();
@@ -72,6 +116,14 @@ int main() {
             Timer t("Fill");
             a.fillStupid();
             b.fillStupid();
+        }
+        {
+            Timer t("Mul stupid");
+            cout << "Mul stupid result: " << mulStupid(a, b).sum() << endl;
+        }
+        {
+            Timer t("Mul");
+            cout << "Mul result: " << mul(a, b).sum() << endl;
         }
     }
 
