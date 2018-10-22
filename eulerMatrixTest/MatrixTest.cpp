@@ -7,7 +7,7 @@
 
 #include "gflags/gflags.h"
 
-DEFINE_int64(n, 1000, "matrix size");
+DEFINE_int64(n, 1024, "matrix size");
 
 struct MatrixWeirdo {
     MatrixWeirdo(size_t m, size_t n) : m_(m), n_(n), data_(new double[m_ * n_]) {}
@@ -105,6 +105,19 @@ MatrixWeirdo mulStupid(const MatrixWeirdo& a, const MatrixWeirdo& b) {
     return result;
 }
 
+MatrixWeirdo mulStupid2(const MatrixWeirdo& a, const MatrixWeirdo& b) {
+    ASSERTEQ(a.n_, b.m_);
+    MatrixWeirdo result(a.m_, b.n_);
+    for (size_t i = 0; i < a.m_; ++i) {
+        for (size_t k = 0; k < a.n_; ++k) {
+            for (size_t j = 0; j < b.n_; ++j) {
+                result.at(i, j) += a.at(i, k) * b.at(k, j);
+            }
+        }
+    }
+    return result;
+}
+
 MatrixWeirdo mulT(const MatrixWeirdo& a, const MatrixWeirdo& b) {
     ASSERTEQ(a.n_, b.m_);
     MatrixWeirdo result(a.m_, b.n_);
@@ -159,6 +172,10 @@ int main() {
         {
             Timer t("Mul stupid");
             cout << "Mul stupid result: " << mulStupid(a, b).sum() << endl;
+        }
+        {
+            Timer t("Mul stupid2");
+            cout << "Mul stupid2 result: " << mulStupid2(a, b).sum() << endl;
         }
         {
             Timer t("Mul");
