@@ -1,4 +1,21 @@
 cxx_library(
+  name="file",
+  exported_headers=[
+    "file.h",
+  ],
+  srcs=[
+    "file.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:exception",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="zstream",
   exported_headers=[
     "zstream.h",
