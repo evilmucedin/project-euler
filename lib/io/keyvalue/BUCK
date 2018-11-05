@@ -10,6 +10,7 @@ cxx_library(
     "//lib:exception",
     "//lib:header",
     "//lib/io:file",
+    "//glog:glog",
   ],
   visibility=[
     'PUBLIC',

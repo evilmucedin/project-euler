@@ -1,5 +1,7 @@
 #include "blockStorage.h"
 
+#include "glog/logging.h"
+
 BlockFile::BlockFile(std::string filename, std::string mode) : filename_(std::move(filename)), f_(filename_, mode) {}
 
 void BlockFile::writeString(const std::string& key) {
@@ -30,7 +32,7 @@ void BlockFile::writeHeader(const BlockFile::Header& header) {
     f_.flush();
 }
 
-BlockFileWriter::BlockFileWriter(string filename) : BlockFile(std::move(filename), "wb") {
+BlockFileWriter::BlockFileWriter(string filename) : BlockFile(std::move(filename), "r+b") {
     Header h;
     f_.writeT<Header>(h);
 }
@@ -38,6 +40,7 @@ BlockFileWriter::BlockFileWriter(string filename) : BlockFile(std::move(filename
 BlockFileWriter::~BlockFileWriter() {
     ASSERT(writerClosed_);
     ASSERTEQ(entries_.size(), keys_.size());
+    f_.flush();
     for (size_t i = 0; i < keys_.size(); ++i) {
         auto& entry = entries_[i];
         entry.keyBegin_ = f_.tell();
@@ -45,12 +48,13 @@ BlockFileWriter::~BlockFileWriter() {
         f_.flush();
         entry.keyEnd_ = f_.tell();
     }
+    auto tableOffset = f_.tell();
     for (const auto& entry : entries_) {
         f_.writeT(entry);
     }
     f_.flush();
     auto header = readHeader();
-    header.tableOffset_ = f_.tell();
+    header.tableOffset_ = tableOffset;
     header.tableEntries_ = keys_.size();
     writeHeader(header);
 }
@@ -73,8 +77,14 @@ void BlockFileWriter::Writer::write(const char* buffer, size_t size) {
 }
 
 void BlockFileWriter::Writer::close() {
-    bfw_->onWriterClose();
-    bfw_ = nullptr;
+    if (bfw_) {
+        bfw_->onWriterClose();
+        bfw_ = nullptr;
+    }
+}
+
+BlockFileWriter::Writer::~Writer() {
+    close();
 }
 
 void BlockFileWriter::write(const char* buffer, size_t size) {
@@ -89,6 +99,9 @@ void BlockFileWriter::onWriterClose() {
 }
 
 BlockFileReader::BlockFileReader(std::string filename) : BlockFile(std::move(filename), "rb") {
+    f_.seekEnd(0);
+    LOG(INFO) << "Open BlockStorage reader for '" << filename_ << "' with size " << f_.tell();
+    f_.seek(0);
     auto header = readHeader();
     f_.seek(header.tableOffset_);
     for (size_t i = 0; i < header.tableEntries_; ++i) {

@@ -45,6 +45,7 @@ class BlockFileWriter : protected BlockFile {
        public:
         void write(const char* buffer, size_t size);
         void close();
+        ~Writer();
 
        protected:
         Writer(BlockFileWriter* bf);
