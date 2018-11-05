@@ -7,6 +7,7 @@ class BlockFile {
 
     static constexpr uint32_t MAGIC = 0x46425244;
 
+#pragma pack(push, 8)
     struct Header {
         uint32_t magic_{MAGIC};
         uint32_t version_{1};
@@ -20,11 +21,13 @@ class BlockFile {
         uint64_t valueBegin_;
         uint64_t valueEnd_;
     };
+#pragma pack(pop)
     using Entries = vector<Entry>;
 
     string filename_;
     File f_;
     Entries entries_;
+    StringVector keys_;
 
     void writeString(const std::string& key);
     std::string readString(size_t begin, size_t end);
@@ -39,11 +42,14 @@ class BlockFileWriter : protected BlockFile {
     ~BlockFileWriter();
 
     class Writer {
+       public:
         void write(const char* buffer, size_t size);
         void close();
 
        protected:
         Writer(BlockFileWriter* bf);
+
+        BlockFileWriter* bfw_;
 
         friend class BlockFileWriter;
     };
@@ -55,21 +61,31 @@ class BlockFileWriter : protected BlockFile {
     void onWriterClose();
 
    private:
-    StringVector keys_;
     bool writerClosed_{true};
 };
 
 class BlockFileReader : protected BlockFile {
    public:
+    BlockFileReader(std::string filename);
+
     class Reader {
+       public:
+        size_t read(char* buffer, size_t size);
+
+       protected:
         Reader(BlockFileReader* bf, uint64_t startOffset, uint64_t endOffset);
-        size_t read(const char* buffer, size_t size);
+
+        BlockFileReader* bfr_;
+        uint64_t startOffset_;
+        uint64_t endOffset_;
+
+        friend class BlockFileReader;
     };
 
     std::unique_ptr<Reader> get(const std::string& key);
 
    protected:
-    size_t read(uint64_t startOffset, uint64_t endOffset, const char* buffer, size_t size);
+    size_t read(uint64_t startOffset, uint64_t endOffset, char* buffer, size_t size);
 
    private:
     using KeyToEntry = unordered_map<string, uint64_t>;

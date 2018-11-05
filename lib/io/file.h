@@ -22,6 +22,7 @@ public:
 
     uint64_t tell();
     void seek(uint64_t offset);
+    void seekEnd(int64_t offset);
 
     void flush();
     void close();
