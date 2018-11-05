@@ -19,12 +19,15 @@ std::string BlockFile::readString(size_t begin, size_t end) {
 
 BlockFile::Header BlockFile::readHeader() {
     f_.seek(0);
-    return f_.readT<Header>();
+    auto result = f_.readT<Header>();
+    ASSERTEQ(result.magic_, MAGIC);
+    return result;
 }
 
 void BlockFile::writeHeader(const BlockFile::Header& header) {
     f_.seek(0);
     f_.writeT<Header>(header);
+    f_.flush();
 }
 
 BlockFileWriter::BlockFileWriter(string filename) : BlockFile(filename_, "wb") {
@@ -33,23 +36,38 @@ BlockFileWriter::BlockFileWriter(string filename) : BlockFile(filename_, "wb") {
 }
 
 BlockFileWriter::~BlockFileWriter() {
+    ASSERT(writerClosed_);
     ASSERTEQ(entries_.size(), keys_.size());
-    uint64_t entriesStart = f_.tell();
+    uint64_t entriesBegin = f_.tell();
     for (size_t i = 0; i < keys_.size(); ++i) {
         auto& entry = entries_[i];
-        entry.keyStart_ = f_.tell();
+        entry.keyBegin_ = f_.tell();
         writeString(keys_[i]);
         entry.keyEnd_ = f_.tell();
     }
     auto header = readHeader();
-    header.tableOffset_ = entriesStart;
+    header.tableOffset_ = entriesBegin;
     header.tableEntries_ = keys_.size();
     writeHeader(header);
 }
 
 std::shared_ptr<BlockFileWriter::Writer> BlockFileWriter::add(const std::string& key) {
+    ASSERT(writerClosed_);
     keys_.emplace_back(key);
     entries_.emplace_back();
-    auto result = std::make_shared<Writer>(new Writer(this));
+    entries_.back().valueBegin_ = f_.tell();
+    std::shared_ptr<BlockFileWriter::Writer> result(new BlockFileWriter::Writer(this));
+    writerClosed_ = false;
     return result;
+}
+
+void BlockFileWriter::write(const char* buffer, size_t size) {
+    ASSERT(!writerClosed_);
+    f_.write(buffer, size);
+}
+
+void BlockFileWriter::onWriterClose() {
+    f_.flush();
+    entries_.back().valueEnd_ = f_.tell();
+    writerClosed_ = true;
 }

@@ -15,10 +15,10 @@ class BlockFile {
     };
 
     struct Entry {
-        uint64_t keyStart_;
+        uint64_t keyBegin_;
         uint64_t keyEnd_;
-        uint64_t valueStart_;
-        uint64_t valueEnd;
+        uint64_t valueBegin_;
+        uint64_t valueEnd_;
     };
     using Entries = vector<Entry>;
 
@@ -45,16 +45,18 @@ class BlockFileWriter : protected BlockFile {
        protected:
         Writer(BlockFileWriter* bf);
 
-        friend BlockFileWriter;
+        friend class BlockFileWriter;
     };
 
     std::shared_ptr<Writer> add(const std::string& key);
 
    protected:
     void write(const char* buffer, size_t size);
+    void onWriterClose();
 
    private:
     StringVector keys_;
+    bool writerClosed_{true};
 };
 
 class BlockFileReader : protected BlockFile {

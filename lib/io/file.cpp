@@ -46,6 +46,12 @@ void File::seek(uint64_t offset) {
     }
 }
 
+void File::flush() {
+    if (fflush(f_)) {
+        THROW("flush failed");
+    }
+}
+
 void File::close() {
     if (fclose(f_)) {
         THROW("fclose failed");
