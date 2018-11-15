@@ -7,8 +7,8 @@
 #include "lib/header.h"
 #include "lib/math.h"
 #include "lib/random.h"
+#include "lib/stat/stat.h"
 #include "lib/timer.h"
-#include "lib/stat.h"
 
 template <typename T>
 void saveSample(T& x, const string& filename) {

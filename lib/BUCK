@@ -95,22 +95,6 @@ cxx_library(
 )
 
 cxx_library(
-    name="stat",
-    exported_headers=[
-        "stat.h",
-    ],
-    srcs=[
-        "stat.cpp",
-    ],
-    deps=[
-        ":header",
-    ],
-    visibility=[
-        "PUBLIC",
-    ],
-)
-
-cxx_library(
     name="threads",
     exported_headers=[
         "threads.h",

@@ -1,4 +1,4 @@
-#include "lib/stat.h"
+#include "stat.h"
 
 double StatAccumulator::average() const { return sum_ / n_; }
 

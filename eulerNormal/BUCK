@@ -9,6 +9,6 @@ cxx_binary(
     "//lib:math",
     "//lib:random",
     "//lib:timer",
-    "//lib:stat",
+    "//lib/stat:stat",
   ],
 )
