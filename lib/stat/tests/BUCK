@@ -1,0 +1,12 @@
+cxx_test(
+  name="tdigestTest",
+  srcs=[
+    "tdigestTest.cpp",
+  ],
+  deps=[
+    "//lib/stat:tdigest",
+    "//gtest:gtest",
+    "//glog:glog",
+  ],
+)
+
