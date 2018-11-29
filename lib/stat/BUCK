@@ -1,0 +1,33 @@
+cxx_library(
+    name="stat",
+    exported_headers=[
+        "stat.h",
+    ],
+    srcs=[
+        "stat.cpp",
+    ],
+    deps=[
+        "//lib:header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="tdigest",
+    exported_headers=[
+        "tdigest.h",
+    ],
+    srcs=[
+        "tdigest.cpp",
+    ],
+    deps=[
+        "//lib:header",
+        "//glog:glog",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
