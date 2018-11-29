@@ -30,4 +30,3 @@ cxx_library(
         "PUBLIC",
     ],
 )
-
