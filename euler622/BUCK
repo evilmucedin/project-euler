@@ -1,0 +1,10 @@
+cxx_binary(
+  name="622",
+  srcs=[
+    "622.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//glog:glog",
+  ],
+)
