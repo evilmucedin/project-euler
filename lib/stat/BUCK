@@ -1,0 +1,12 @@
+cxx_library(
+    name="stat",
+    srcs=[
+        "stat.cpp",
+    ],
+    exported_headers=[
+        "stat.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
