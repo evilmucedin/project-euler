@@ -270,3 +270,19 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="lru",
+    srcs=[
+        "lru.cpp",
+    ],
+    exported_headers=[
+        "lru.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

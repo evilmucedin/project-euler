@@ -101,3 +101,14 @@ cxx_test(
     "//gtest:gtest",
   ],
 )
+
+cxx_test(
+  name="lruTest",
+  srcs=[
+    "lruTest.cpp",
+  ],
+  deps=[
+    "//lib:lru",
+    "//gtest:gtest",
+  ],
+)
