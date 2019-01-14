@@ -51,6 +51,8 @@ void File::seekEnd(int64_t offset) {
     }
 }
 
+void File::setvbuf(size_t size) { std::setvbuf(f_, nullptr, _IOFBF, size); }
+
 void File::flush() {
     if (fflush(f_)) {
         THROW("flush failed");

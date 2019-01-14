@@ -11,6 +11,7 @@
 struct FileIterator {
     FileIterator(const std::string& s) : fIn_(s, "rb") {
         ASSERT(fIn_.opened());
+        fIn_.setvbuf(1 << 20);
         read();
     }
 
@@ -31,6 +32,7 @@ struct AsyncFileIterator : NonCopyable {
               while (!inited_) {
               }
               File fIn(s, "rb");
+              fIn.setvbuf(1 << 20);
               int32_t value;
               while (maybeReadVarLen(fIn, value)) {
                   q_.enqueue(value);
