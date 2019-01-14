@@ -1,7 +1,10 @@
-#include "lib/header.h"
+#pragma once
 
-class File {
-public:
+#include "lib/header.h"
+#include "lib/noncopyable.h"
+
+class File : NonCopyable {
+   public:
     File(string filename, string mode);
     ~File();
 
@@ -16,6 +19,11 @@ public:
     }
 
     template <typename T>
+    bool maybeReadT(T* result) {
+        return read(reinterpret_cast<char*>(result), sizeof(T)) == sizeof(T);
+    }
+
+    template <typename T>
     void writeT(const T& value) {
         write(reinterpret_cast<const char*>(&value), sizeof(T));
     }
@@ -26,6 +34,7 @@ public:
 
     void flush();
     void close();
+    bool opened() const;
 
    private:
     string filename_;

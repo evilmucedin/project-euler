@@ -9,6 +9,7 @@ cxx_library(
   deps=[
     "//lib:header",
     "//lib:exception",
+    "//lib:noncopyable",
   ],
   visibility=[
     'PUBLIC',

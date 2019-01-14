@@ -286,3 +286,16 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="noncopyable",
+    srcs=[
+        "noncopyable.cpp",
+    ],
+    exported_headers=[
+        "noncopyable.h",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

@@ -1,0 +1,14 @@
+cxx_binary(
+  name="AsyncMerge",
+  srcs=[
+    "AsyncMerge.cpp"
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+    "//lib/io:file",
+    "//lib/spsc:spsc",
+    "//lib:timer",
+    "//lib:random",
+  ],
+)

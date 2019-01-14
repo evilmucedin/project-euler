@@ -11,9 +11,7 @@ File::File(string filename, string mode) : filename_(std::move(filename)), mode_
     }
 }
 
-File::~File() {
-    close();
-}
+File::~File() { close(); }
 
 void File::write(const char* buffer, size_t size) {
     if (fwrite(buffer, 1, size, f_) != size) {
@@ -61,7 +59,9 @@ void File::flush() {
 
 void File::close() {
     if (fclose(f_)) {
-        THROW("fclose failed");
+        THROW("fclose failed '" << filename_ << "'");
         f_ = nullptr;
     }
 }
+
+bool File::opened() const { return f_ != nullptr; }
