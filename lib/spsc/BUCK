@@ -1,0 +1,16 @@
+cxx_library(
+    name="spsc",
+    exported_headers=[
+        "blockSPSCQueue.h",
+    ],
+    srcs=[
+    ],
+    deps=[
+        "//moodycamel:readerwriterqueue",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+

@@ -1,0 +1,12 @@
+cxx_test(
+  name="blockSPSCQueueTest",
+  srcs=[
+    "blockSPSCQueueTest.cpp",
+  ],
+  deps=[
+    "//lib/spsc:spsc",
+    "//gtest:gtest",
+  ],
+)
+
+
