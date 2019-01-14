@@ -102,7 +102,7 @@ void merge(const std::string& filename) {
 }
 
 int main() {
-    static const size_t N = 1000000;
+    static const size_t N = 10000000;
     static const size_t M = 3;
 
     {
