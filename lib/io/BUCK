@@ -84,3 +84,19 @@ cxx_library(
     'PUBLIC',
   ],
 )
+
+cxx_library(
+  name="varlen",
+  exported_headers=[
+    "varlen.h"
+  ],
+  srcs=[
+    "varlen.cpp",
+  ],
+  deps=[
+    "//lib/io:file",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

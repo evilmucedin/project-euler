@@ -2,10 +2,11 @@
 
 #include "lib/header.h"
 #include "lib/io/file.h"
+#include "lib/io/varlen.h"
+#include "lib/noncopyable.h"
 #include "lib/random.h"
 #include "lib/spsc/blockSPSCQueue.h"
 #include "lib/timer.h"
-#include "lib/noncopyable.h"
 
 struct FileIterator {
     FileIterator(const std::string& s) : fIn_(s, "rb") {
@@ -13,7 +14,7 @@ struct FileIterator {
         read();
     }
 
-    void read() { eof_ = !fIn_.maybeReadT(&next_); }
+    void read() { eof_ = !maybeReadVarLen(fIn_, next_); }
 
     bool eof() const { return eof_; }
 
@@ -31,7 +32,7 @@ struct AsyncFileIterator : NonCopyable {
               }
               File fIn(s, "rb");
               int32_t value;
-              while (fIn.maybeReadT(&value)) {
+              while (maybeReadVarLen(fIn, value)) {
                   q_.enqueue(value);
               }
               q_.enqueue(-1);
@@ -89,7 +90,7 @@ void merge(const std::string& filename) {
             }
         }
         if (minIt) {
-            fOut.writeT(min);
+            writeVarLen(fOut, min);
             minIt->read();
             ++written;
         } else {
@@ -110,9 +111,10 @@ int main() {
             File fOut(genFilename(i), "wb");
             int32_t current = 0;
             for (size_t j = 0; j < N; ++j) {
-                fOut.writeT(current);
+                writeVarLen(fOut, current);
                 current += dice(10);
             }
+            LOG(INFO) << i << " " << fOut.tell();
         }
     }
 

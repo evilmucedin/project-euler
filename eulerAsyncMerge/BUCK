@@ -7,6 +7,7 @@ cxx_binary(
     "//glog:glog",
     "//lib:header",
     "//lib/io:file",
+    "//lib/io:varlen",
     "//lib/spsc:spsc",
     "//lib:timer",
     "//lib:random",
