@@ -4,8 +4,9 @@ cxx_test(
     "blockSPSCQueueTest.cpp",
   ],
   deps=[
-    "//lib/spsc:spsc",
     "//gtest:gtest",
+    "//lib:exception",
+    "//lib/spsc:spsc",
   ],
 )
 

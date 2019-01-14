@@ -30,5 +30,5 @@ public:
    private:
     string filename_;
     string mode_;
-    FILE* f_;
+    FILE* f_{nullptr};
 };
