@@ -250,6 +250,9 @@ cxx_library(
     exported_headers=[
         "geometry.h",
     ],
+    deps=[
+        ":header",
+    ],
     visibility=[
         'PUBLIC',
     ],
