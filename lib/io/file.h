@@ -31,6 +31,7 @@ class File : NonCopyable {
     uint64_t tell();
     void seek(uint64_t offset);
     void seekEnd(int64_t offset);
+    void setvbuf(size_t size);
 
     void flush();
     void close();

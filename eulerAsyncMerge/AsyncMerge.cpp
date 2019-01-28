@@ -2,18 +2,20 @@
 
 #include "lib/header.h"
 #include "lib/io/file.h"
+#include "lib/io/varlen.h"
+#include "lib/noncopyable.h"
 #include "lib/random.h"
 #include "lib/spsc/blockSPSCQueue.h"
 #include "lib/timer.h"
-#include "lib/noncopyable.h"
 
 struct FileIterator {
     FileIterator(const std::string& s) : fIn_(s, "rb") {
         ASSERT(fIn_.opened());
+        fIn_.setvbuf(1 << 20);
         read();
     }
 
-    void read() { eof_ = !fIn_.maybeReadT(&next_); }
+    void read() { eof_ = !maybeReadVarLen(fIn_, next_); }
 
     bool eof() const { return eof_; }
 
@@ -30,8 +32,9 @@ struct AsyncFileIterator : NonCopyable {
               while (!inited_) {
               }
               File fIn(s, "rb");
+              fIn.setvbuf(1 << 20);
               int32_t value;
-              while (fIn.maybeReadT(&value)) {
+              while (maybeReadVarLen(fIn, value)) {
                   q_.enqueue(value);
               }
               q_.enqueue(-1);
@@ -89,7 +92,7 @@ void merge(const std::string& filename) {
             }
         }
         if (minIt) {
-            fOut.writeT(min);
+            writeVarLen(fOut, min);
             minIt->read();
             ++written;
         } else {
@@ -101,7 +104,7 @@ void merge(const std::string& filename) {
 }
 
 int main() {
-    static const size_t N = 1000000;
+    static const size_t N = 10000000;
     static const size_t M = 3;
 
     {
@@ -110,9 +113,10 @@ int main() {
             File fOut(genFilename(i), "wb");
             int32_t current = 0;
             for (size_t j = 0; j < N; ++j) {
-                fOut.writeT(current);
+                writeVarLen(fOut, current);
                 current += dice(10);
             }
+            LOG(INFO) << i << " " << fOut.tell();
         }
     }
 
