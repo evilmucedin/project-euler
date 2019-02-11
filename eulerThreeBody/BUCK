@@ -1,0 +1,9 @@
+cxx_binary(
+  name="ThreeBody",
+  srcs=[
+    "ThreeBody.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
