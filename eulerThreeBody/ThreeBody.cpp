@@ -41,8 +41,6 @@ ostream &operator<<(ostream &s, const Point &p) {
   return s;
 }
 
-template <typename T> T sqr(T x) { return x * x; }
-
 double dist2(const Point &a, const Point &b) {
   return sqr(a.x - b.x) + sqr(a.y - b.y);
 }
