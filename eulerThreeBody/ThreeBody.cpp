@@ -5,8 +5,14 @@
 #include <iostream>
 #include <vector>
 
+#ifndef __APPLE__
 #include "GL/freeglut.h"
 #include "GL/gl.h"
+#else
+#include "OpenGL/glu.h"
+#include "OpenGL/gl.h"
+#include "GLUT/glut.h"
+#endif
 
 using namespace std;
 
@@ -21,7 +27,7 @@ struct Point {
   char r = 0;
   char g = 0;
   char b = 0;
-  char a = 255;
+  uint8_t a = 255;
   double rx{};
   double ry{};
 
