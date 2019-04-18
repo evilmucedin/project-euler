@@ -42,7 +42,7 @@ int main() {
 
     static constexpr size_t M = 60;
 
-    __int128 result = 0;
+    i128 result = 0;
     /*
     for (size_t n = 2; n <= 10000000000ULL; n += 2) {
         if (f(n, M) == M) {

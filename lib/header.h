@@ -19,8 +19,13 @@ using u32 = uint32_t;
 using i32 = int32_t;
 using u64 = uint64_t;
 using i64 = int64_t;
-using u128 = unsigned __int128;
-using i128 = __int128;
+#ifdef __SIZEOF_INT128__
+using u128 = unsigned __int128_t;
+using i128 = __int128_t;
+#else
+using u128 = unsigned __int64_t;
+using i128 = __int64_t;
+#endif
 
 using BoolVector = vector<bool>;
 using IntVector = vector<int>;
@@ -38,8 +43,12 @@ using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;
 using U128Set = unordered_set<u128>;
 
+#ifdef __SIZEOF_INT128__
 ostream& operator<<(ostream& o, u128 v);
 ostream& operator<<(ostream& o, i128 v);
+#else
+ostream& operator<<(ostream& o, u128 v);
+#endif
 
 namespace std {
 template<typename T>

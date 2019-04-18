@@ -103,16 +103,20 @@
 #define HAVE_SYS_TYPES_H 1
 
 #ifndef __APPLE__
+#ifdef __x86_64__
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
 #   define HAVE_SYS_UCONTEXT_H 1
+#endif
 #endif
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
 #define HAVE_SYS_UTSNAME_H 1
 
 #ifndef __APPLE__
+#ifdef __x86_64__
 /* Define to 1 if you have the <ucontext.h> header file. */
 #   define HAVE_UCONTEXT_H 1
+#endif
 #endif
 
 /* Define to 1 if you have the <unistd.h> header file. */

@@ -9,6 +9,7 @@ ostream& operator<<(ostream& o, const Cycle& c) {
     return o;
 }
 
+#ifdef __SIZEOF_INT128__
 ostream& operator<<(ostream& o, u128 v) {
     u64 high = v >> 64;
     u64 low = (v << 64) >> 64;
@@ -28,6 +29,12 @@ ostream& operator<<(ostream& o, i128 v) {
     o << static_cast<u128>(v);
     return o;
 }
+#else
+ostream& operator<<(ostream& o, u128 v) {
+    o << static_cast<unsigned long>(v);
+    return o;
+}
+#endif
 
 Exception::Exception() {}
 
