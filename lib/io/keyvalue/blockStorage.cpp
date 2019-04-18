@@ -119,7 +119,7 @@ uint64_t BlockFileReader::read(uint64_t startOffset, uint64_t endOffset, char* b
     auto pos = f_.tell();
     ASSERT(pos >= startOffset);
     ASSERT(pos <= endOffset);
-    uint64_t toRead = std::min(size, endOffset - pos);
+    uint64_t toRead = std::min<uint64_t>(size, endOffset - pos);
     return f_.read(buffer, toRead);
 }
 

@@ -86,7 +86,7 @@ class BlockFileReader : protected BlockFile {
     std::unique_ptr<Reader> get(const std::string& key);
 
    protected:
-    size_t read(uint64_t startOffset, uint64_t endOffset, char* buffer, size_t size);
+    uint64_t read(uint64_t startOffset, uint64_t endOffset, char* buffer, size_t size);
 
    private:
     using KeyToEntry = unordered_map<string, uint64_t>;
