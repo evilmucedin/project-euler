@@ -30,10 +30,12 @@ ostream& operator<<(ostream& o, i128 v) {
     return o;
 }
 #else
+#ifndef __clang__
 ostream& operator<<(ostream& o, u128 v) {
     o << static_cast<unsigned long>(v);
     return o;
 }
+#endif
 #endif
 
 Exception::Exception() {}

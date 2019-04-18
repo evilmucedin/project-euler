@@ -24,9 +24,9 @@ struct Point {
   double fx{};
   double fy{};
   double m{1.0};
-  char r = 0;
-  char g = 0;
-  char b = 0;
+  unsigned char r = 0;
+  unsigned char g = 0;
+  unsigned char b = 0;
   uint8_t a = 255;
   double rx{};
   double ry{};

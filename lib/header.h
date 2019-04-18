@@ -20,11 +20,15 @@ using i32 = int32_t;
 using u64 = uint64_t;
 using i64 = int64_t;
 #ifdef __SIZEOF_INT128__
-using u128 = unsigned __int128_t;
-using i128 = __int128_t;
+using u128 = unsigned __int128;
+using i128 = __int128;
+static_assert(sizeof(u128) == 16, "128-bit types");
+static_assert(sizeof(i128) == 16, "128-bit types");
 #else
-using u128 = unsigned __int64_t;
-using i128 = __int64_t;
+using u128 = unsigned long long int;
+using i128 = long long int;
+static_assert(sizeof(u128) == 8, "128-bit types");
+static_assert(sizeof(i128) == 8, "128-bit types");
 #endif
 
 using BoolVector = vector<bool>;
@@ -47,7 +51,9 @@ using U128Set = unordered_set<u128>;
 ostream& operator<<(ostream& o, u128 v);
 ostream& operator<<(ostream& o, i128 v);
 #else
+#ifndef __clang__
 ostream& operator<<(ostream& o, u128 v);
+#endif
 #endif
 
 namespace std {
@@ -181,16 +187,16 @@ double length(const vector<T>& a) {
 }
 
 struct Cycle {
-    size_t start_;
-    size_t period_;
+    u128 start_;
+    u128 period_;
 };
 
 ostream& operator<<(ostream& o, const Cycle& c);
 
-template<typename T>
+template <typename T>
 bool detectCycle(const T& vector, Cycle* result) {
-    size_t i = 1;
-    size_t j = 2;
+    u128 i = 1;
+    u128 j = 2;
     while ((j < vector.size()) && vector[i] != vector[j]) {
         ++i;
         j += 2;
@@ -198,13 +204,13 @@ bool detectCycle(const T& vector, Cycle* result) {
     if (j == vector.size()) {
         return false;
     }
-    size_t somePeriod = j - i;
-    size_t start = 0;
+    u128 somePeriod = j - i;
+    u128 start = 0;
     while (vector[start] != vector[start + somePeriod]) {
         ++start;
     }
     result->start_ = start;
-    size_t period = 1;
+    u128 period = 1;
     while (vector[start] != vector[start + period]) {
         ++period;
     }
@@ -217,51 +223,56 @@ bool detectCycle(const T& vector, Cycle* result) {
     return true;
 }
 
-template<typename T>
-typename T::value_type getFromCycle(const T& vector, const Cycle& c,
-                                    size_t index) {
-  if (index < vector.size()) {
-    return vector[index];
-  }
-  return vector[(index - c.start_) % c.period_ + c.start_];
+template <typename T>
+typename T::value_type getFromCycle(const T& vector, const Cycle& c, u128 index) {
+    if (index < vector.size()) {
+        return vector[index];
+    }
+    return vector[(index - c.start_) % c.period_ + c.start_];
 }
 
-template<typename T> T subVector(const T& vct, size_t start) {
-  return T(vct.begin() + start, vct.end());
+template <typename T>
+T subVector(const T& vct, size_t start) {
+    return T(vct.begin() + start, vct.end());
 }
 
-template<typename T> T subVector(const T& vct, size_t start, size_t end) {
-  return T(vct.begin() + start, vct.begin() + end);
+template <typename T>
+T subVector(const T& vct, size_t start, size_t end) {
+    return T(vct.begin() + start, vct.begin() + end);
 }
 
-template<typename T> void sort(T& v) { std::sort(v.begin(), v.end()); }
-
-template<typename T> T sorted(const T &x) {
-  T copy(x);
-  sort(copy);
-  return copy;
+template <typename T>
+void sort(T& v) {
+    std::sort(v.begin(), v.end());
 }
 
-template<typename T> void sortAndUnique(vector<T> &v) {
-  sort(v);
-  v.erase(unique(v.begin(), v.end()), v.end());
+template <typename T>
+T sorted(const T& x) {
+    T copy(x);
+    sort(copy);
+    return copy;
 }
 
-template<typename K, typename V>
-V findWithDefault(const unordered_map<K, V>& map, const K &key,
-                  const V &value) {
-  auto it = map.find(key);
-  if (it != map.end()) {
-    return it->second;
-  }
-  return value;
+template <typename T>
+void sortAndUnique(vector<T>& v) {
+    sort(v);
+    v.erase(unique(v.begin(), v.end()), v.end());
 }
 
-template<typename K, typename V>
+template <typename K, typename V>
+V findWithDefault(const unordered_map<K, V>& map, const K& key, const V& value) {
+    auto it = map.find(key);
+    if (it != map.end()) {
+        return it->second;
+    }
+    return value;
+}
+
+template <typename K, typename V>
 vector<K> keys(const unordered_map<K, V>& map) {
     vector<K> result(map.size());
     size_t index = 0;
-    for (const auto& it: map) {
+    for (const auto& it : map) {
         result[index++] = it.first;
     }
     return result;
