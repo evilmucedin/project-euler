@@ -2,7 +2,10 @@
 
 #include <cstring>
 
+#include <array>
+
 namespace {
+
 string strError() {
     string buff(80, '\0');
     auto p = strerror_r(errno, const_cast<char*>(buff.data()), buff.size());
@@ -10,7 +13,8 @@ string strError() {
 }
 
 string modeToString(ios_base::openmode mode) {
-    static constexpr array<ios_base::openmode, 6> kModeValV{ios_base::in, ios_base::out, ios_base::app, ios_base::ate, ios_base::trunc, ios_base::binary};
+    static constexpr array<ios_base::openmode, 6> kModeValV{ios_base::in,  ios_base::out,   ios_base::app,
+                                                            ios_base::ate, ios_base::trunc, ios_base::binary};
 
     static const array<string, kModeValV.size()> kModeNameV{"in", "out", "app", "ate", "trunc", "binary"};
 

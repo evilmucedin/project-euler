@@ -13,8 +13,8 @@
 
 using Point3F = Point3<float>;
 
-const float sphere_radius = 1.5;
-const float noise_amplitude = 1.0;
+const float kSphereRadius = 1.5;
+const float kNoiseAmplitude = 1.0;
 
 template <typename T>
 inline T lerp(const T &v0, const T &v1, float t) {
@@ -31,9 +31,10 @@ float noise(const Point3F &x) {
     Point3F f(x.x - p.x, x.y - p.y, x.z - p.z);
     f = f * (f * (Point3F(3.f, 3.f, 3.f) - f * 2.f));
     float n = p * Point3F(1.f, 57.f, 113.f);
-    return lerp(lerp(lerp(texture(n + 0.f), texture(n + 1.f), f.x), lerp(texture(n + 57.f), texture(n + 58.f), f.x), f.y),
-                lerp(lerp(texture(n + 113.f), texture(n + 114.f), f.x), lerp(texture(n + 170.f), texture(n + 171.f), f.x), f.y),
-                f.z);
+    return lerp(
+        lerp(lerp(texture(n + 0.f), texture(n + 1.f), f.x), lerp(texture(n + 57.f), texture(n + 58.f), f.x), f.y),
+        lerp(lerp(texture(n + 113.f), texture(n + 114.f), f.x), lerp(texture(n + 170.f), texture(n + 171.f), f.x), f.y),
+        f.z);
 }
 
 Point3F rotate(const Point3F &v) {
@@ -71,12 +72,12 @@ Point3F palette_fire(const float d) {
 }
 
 float signed_distance(const Point3F &p) {
-    float displacement = -fractal_brownian_motion(p * 3.4f) * noise_amplitude;
-    return p.norm() - (sphere_radius + displacement);
+    float displacement = -fractal_brownian_motion(p * 3.4f) * kNoiseAmplitude;
+    return p.norm() - (kSphereRadius + displacement);
 }
 
 bool sphere_trace(const Point3F &orig, const Point3F &dir, Point3F &pos) {
-    if (orig * orig > sqr(sphere_radius) + sqr(orig * dir)) {
+    if (orig * orig > sqr(kSphereRadius) + sqr(orig * dir)) {
         return false;  // early discard
     }
 
@@ -115,7 +116,7 @@ int main() {
             Point3F hit;
             if (sphere_trace(Point3F(0, 0, 3), Point3F(dir_x, dir_y, dir_z).normalize(),
                              hit)) {  // the camera is placed to (0,0,3) and it looks along the -z axis
-                float noise_level = (sphere_radius - hit.norm()) / noise_amplitude;
+                float noise_level = (kSphereRadius - hit.norm()) / kNoiseAmplitude;
                 Point3F light_dir = (Point3F(10, 10, 10) - hit).normalize();  // one light is placed to (10,10,10)
                 float light_intensity = std::max(0.4f, light_dir * distance_field_normal(hit));
                 framebuffer[i + j * width] = palette_fire((-.2 + noise_level) * 2) * light_intensity;

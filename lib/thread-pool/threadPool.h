@@ -37,6 +37,7 @@
 // or implied, of Dmitry Vyukov.
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <cstring>
