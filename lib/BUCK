@@ -302,3 +302,16 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="rmq",
+    exported_headers=[
+        "rmq.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

@@ -112,3 +112,14 @@ cxx_test(
     "//gtest:gtest",
   ],
 )
+
+cxx_test(
+  name="rmqTest",
+  srcs=[
+    "rmqTest.cpp",
+  ],
+  deps=[
+    "//lib:rmq",
+    "//gtest:gtest",
+  ],
+)
