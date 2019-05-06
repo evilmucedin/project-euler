@@ -119,7 +119,8 @@ cxx_test(
     "rmqTest.cpp",
   ],
   deps=[
-    "//lib:rmq",
     "//gtest:gtest",
+    "//lib:random",
+    "//lib:rmq",
   ],
 )

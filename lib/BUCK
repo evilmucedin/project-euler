@@ -310,6 +310,7 @@ cxx_library(
     ],
     deps=[
         ":header",
+        "//glog:glog",
     ],
     visibility=[
         'PUBLIC',

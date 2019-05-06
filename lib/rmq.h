@@ -2,6 +2,8 @@
 
 #include "lib/header.h"
 
+#include "glog/logging.h"
+
 #include <type_traits>
 
 template <typename T>
@@ -45,13 +47,20 @@ class RangeAggQuery {
         const size_t n = end - begin;
         const size_t nLevels = std::max<size_t>(1, logCeil(n));
         agg_.resize(nLevels);
+        for (size_t i = 0; i < nLevels; ++i) {
+            agg_[i].resize(n);
+        }
         for (It i = begin; i != end; ++i) {
             agg_[0][i - begin] = i;
         }
         for (size_t level = 1; level < nLevels; ++level) {
-            size_t gap = 1ULL << (level - 1);
-            for (It i = begin; i + gap < end; ++i) {
-                agg_[level][i - begin] = cmp(agg_[level - 1][i - begin], agg_[level - 1][i + gap - begin]);
+            const size_t gap = 1ULL << (level - 1);
+            for (It i = begin; i != end; ++i) {
+                if (i + gap + gap < end) {
+                    agg_[level][i - begin] = cmp(agg_[level - 1][i - begin], agg_[level - 1][i + gap - begin]);
+                } else {
+                    agg_[level][i - begin] = agg_[level - 1][i - begin];
+                }
             }
         }
     }
@@ -59,7 +68,9 @@ class RangeAggQuery {
     It agg(It begin, It end) const {
         size_t diff = end - begin;
         size_t level = std::log2(diff);
-        return cmp(agg_[level][begin - begin_], agg_[level][end - (1ULL << level) - begin_]) ;
+        auto second = end - (1ULL << (level));
+        LOG(INFO) << OUT(diff) << OUT(level) << OUT(second - begin_) << OUT(agg_.size()) << OUT(agg_[level].size());
+        return cmp(agg_[level][begin - begin_], agg_[level][second - begin_]);
     }
 
    private:
