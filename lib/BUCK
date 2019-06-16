@@ -316,3 +316,17 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="fraction",
+    exported_headers=[
+        "fraction.h",
+    ],
+    deps=[
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

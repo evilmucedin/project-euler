@@ -124,3 +124,15 @@ cxx_test(
     "//lib:rmq",
   ],
 )
+
+cxx_test(
+  name="fractionTest",
+  srcs=[
+    "fractionTest.cpp",
+  ],
+  deps=[
+    "//gtest:gtest",
+    "//lib:random",
+    "//lib:fraction",
+  ],
+)
