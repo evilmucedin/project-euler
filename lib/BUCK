@@ -330,3 +330,18 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="treap",
+    exported_headers=[
+        "treap.h",
+    ],
+    deps=[
+        ":header",
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

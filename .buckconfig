@@ -3,5 +3,5 @@ cflags=-march=native
 cppflags=-march=native
 cxxflags=-std=c++14 -march=native
 cxxppflags=-std=c++14 -march=native
-ldflags=-march=native -lpthread
+ldflags=-march=native -pthread
 gtest_dep=//gtest:gtest
