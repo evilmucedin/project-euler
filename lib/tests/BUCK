@@ -135,3 +135,14 @@ cxx_test(
     "//lib:treap",
   ],
 )
+
+cxx_test(
+  name="implicitTreapTest",
+  srcs=[
+    "implicitTreapTest.cpp",
+  ],
+  deps=[
+    "//lib:random",
+    "//lib:implicitTreap",
+  ],
+)

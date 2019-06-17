@@ -338,7 +338,22 @@ cxx_library(
     ],
     deps=[
         ":header",
+        ":random",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="implicitTreap",
+    exported_headers=[
+        "implicitTreap.h",
+    ],
+    deps=[
         ":header",
+        ":random",
         "//glog:glog",
     ],
     visibility=[
