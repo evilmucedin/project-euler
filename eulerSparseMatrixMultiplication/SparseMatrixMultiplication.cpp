@@ -5,6 +5,7 @@
 
 #include "armadillo/armadillo"
 #include "glog/logging.h"
+#include "mkl.h"
 
 #include "lib/benchmark.h"
 #include "lib/random.h"
@@ -73,8 +74,36 @@ arma::vec doubleVectorToArma(const DoubleVector& v) {
     return result;
 }
 
+struct SparseMatrixBLAS {
+    int m_;
+    std::vector<double> a_;
+    std::vector<int> ia_;
+    std::vector<int> ja_;
+};
+
+SparseMatrixBLAS naiveToBLAS(const SparseMatrixNaive& m) {
+    SparseMatrixBLAS result;
+    auto n = m.m.size();
+    result.m_ = n;
+    for (size_t i = 0; i < n; ++i) {
+        result.ia_.emplace_back(result.a_.size());
+        for (const auto& index : m.m[i]) {
+            result.a_.emplace_back(index.value_);
+            result.ja_.emplace_back(index.index_);
+        }
+    }
+    result.ia_.emplace_back(result.a_.size());
+    return result;
+}
+
+DoubleVector mulBLAS(const SparseMatrixBLAS& m, const DoubleVector& v) {
+    DoubleVector result(m.m_);
+    mkl_cspblas_dcsrgemv("N", &m.m_, m.a_.data(), m.ia_.data(), m.ja_.data(), v.data(), result.data());
+    return result;
+}
+
 int main() {
-    static constexpr size_t N = 5000;
+    static constexpr size_t N = 6000;
     auto sm = gen(N, 0.03);
     auto v = genV(N);
 
@@ -86,6 +115,10 @@ int main() {
 
     LOG(INFO) << arma::sum(armasm * armav);
     benchmark("Arma", [&]() { auto res = armasm * armav; });
+
+    auto blassm = naiveToBLAS(sm);
+    LOG(INFO) << sum(mulBLAS(blassm, v));
+    benchmark("MKL", [&]() { mulBLAS(blassm, v); });
 
     return 0;
 }

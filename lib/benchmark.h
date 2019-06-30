@@ -7,7 +7,7 @@
 
 template <typename T>
 void benchmark(const std::string& name, T f) {
-    size_t n = 10;
+    size_t n = 128;
     Stat<double> stat;
     f();
     do {
