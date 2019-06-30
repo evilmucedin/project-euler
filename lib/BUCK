@@ -360,3 +360,31 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="stat",
+    exported_headers=[
+        "stat.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="benchmark",
+    exported_headers=[
+        "benchmark.h",
+    ],
+    deps=[
+        ":header",
+        ":stat",
+        ":timer",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

@@ -1,0 +1,13 @@
+cxx_binary(
+  name="SparseMatrixMultiplication",
+  srcs=[
+    "SparseMatrixMultiplication.cpp"
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:benchmark",
+    "//lib:header",
+    "//lib:random",
+    "//lib:timer",
+  ],
+)
