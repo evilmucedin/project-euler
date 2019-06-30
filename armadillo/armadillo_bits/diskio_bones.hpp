@@ -18,27 +18,30 @@
 //! @{
 
 
-//! class for saving and loading matrices and fields
+//! class for saving and loading matrices and fields - INTERNAL USE ONLY!
 class diskio
   {
   public:
   
-  template<typename eT> inline static std::string gen_txt_header(const Mat<eT>& x);
-  template<typename eT> inline static std::string gen_bin_header(const Mat<eT>& x);
+  template<typename eT> inline arma_cold static std::string gen_txt_header(const Mat<eT>&);
+  template<typename eT> inline arma_cold static std::string gen_bin_header(const Mat<eT>&);
   
-  template<typename eT> inline static std::string gen_bin_header(const SpMat<eT>& x);
+  template<typename eT> inline arma_cold static std::string gen_bin_header(const SpMat<eT>&);
 
-  template<typename eT> inline static std::string gen_txt_header(const Cube<eT>& x);
-  template<typename eT> inline static std::string gen_bin_header(const Cube<eT>& x);
+  template<typename eT> inline arma_cold static std::string gen_txt_header(const Cube<eT>&);
+  template<typename eT> inline arma_cold static std::string gen_bin_header(const Cube<eT>&);
   
-  inline static file_type guess_file_type(std::istream& f);
+  inline arma_cold static file_type guess_file_type(std::istream& f);
   
   inline arma_cold static std::string gen_tmp_name(const std::string& x);
   
   inline arma_cold static bool safe_rename(const std::string& old_name, const std::string& new_name);
   
-  template<typename eT> inline static bool convert_naninf(eT&              val, const std::string& token);
-  template<typename  T> inline static bool convert_naninf(std::complex<T>& val, const std::string& token);
+  template<typename eT> inline static bool convert_token(eT&              val, const std::string& token);
+  template<typename  T> inline static bool convert_token(std::complex<T>& val, const std::string& token);
+  
+  template<typename eT> arma_deprecated inline static bool convert_naninf(eT& val, const std::string& token);
+  
   
   //
   // matrix saving

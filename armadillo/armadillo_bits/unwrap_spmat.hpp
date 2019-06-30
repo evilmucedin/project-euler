@@ -34,6 +34,9 @@ struct unwrap_spmat
     }
   
   const SpMat<eT> M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>&) const { return false; }
   };
 
 
@@ -53,6 +56,9 @@ struct unwrap_spmat< SpMat<eT> >
     }
   
   const SpMat<eT>& M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>& X) const { return (void_ptr(&M) == void_ptr(&X)); }
   };
 
 
@@ -72,6 +78,9 @@ struct unwrap_spmat< SpRow<eT> >
     }
   
   const SpRow<eT>& M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>& X) const { return (void_ptr(&M) == void_ptr(&X)); }
   };
 
 
@@ -91,6 +100,9 @@ struct unwrap_spmat< SpCol<eT> >
     }
   
   const SpCol<eT>& M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>& X) const { return (void_ptr(&M) == void_ptr(&X)); }
   };
 
 
@@ -110,6 +122,9 @@ struct unwrap_spmat< SpOp<T1, spop_type> >
     }
   
   const SpMat<eT> M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>&) const { return false; }
   };
 
 
@@ -129,6 +144,9 @@ struct unwrap_spmat< SpGlue<T1, T2, spglue_type> >
     }
   
   const SpMat<eT> M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>&) const { return false; }
   };
 
 
@@ -146,6 +164,29 @@ struct unwrap_spmat< mtSpOp<out_eT, T1, spop_type> >
     }
   
   const SpMat<out_eT> M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>&) const { return false; }
+  };
+
+
+
+template<typename out_eT, typename T1, typename T2, typename spglue_type>
+struct unwrap_spmat< mtSpGlue<out_eT, T1, T2, spglue_type> >
+  {
+  typedef SpMat<out_eT> stored_type;
+  
+  inline
+  unwrap_spmat(const mtSpGlue<out_eT, T1, T2, spglue_type>& A)
+    : M(A)
+    {
+    arma_extra_debug_sigprint();
+    }
+  
+  const SpMat<out_eT> M;
+  
+  template<typename eT2>
+  arma_inline bool is_alias(const SpMat<eT2>&) const { return false; }
   };
 
 

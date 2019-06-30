@@ -347,6 +347,7 @@ Mat<eT>::init_warm(uword in_n_rows, uword in_n_cols)
 //! create the matrix from a textual description
 template<typename eT>
 inline
+arma_cold
 Mat<eT>::Mat(const char* text)
   : n_rows(0)
   , n_cols(0)
@@ -365,6 +366,7 @@ Mat<eT>::Mat(const char* text)
 //! create the matrix from a textual description
 template<typename eT>
 inline
+arma_cold
 Mat<eT>&
 Mat<eT>::operator=(const char* text)
   {
@@ -379,6 +381,7 @@ Mat<eT>::operator=(const char* text)
 //! create the matrix from a textual description
 template<typename eT>
 inline
+arma_cold
 Mat<eT>::Mat(const std::string& text)
   : n_rows(0)
   , n_cols(0)
@@ -397,6 +400,7 @@ Mat<eT>::Mat(const std::string& text)
 //! create the matrix from a textual description
 template<typename eT>
 inline
+arma_cold
 Mat<eT>&
 Mat<eT>::operator=(const std::string& text)
   {
@@ -410,7 +414,8 @@ Mat<eT>::operator=(const std::string& text)
 
 //! internal function to create the matrix from a textual description
 template<typename eT>
-inline 
+inline
+arma_cold
 void
 Mat<eT>::init(const std::string& text_orig)
   {
@@ -430,12 +435,14 @@ Mat<eT>::init(const std::string& text_orig)
   uword t_n_rows = 0;
   uword t_n_cols = 0;
   
-  bool t_n_cols_found = false;
+  bool has_semicolon = false;
+  bool has_token     = false;
   
   std::string token;
   
   std::string::size_type line_start = 0;
-  std::string::size_type   line_end = 0;
+  std::string::size_type line_end   = 0;
+  std::string::size_type line_len   = 0;
   
   std::stringstream line_stream;
   
@@ -445,44 +452,50 @@ Mat<eT>::init(const std::string& text_orig)
     
     if(line_end == std::string::npos)
       {
-      line_end = text.length()-1;
+      has_semicolon = false;
+      line_end      = text.length()-1;
+      line_len      = line_end - line_start + 1;
       }
-    
-    std::string::size_type line_len = line_end - line_start + 1;
+    else
+      {
+      has_semicolon = true;
+      line_len      = line_end - line_start;  // omit the ';' character
+      }
     
     line_stream.clear();
     line_stream.str( text.substr(line_start,line_len) );
     
+    has_token = false;
+    
     uword line_n_cols = 0;
-    while(line_stream >> token)
+    
+    while(line_stream >> token)  { has_token = true; ++line_n_cols; }
+    
+    if(t_n_rows == 0)
       {
-      ++line_n_cols;
+      t_n_cols = line_n_cols;
+      }
+    else
+      {
+      if(has_semicolon || has_token)  { arma_check( (line_n_cols != t_n_cols), "Mat::init(): inconsistent number of columns in given string"); }
       }
     
-    if(line_n_cols > 0)
-      {
-      if(t_n_cols_found == false)
-        {
-        t_n_cols       = line_n_cols;
-        t_n_cols_found = true;
-        }
-      else
-        {
-        arma_check( (line_n_cols != t_n_cols), "Mat::init(): inconsistent number of columns in given string");
-        }
-      
-      ++t_n_rows;
-      }
-      
+    ++t_n_rows;
+    
     line_start = line_end+1;
     }
   
+  // if the last line was empty, ignore it
+  if( (has_semicolon == false) && (has_token == false) && (t_n_rows >= 1) )  { --t_n_rows; }
   
-  Mat<eT>& x = *this;
+  Mat<eT>& x = (*this);
   x.set_size(t_n_rows, t_n_cols);
+  
+  if(x.is_empty())  { return; }
   
   line_start = 0;
   line_end   = 0;
+  line_len   = 0;
   
   uword urow = 0;
   
@@ -493,25 +506,20 @@ Mat<eT>::init(const std::string& text_orig)
     if(line_end == std::string::npos)
       {
       line_end = text.length()-1;
+      line_len = line_end - line_start + 1;
       }
-    
-    std::string::size_type line_len = line_end - line_start + 1;
+    else
+      {
+      line_len = line_end - line_start;  // omit the ';' character
+      }
     
     line_stream.clear();
     line_stream.str( text.substr(line_start,line_len) );
     
-//     uword ucol = 0;
-//     while(line_stream >> token)
-//       {
-//       x.at(urow,ucol) = strtod(token.c_str(), 0);
-//       ++ucol;
-//       }
-    
     uword ucol = 0;
-    eT val;
-    while(line_stream >> val)
+    while(line_stream >> token)
       {
-      x(urow,ucol) = val;
+      diskio::convert_token( x.at(urow,ucol), token );
       ++ucol;
       }
     
@@ -908,8 +916,8 @@ Mat<eT>::init
   
   typedef typename T1::elem_type T;
   
-  arma_type_check(( is_complex<eT>::value == false ));   //!< compile-time abort if eT is not std::complex
-  arma_type_check(( is_complex< T>::value == true  ));   //!< compile-time abort if  T is     std::complex
+  arma_type_check(( is_cx<eT>::no  ));   //!< compile-time abort if eT is not std::complex
+  arma_type_check(( is_cx< T>::yes ));   //!< compile-time abort if  T is     std::complex
   
   arma_type_check(( is_same_type< std::complex<T>, eT >::no ));   //!< compile-time abort if types are not compatible
   
@@ -1216,7 +1224,7 @@ Mat<eT>::Mat(eT* aux_mem, const uword aux_n_rows, const uword aux_n_cols, const 
   {
   arma_extra_debug_sigprint_this(this);
   
-  if(copy_aux_mem == true)
+  if(copy_aux_mem)
     {
     init_cold();
     
@@ -4212,6 +4220,146 @@ Mat<eT>::shed_cols(const uword in_col1, const uword in_col2)
 
 
 
+//! remove specified rows
+template<typename eT>
+template<typename T1>
+inline
+void
+Mat<eT>::shed_rows(const Base<uword, T1>& indices)
+  {
+  arma_extra_debug_sigprint();
+  
+  const unwrap_check_mixed<T1> U(indices.get_ref(), *this);
+  const Mat<uword>& tmp1 = U.M;
+  
+  arma_debug_check( ((tmp1.is_vec() == false) && (tmp1.is_empty() == false)), "Mat::shed_rows(): list of indices must be a vector" );
+  
+  if(tmp1.is_empty()) { return; }
+  
+  const Col<uword> tmp2(const_cast<uword*>(tmp1.memptr()), tmp1.n_elem, false, false);
+  
+  const Col<uword>& rows_to_shed = (tmp2.is_sorted("strictascend") == false)
+                                   ? Col<uword>(unique(tmp2))
+                                   : Col<uword>(const_cast<uword*>(tmp2.memptr()), tmp2.n_elem, false, false);
+  
+  const uword* rows_to_shed_mem = rows_to_shed.memptr();
+  const uword  N                = rows_to_shed.n_elem;
+  
+  if(arma_config::debug)
+    {
+    for(uword i=0; i<N; ++i)
+      {
+      arma_debug_check( (rows_to_shed_mem[i] >= n_rows), "Mat::shed_rows(): indices out of bounds" );
+      }
+    }
+  
+  Col<uword> tmp3(n_rows);
+  
+  uword* tmp3_mem = tmp3.memptr();
+  
+  uword i     = 0;
+  uword count = 0;
+  
+  for(uword j=0; j < n_rows; ++j)
+    {
+    if(i < N)
+      {
+      if( j != rows_to_shed_mem[i] )
+        {
+        tmp3_mem[count] = j;
+        ++count;
+        }
+      else
+        {
+        ++i;
+        }
+      }
+    else
+      {
+      tmp3_mem[count] = j;
+      ++count;
+      }
+    }
+  
+  const Col<uword> rows_to_keep(tmp3.memptr(), count, false, false);
+  
+  Mat<eT> X = (*this).rows(rows_to_keep);
+  
+  steal_mem(X);
+  }
+
+
+
+//! remove specified columns
+template<typename eT>
+template<typename T1>
+inline
+void
+Mat<eT>::shed_cols(const Base<uword, T1>& indices)
+  {
+  arma_extra_debug_sigprint();
+  
+  const unwrap_check_mixed<T1> U(indices.get_ref(), *this);
+  const Mat<uword>& tmp1 = U.M;
+  
+  arma_debug_check( ((tmp1.is_vec() == false) && (tmp1.is_empty() == false)), "Mat::shed_cols(): list of indices must be a vector" );
+  
+  if(tmp1.is_empty()) { return; }
+  
+  const Col<uword> tmp2(const_cast<uword*>(tmp1.memptr()), tmp1.n_elem, false, false);
+  
+  const Col<uword>& cols_to_shed = (tmp2.is_sorted("strictascend") == false)
+                                   ? Col<uword>(unique(tmp2))
+                                   : Col<uword>(const_cast<uword*>(tmp2.memptr()), tmp2.n_elem, false, false);
+  
+  const uword* cols_to_shed_mem = cols_to_shed.memptr();
+  const uword  N                = cols_to_shed.n_elem;
+  
+  if(arma_config::debug)
+    {
+    for(uword i=0; i<N; ++i)
+      {
+      arma_debug_check( (cols_to_shed_mem[i] >= n_cols), "Mat::shed_cols(): indices out of bounds" );
+      }
+    }
+  
+  Col<uword> tmp3(n_cols);
+  
+  uword* tmp3_mem = tmp3.memptr();
+  
+  uword i     = 0;
+  uword count = 0;
+  
+  for(uword j=0; j < n_cols; ++j)
+    {
+    if(i < N)
+      {
+      if( j != cols_to_shed_mem[i] )
+        {
+        tmp3_mem[count] = j;
+        ++count;
+        }
+      else
+        {
+        ++i;
+        }
+      }
+    else
+      {
+      tmp3_mem[count] = j;
+      ++count;
+      }
+    }
+  
+  const Col<uword> cols_to_keep(tmp3.memptr(), count, false, false);
+  
+  Mat<eT> X = (*this).cols(cols_to_keep);
+  
+  steal_mem(X);
+  }
+
+
+
 //! insert N rows at the specified row position,
 //! optionally setting the elements of the inserted rows to zero
 template<typename eT>
@@ -4244,7 +4392,7 @@ Mat<eT>::insert_rows(const uword row_num, const uword N, const bool set_to_zero)
       out.rows(row_num + N, t_n_rows + N - 1) = rows(row_num, t_n_rows-1);
       }
     
-    if(set_to_zero == true)
+    if(set_to_zero)
       {
       out.rows(row_num, row_num + N - 1).zeros();
       }
@@ -4287,7 +4435,7 @@ Mat<eT>::insert_cols(const uword col_num, const uword N, const bool set_to_zero)
       out.cols(col_num + N, t_n_cols + N - 1) = cols(col_num, t_n_cols-1);
       }
     
-    if(set_to_zero == true)
+    if(set_to_zero)
       {
       out.cols(col_num, col_num + N - 1).zeros();
       }
@@ -4940,6 +5088,134 @@ Mat<eT>&
 Mat<eT>::operator/=(const mtOp<eT, T1, op_type>& X)
   {
   arma_extra_debug_sigprint();
+  
+  const Mat<eT> m(X);
+  
+  return (*this).operator/=(m);
+  }
+
+
+
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>::Mat(const SpToDOp<T1, op_type>& X)
+  : n_rows(0)
+  , n_cols(0)
+  , n_elem(0)
+  , vec_state(0)
+  , mem_state(0)
+  , mem()
+  {
+  arma_extra_debug_sigprint_this(this);
+
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
+
+  op_type::apply(*this, X);
+  }
+
+
+
+//! create a matrix from an SpToDOp, i.e. run the previously delayed unary operations
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>&
+Mat<eT>::operator=(const SpToDOp<T1, op_type>& X)
+  {
+  arma_extra_debug_sigprint();
+
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
+  
+  op_type::apply(*this, X);
+  
+  return *this;
+  }
+
+
+
+//! in-place matrix addition, with the right-hand-side operand having delayed operations
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>&
+Mat<eT>::operator+=(const SpToDOp<T1, op_type>& X)
+  {
+  arma_extra_debug_sigprint();
+  
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
+  
+  const Mat<eT> m(X);
+  
+  return (*this).operator+=(m);
+  }
+
+
+
+//! in-place matrix subtraction, with the right-hand-side operand having delayed operations
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>&
+Mat<eT>::operator-=(const SpToDOp<T1, op_type>& X)
+  {
+  arma_extra_debug_sigprint();
+  
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
+  
+  const Mat<eT> m(X);
+  
+  return (*this).operator-=(m);
+  }
+
+
+
+//! in-place matrix multiplication, with the right-hand-side operand having delayed operations
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>&
+Mat<eT>::operator*=(const SpToDOp<T1, op_type>& X)
+  {
+  arma_extra_debug_sigprint();
+  
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
+  
+  glue_times::apply_inplace(*this, X);
+  
+  return *this;
+  }
+
+
+
+//! in-place matrix element-wise multiplication, with the right-hand-side operand having delayed operations
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>&
+Mat<eT>::operator%=(const SpToDOp<T1, op_type>& X)
+  {
+  arma_extra_debug_sigprint();
+  
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
+  
+  const Mat<eT> m(X);
+  
+  return (*this).operator%=(m);
+  }
+
+
+
+//! in-place matrix element-wise division, with the right-hand-side operand having delayed operations
+template<typename eT>
+template<typename T1, typename op_type>
+inline
+Mat<eT>&
+Mat<eT>::operator/=(const SpToDOp<T1, op_type>& X)
+  {
+  arma_extra_debug_sigprint();
+  
+  arma_type_check(( is_same_type< eT, typename T1::elem_type >::no ));
   
   const Mat<eT> m(X);
   
@@ -5679,129 +5955,134 @@ Mat<eT>::is_sorted(const char* direction, const uword dim) const
   {
   arma_extra_debug_sigprint();
   
-  const char sig = (direction != NULL) ? direction[0] : char(0);
+  const char sig1 = (direction != NULL) ? direction[0] : char(0);
   
-  arma_debug_check( ((sig != 'a') && (sig != 'd')), "Mat::is_sorted(): unknown sort direction" );
+  // direction is one of:
+  // "ascend"
+  // "descend"
+  // "strictascend" 
+  // "strictdescend"
+  
+  arma_debug_check( ((sig1 != 'a') && (sig1 != 'd') && (sig1 != 's')), "Mat::is_sorted(): unknown sort direction" );
+  
+  // "strictascend" 
+  // "strictdescend"
+  //  0123456
+  
+  const char sig2 = (sig1 == 's') ? direction[6] : char(0);  
+  
+  if(sig1 == 's')  { arma_debug_check( ((sig2 != 'a') && (sig2 != 'd')), "Mat::is_sorted(): unknown sort direction" ); }
   
   arma_debug_check( (dim > 1), "Mat::is_sorted(): parameter 'dim' must be 0 or 1" );
+  
+  if(sig1 == 'a')
+    {
+    // case: ascend
+    
+    // deliberately using the opposite direction comparator,
+    // as we need to handle the case of two elements being equal
+    
+    arma_gt_comparator<eT> comparator;
+    
+    return (*this).is_sorted_helper(comparator, dim);
+    }
+  else
+  if(sig1 == 'd')
+    {
+    // case: descend
+    
+    // deliberately using the opposite direction comparator,
+    // as we need to handle the case of two elements being equal
+    
+    arma_lt_comparator<eT> comparator;
+    
+    return (*this).is_sorted_helper(comparator, dim);
+    }
+  else
+  if((sig1 == 's') && (sig2 == 'a'))
+    {
+    // case: strict ascend
+    
+    arma_geq_comparator<eT> comparator;
+    
+    return (*this).is_sorted_helper(comparator, dim);
+    }
+  else
+  if((sig1 == 's') && (sig2 == 'd'))
+    {
+    // case: strict descend
+    
+    arma_leq_comparator<eT> comparator;
+    
+    return (*this).is_sorted_helper(comparator, dim);
+    }
+  
+  return true;
+  }
+
+
+
+template<typename eT>
+template<typename comparator>
+inline
+arma_warn_unused
+bool
+Mat<eT>::is_sorted_helper(const comparator& comp, const uword dim) const
+  {
+  arma_extra_debug_sigprint();
   
   if(n_elem <= 1)  { return true; }
   
   const uword local_n_cols = n_cols;
   const uword local_n_rows = n_rows;
   
-  if(sig == 'a')
+  if(dim == 0)
     {
-    // deliberately using the opposite direction comparator,
-    // as we need to handle the case of two elements being equal
+    if(local_n_rows <= 1u)  { return true; }
     
-    arma_descend_sort_helper<eT> comparator;
+    const uword local_n_rows_m1 = local_n_rows - 1;
     
-    if(dim == 0)
+    for(uword c=0; c < local_n_cols; ++c)
       {
-      if(local_n_rows <= 1u)  { return true; }
+      const eT* coldata = colptr(c);
       
-      const uword local_n_rows_m1 = local_n_rows - 1;
-      
-      for(uword c=0; c < local_n_cols; ++c)
+      for(uword r=0; r < local_n_rows_m1; ++r)
         {
-        const eT* coldata = colptr(c);
+        const eT val1 = (*coldata); coldata++;
+        const eT val2 = (*coldata);
         
-        for(uword r=0; r < local_n_rows_m1; ++r)
-          {
-          const eT val1 = (*coldata); coldata++;
-          const eT val2 = (*coldata);
-          
-          if(comparator(val1,val2))  { return false; }
-          }
-        }
-      }
-    else  // dim == 1
-      {
-      if(local_n_cols <= 1u)  { return true; }
-      
-      const uword local_n_cols_m1 = local_n_cols - 1;
-      
-      if(local_n_rows == 1)
-        {
-        const eT* rowdata = memptr();
-        
-        for(uword c=0; c < local_n_cols_m1; ++c)
-          {
-          const eT val1 = (*rowdata);  rowdata++;
-          const eT val2 = (*rowdata);
-          
-          if(comparator(val1,val2))  { return false; }
-          }
-        }
-      else
-        {
-        for(uword r=0; r < local_n_rows;    ++r)
-        for(uword c=0; c < local_n_cols_m1; ++c)
-          {
-          const eT val1 = at(r,c  );
-          const eT val2 = at(r,c+1);
-          
-          if(comparator(val1,val2))  { return false; }
-          }
+        if(comp(val1,val2))  { return false; }
         }
       }
     }
   else
-  if(sig == 'd')
+  if(dim == 1)
     {
-    // deliberately using the opposite direction comparator,
-    // as we need to handle the case of two elements being equal
+    if(local_n_cols <= 1u)  { return true; }
     
-    arma_ascend_sort_helper<eT> comparator;
+    const uword local_n_cols_m1 = local_n_cols - 1;
     
-    if(dim == 0)
+    if(local_n_rows == 1)
       {
-      if(local_n_rows <= 1u)  { return true; }
+      const eT* rowdata = memptr();
       
-      const uword local_n_rows_m1 = local_n_rows - 1;
-      
-      for(uword c=0; c < local_n_cols; ++c)
+      for(uword c=0; c < local_n_cols_m1; ++c)
         {
-        const eT* coldata = colptr(c);
+        const eT val1 = (*rowdata);  rowdata++;
+        const eT val2 = (*rowdata);
         
-        for(uword r=0; r < local_n_rows_m1; ++r)
-          {
-          const eT val1 = (*coldata); coldata++;
-          const eT val2 = (*coldata);
-          
-          if(comparator(val1,val2))  { return false; }
-          }
+        if(comp(val1,val2))  { return false; }
         }
       }
-    else  // dim == 1
+    else
       {
-      if(local_n_cols <= 1u)  { return true; }
-      
-      const uword local_n_cols_m1 = local_n_cols - 1;
-      
-      if(local_n_rows == 1)
+      for(uword r=0; r < local_n_rows;    ++r)
+      for(uword c=0; c < local_n_cols_m1; ++c)
         {
-        const eT* rowdata = memptr();
+        const eT val1 = at(r,c  );
+        const eT val2 = at(r,c+1);
         
-        for(uword c=0; c < local_n_cols_m1; ++c)
-          {
-          const eT val1 = (*rowdata);  rowdata++;
-          const eT val2 = (*rowdata);
-          
-          if(comparator(val1,val2))  { return false; }
-          }
-        }
-      else
-        {
-        for(uword r=0; r < local_n_rows;    ++r)
-        for(uword c=0; c < local_n_cols_m1; ++c)
-          {
-          const eT val1 = at(r,c  );
-          const eT val2 = at(r,c+1);
-          
-          if(comparator(val1,val2))  { return false; }
-          }
+        if(comp(val1,val2))  { return false; }
         }
       }
     }
@@ -5832,7 +6113,7 @@ Mat<eT>::in_range(const span& x) const
   {
   arma_extra_debug_sigprint();
   
-  if(x.whole == true)
+  if(x.whole)
     {
     return true;
     }
@@ -5867,7 +6148,7 @@ Mat<eT>::in_range(const span& row_span, const uword in_col) const
   {
   arma_extra_debug_sigprint();
   
-  if(row_span.whole == true)
+  if(row_span.whole)
     {
     return (in_col < n_cols);
     }
@@ -5890,7 +6171,7 @@ Mat<eT>::in_range(const uword in_row, const span& col_span) const
   {
   arma_extra_debug_sigprint();
   
-  if(col_span.whole == true)
+  if(col_span.whole)
     {
     return (in_row < n_rows);
     }
@@ -5922,7 +6203,7 @@ Mat<eT>::in_range(const span& row_span, const span& col_span) const
   const bool rows_ok = row_span.whole ? true : ( (in_row1 <= in_row2) && (in_row2 < n_rows) );
   const bool cols_ok = col_span.whole ? true : ( (in_col1 <= in_col2) && (in_col2 < n_cols) );
   
-  return ( (rows_ok == true) && (cols_ok == true) );
+  return ( rows_ok && cols_ok );
   }
 
 
@@ -6001,6 +6282,7 @@ Mat<eT>::memptr() const
 //! the precision and cell width are modified.
 //! on return, the stream's state are restored to their original values.
 template<typename eT>
+arma_cold
 inline
 void
 Mat<eT>::impl_print(const std::string& extra_text) const
@@ -6026,6 +6308,7 @@ Mat<eT>::impl_print(const std::string& extra_text) const
 //! the precision and cell width are modified.
 //! on return, the stream's state are restored to their original values.
 template<typename eT>
+arma_cold
 inline
 void
 Mat<eT>::impl_print(std::ostream& user_stream, const std::string& extra_text) const
@@ -6051,6 +6334,7 @@ Mat<eT>::impl_print(std::ostream& user_stream, const std::string& extra_text) co
 //! the stream's state are used as is and are not modified
 //! (i.e. the precision and cell width are not modified).
 template<typename eT>
+arma_cold
 inline
 void
 Mat<eT>::impl_raw_print(const std::string& extra_text) const
@@ -6076,6 +6360,7 @@ Mat<eT>::impl_raw_print(const std::string& extra_text) const
 //! the stream's state are used as is and are not modified.
 //! (i.e. the precision and cell width are not modified).
 template<typename eT>
+arma_cold
 inline
 void
 Mat<eT>::impl_raw_print(std::ostream& user_stream, const std::string& extra_text) const
@@ -6404,7 +6689,6 @@ Mat<eT>::replace(const eT old_val, const eT new_val)
 
 //! fill the matrix with the specified value
 template<typename eT>
-arma_hot
 inline
 const Mat<eT>&
 Mat<eT>::fill(const eT val)
@@ -6421,7 +6705,6 @@ Mat<eT>::fill(const eT val)
 //! fill the matrix with the specified value
 template<typename eT>
 template<typename fill_type>
-arma_hot
 inline
 const Mat<eT>&
 Mat<eT>::fill(const fill::fill_class<fill_type>&)
@@ -6702,6 +6985,7 @@ Mat<eT>::eye(const SizeMat& s)
 
 template<typename eT>
 inline
+arma_cold
 void
 Mat<eT>::reset()
   {
@@ -6727,6 +7011,7 @@ Mat<eT>::reset()
 
 template<typename eT>
 inline
+arma_cold
 void
 Mat<eT>::soft_reset()
   {
@@ -6914,6 +7199,7 @@ Mat<eT>::max(uword& row_of_max_val, uword& col_of_max_val) const
 //! save the matrix to a file
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::save(const std::string name, const file_type type, const bool print_status) const
   {
@@ -6969,6 +7255,7 @@ Mat<eT>::save(const std::string name, const file_type type, const bool print_sta
 
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::save(const hdf5_name& spec, const file_type type, const bool print_status) const
   {
@@ -7028,6 +7315,7 @@ Mat<eT>::save(const hdf5_name& spec, const file_type type, const bool print_stat
 //! save the matrix to a stream
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::save(std::ostream& os, const file_type type, const bool print_status) const
   {
@@ -7076,6 +7364,7 @@ Mat<eT>::save(std::ostream& os, const file_type type, const bool print_status) c
 //! load a matrix from a file
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::load(const std::string name, const file_type type, const bool print_status)
   {
@@ -7151,6 +7440,7 @@ Mat<eT>::load(const std::string name, const file_type type, const bool print_sta
 
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::load(const hdf5_name& spec, const file_type type, const bool print_status)
   {
@@ -7207,6 +7497,7 @@ Mat<eT>::load(const hdf5_name& spec, const file_type type, const bool print_stat
 //! load a matrix from a stream
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::load(std::istream& is, const file_type type, const bool print_status)
   {
@@ -7275,6 +7566,7 @@ Mat<eT>::load(std::istream& is, const file_type type, const bool print_status)
 //! save the matrix to a file, without printing any error messages
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::quiet_save(const std::string name, const file_type type) const
   {
@@ -7287,6 +7579,7 @@ Mat<eT>::quiet_save(const std::string name, const file_type type) const
 
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::quiet_save(const hdf5_name& spec, const file_type type) const
   {
@@ -7300,6 +7593,7 @@ Mat<eT>::quiet_save(const hdf5_name& spec, const file_type type) const
 //! save the matrix to a stream, without printing any error messages
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::quiet_save(std::ostream& os, const file_type type) const
   {
@@ -7313,6 +7607,7 @@ Mat<eT>::quiet_save(std::ostream& os, const file_type type) const
 //! load a matrix from a file, without printing any error messages
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::quiet_load(const std::string name, const file_type type)
   {
@@ -7325,6 +7620,7 @@ Mat<eT>::quiet_load(const std::string name, const file_type type)
 
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::quiet_load(const hdf5_name& spec, const file_type type)
   {
@@ -7338,6 +7634,7 @@ Mat<eT>::quiet_load(const hdf5_name& spec, const file_type type)
 //! load a matrix from a stream, without printing any error messages
 template<typename eT>
 inline
+arma_cold
 bool
 Mat<eT>::quiet_load(std::istream& is, const file_type type)
   {
@@ -7350,10 +7647,25 @@ Mat<eT>::quiet_load(std::istream& is, const file_type type)
 
 template<typename eT>
 inline
-Mat<eT>::row_iterator::row_iterator(Mat<eT>& in_M, const uword in_row)
-  : M  (in_M  )
-  , row(in_row)
-  , col(0     )
+Mat<eT>::row_iterator::row_iterator()
+  : M          (NULL)
+  , current_ptr(NULL)
+  , current_row(0   )
+  , current_col(0   )
+  {
+  arma_extra_debug_sigprint();
+  // Technically this iterator is invalid (it does not point to a valid element)
+  }
+
+
+
+template<typename eT>
+inline
+Mat<eT>::row_iterator::row_iterator(const row_iterator& X)
+  : M          (X.M          )
+  , current_ptr(X.current_ptr)
+  , current_row(X.current_row)
+  , current_col(X.current_col)
   {
   arma_extra_debug_sigprint();
   }
@@ -7362,10 +7674,24 @@ Mat<eT>::row_iterator::row_iterator(Mat<eT>& in_M, const uword in_row)
 
 template<typename eT>
 inline
+Mat<eT>::row_iterator::row_iterator(Mat<eT>& in_M, const uword in_row)
+  : M          (&in_M               )
+  , current_ptr(&(in_M.at(in_row,0)))
+  , current_row(in_row              )
+  , current_col(0                   )
+  {
+  arma_extra_debug_sigprint();
+  }
+
+
+
+template<typename eT>
+inline
+arma_warn_unused
 eT&
 Mat<eT>::row_iterator::operator*()
   {
-  return M.at(row,col);
+  return (*current_ptr);
   }
 
 
@@ -7375,12 +7701,18 @@ inline
 typename Mat<eT>::row_iterator&
 Mat<eT>::row_iterator::operator++()
   {
-  ++col;
+  current_col++;
   
-  if(col >= M.n_cols)
+  if(current_col == M->n_cols)
     {
-    col = 0;
-    ++row;
+    current_col = 0;
+    current_row++;
+    
+    current_ptr = &(M->at(current_row, 0));
+    }
+  else
+    {
+    current_ptr += M->n_rows;
     }
   
   return *this;
@@ -7390,10 +7722,15 @@ Mat<eT>::row_iterator::operator++()
 
 template<typename eT>
 inline
-void
+arma_warn_unused
+typename Mat<eT>::row_iterator
 Mat<eT>::row_iterator::operator++(int)
   {
-  operator++();
+  typename Mat<eT>::row_iterator temp(*this);
+  
+  ++(*this);
+  
+  return temp;
   }
 
 
@@ -7403,16 +7740,20 @@ inline
 typename Mat<eT>::row_iterator&
 Mat<eT>::row_iterator::operator--()
   {
-  if(col > 0)
+  if(current_col > 0)
     {
-    --col;
+    current_col--;
+    
+    current_ptr -= M->n_rows;
     }
   else
     {
-    if(row > 0)
+    if(current_row > 0)
       {
-      col = M.n_cols - 1;
-      --row;
+      current_col = M->n_cols - 1;
+      current_row--;
+      
+      current_ptr = &(M->at(current_row, current_col));
       }
     }
   
@@ -7423,42 +7764,73 @@ Mat<eT>::row_iterator::operator--()
 
 template<typename eT>
 inline
-void
+arma_warn_unused
+typename Mat<eT>::row_iterator
 Mat<eT>::row_iterator::operator--(int)
   {
-  operator--();
+  typename Mat<eT>::row_iterator temp(*this);
+  
+  --(*this);
+  
+  return temp;
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::row_iterator::operator!=(const typename Mat<eT>::row_iterator& X) const
   {
-  return ( (row != X.row) || (col != X.col) ) ? true : false;
+  return (current_ptr != X.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::row_iterator::operator==(const typename Mat<eT>::row_iterator& X) const
   {
-  return ( (row == X.row) && (col == X.col) ) ? true : false;
+  return (current_ptr == X.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
-Mat<eT>::const_row_iterator::const_row_iterator(const Mat<eT>& in_M, const uword in_row)
-  : M  (in_M  )
-  , row(in_row)
-  , col(0     )
+arma_warn_unused
+bool
+Mat<eT>::row_iterator::operator!=(const typename Mat<eT>::const_row_iterator& X) const
+  {
+  return (current_ptr != X.current_ptr);
+  }
+
+
+
+template<typename eT>
+inline
+arma_warn_unused
+bool
+Mat<eT>::row_iterator::operator==(const typename Mat<eT>::const_row_iterator& X) const
+  {
+  return (current_ptr == X.current_ptr);
+  }
+
+
+
+template<typename eT>
+inline
+Mat<eT>::const_row_iterator::const_row_iterator()
+  : M          (NULL)
+  , current_ptr(NULL)
+  , current_row(0   )
+  , current_col(0   )
   {
   arma_extra_debug_sigprint();
+  // Technically this iterator is invalid (it does not point to a valid element)
   }
 
 
@@ -7466,9 +7838,10 @@ Mat<eT>::const_row_iterator::const_row_iterator(const Mat<eT>& in_M, const uword
 template<typename eT>
 inline
 Mat<eT>::const_row_iterator::const_row_iterator(const typename Mat<eT>::row_iterator& X)
-  : M  (X.M)
-  , row(X.row)
-  , col(X.col)
+  : M          (X.M          )
+  , current_ptr(X.current_ptr)
+  , current_row(X.current_row)
+  , current_col(X.current_col)
   {
   arma_extra_debug_sigprint();
   }
@@ -7477,10 +7850,37 @@ Mat<eT>::const_row_iterator::const_row_iterator(const typename Mat<eT>::row_iter
 
 template<typename eT>
 inline
-eT
+Mat<eT>::const_row_iterator::const_row_iterator(const typename Mat<eT>::const_row_iterator& X)
+  : M          (X.M          )
+  , current_ptr(X.current_ptr)
+  , current_row(X.current_row)
+  , current_col(X.current_col)
+  {
+  arma_extra_debug_sigprint();
+  }
+
+
+
+template<typename eT>
+inline
+Mat<eT>::const_row_iterator::const_row_iterator(const Mat<eT>& in_M, const uword in_row)
+  : M          (&in_M               )
+  , current_ptr(&(in_M.at(in_row,0)))
+  , current_row(in_row              )
+  , current_col(0                   )
+  {
+  arma_extra_debug_sigprint();
+  }
+
+
+
+template<typename eT>
+inline
+arma_warn_unused
+const eT&
 Mat<eT>::const_row_iterator::operator*() const
   {
-  return M.at(row,col);
+  return (*current_ptr);
   }
 
 
@@ -7490,12 +7890,18 @@ inline
 typename Mat<eT>::const_row_iterator&
 Mat<eT>::const_row_iterator::operator++()
   {
-  ++col;
+  current_col++;
   
-  if(col >= M.n_cols)
+  if(current_col == M->n_cols)
     {
-    col = 0;
-    ++row;
+    current_col = 0;
+    current_row++;
+    
+    current_ptr = &(M->at(current_row, 0));
+    }
+  else
+    {
+    current_ptr += M->n_rows;
     }
   
   return *this;
@@ -7505,10 +7911,15 @@ Mat<eT>::const_row_iterator::operator++()
 
 template<typename eT>
 inline
-void
+arma_warn_unused
+typename Mat<eT>::const_row_iterator
 Mat<eT>::const_row_iterator::operator++(int)
   {
-  operator++();
+  typename Mat<eT>::const_row_iterator temp(*this);
+  
+  ++(*this);
+  
+  return temp;
   }
 
 
@@ -7518,16 +7929,20 @@ inline
 typename Mat<eT>::const_row_iterator&
 Mat<eT>::const_row_iterator::operator--()
   {
-  if(col > 0)
+  if(current_col > 0)
     {
-    --col;
+    current_col--;
+    
+    current_ptr -= M->n_rows;
     }
   else
     {
-    if(row > 0)
+    if(current_row > 0)
       {
-      col = M.n_cols - 1;
-      --row;
+      current_col = M->n_cols - 1;
+      current_row--;
+      
+      current_ptr = &(M->at(current_row, current_col));
       }
     }
   
@@ -7538,30 +7953,59 @@ Mat<eT>::const_row_iterator::operator--()
 
 template<typename eT>
 inline
-void
+arma_warn_unused
+typename Mat<eT>::const_row_iterator
 Mat<eT>::const_row_iterator::operator--(int)
   {
-  operator--();
+  typename Mat<eT>::const_row_iterator temp(*this);
+  
+  --(*this);
+  
+  return temp;
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
+bool
+Mat<eT>::const_row_iterator::operator!=(const typename Mat<eT>::row_iterator& X) const
+  {
+  return (current_ptr != X.current_ptr);
+  }
+
+
+
+template<typename eT>
+inline
+arma_warn_unused
+bool
+Mat<eT>::const_row_iterator::operator==(const typename Mat<eT>::row_iterator& X) const
+  {
+  return (current_ptr == X.current_ptr);
+  }
+
+
+
+template<typename eT>
+inline
+arma_warn_unused
 bool
 Mat<eT>::const_row_iterator::operator!=(const typename Mat<eT>::const_row_iterator& X) const
   {
-  return ( (row != X.row) || (col != X.col) ) ? true : false;
+  return (current_ptr != X.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::const_row_iterator::operator==(const typename Mat<eT>::const_row_iterator& X) const
   {
-  return ( (row == X.row) && (col == X.col) ) ? true : false;
+  return (current_ptr == X.current_ptr);
   }
 
 
@@ -7569,13 +8013,13 @@ Mat<eT>::const_row_iterator::operator==(const typename Mat<eT>::const_row_iterat
 template<typename eT>
 inline
 Mat<eT>::row_col_iterator::row_col_iterator()
-  : M           (NULL)
-  , current_pos (NULL)
-  , internal_col(0   )
-  , internal_row(0   )
+  : M          (NULL)
+  , current_ptr(NULL)
+  , current_col(0   )
+  , current_row(0   )
   {
   arma_extra_debug_sigprint();
-  // Technically this iterator is invalid (it does not point to a real element)
+  // Technically this iterator is invalid (it does not point to a valid element)
   }
 
 
@@ -7583,10 +8027,10 @@ Mat<eT>::row_col_iterator::row_col_iterator()
 template<typename eT>
 inline
 Mat<eT>::row_col_iterator::row_col_iterator(const row_col_iterator& in_it)
-  : M           (in_it.M           )
-  , current_pos (in_it.current_pos )
-  , internal_col(in_it.internal_col)
-  , internal_row(in_it.internal_row)
+  : M          (in_it.M          )
+  , current_ptr(in_it.current_ptr)
+  , current_col(in_it.current_col)
+  , current_row(in_it.current_row)
   {
   arma_extra_debug_sigprint();
   }
@@ -7596,10 +8040,10 @@ Mat<eT>::row_col_iterator::row_col_iterator(const row_col_iterator& in_it)
 template<typename eT>
 inline
 Mat<eT>::row_col_iterator::row_col_iterator(Mat<eT>& in_M, const uword in_row, const uword in_col)
-  : M           (&in_M                  )
-  , current_pos (&in_M.at(in_row,in_col))
-  , internal_col(in_col                 )
-  , internal_row(in_row                 )
+  : M          (&in_M                  )
+  , current_ptr(&in_M.at(in_row,in_col))
+  , current_col(in_col                 )
+  , current_row(in_row                 )
   {
   arma_extra_debug_sigprint();
   }
@@ -7608,10 +8052,11 @@ Mat<eT>::row_col_iterator::row_col_iterator(Mat<eT>& in_M, const uword in_row, c
 
 template<typename eT>
 inline
+arma_warn_unused
 eT&
 Mat<eT>::row_col_iterator::operator*()
   {
-  return *current_pos;
+  return *current_ptr;
   }
 
 
@@ -7621,14 +8066,14 @@ inline
 typename Mat<eT>::row_col_iterator&
 Mat<eT>::row_col_iterator::operator++()
   {
-  current_pos++;
-  internal_row++;
+  current_ptr++;
+  current_row++;
   
   // Check to see if we moved a column.
-  if(internal_row == M->n_rows)
+  if(current_row == M->n_rows)
     {
-    internal_col++;
-    internal_row = 0;
+    current_col++;
+    current_row = 0;
     }
   
   return *this;
@@ -7638,6 +8083,7 @@ Mat<eT>::row_col_iterator::operator++()
 
 template<typename eT>
 inline
+arma_warn_unused
 typename Mat<eT>::row_col_iterator
 Mat<eT>::row_col_iterator::operator++(int)
   {
@@ -7654,17 +8100,17 @@ template<typename eT>
 inline typename Mat<eT>::row_col_iterator&
 Mat<eT>::row_col_iterator::operator--()
   {
-  if(internal_row > 0)
+  if(current_row > 0)
     {
-    current_pos--;
-    internal_row--;
+    current_ptr--;
+    current_row--;
     }
   else
-  if(internal_col > 0)
+  if(current_col > 0)
     {
-    current_pos--;
-    internal_col--;
-    internal_row = M->n_rows - 1;
+    current_ptr--;
+    current_col--;
+    current_row = M->n_rows - 1;
     }
   
   return *this;
@@ -7674,6 +8120,7 @@ Mat<eT>::row_col_iterator::operator--()
 
 template<typename eT>
 inline
+arma_warn_unused
 typename Mat<eT>::row_col_iterator
 Mat<eT>::row_col_iterator::operator--(int)
   {
@@ -7688,60 +8135,66 @@ Mat<eT>::row_col_iterator::operator--(int)
 
 template<typename eT>
 inline
+arma_warn_unused
 uword
 Mat<eT>::row_col_iterator::row() const
   {
-  return internal_row;
+  return current_row;
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 uword
 Mat<eT>::row_col_iterator::col() const
   {
-  return internal_col;
+  return current_col;
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::row_col_iterator::operator==(const row_col_iterator& rhs) const
   {
-  return (current_pos == rhs.current_pos);
+  return (current_ptr == rhs.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::row_col_iterator::operator!=(const row_col_iterator& rhs) const
   {
-  return (current_pos != rhs.current_pos);
+  return (current_ptr != rhs.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::row_col_iterator::operator==(const const_row_col_iterator& rhs) const
   {
-  return (current_pos == rhs.current_pos);
+  return (current_ptr == rhs.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::row_col_iterator::operator!=(const const_row_col_iterator& rhs) const
   {
-  return (current_pos != rhs.current_pos);
+  return (current_ptr != rhs.current_ptr);
   }
 
 
@@ -7749,13 +8202,13 @@ Mat<eT>::row_col_iterator::operator!=(const const_row_col_iterator& rhs) const
 template<typename eT>
 inline
 Mat<eT>::const_row_col_iterator::const_row_col_iterator()
-  : M           (NULL)
-  , current_pos (NULL)
-  , internal_col(0   )
-  , internal_row(0   )
+  : M          (NULL)
+  , current_ptr(NULL)
+  , current_col(0   )
+  , current_row(0   )
   {
   arma_extra_debug_sigprint();
-  // Technically this iterator is invalid (it does not point to a real element)
+  // Technically this iterator is invalid (it does not point to a valid element)
   }
 
 
@@ -7763,10 +8216,10 @@ Mat<eT>::const_row_col_iterator::const_row_col_iterator()
 template<typename eT>
 inline
 Mat<eT>::const_row_col_iterator::const_row_col_iterator(const row_col_iterator& in_it)
-  : M           (in_it.M          )
-  , current_pos (in_it.current_pos)
-  , internal_col(in_it.col()      )
-  , internal_row(in_it.row()      )
+  : M          (in_it.M          )
+  , current_ptr(in_it.current_ptr)
+  , current_col(in_it.col()      )
+  , current_row(in_it.row()      )
   {
   arma_extra_debug_sigprint();
   }
@@ -7776,10 +8229,10 @@ Mat<eT>::const_row_col_iterator::const_row_col_iterator(const row_col_iterator& 
 template<typename eT>
 inline
 Mat<eT>::const_row_col_iterator::const_row_col_iterator(const const_row_col_iterator& in_it)
-  : M           (in_it.M          )
-  , current_pos (in_it.current_pos)
-  , internal_col(in_it.col()      )
-  , internal_row(in_it.row()      )
+  : M          (in_it.M          )
+  , current_ptr(in_it.current_ptr)
+  , current_col(in_it.col()      )
+  , current_row(in_it.row()      )
   {
   arma_extra_debug_sigprint();
   }
@@ -7789,10 +8242,10 @@ Mat<eT>::const_row_col_iterator::const_row_col_iterator(const const_row_col_iter
 template<typename eT>
 inline
 Mat<eT>::const_row_col_iterator::const_row_col_iterator(const Mat<eT>& in_M, const uword in_row, const uword in_col)
-  : M           (&in_M                  )
-  , current_pos (&in_M.at(in_row,in_col))
-  , internal_col(in_col                 )
-  , internal_row(in_row                 )
+  : M          (&in_M                  )
+  , current_ptr(&in_M.at(in_row,in_col))
+  , current_col(in_col                 )
+  , current_row(in_row                 )
   {
   arma_extra_debug_sigprint();
   }
@@ -7801,10 +8254,11 @@ Mat<eT>::const_row_col_iterator::const_row_col_iterator(const Mat<eT>& in_M, con
 
 template<typename eT>
 inline
+arma_warn_unused
 const eT&
 Mat<eT>::const_row_col_iterator::operator*() const
   {
-  return *current_pos;
+  return *current_ptr;
   }
 
 
@@ -7814,14 +8268,14 @@ inline
 typename Mat<eT>::const_row_col_iterator&
 Mat<eT>::const_row_col_iterator::operator++()
   {
-  current_pos++;
-  internal_row++;
+  current_ptr++;
+  current_row++;
   
   // Check to see if we moved a column.
-  if(internal_row == M->n_rows)
+  if(current_row == M->n_rows)
     {
-    internal_col++;
-    internal_row = 0;
+    current_col++;
+    current_row = 0;
     }
   
   return *this;
@@ -7831,6 +8285,7 @@ Mat<eT>::const_row_col_iterator::operator++()
 
 template<typename eT>
 inline
+arma_warn_unused
 typename Mat<eT>::const_row_col_iterator
 Mat<eT>::const_row_col_iterator::operator++(int)
   {
@@ -7848,17 +8303,17 @@ inline
 typename Mat<eT>::const_row_col_iterator&
 Mat<eT>::const_row_col_iterator::operator--()
   {
-  if(internal_row > 0)
+  if(current_row > 0)
     {
-    current_pos--;
-    internal_row--;
+    current_ptr--;
+    current_row--;
     }
   else
-  if(internal_col > 0)
+  if(current_col > 0)
     {
-    current_pos--;
-    internal_col--;
-    internal_row = M->n_rows - 1;
+    current_ptr--;
+    current_col--;
+    current_row = M->n_rows - 1;
     }
   
   return *this;
@@ -7868,6 +8323,7 @@ Mat<eT>::const_row_col_iterator::operator--()
 
 template<typename eT>
 inline
+arma_warn_unused
 typename Mat<eT>::const_row_col_iterator
 Mat<eT>::const_row_col_iterator::operator--(int)
   {
@@ -7882,60 +8338,66 @@ Mat<eT>::const_row_col_iterator::operator--(int)
 
 template<typename eT>
 inline
+arma_warn_unused
 uword
 Mat<eT>::const_row_col_iterator::row() const
   {
-  return internal_row;
+  return current_row;
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 uword
 Mat<eT>::const_row_col_iterator::col() const
   {
-  return internal_col;
+  return current_col;
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::const_row_col_iterator::operator==(const const_row_col_iterator& rhs) const
   {
-  return (current_pos == rhs.current_pos);
+  return (current_ptr == rhs.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::const_row_col_iterator::operator!=(const const_row_col_iterator& rhs) const
   {
-  return (current_pos != rhs.current_pos);
+  return (current_ptr != rhs.current_ptr);
   }
 
 
   
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::const_row_col_iterator::operator==(const row_col_iterator& rhs) const
   {
-  return (current_pos == rhs.current_pos);
+  return (current_ptr == rhs.current_ptr);
   }
 
 
 
 template<typename eT>
 inline
+arma_warn_unused
 bool
 Mat<eT>::const_row_col_iterator::operator!=(const row_col_iterator& rhs) const
   {
-  return (current_pos != rhs.current_pos);
+  return (current_ptr != rhs.current_ptr);
   }
 
 
@@ -8731,7 +9193,6 @@ Mat<eT>::fixed<fixed_n_rows, fixed_n_cols>::is_vec() const
 
 template<typename eT>
 template<uword fixed_n_rows, uword fixed_n_cols>
-arma_hot
 inline
 const Mat<eT>&
 Mat<eT>::fixed<fixed_n_rows, fixed_n_cols>::fill(const eT val)
@@ -8749,7 +9210,6 @@ Mat<eT>::fixed<fixed_n_rows, fixed_n_cols>::fill(const eT val)
 
 template<typename eT>
 template<uword fixed_n_rows, uword fixed_n_cols>
-arma_hot
 inline
 const Mat<eT>&
 Mat<eT>::fixed<fixed_n_rows, fixed_n_cols>::zeros()
@@ -8767,7 +9227,6 @@ Mat<eT>::fixed<fixed_n_rows, fixed_n_cols>::zeros()
 
 template<typename eT>
 template<uword fixed_n_rows, uword fixed_n_cols>
-arma_hot
 inline
 const Mat<eT>&
 Mat<eT>::fixed<fixed_n_rows, fixed_n_cols>::ones()

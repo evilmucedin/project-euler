@@ -47,7 +47,12 @@ spsolve_helper
   
   bool status = false;
   
-  const superlu_opts& opts = (settings.id == 1) ? static_cast<const superlu_opts&>(settings) : superlu_opts();
+  superlu_opts superlu_opts_default;
+  
+  if(is_float <T>::value)  { superlu_opts_default.refine = superlu_opts::REF_SINGLE; }
+  if(is_double<T>::value)  { superlu_opts_default.refine = superlu_opts::REF_DOUBLE; }
+  
+  const superlu_opts& opts = (settings.id == 1) ? static_cast<const superlu_opts&>(settings) : superlu_opts_default;
   
   arma_debug_check( ( (opts.pivot_thresh < double(0)) || (opts.pivot_thresh > double(1)) ), "spsolve(): pivot_thresh out of bounds" );
   
@@ -103,6 +108,11 @@ spsolve_helper
         flags |= solve_opts::flag_equilibrate;
         }
       
+      if(opts.allow_ugly == true)
+        {
+        flags |= solve_opts::flag_allow_ugly;
+        }
+      
       status = glue_solve_gen::apply(out, AA, B.get_ref(), flags);
       }
     }
@@ -114,6 +124,11 @@ spsolve_helper
     else              { arma_debug_warn("spsolve(): system seems singular");                      }
     
     out.soft_reset();
+    }
+  
+  if( (status == true) && (rcond > T(0)) && (rcond <= (T(0.5)*std::numeric_limits<T>::epsilon())) )
+    {
+    arma_debug_warn("solve(): solution computed, but system seems singular to working precision (rcond: ", rcond, ")");
     }
   
   return status;

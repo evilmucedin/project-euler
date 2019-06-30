@@ -16,14 +16,14 @@
 
 
 #if !defined(ARMA_USE_LAPACK)
-/* #undef ARMA_USE_LAPACK */
+#define ARMA_USE_LAPACK
 //// Comment out the above line if you don't have LAPACK or a high-speed replacement for LAPACK,
 //// such as Intel MKL, AMD ACML, or the Accelerate framework.
 //// LAPACK is required for matrix decompositions (eg. SVD) and matrix inverse.
 #endif
 
 #if !defined(ARMA_USE_BLAS)
-/* #undef ARMA_USE_BLAS */
+#define ARMA_USE_BLAS
 //// Comment out the above line if you don't have BLAS or a high-speed replacement for BLAS,
 //// such as OpenBLAS, GotoBLAS, Intel MKL, AMD ACML, or the Accelerate framework.
 //// BLAS is used for matrix multiplication.
@@ -37,26 +37,26 @@
 #endif
 
 #if !defined(ARMA_USE_ARPACK)
-/* #undef ARMA_USE_ARPACK */
+// #define ARMA_USE_ARPACK
 //// Uncomment the above line if you have ARPACK or a high-speed replacement for ARPACK.
 //// ARPACK is required for eigen decompositions of complex sparse matrices
 #endif
 
 #if !defined(ARMA_USE_SUPERLU)
-/* #undef ARMA_USE_SUPERLU */
+// #define ARMA_USE_SUPERLU
 //// Uncomment the above line if you have SuperLU.
 //// SuperLU is used for solving sparse linear systems via spsolve()
 //// Caveat: only SuperLU version 5.2 can be used!
 #endif
 
 #if !defined(ARMA_SUPERLU_INCLUDE_DIR)
-#define ARMA_SUPERLU_INCLUDE_DIR /
+// #define ARMA_SUPERLU_INCLUDE_DIR /usr/include/
 //// If you're using SuperLU and want to explicitly include the SuperLU headers,
 //// uncomment the above define and specify the appropriate include directory.
 //// Make sure the directory has a trailing /
 #endif
 
-#define ARMA_USE_WRAPPER
+// #define ARMA_USE_WRAPPER
 //// Comment out the above line if you're getting linking errors when compiling your programs,
 //// or if you prefer to directly link with LAPACK, BLAS + etc instead of the Armadillo runtime library.
 //// You will then need to link your programs directly with -llapack -lblas instead of -larmadillo
@@ -74,14 +74,21 @@
 // #define ARMA_BLAS_LONG_LONG
 //// Uncomment the above line if your BLAS and LAPACK libraries use "long long" instead of "int"
 
+#define ARMA_USE_FORTRAN_HIDDEN_ARGS
+//// Comment out the above line to call BLAS and LAPACK functions without using so-called "hidden" arguments.
+//// Fortran functions (compiled without a BIND(C) declaration) that have char arguments
+//// (like many BLAS and LAPACK functions) also have associated "hidden" arguments.
+//// For each char argument, the corresponding "hidden" argument specifies the number of characters.
+//// These "hidden" arguments are typically tacked onto the end of function definitions.
+
 // #define ARMA_USE_TBB_ALLOC
 //// Uncomment the above line if you want to use Intel TBB scalable_malloc() and scalable_free() instead of standard malloc() and free()
 
 // #define ARMA_USE_MKL_ALLOC
 //// Uncomment the above line if you want to use Intel MKL mkl_malloc() and mkl_free() instead of standard malloc() and free()
 
-/* #undef ARMA_USE_ATLAS */
-#define ARMA_ATLAS_INCLUDE_DIR /
+// #define ARMA_USE_ATLAS
+// #define ARMA_ATLAS_INCLUDE_DIR /usr/include/
 //// If you're using ATLAS and the compiler can't find cblas.h and/or clapack.h
 //// uncomment the above define and specify the appropriate include directory.
 //// Make sure the directory has a trailing /
@@ -112,12 +119,22 @@
 //// and you will need to link with the hdf5 library (eg. -lhdf5)
 #endif
 
-/* #undef ARMA_USE_HDF5_ALT */
+#if !defined(ARMA_OPTIMISE_SOLVE_BAND)
+  #define ARMA_OPTIMISE_SOLVE_BAND
+  //// Comment out the above line if you don't want optimised handling of band matrices by solve()
+#endif
+
+#if !defined(ARMA_OPTIMISE_SOLVE_SYMPD)
+  #define ARMA_OPTIMISE_SOLVE_SYMPD
+  //// Comment out the above line if you don't want optimised handling of symmetric/hermitian positive definite matrices by solve()
+#endif
+
+// #define ARMA_USE_HDF5_ALT
 #if defined(ARMA_USE_HDF5_ALT) && defined(ARMA_USE_WRAPPER)
   #undef  ARMA_USE_HDF5
   #define ARMA_USE_HDF5
   
-  #define ARMA_HDF5_INCLUDE_DIR /
+  // #define ARMA_HDF5_INCLUDE_DIR /usr/include/
 #endif
 
 #if !defined(ARMA_MAT_PREALLOC)
@@ -129,7 +146,7 @@
 //// change the number to the size of your vectors.
 
 #if !defined(ARMA_OPENMP_THRESHOLD)
-  #define ARMA_OPENMP_THRESHOLD 384
+  #define ARMA_OPENMP_THRESHOLD 240
 #endif
 //// The minimum number of elements in a matrix to allow OpenMP based parallelisation;
 //// it must be an integer that is at least 1.
@@ -139,13 +156,6 @@
 #endif
 //// The maximum number of threads to use for OpenMP based parallelisation;
 //// it must be an integer that is at least 1.
-
-#if !defined(ARMA_SPMAT_CHUNKSIZE)
-  #define ARMA_SPMAT_CHUNKSIZE 256
-#endif
-//// This is the minimum increase in the amount of memory (in terms of elements) allocated by a sparse matrix;
-//// it must be an integer that is at least 1.
-//// The minimum recommended size is 16.
 
 // #define ARMA_NO_DEBUG
 //// Uncomment the above line if you want to disable all run-time checks.
@@ -224,6 +234,10 @@
   #undef ARMA_USE_HDF5_ALT
 #endif
 
+#if defined(ARMA_DONT_USE_FORTRAN_HIDDEN_ARGS)
+  #undef ARMA_USE_FORTRAN_HIDDEN_ARGS
+#endif
+
 #if defined(ARMA_DONT_USE_CXX11)
   #undef ARMA_USE_CXX11
   #undef ARMA_USE_EXTERN_CXX11_RNG
@@ -236,7 +250,7 @@
 #if defined(ARMA_USE_WRAPPER)
   #if defined(ARMA_USE_CXX11)
     #if !defined(ARMA_USE_EXTERN_CXX11_RNG)
-      #define ARMA_USE_EXTERN_CXX11_RNG
+      // #define ARMA_USE_EXTERN_CXX11_RNG
     #endif
   #endif
 #endif
@@ -254,6 +268,14 @@
   #undef ARMA_USE_HDF5_ALT
 #endif
 
+#if defined(ARMA_DONT_OPTIMISE_SOLVE_BAND)
+  #undef ARMA_OPTIMISE_SOLVE_BAND
+#endif
+
+#if defined(ARMA_DONT_OPTIMISE_SOLVE_SYMPD)
+  #undef ARMA_OPTIMISE_SOLVE_SYMPD
+#endif
+
 #if defined(ARMA_DONT_PRINT_ERRORS)
   #undef ARMA_PRINT_ERRORS
 #endif
@@ -267,5 +289,5 @@
 // ARMA_AUX_LIBS lists the libraries required by Armadillo on this system, and
 // ARMA_AUX_INCDIRS lists the include directories required by Armadillo on this system.
 // Do not use these unless you know what you are doing.
-#define ARMA_AUX_LIBS 
-#define ARMA_AUX_INCDIRS 
+#define ARMA_AUX_LIBS
+#define ARMA_AUX_INCDIRS

@@ -68,10 +68,12 @@ class eop_log               : public eop_core<eop_log>               , public eo
 class eop_log2              : public eop_core<eop_log2>              , public eop_use_mp_true  {};
 class eop_log10             : public eop_core<eop_log10>             , public eop_use_mp_true  {};
 class eop_trunc_log         : public eop_core<eop_trunc_log>         , public eop_use_mp_true  {};
+class eop_log1p             : public eop_core<eop_log1p>             , public eop_use_mp_true  {};
 class eop_exp               : public eop_core<eop_exp>               , public eop_use_mp_true  {};
 class eop_exp2              : public eop_core<eop_exp2>              , public eop_use_mp_true  {};
 class eop_exp10             : public eop_core<eop_exp10>             , public eop_use_mp_true  {};
 class eop_trunc_exp         : public eop_core<eop_trunc_exp>         , public eop_use_mp_true  {};
+class eop_expm1             : public eop_core<eop_expm1>             , public eop_use_mp_true  {};
 class eop_cos               : public eop_core<eop_cos>               , public eop_use_mp_true  {};
 class eop_sin               : public eop_core<eop_sin>               , public eop_use_mp_true  {};
 class eop_tan               : public eop_core<eop_tan>               , public eop_use_mp_true  {};
@@ -84,6 +86,7 @@ class eop_tanh              : public eop_core<eop_tanh>              , public eo
 class eop_acosh             : public eop_core<eop_acosh>             , public eop_use_mp_true  {};
 class eop_asinh             : public eop_core<eop_asinh>             , public eop_use_mp_true  {};
 class eop_atanh             : public eop_core<eop_atanh>             , public eop_use_mp_true  {};
+class eop_sinc              : public eop_core<eop_sinc>              , public eop_use_mp_true  {};
 class eop_eps               : public eop_core<eop_eps>               , public eop_use_mp_true  {};
 class eop_abs               : public eop_core<eop_abs>               , public eop_use_mp_false {};
 class eop_arg               : public eop_core<eop_arg>               , public eop_use_mp_false {};

@@ -546,6 +546,16 @@ Row<eT>::st() const
 
 template<typename eT>
 arma_inline
+const Op<Row<eT>,op_strans>
+Row<eT>::as_col() const
+  {
+  return Op<Row<eT>,op_strans>(*this);
+  }
+
+
+
+template<typename eT>
+arma_inline
 subview_row<eT>
 Row<eT>::col(const uword in_col1)
   {
@@ -954,7 +964,7 @@ Row<eT>::insert_cols(const uword col_num, const uword N, const bool set_to_zero)
       arrayops::copy( &(out_mem[col_num + N]), &(t_mem[col_num]), B_n_cols );
       }
     
-    if(set_to_zero == true)
+    if(set_to_zero)
       {
       arrayops::inplace_set( &(out_mem[col_num]), eT(0), N );
       }

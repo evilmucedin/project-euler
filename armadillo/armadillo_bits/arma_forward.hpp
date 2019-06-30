@@ -52,8 +52,8 @@ template<typename eT> class spdiagview;
 
 template<typename eT> class MapMat;
 template<typename eT> class MapMat_val;
-template<typename eT> class MapMat_elem;
-template<typename eT> class MapMat_svel;
+template<typename eT> class SpMat_MapMat_val;
+template<typename eT> class SpSubview_MapMat_val;
 
 template<typename eT, typename T1>              class subview_elem1;
 template<typename eT, typename T1, typename T2> class subview_elem2;
@@ -63,6 +63,7 @@ template<typename parent, unsigned int mode, typename TB> class subview_each2;
 
 template<typename eT>              class subview_cube_each1;
 template<typename eT, typename TB> class subview_cube_each2;
+template<typename eT, typename T1> class subview_cube_slices;
 
 
 class SizeMat;
@@ -72,60 +73,17 @@ class arma_empty_class {};
 
 class diskio;
 
-class op_min;
-class op_max;
-
 class op_strans;
 class op_htrans;
 class op_htrans2;
 class op_inv;
-class op_sum;
-class op_abs;
-class op_arg;
+class op_inv_sympd;
 class op_diagmat;
 class op_trimat;
-class op_diagvec;
+class op_vectorise_row;
 class op_vectorise_col;
-class op_normalise_vec;
-class op_clamp;
-class op_cumsum_default;
-class op_cumprod_default;
-class op_shift;
-class op_shift_default;
-class op_shuffle;
-class op_shuffle_default;
-class op_sort;
-class op_sort_default;
-class op_find;
-class op_find_simple;
-class op_find_unique;
-class op_flipud;
-class op_fliplr;
-class op_real;
-class op_imag;
-class op_nonzeros;
-class op_sort_index;
-class op_stable_sort_index;
-class op_unique;
-class op_unique_index;
-class op_diff_default;
-class op_hist;
-
-class eop_conj;
-
 class glue_times;
 class glue_times_diag;
-class glue_conv;
-class glue_join_cols;
-class glue_join_rows;
-class glue_atan2;
-class glue_hypot;
-class glue_max;
-class glue_min;
-class glue_polyfit;
-class glue_polyval;
-class glue_intersect;
-class glue_affmul;
 
 class glue_rel_lt;
 class glue_rel_gt;
@@ -153,25 +111,6 @@ class gen_zeros;
 class gen_randu;
 class gen_randn;
 
-class glue_mixed_plus;
-class glue_mixed_minus;
-class glue_mixed_div;
-class glue_mixed_schur;
-class glue_mixed_times;
-
-class glue_hist;
-class glue_hist_default;
-
-class glue_histc;
-class glue_histc_default;
-
-class op_cx_scalar_times;
-class op_cx_scalar_plus;
-class op_cx_scalar_minus_pre;
-class op_cx_scalar_minus_post;
-class op_cx_scalar_div_pre;
-class op_cx_scalar_div_post;
-
 
 
 class op_internal_equ;
@@ -182,15 +121,101 @@ class op_internal_div;
 
 
 
+struct traits_op_default
+  {
+  template<typename T1>
+  struct traits
+    {
+    static const bool is_row  = false;
+    static const bool is_col  = false;
+    static const bool is_xvec = false;
+    };
+  };
+
+
+struct traits_op_xvec
+  {
+  template<typename T1>
+  struct traits
+    {
+    static const bool is_row  = false;
+    static const bool is_col  = false;
+    static const bool is_xvec = true;
+    };
+  };
+
+
+struct traits_op_col
+  {
+  template<typename T1>
+  struct traits
+    {
+    static const bool is_row  = false;
+    static const bool is_col  = true;
+    static const bool is_xvec = false;
+    };
+  };
+
+
+struct traits_op_row
+  {
+  template<typename T1>
+  struct traits
+    {
+    static const bool is_row  = true;
+    static const bool is_col  = false;
+    static const bool is_xvec = false;
+    };
+  };
+
+
+struct traits_op_passthru
+  {
+  template<typename T1>
+  struct traits
+    {
+    static const bool is_row  = T1::is_row;
+    static const bool is_col  = T1::is_col;
+    static const bool is_xvec = T1::is_xvec;
+    };
+  };
+
+
+struct traits_glue_default
+  {
+  template<typename T1, typename T2>
+  struct traits
+    {
+    static const bool is_row  = false;
+    static const bool is_col  = false;
+    static const bool is_xvec = false;
+    };
+  };
+
+
+struct traits_glue_or
+  {
+  template<typename T1, typename T2>
+  struct traits
+    {
+    static const bool is_row  = (T1::is_row  || T2::is_row );
+    static const bool is_col  = (T1::is_col  || T2::is_col );
+    static const bool is_xvec = (T1::is_xvec || T2::is_xvec);
+    };
+  };
+
+
+
 template<const bool, const bool, const bool, const bool> class gemm;
 template<const bool, const bool, const bool>             class gemv;
 
 
 template<                 typename eT, typename gen_type> class  Gen; 
 
-template<                 typename T1, typename  op_type> class   Op; 
-template<                 typename T1, typename eop_type> class  eOp;
-template<typename out_eT, typename T1, typename  op_type> class mtOp;
+template<                 typename T1, typename  op_type> class      Op; 
+template<                 typename T1, typename eop_type> class     eOp;
+template<                 typename T1, typename  op_type> class SpToDOp; 
+template<typename out_eT, typename T1, typename  op_type> class    mtOp;
 
 template<                 typename T1, typename T2, typename  glue_type> class   Glue;
 template<                 typename T1, typename T2, typename eglue_type> class  eGlue;
@@ -216,16 +241,15 @@ template<typename T1> class diagmat_proxy;
 
 class spop_strans;
 class spop_htrans;
-class spop_scalar_times;
+class spop_vectorise_row;
+class spop_vectorise_col;
 
 class spglue_plus;
-class spglue_plus2;
-
 class spglue_minus;
-class spglue_minus2;
-
+class spglue_schur;
 class spglue_times;
-class spglue_times2;
+class spglue_max;
+class spglue_min;
 
 struct state_type
   {
@@ -236,6 +260,8 @@ struct state_type
   #else
                 int  state;
   #endif
+  
+  arma_inline state_type() : state(int(0)) {}
   
   // openmp: "omp atomic" does an implicit flush on the affected variable
   // C++11:  std::atomic<>::load() and std::atomic<>::store() use std::memory_order_seq_cst by default, which has an implied fence
@@ -276,15 +302,18 @@ struct state_type
 template<                 typename T1, typename spop_type> class   SpOp;
 template<typename out_eT, typename T1, typename spop_type> class mtSpOp;
 
-template<typename T1, typename T2, typename spglue_type> class SpGlue;
+template<                 typename T1, typename T2, typename spglue_type> class   SpGlue;
+template<typename out_eT, typename T1, typename T2, typename spglue_type> class mtSpGlue;
 
 
 template<typename T1> class SpProxy;
 
 
 
-struct arma_vec_indicator   {};
-struct arma_fixed_indicator {};
+struct arma_vec_indicator     {};
+struct arma_fixed_indicator   {};
+struct arma_reserve_indicator {};
+struct arma_layout_indicator  {};
 
 
 //! \addtogroup injector
@@ -445,6 +474,7 @@ struct superlu_opts : public spsolve_opts_base
   
   typedef enum {REF_NONE, REF_SINGLE, REF_DOUBLE, REF_EXTRA} refine_type;
   
+  bool             allow_ugly;
   bool             equilibrate;
   bool             symmetric;
   double           pivot_thresh;
@@ -454,6 +484,7 @@ struct superlu_opts : public spsolve_opts_base
   inline superlu_opts()
     : spsolve_opts_base(1)
     {
+    allow_ugly   = false;
     equilibrate  = false;
     symmetric    = false;
     pivot_thresh = 1.0;
