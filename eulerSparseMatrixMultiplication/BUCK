@@ -4,6 +4,7 @@ cxx_binary(
     "SparseMatrixMultiplication.cpp"
   ],
   deps=[
+    "//armadillo:armadillo",
     "//glog:glog",
     "//lib:benchmark",
     "//lib:header",

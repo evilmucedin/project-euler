@@ -1,5 +1,9 @@
+#define ARMA_USE_BLAS
+#define ARMA_USE_CXX11
+
 #include "lib/header.h"
 
+#include "armadillo/armadillo"
 #include "glog/logging.h"
 
 #include "lib/benchmark.h"
@@ -50,12 +54,38 @@ DoubleVector mulNaive(const SparseMatrixNaive& m, const DoubleVector& v) {
     return result;
 }
 
+arma::sp_mat naiveToArma(const SparseMatrixNaive& m) {
+    auto n = m.m.size();
+    arma::sp_mat result(n, n);
+    for (size_t i = 0; i < n; ++i) {
+        for (const auto& e : m.m[i]) {
+            result(i, e.index_) = e.value_;
+        }
+    }
+    return result;
+}
+
+arma::vec doubleVectorToArma(const DoubleVector& v) {
+    arma::vec result(v.size());
+    for (size_t i = 0; i < v.size(); ++i) {
+        result[i] = v[i];
+    }
+    return result;
+}
+
 int main() {
     static constexpr size_t N = 5000;
     auto sm = gen(N, 0.03);
     auto v = genV(N);
 
+    LOG(INFO) << sum(mulNaive(sm, v));
     benchmark("Naive", [&]() { mulNaive(sm, v); });
+
+    auto armasm = naiveToArma(sm);
+    auto armav = doubleVectorToArma(v);
+
+    LOG(INFO) << arma::sum(armasm * armav);
+    benchmark("Arma", [&]() { auto res = armasm * armav; });
 
     return 0;
 }
