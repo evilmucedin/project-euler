@@ -19,6 +19,6 @@ void benchmark(const std::string& name, T f) {
         n *= 2;
         cout << "Benchmark '" << name << "': " << stat.mean() << " (+-" << stat.stddev() << ") after " << stat.count()
              << " iterations" << endl;
-    } while (10 * stat.stddev() > stat.mean());
+    } while (4 * stat.stddev() > stat.mean());
     cout << "Final benchmark '" << name << "': " << stat.mean() << " after " << stat.count() << " iterations" << endl;
 }
