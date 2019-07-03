@@ -1,7 +1,8 @@
 cxx_binary(
   name="SparseMatrixMultiplication",
   srcs=[
-    "SparseMatrixMultiplication.cpp"
+    "SparseMatrixMultiplication.cpp",
+    "ArmaSparseMatrixMultiplication.cpp",
   ],
   deps=[
     "//armadillo:armadillo",

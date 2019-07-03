@@ -6,6 +6,7 @@
 #include "armadillo/armadillo"
 #include "glog/logging.h"
 #include "mkl.h"
+#include "mkl_spblas.h"
 
 #include "lib/benchmark.h"
 #include "lib/random.h"
@@ -102,6 +103,30 @@ DoubleVector mulBLAS(const SparseMatrixBLAS& m, const DoubleVector& v) {
     return result;
 }
 
+struct SparseMatrixBLAS2 {
+    const int m_;
+
+    SparseMatrixBLAS2(SparseMatrixBLAS& m) : m_(m.m_) {
+        mkl_sparse_d_create_csr(&handle_, SPARSE_INDEX_BASE_ZERO, m_, m_, m.ia_.data(), m.ia_.data() + 1, m.ja_.data(),
+                                m.a_.data());
+    }
+
+    const sparse_matrix_t& handle() const { return handle_; }
+
+private:
+    sparse_matrix_t handle_;
+};
+
+SparseMatrixBLAS2 blasToBLAS2(SparseMatrixBLAS& m) { return SparseMatrixBLAS2(m); }
+
+DoubleVector mulBLAS2(const SparseMatrixBLAS2& m, const DoubleVector& v) {
+    DoubleVector result(m.m_);
+    matrix_descr md;
+    md.type = SPARSE_MATRIX_TYPE_GENERAL;
+    mkl_sparse_d_mv(SPARSE_OPERATION_NON_TRANSPOSE, 1.0, m.handle(), md, v.data(), 0.0, result.data());
+    return result;
+}
+
 int main() {
     static constexpr size_t N = 6000;
     auto sm = gen(N, 0.03);
@@ -119,6 +144,10 @@ int main() {
     auto blassm = naiveToBLAS(sm);
     LOG(INFO) << sum(mulBLAS(blassm, v));
     benchmark("MKL", [&]() { mulBLAS(blassm, v); });
+
+    auto blas2sm = blasToBLAS2(blassm);
+    LOG(INFO) << sum(mulBLAS2(blas2sm, v));
+    benchmark("MKL IO", [&]() { mulBLAS2(blas2sm, v); });
 
     return 0;
 }
