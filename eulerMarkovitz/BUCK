@@ -1,0 +1,12 @@
+cxx_binary(
+  name="Markovitz",
+  srcs=[
+    "Markovitz.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+  ],
+  compiler_flags=["-I/home/denplusplus/Temp/cgal/QP_Solver"],
+  # linker_flags=["-lmpfr", "-lgmp"],
+)
