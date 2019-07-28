@@ -8,8 +8,10 @@
 template <typename T>
 void benchmark(const std::string& name, T f) {
     size_t n = 128;
+    for (size_t i = 0; i < n; ++i) {
+        f();
+    }
     Stat<double> stat;
-    f();
     do {
         TimerTracker tt;
         for (size_t i = 0; i < n; ++i) {

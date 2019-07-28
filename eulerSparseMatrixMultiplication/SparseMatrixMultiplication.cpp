@@ -47,8 +47,8 @@ DoubleVector mulNaive(const SparseMatrixNaive& m, const DoubleVector& v) {
     DoubleVector result(v.size());
     for (size_t i = 0; i < m.m.size(); ++i) {
         double e = 0.0;
-        for (const auto& i : m.m[i]) {
-            e += v[i.index_] * i.value_;
+        for (const auto& j : m.m[i]) {
+            e += v[j.index_] * j.value_;
         }
         result[i] = e;
     }
@@ -115,6 +115,10 @@ int main() {
 
     LOG(INFO) << arma::sum(armasm * armav);
     benchmark("Arma", [&]() { auto res = armasm * armav; });
+
+    auto armasm2 = arma::mat(armasm);
+    LOG(INFO) << arma::sum(armasm2 * armav);
+    benchmark("ArmaD", [&]() { auto res = armasm2 * armav; });
 
     auto blassm = naiveToBLAS(sm);
     LOG(INFO) << sum(mulBLAS(blassm, v));
