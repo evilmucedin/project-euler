@@ -9,6 +9,16 @@
 
 #include "lib/string.h"
 
+vector<string> loadAsLines(const string& filename) {
+    vector<string> result;
+    ifstream fIn(filename);
+    string s;
+    while (getline(fIn, s)) {
+        result.emplace_back(std::move(s));
+    }
+    return result;
+}
+
 string cwd() {
     char szTmp[32];
     sprintf(szTmp, "/proc/%d/exe", getpid());
@@ -34,5 +44,4 @@ string repoRoot() {
     }
     return join("/", StringVector(parts.begin(), parts.begin() + i + 1));
 }
-
 

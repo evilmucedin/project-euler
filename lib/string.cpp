@@ -20,7 +20,7 @@ StringVector split(const string& s, char delim) {
 string join(const string& delim, const StringVector& parts) {
     string result;
     bool first = true;
-    for (const auto& s: parts) {
+    for (const auto& s : parts) {
         if (!first) {
             result += delim;
         }
@@ -29,3 +29,5 @@ string join(const string& delim, const StringVector& parts) {
     }
     return result;
 }
+
+bool hasSubstring(const string& s, const string& substr) { return s.find(substr) != string::npos; }

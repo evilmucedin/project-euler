@@ -23,6 +23,8 @@ vector<T> loadVector(istream& s) {
     return result;
 }
 
+vector<string> loadAsLines(const string& filename);
+
 string cwd();
 
 string repoRoot();

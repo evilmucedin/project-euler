@@ -36,3 +36,5 @@ StringVector splitByFunctor(const string& s, T isDelimiter) {
 }
 
 string join(const string& delim, const StringVector& parts);
+
+bool hasSubstring(const string& s, const string& substr);
