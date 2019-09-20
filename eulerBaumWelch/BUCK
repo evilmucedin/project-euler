@@ -1,0 +1,12 @@
+cxx_binary(
+  name="BaumWelch",
+  srcs=[
+    "BaumWelch.cpp"
+  ],
+  deps=[
+    "//armadillo:armadillo",
+    "//lib:header",
+  ],
+  compiler_flags=["-I/opt/intel/compilers_and_libraries_2019.0.117/linux/mkl/include", "-I/usr/include/mkl"],
+  linker_flags=["-L/opt/intel/compilers_and_libraries_2019.0.117/linux/mkl/lib/intel64_lin", "-Wl,--no-as-needed", "-lmkl_intel_lp64", "-lmkl_sequential", "-lmkl_core", "-lpthread", "-lm", "-ldl"],
+)
