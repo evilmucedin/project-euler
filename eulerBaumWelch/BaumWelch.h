@@ -27,12 +27,12 @@ using namespace arma;
 
 class HMMSample {
    public:
-    void sample(vec &nu, mat &Q, mat &g, size_t n);
+    void sample(const vec &nu, const mat &Q, const mat &g, size_t n);
     ivec x_;  // hidden states
     ivec y_;  // observations
 };
 
-void HMMSample::sample(vec &nu, mat &Q, mat &g, size_t n) {
+void HMMSample::sample(const vec &nu, const mat &Q, const mat &g, size_t n) {
     mat cQ = cumsum(Q, 1);
     mat cg = cumsum(g, 1);
 
@@ -53,12 +53,12 @@ void HMMSample::sample(vec &nu, mat &Q, mat &g, size_t n) {
 
 class HMMFilter {
    public:
-    void compute(ivec &y, vec &nu, mat &Q, mat &g);
+    void compute(const ivec &y, const vec &nu, const mat &Q, const mat &g);
     mat phi_;
     vec c_;
 };
 
-void HMMFilter::compute(ivec &y, vec &nu, mat &Q, mat &g) {
+void HMMFilter::compute(const ivec &y, const vec &nu, const mat &Q, const mat &g) {
     const size_t n = y.n_rows;
     phi_ = zeros<mat>(Q.n_rows, n);
     c_ = zeros<vec>(n);
@@ -76,11 +76,11 @@ void HMMFilter::compute(ivec &y, vec &nu, mat &Q, mat &g) {
 
 class HMMSmoother {
    public:
-    void compute(ivec &y, mat &Q, mat &g, vec &c);
+    void compute(const ivec &y, const mat &Q, const mat &g, const vec &c);
     mat betaa_;
 };
 
-void HMMSmoother::compute(ivec &y, mat &Q, mat &g, vec &c) {
+void HMMSmoother::compute(const ivec &y, const mat &Q, const mat &g, const vec &c) {
     int n = y.n_rows;
     betaa_ = ones<mat>(Q.n_rows, n);
     for (int t = n - 2; t >= 0; --t) {
@@ -90,18 +90,20 @@ void HMMSmoother::compute(ivec &y, mat &Q, mat &g, vec &c) {
 
 class HMMBaumWelch {
    public:
-    void compute(ivec &y, vec &nu, double tol = 1e-4, int maxIt = 100);
+    void compute(const ivec &y, const vec &nu, double tol = 1e-4, int maxIt = 100);
     mat q_;
     mat g_;
     double l_;
 };
 
-void HMMBaumWelch::compute(ivec &y, vec &nu, double tol, int maxIt) {
+void HMMBaumWelch::compute(const ivec &y, const vec &nu, double tol, int maxIt) {
     size_t k = nu.n_rows;
     size_t r = max(y) + 1;
     size_t n = y.n_rows;
     imat Y = zeros<imat>(n, r);
-    for (size_t i = 0; i < n; ++i) Y(i, y(i)) = 1;
+    for (size_t i = 0; i < n; ++i) {
+        Y(i, y(i)) = 1;
+    }
 
     q_ = randu<mat>(k, k);
     q_ = q_ / (sum(q_, 1) * ones<mat>(1, k));
@@ -125,7 +127,9 @@ void HMMBaumWelch::compute(ivec &y, vec &nu, double tol, int maxIt) {
 
         // expectation of the number of transitions under the current parameters
 
-        for (size_t j = 0; j < n - 1; ++j) gaty.col(j) = g_.col(y(j + 1));
+        for (size_t j = 0; j < n - 1; ++j) {
+            gaty.col(j) = g_.col(y(j + 1));
+        }
 
         mat N = q_ % (my_filter.phi_.cols(0, n - 2) * trans(my_smoother.betaa_.cols(1, n - 1) % gaty /
                                                             (ones<mat>(k, 1) * trans(my_filter.c_.subvec(1, n - 1)))));
