@@ -37,9 +37,9 @@ using namespace Eigen;
 // static const string kStock = "AAPL.O";
 // static const string kStock = "YNDX.O";
 static const string kStock = "AAAP.O";
-static const string kAaplFilename = kStock + ".tsv";
-static const string kAaplTimeSeries = kStock + ".ts";
-static const string kHistogram = "histogram.tsv";
+static const string kAaplFilename = "data/" + kStock + ".tsv";
+static const string kAaplTimeSeries = "data/" + kStock + ".ts";
+static const string kHistogram = "data/histogram.tsv";
 static const string kFilename = homeDir() + "/Downloads/NSQ-2017-11-28-MARKETPRICE-Data-1-of-1.csv.gz";
 
 struct Histogramer {
@@ -126,7 +126,7 @@ struct HistogramerCallback : public IReutersParserCallback {
 };
 
 struct DumpCallback : public IReutersParserCallback {
-    DumpCallback() : fPriceLevelsOut("priceLevels.tsv") {}
+    DumpCallback() : fPriceLevelsOut("data/priceLevels.tsv") {}
 
     void onTrade(const std::string& ric, const DateTime& dt, double price, double volume, const BidAsk& bidask,
                  int index) override {
@@ -176,7 +176,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
     const auto iIndex = reader.getIndexOrDie("Key/Msg Sequence Number");
     unordered_map<std::string, BidAsk> bidasks;
 
-    OFStream fSubset("subset.csv");
+    OFStream fSubset("data/subset.csv");
     int64_t iMessage = 0;
     while (reader.readLine()) {
         if (iMessage >= FLAGS_limit) {
@@ -884,8 +884,8 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
     BoolVector goodTick_;
 };
 
-static const string kDNNStatFilename = "dnnStat.tsv";
-static const string kDNNFeaturesFilename = "dnnFeatures.tsv";
+static const string kDNNStatFilename = "data/dnnStat.tsv";
+static const string kDNNFeaturesFilename = "data/dnnFeatures.tsv";
 
 std::pair<double, bool> genRet(const StockFeatures& sfeatures, int offset) {
     auto getPrice = [](const DoubleVector& slice) { return slice[FI_CURRENT_PRICE]; };
