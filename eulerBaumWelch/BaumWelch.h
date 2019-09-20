@@ -25,122 +25,122 @@
 
 using namespace arma;
 
-class HMMsample {
+class HMMSample {
    public:
     void sample(vec &nu, mat &Q, mat &g, size_t n);
-    ivec _x;  // hidden states
-    ivec _y;  // observations
+    ivec x_;  // hidden states
+    ivec y_;  // observations
 };
 
-void HMMsample::sample(vec &nu, mat &Q, mat &g, size_t n) {
+void HMMSample::sample(vec &nu, mat &Q, mat &g, size_t n) {
     mat cQ = cumsum(Q, 1);
     mat cg = cumsum(g, 1);
 
-    _x = zeros<ivec>(n);
-    _y = zeros<ivec>(n);
+    x_ = zeros<ivec>(n);
+    y_ = zeros<ivec>(n);
 
     double random = (double)rand() / RAND_MAX;
-    _x(0) = as_scalar(accu(cumsum(nu) < random));
+    x_(0) = as_scalar(accu(cumsum(nu) < random));
     random = (double)rand() / RAND_MAX;
-    _y(0) = as_scalar(accu(cg.row(_x(0)) < random));
+    y_(0) = as_scalar(accu(cg.row(x_(0)) < random));
     for (size_t j = 1; j < n; ++j) {
         random = (double)rand() / RAND_MAX;
-        _x(j) = as_scalar(accu(cQ.row(_x(j - 1)) < random));
+        x_(j) = as_scalar(accu(cQ.row(x_(j - 1)) < random));
         random = (double)rand() / RAND_MAX;
-        _y(j) = as_scalar(accu(cg.row(_x(j)) < random));
+        y_(j) = as_scalar(accu(cg.row(x_(j)) < random));
     }
 }
 
-class HMMfilter {
+class HMMFilter {
    public:
     void compute(ivec &y, vec &nu, mat &Q, mat &g);
-    mat _phi;
-    vec _c;
+    mat phi_;
+    vec c_;
 };
 
-void HMMfilter::compute(ivec &y, vec &nu, mat &Q, mat &g) {
+void HMMFilter::compute(ivec &y, vec &nu, mat &Q, mat &g) {
     const size_t n = y.n_rows;
-    _phi = zeros<mat>(Q.n_rows, n);
-    _c = zeros<vec>(n);
+    phi_ = zeros<mat>(Q.n_rows, n);
+    c_ = zeros<vec>(n);
 
     vec Z = nu % g.col(y(0));
-    _c(0) = accu(Z);
-    _phi.col(0) = Z / _c(0);
+    c_(0) = accu(Z);
+    phi_.col(0) = Z / c_(0);
 
     for (size_t t = 1; t < n; ++t) {
-        Z = trans(trans(_phi.col(t - 1)) * Q) % g.col(y(t));
-        _c(t) = accu(Z);
-        _phi.col(t) = Z / _c(t);
+        Z = trans(trans(phi_.col(t - 1)) * Q) % g.col(y(t));
+        c_(t) = accu(Z);
+        phi_.col(t) = Z / c_(t);
     }
 }
 
-class HMMsmoother {
+class HMMSmoother {
    public:
     void compute(ivec &y, mat &Q, mat &g, vec &c);
-    mat _betaa;
+    mat betaa_;
 };
 
-void HMMsmoother::compute(ivec &y, mat &Q, mat &g, vec &c) {
+void HMMSmoother::compute(ivec &y, mat &Q, mat &g, vec &c) {
     int n = y.n_rows;
-    _betaa = ones<mat>(Q.n_rows, n);
+    betaa_ = ones<mat>(Q.n_rows, n);
     for (int t = n - 2; t >= 0; --t) {
-        _betaa.col(t) = Q * (g.col(y(t + 1)) % _betaa.col(t + 1)) / c(t + 1);
+        betaa_.col(t) = Q * (g.col(y(t + 1)) % betaa_.col(t + 1)) / c(t + 1);
     }
 }
 
-class HMMbaumwelch {
+class HMMBaumWelch {
    public:
     void compute(ivec &y, vec &nu, double tol = 1e-4, int maxIt = 100);
-    mat _Q;
-    mat _g;
-    double _l;
+    mat q_;
+    mat g_;
+    double l_;
 };
 
-void HMMbaumwelch::compute(ivec &y, vec &nu, double tol, int maxIt) {
+void HMMBaumWelch::compute(ivec &y, vec &nu, double tol, int maxIt) {
     size_t k = nu.n_rows;
     size_t r = max(y) + 1;
     size_t n = y.n_rows;
     imat Y = zeros<imat>(n, r);
     for (size_t i = 0; i < n; ++i) Y(i, y(i)) = 1;
 
-    _Q = randu<mat>(k, k);
-    _Q = _Q / (sum(_Q, 1) * ones<mat>(1, k));
-    _g = randu<mat>(k, r);
-    _g = _g / (sum(_g, 1) * ones<mat>(1, r));
+    q_ = randu<mat>(k, k);
+    q_ = q_ / (sum(q_, 1) * ones<mat>(1, k));
+    g_ = randu<mat>(k, r);
+    g_ = g_ / (sum(g_, 1) * ones<mat>(1, r));
 
     double it = 0;
-    mat oldQ = _Q;
-    mat oldg = _g + tol + 1;
-    HMMfilter my_filter;
-    HMMsmoother my_smoother;
+    mat oldQ = q_;
+    mat oldg = g_ + tol + 1;
+    HMMFilter my_filter;
+    HMMSmoother my_smoother;
     mat gaty = zeros<mat>(k, n - 1);
-    while ((norm(oldQ - _Q, 1) + norm(oldg - _g, 1) > tol) && (it < maxIt)) {
+    while ((norm(oldQ - q_, 1) + norm(oldg - g_, 1) > tol) && (it < maxIt)) {
         ++it;
         // compute the posterior distribution for the current parameters
 
-        my_filter.compute(y, nu, _Q, _g);
+        my_filter.compute(y, nu, q_, g_);
 
-        my_smoother.compute(y, _Q, _g, my_filter._c);
-        mat post = my_filter._phi % my_smoother._betaa;
+        my_smoother.compute(y, q_, g_, my_filter.c_);
+        mat post = my_filter.phi_ % my_smoother.betaa_;
 
         // expectation of the number of transitions under the current parameters
 
-        for (size_t j = 0; j < n - 1; ++j) gaty.col(j) = _g.col(y(j + 1));
+        for (size_t j = 0; j < n - 1; ++j) gaty.col(j) = g_.col(y(j + 1));
 
-        mat N = _Q % (my_filter._phi.cols(0, n - 2) * trans(my_smoother._betaa.cols(1, n - 1) % gaty /
-                                                            (ones<mat>(k, 1) * trans(my_filter._c.subvec(1, n - 1)))));
+        mat N = q_ % (my_filter.phi_.cols(0, n - 2) * trans(my_smoother.betaa_.cols(1, n - 1) % gaty /
+                                                            (ones<mat>(k, 1) * trans(my_filter.c_.subvec(1, n - 1)))));
         // cout << "N = "<< N << endl;
         // expectation of the number of emissions
         mat M = post * Y;
         // cout << "M = " << M << endl;
 
         // re-estimation
-        oldQ = _Q;
-        oldg = _g;
-        _Q = N / (sum(N, 1) * ones<mat>(1, k));
-        _g = M / (sum(M, 1) * ones<mat>(1, r));
+        oldQ = q_;
+        oldg = g_;
+        q_ = N / (sum(N, 1) * ones<mat>(1, k));
+        g_ = M / (sum(M, 1) * ones<mat>(1, r));
     }
-    _l = accu(log(my_filter._c));
+    l_ = accu(log(my_filter.c_));
 }
 
 /*
