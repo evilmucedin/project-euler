@@ -46,8 +46,8 @@ bool CsvParser::readLine() {
         }
         ++p;
     }
-    if (p > begin + 1) {
-        line_.emplace_back(begin, p - begin - 1);
+    if (p > begin) {
+        line_.emplace_back(begin, p - begin);
     }
     for (auto& s : line_) {
         unquote(s);
@@ -56,6 +56,8 @@ bool CsvParser::readLine() {
 }
 
 size_t CsvParser::size() const { return line_.size(); }
+
+const StringVector& CsvParser::header() const { return header_; }
 
 const string& CsvParser::get(size_t index) const {
     assert(index < line_.size());
@@ -82,12 +84,12 @@ int CsvParser::getIndex(const string& s) const {
     return findWithDefault(fieldToIndex_, s, -1);
 }
 
-int CsvParser::getIndexOrDie(const string& column) const {
+size_t CsvParser::getIndexOrDie(const string& column) const {
     auto result = getIndex(column);
     if (result == -1) {
-        THROW("Column " << column << " not found");
+        THROW("Column '" << column << "' not found");
     }
-    return result;
+    return static_cast<size_t>(result);
 }
 
 void CsvParser::unquote(string& s) {
