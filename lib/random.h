@@ -6,6 +6,12 @@
 std::mt19937_64& getRandomNumberGenerator();
 
 template<typename T>
+T randNorm01() {
+    static std::normal_distribution<T> unif(0, 1);
+    return unif(getRandomNumberGenerator());
+}
+
+template<typename T>
 T rand01() {
     static std::uniform_real_distribution<T> unif(0, 1);
     return unif(getRandomNumberGenerator());
