@@ -26,8 +26,8 @@ struct Kalman {
             h_(i, i) = 1.0;
         }
 
-        q_ = 2.0 * arma::eye(n_states, n_states);
-        r_ = 15.0 * arma::eye(n_out, n_out);
+        q_ = 2.0 * arma::eye(n_states, n_states) + 0.1 * arma::ones(n_states, n_states);
+        r_ = 15.0 * arma::eye(n_out, n_out) + 0.1 * arma::ones(n_out, n_out);
         p_ = arma::zeros(n_states, n_states);
     }
 
@@ -67,7 +67,7 @@ struct Kalman {
 };
 
 int main() {
-    Kalman k(1, 2);
+    Kalman k(1, 3);
     double sum1 = 0;
     double sum2 = 0;
     for (size_t i = 0; i < 100000; ++i) {
