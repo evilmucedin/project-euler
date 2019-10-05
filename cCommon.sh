@@ -5,7 +5,7 @@ unamestr=`uname`
 buck_bin=buck
 
 if [ "${unamestr}" = "Darwin" ]; then
-    buck_bin=~/Temp/buck/bin/buck
+    buck_bin=`which buck`
 fi
 
 
