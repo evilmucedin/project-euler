@@ -163,6 +163,13 @@ vector<T> operator-(const vector<T>& a, const vector<T>& b) {
     return result;
 }
 
+template <typename T>
+vector<T> cat(const vector<T>& a, const vector<T>& b) {
+    vector<T> result = a;
+    result.insert(result.end(), b.begin(), b.end());
+    return result;
+}
+
 template<typename T>
 T sqr(const T& x) {
     return x*x;
