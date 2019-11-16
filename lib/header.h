@@ -42,6 +42,7 @@ using U128Vector = vector<u128>;
 using DoubleVector = vector<double>;
 using StringVector = vector<string>;
 using FloatVector = vector<float>;
+using SizeTVector = vector<size_t>;
 
 using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;

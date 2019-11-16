@@ -4,8 +4,8 @@
 
 #include "glog/logging.h"
 
-// static constexpr u64 N = 10000000000ULL;
-static constexpr u64 N = 1000000000ULL;
+static constexpr u64 N = 10000000000ULL;
+// static constexpr u64 N = 1000000000ULL;
 
 int main() {
     Erato erato(N + 10);
@@ -14,7 +14,7 @@ int main() {
 
     u64 top = sqrt(N);
     u64 i = 0;
-    while (erato.primes_[i] <= N) {
+    while ((i < erato.primes_.size()) && (erato.primes_[i] <= N)) {
         // LOG(INFO) << OUT(erato.primes_[i]);
         if (erato.primes_[i] <= top) {
             result -= erato.primes_[i];
