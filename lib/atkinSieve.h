@@ -8,6 +8,6 @@ struct AtkinSieve {
     size_t pi(size_t n) const;
     size_t n() const;
 
-    BoolVector sieve_;
+    size_t n_;
     SizeTVector primes_;
 };

@@ -6,5 +6,6 @@ TEST(AtkinSieveTest, Simple) {
     static constexpr size_t N = 1000000;
     Erato erato(N);
     AtkinSieve atkin(N);
+    EXPECT_EQ(erato.primes_.size(), atkin.primes_.size());
     EXPECT_EQ(erato.primes_, atkin.primes_);
 }
