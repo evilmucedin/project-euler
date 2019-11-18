@@ -13,5 +13,7 @@ TEST(AtkinSieveTest, Large) {
 
     test(100);
     test(1000);
+    test(10000);
+    test(100000);
     test(1000000);
 }

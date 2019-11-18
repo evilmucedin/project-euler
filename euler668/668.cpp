@@ -1,6 +1,6 @@
 #include "lib/header.h"
 
-#include "lib/primes.h"
+#include "lib/atkinSieve.h"
 
 #include "glog/logging.h"
 
@@ -8,7 +8,7 @@ static constexpr u64 N = 10000000000ULL;
 // static constexpr u64 N = 1000000000ULL;
 
 int main() {
-    Erato erato(N + 10);
+    AtkinSieve erato(N + 10);
 
     u64 result = N;
 

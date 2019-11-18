@@ -5,7 +5,7 @@ cxx_binary(
   ],
   deps=[
     "//lib:header",
-    "//lib:primes",
+    "//lib:atkinSieve",
     "//glog:glog",
   ],
 )
