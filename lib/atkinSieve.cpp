@@ -9,9 +9,6 @@
 AtkinSieve::AtkinSieve(size_t n) : n_(n)
 {
     BoolVector sieve(n, false);
-    sieve[2] = true;
-    sieve[3] = true;
-    sieve[5] = true;
 
     auto bitmask = [](const vector<size_t>& v, size_t n) {
         vector<bool> mask(n);
@@ -88,7 +85,7 @@ AtkinSieve::AtkinSieve(size_t n) : n_(n)
     }
 
     primes_ = {2, 3, 5};
-    for (size_t x = 0; x < n / 60; ++x) {
+    for (size_t x = 0; x < n / 60 + 1; ++x) {
         for (size_t y : SET) {
             size_t z = 60 * x + y;
             if (z >= n) {
