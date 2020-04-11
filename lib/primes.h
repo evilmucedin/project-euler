@@ -13,7 +13,7 @@ struct Erato {
     size_t n() const;
 
     BoolVector sieve_;
-    IntVector primes_;
+    SizeTVector primes_;
 };
 
 struct PrimeFactor {

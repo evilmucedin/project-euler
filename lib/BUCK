@@ -388,3 +388,20 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="atkinSieve",
+    exported_headers=[
+        "atkinSieve.h",
+    ],
+    srcs=[
+        "atkinSieve.cpp",
+    ],
+    deps=[
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)

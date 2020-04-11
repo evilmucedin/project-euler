@@ -118,7 +118,7 @@ bool isPrime(size_t number, const Erato& erato) {
     if (0 == (number & 1)) {
         return false;
     }
-    int limit = static_cast<int>(::sqrt(static_cast<double>(number)) + 0.1);
+    size_t limit = static_cast<size_t>(::sqrt(static_cast<double>(number)) + 0.1);
     size_t iDiv = 1;
     const auto& primes = erato.primes_;
     while (iDiv < primes.size() && primes[iDiv] <= limit && (number % primes[iDiv])) {

@@ -42,6 +42,7 @@ using U128Vector = vector<u128>;
 using DoubleVector = vector<double>;
 using StringVector = vector<string>;
 using FloatVector = vector<float>;
+using SizeTVector = vector<size_t>;
 
 using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;
@@ -159,6 +160,13 @@ vector<T> operator-(const vector<T>& a, const vector<T>& b) {
     for (size_t i = 0; i < a.size(); ++i) {
         result[i] = a[i] - b[i];
     }
+    return result;
+}
+
+template <typename T>
+vector<T> cat(const vector<T>& a, const vector<T>& b) {
+    vector<T> result = a;
+    result.insert(result.end(), b.begin(), b.end());
     return result;
 }
 

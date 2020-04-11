@@ -47,3 +47,8 @@ TEST(PrimesTest, CountDivisors) {
         EXPECT_EQ(ferato.factorize(i), factorization(i, erato));
     }
 }
+
+TEST(PrimesTest, Factorization) {
+    Erato erato(10);
+    EXPECT_EQ(factorization(2, erato).size(), 1);
+}

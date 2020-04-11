@@ -146,3 +146,15 @@ cxx_test(
     "//lib:implicitTreap",
   ],
 )
+
+cxx_test(
+  name="atkinSieveTest",
+  srcs=[
+    "atkinSieveTest.cpp",
+  ],
+  deps=[
+    "//lib:random",
+    "//lib:atkinSieve",
+    "//lib:primes",
+  ],
+)
