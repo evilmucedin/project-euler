@@ -35,6 +35,7 @@ submit:
         print("""#include <cstdio>
 #include <cmath>
 
+#include <algorithms>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -47,7 +48,8 @@ int main() {
     scanf("%d", &nT);
 
     for (int iTest = 0; iTest < nT; ++iTest) {
-        printf("Case #%d: \\n", iTest + 1);
+        printf("Case #%d: ", iTest + 1);
+        printf("\\n");
     }
 
     return 0;
