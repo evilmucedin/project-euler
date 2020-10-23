@@ -178,6 +178,19 @@ cxx_library(
 )
 
 cxx_library(
+    name="redBlackTree",
+    exported_headers=[
+        "redBlackTree.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
     name="timer",
     srcs=[
         "timer.cpp",

@@ -53,6 +53,17 @@ cxx_test(
 )
 
 cxx_test(
+  name="redBlackTreeTest",
+  srcs=[
+    "redBlackTreeTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:redBlackTree",
+  ],
+)
+
+cxx_test(
   name="integrateTest",
   srcs=[
     "integrateTest.cpp",
