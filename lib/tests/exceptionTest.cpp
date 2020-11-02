@@ -3,11 +3,15 @@
 #include "gtest/gtest.h"
 
 TEST(Exception, Stream) {
-    StreamException e("Test ");
-    e << 1;
-    throw e;
+    EXPECT_THROW(
+        {
+            StreamException e("Test ");
+            e << 1;
+            throw e;
+        },
+        StreamException);
 }
 
 TEST(Exception, Stream2) {
-    THROW("Test " << 1);
+    EXPECT_THROW({ THROW("Test " << 1); }, StreamException);
 }
