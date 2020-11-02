@@ -6,9 +6,9 @@ template <typename V>
 struct RedBlackTree {
     struct Node {
         V data;
-        Node *parent;
-        Node *left;
-        Node *right;
+        Node* parent;
+        Node* left;
+        Node* right;
         int color;  // 1 -> Red, 0 -> Black
     };
 
