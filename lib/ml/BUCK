@@ -14,3 +14,19 @@ cxx_library(
   ],
 )
 
+cxx_library(
+  name="ols",
+  exported_headers=[
+    "ols.h",
+  ],
+  srcs=[
+    "ols.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+

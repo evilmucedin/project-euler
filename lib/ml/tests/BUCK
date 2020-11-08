@@ -7,3 +7,13 @@ cxx_test(
     "//lib/ml:gbdt",
   ],
 )
+
+cxx_test(
+  name="olsTest",
+  srcs=[
+    "olsTest.cpp",
+  ],
+  deps=[
+    "//lib/ml:ols",
+  ],
+)
