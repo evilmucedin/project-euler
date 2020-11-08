@@ -1,0 +1,9 @@
+cxx_test(
+  name="gbdtTest",
+  srcs=[
+    "gbdtTest.cpp",
+  ],
+  deps=[
+    "//lib/ml:gbdt",
+  ],
+)
