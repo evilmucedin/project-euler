@@ -438,8 +438,12 @@ void GBDT::cleanTree(node* n) {
     }
     n->m_nSamples = 0;
 
-    if (n->m_toSmallerEqual) cleanTree(n->m_toSmallerEqual);
-    if (n->m_toLarger) cleanTree(n->m_toLarger);
+    if (n->m_toSmallerEqual) {
+        cleanTree(n->m_toSmallerEqual);
+    }
+    if (n->m_toLarger) {
+        cleanTree(n->m_toLarger);
+    }
 }
 
 void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
@@ -472,9 +476,10 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
 
     static constexpr double INF = 1e12;
 
-    int bestFeature = -1, bestFeaturePos = -1;
+    int bestFeature = -1;
+    // int bestFeaturePos = -1;
     double bestFeatureRMSE = INF;
-    T_DTYPE bestFeatureLow = INF, bestFeatureHi = INF;
+    // T_DTYPE bestFeatureLow = INF, bestFeatureHi = INF;
     T_DTYPE optFeatureSplitValue = INF;
 
     // TODO check m_feature_subspace_size not larger than nFeatures!!
@@ -483,7 +488,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
         // search the optimal split value, which reduce the RMSE the most
         T_DTYPE optimalSplitValue = 0.0;
         double rmseBest = 1e10;
-        T_DTYPE meanLowBest = INF, meanHiBest = INF;
+        // T_DTYPE meanLowBest = INF, meanHiBest = INF;
         int bestPos = -1;
         double sumLow = 0.0, sum2Low = 0.0, sumHi = sumTarget, sum2Hi = sum2Target, cntLow = 0.0, cntHi = nNodeSamples;
         T_DTYPE* ptrInput = inputTmp + i * nNodeSamples;
@@ -525,8 +530,8 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
             rmseBest = (sum2Low / cntLow - (sumLow / cntLow) * (sumLow / cntLow)) * cntLow;
             rmseBest += (sum2Hi / cntHi - (sumHi / cntHi) * (sumHi / cntHi)) * cntHi;
             rmseBest = sqrt(rmseBest / (cntLow + cntHi));
-            meanLowBest = sumLow / cntLow;
-            meanHiBest = sumHi / cntHi;
+            // meanLowBest = sumLow / cntLow;
+            // meanHiBest = sumHi / cntHi;
         } else  // search for the optimal threshold value, goal: best RMSE reduction split
         {
             // fast sort of the input dimension
@@ -574,8 +579,8 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
                     optimalSplitValue = v0;
                     rmseBest = rmse;
                     bestPos = j + 1;
-                    meanLowBest = sumLow / cntLow;
-                    meanHiBest = sumHi / cntHi;
+                    // meanLowBest = sumLow / cntLow;
+                    // meanHiBest = sumHi / cntHi;
                 }
 
                 j++;
@@ -584,11 +589,11 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
 
         if (rmseBest < bestFeatureRMSE) {
             bestFeature = i;
-            bestFeaturePos = bestPos;
+            // bestFeaturePos = bestPos;
             bestFeatureRMSE = rmseBest;
             optFeatureSplitValue = optimalSplitValue;
-            bestFeatureLow = meanLowBest;
-            bestFeatureHi = meanHiBest;
+            // bestFeatureLow = meanLowBest;
+            // bestFeatureHi = meanHiBest;
         }
     }
     // cerr << bestFeature << " rmse: " << bestFeatureRMSE << endl;
@@ -603,7 +608,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     }
 
     // count the samples of the low node
-    int cnt = 0;
+    unsigned int cnt = 0;
     for (int i = 0; i < nNodeSamples; i++) {
         int nr = n->m_featureNr;
         if (data.m_data[n->m_trainSamples[i]][nr] <= optFeatureSplitValue) {
@@ -613,12 +618,17 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
 
     int* lowList = new int[cnt];
     int* hiList = new int[nNodeSamples - cnt];
-    if (cnt == 0) lowList = 0;
-    if (nNodeSamples - cnt == 0) hiList = 0;
+    if (cnt == 0) {
+        lowList = 0;
+    }
+    if (nNodeSamples - cnt == 0) {
+        hiList = 0;
+    }
 
-    int lowCnt = 0, hiCnt = 0;
+    unsigned int lowCnt = 0;
+    unsigned int hiCnt = 0;
     double lowMean = 0.0, hiMean = 0.0;
-    int acnt = 0;
+    unsigned int acnt = 0;
     double amean = 0;
     for (int i = 0; i < nNodeSamples; i++) {
         int nr = n->m_featureNr;
@@ -638,7 +648,9 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     hiMean /= hiCnt;
     amean /= acnt;
 
-    if (hiCnt + lowCnt != nNodeSamples || lowCnt != cnt) assert(false);
+    if (static_cast<int>(hiCnt + lowCnt) != nNodeSamples || lowCnt != cnt) {
+        assert(false);
+    }
     ///////////////////////////
 
     // break, if too less samples
