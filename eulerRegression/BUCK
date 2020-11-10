@@ -7,5 +7,7 @@ cxx_binary(
     "//lib:header",
     "//lib/ml:gbdt",
     "//lib/ml:ols",
+    "//lib/io:utils",
+    "//lib/io:csv",
   ],
 )

@@ -30,3 +30,20 @@ cxx_library(
   ],
 )
 
+cxx_library(
+  name="dataframe",
+  exported_headers=[
+    "dataframe.h",
+  ],
+  srcs=[
+    "dataframe.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io:csv",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+

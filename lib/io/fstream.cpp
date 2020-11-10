@@ -52,7 +52,7 @@ void checkPeek(istream* is_p, const string& filename, ios_base::openmode mode) {
     try {
         is_p->peek();
         peekFailed = is_p->fail();
-    } catch (ios_base::failure e) {
+    } catch (const ios_base::failure& e) {
     }
     if (peekFailed) {
         throw Exception(string("strict_fstream: open('") + filename + "'," + modeToString(mode) + "): peek failed: " + strError());
