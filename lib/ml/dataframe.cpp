@@ -13,4 +13,10 @@ PDataFrame DataFrame::loadFromCsv(const string& filename) {
     for (size_t i = 0; i < header.size(); ++i) {
         columns_.emplace_back(make_shared<Column>(header[i]));
     }
+
+    while (reader.readLine()) {
+        for (size_t i = 0; i < header.size(); ++i) {
+            columns_[i]->data_.emplace_back(reader.get(i));
+        }
+    }
 }
