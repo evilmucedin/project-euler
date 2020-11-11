@@ -4,12 +4,18 @@
 
 class DataFrame {
    public:
+    DataFrame();
+    DataFrame(const StringVector& names);
+
     using PDataFrame = shared_ptr<DataFrame>;
     static PDataFrame loadFromCsv(const string& filename);
+    PDataFrame shallowCopy();
 
     size_t numLines() const;
     StringVector columnNames() const;
     StringVector line(size_t line) const;
+    void pushBackLine(const StringVector& v) const;
+    void emplaceBackLine(StringVector&& v) const;
 
     struct Column {
         Column(string name);
@@ -32,6 +38,9 @@ class DataFrame {
 
     const PColumn getColumn(const string& name) const;
     void addColumn(PColumn column);
+    void eraseColumn(const string& name);
+    void reindex();
+    pair<PDataFrame, PDataFrame> randomSplit(double ratio) const;
 };
 
 ostream& operator<<(ostream& s, const DataFrame& df);
