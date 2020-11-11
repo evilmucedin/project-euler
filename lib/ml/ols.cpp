@@ -88,6 +88,13 @@ void LinearRegressor::addSample(const DoubleVector& x, double y) {
     }
 }
 
+void LinearRegressor::fit(const DoubleMatrix& x, const DoubleVector& y) {
+    for (size_t i = 0; i < x.size(); ++i) {
+        addSample(x[i], y[i]);
+    }
+    regress();
+}
+
 void LinearRegressor::l2Regularization(double lambda1, double lambda2) {
     for (size_t i = 0; i < numFeatures_; ++i) {
         const double xii = xtx_[i][i];

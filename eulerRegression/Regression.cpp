@@ -13,5 +13,10 @@ int main() {
     auto dfTrain = df->shallowCopy();
     dfTrain->eraseColumn("price");
     cout << dfTrain->columnNames() << endl;
+
+    LinearRegressor lr(dfTrain->columnNames().size());
+    lr.fit(dfTrain->cast<double>(), df->getColumn("price")->cast<double>());
+    cout << lr.beta_ << endl;
+
     return 0;
 }
