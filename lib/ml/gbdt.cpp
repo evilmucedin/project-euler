@@ -310,6 +310,7 @@ bool GBDT::Train(const Data& data) {
 }
 
 void GBDT::fit(const DoubleMatrix& x, const DoubleVector& y) {
+    ASSERTEQ(x.size(), y.size());
     Data dt;
     dt.m_data = x;
     dt.m_target = y;
