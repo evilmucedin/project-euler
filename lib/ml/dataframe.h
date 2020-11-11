@@ -41,6 +41,17 @@ class DataFrame {
     void eraseColumn(const string& name);
     void reindex();
     pair<PDataFrame, PDataFrame> randomSplit(double ratio) const;
+
+    template <typename T>
+    vector<vector<T>> cast() const {
+        vector<vector<T>> result(numLines(), vector<T>(columns_.size()));
+        for (size_t j = 0; j < columns_.size(); ++j) {
+            for (size_t i = 0; i < numLines(); ++i) {
+                result[i][j] = stringCast<T>(columns_[j]->data_[i]);
+            }
+        }
+        return result;
+    }
 };
 
 ostream& operator<<(ostream& s, const DataFrame& df);

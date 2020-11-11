@@ -10,5 +10,8 @@ int main() {
     auto df = DataFrame::loadFromCsv(repoRoot() + "/eulerRegression/kc_house_data.csv");
     cout << *df << endl;
     cout << df->getColumn("price")->cast<double>() << endl;
+    auto dfTrain = df->shallowCopy();
+    dfTrain->eraseColumn("price");
+    cout << dfTrain->columnNames() << endl;
     return 0;
 }

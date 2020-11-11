@@ -1,12 +1,7 @@
 #include "lib/header.h"
+#include "lib/ml/regressor.h"
 
-using DoubleVector = vector<double>;
-using DoubleMatrix = vector<DoubleVector>;
-
-DoubleMatrix createMatrix(size_t n);
-DoubleVector createVector(size_t n);
-
-struct LinearRegressor {
+struct LinearRegressor : public IRegressor {
     static DoubleVector mul(const DoubleMatrix& m, const DoubleVector& v);
 
     static DoubleMatrix inverse(const DoubleMatrix& m);
@@ -14,6 +9,7 @@ struct LinearRegressor {
     LinearRegressor(size_t numFeatures);
 
     void addSample(const DoubleVector& x, double y);
+    void fit(const DoubleMatrix& x, const DoubleVector& y);
 
     void l2Regularization(double lambda1, double lambda2);
 

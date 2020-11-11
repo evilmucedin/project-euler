@@ -5,9 +5,11 @@
 #include <vector>
 #include <set>
 
+#include "lib/ml/regressor.h"
+
 using T_DTYPE = double;
-using T_MATRIX = std::vector<std::vector<T_DTYPE>>;
 using T_VECTOR = std::vector<T_DTYPE>;
+using T_MATRIX = std::vector<T_VECTOR>;
 
 struct node {
     int m_featureNr;                 // decision on this feature
@@ -54,7 +56,7 @@ class DataReader {
    private:
 };  // end of class DataReader
 
-class GBDT {
+class GBDT : public IRegressor {
    public:
     GBDT();
 
@@ -63,6 +65,7 @@ class GBDT {
     bool Init();
 
     bool Train(const Data& data);
+    void fit(const DoubleMatrix& x, const DoubleVector& y) override;
 
     void PredictAllOutputs(const Data& data, T_VECTOR& predictions);
 

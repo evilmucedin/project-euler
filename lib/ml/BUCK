@@ -1,4 +1,20 @@
 cxx_library(
+  name="regressor",
+  exported_headers=[
+    "regressor.h",
+  ],
+  srcs=[
+    "regressor.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="gbdt",
   exported_headers=[
     "gbdt.h",
@@ -8,6 +24,7 @@ cxx_library(
   ],
   deps=[
     "//lib:header",
+    ":regressor",
   ],
   visibility=[
     'PUBLIC',
@@ -24,6 +41,7 @@ cxx_library(
   ],
   deps=[
     "//lib:header",
+    ":regressor",
   ],
   visibility=[
     'PUBLIC',

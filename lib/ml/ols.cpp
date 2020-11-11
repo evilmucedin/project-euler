@@ -1,12 +1,5 @@
 #include "ols.h"
 
-DoubleMatrix createMatrix(size_t n) {
-    DoubleMatrix result(n, DoubleVector(n));
-    return result;
-}
-
-DoubleVector createVector(size_t n) { return DoubleVector(n); }
-
 DoubleVector LinearRegressor::mul(const DoubleMatrix& m, const DoubleVector& v) {
     DoubleVector result(v.size());
     for (size_t i = 0; i < v.size(); ++i) {
