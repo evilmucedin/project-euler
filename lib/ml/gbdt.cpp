@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "lib/header.h"
+#include "lib/string.h"
 
 static void InplaceTrimLeft(std::string& strValue) {
     size_t pos = 0;
@@ -259,6 +260,16 @@ bool GBDT::LoadConfig(const std::string& conf_file) {
     return true;
 }
 
+GBDT& GBDT::setMaxEpochs(unsigned int max_epochs) {
+    m_max_epochs = max_epochs;
+    return *this;
+}
+
+GBDT& GBDT::setLRate(double lrate) {
+    m_lrate = lrate;
+    return *this;
+}
+
 bool GBDT::Init() {
     m_trees = new node[m_max_epochs];
     for (unsigned int i = 0; i < m_max_epochs; ++i) {
@@ -310,6 +321,7 @@ bool GBDT::Train(const Data& data) {
 }
 
 void GBDT::fit(const DoubleMatrix& x, const DoubleVector& y) {
+    Init();
     ASSERTEQ(x.size(), y.size());
     Data dt;
     dt.m_data = x;
@@ -357,7 +369,9 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
 
     //----data should be sampled !!!!----
     int data_sample_num = int(nSamples * m_data_sample_ratio);
-    if (data_sample_num < 10) data_sample_num = nSamples;
+    if (data_sample_num < 10) {
+        data_sample_num = nSamples;
+    }
 
     m_trees[train_epoch].m_trainSamples = new int[data_sample_num];
     m_trees[train_epoch].m_nSamples = data_sample_num;
@@ -772,6 +786,17 @@ DoubleVector GBDT::regress(const DoubleMatrix& m) {
     return result;
 }
 
+string GBDT::explain(const StringVector& columnNames) const {
+    string result;
+
+    for (unsigned int j = 0; j < m_train_epoch + 1; j++) {
+        result += explainTreeRecursive(&(m_trees[j]), columnNames, 0);
+        result += "\n";
+    }
+
+    return result;
+}
+
 void GBDT::SaveWeights(const std::string& model_file) {
     cerr << "Save:" << model_file << endl;
     std::fstream f(model_file.c_str(), std::ios::out);
@@ -786,7 +811,9 @@ void GBDT::SaveWeights(const std::string& model_file) {
     f.write((char*)&m_global_mean, sizeof(m_global_mean));
 
     // save trees
-    for (unsigned int j = 0; j < m_train_epoch + 1; j++) SaveTreeRecursive(&(m_trees[j]), f);
+    for (unsigned int j = 0; j < m_train_epoch + 1; j++) {
+        SaveTreeRecursive(&(m_trees[j]), f);
+    }
 
     cerr << "debug: train_epoch: " << m_train_epoch << endl;
     f.close();
@@ -797,6 +824,24 @@ void GBDT::SaveTreeRecursive(node* n, std::fstream& f) {
     f.write((char*)n, sizeof(node));
     if (n->m_toSmallerEqual) SaveTreeRecursive(n->m_toSmallerEqual, f);
     if (n->m_toLarger) SaveTreeRecursive(n->m_toLarger, f);
+}
+
+string GBDT::explainTreeRecursive(node* n, const StringVector& columnNames, size_t indent) const {
+    if (!n) {
+        return "";
+    }
+
+    string sep = rep(" ", indent);
+    if (n->m_toSmallerEqual && n->m_toLarger) {
+        string result = stringSprintf("%s[%s < %lf]:\n", sep.c_str(), columnNames[n->m_featureNr].c_str(), n->m_value);
+        result += explainTreeRecursive(n->m_toSmallerEqual, columnNames, indent + 2);
+        result += sep;
+        result += "else:\n";
+        result += explainTreeRecursive(n->m_toLarger, columnNames, indent + 2);
+        return result;
+    } else {
+        return stringSprintf("%s%lf\n", sep.c_str(), n->m_value);
+    }
 }
 
 void GBDT::LoadWeights(const std::string& model_file) {

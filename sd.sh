@@ -23,5 +23,5 @@ ${buck_bin} build @mode/sandbg euler$1/...
 res=$?
 args="${@:2}"
 if [ 0 -eq ${res} ]; then
-    gdb --args buck-out/gen/euler$1/$1 $args
+    LSAN_OPTIONS="verbosity=1:log_threads=1" gdb --args buck-out/gen/euler$1/$1 $args
 fi

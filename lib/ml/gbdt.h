@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 
+#include "lib/header.h"
 #include "lib/ml/regressor.h"
 
 using T_DTYPE = double;
@@ -46,7 +47,6 @@ class Data {
 class DataReader {
    public:
     DataReader() {}
-
     ~DataReader() {}
 
     bool ReadDataFromL2R(const std::string& input_file, Data& data, unsigned int dimentions);
@@ -70,11 +70,14 @@ class GBDT : public IRegressor {
     void PredictAllOutputs(const Data& data, T_VECTOR& predictions);
     DoubleVector regress(const DoubleMatrix& m) override;
 
+    string explain(const StringVector& columnNames) const;
+
     void SaveWeights(const std::string& model_file);
-
     void LoadWeights(const std::string& model_file);
-
     bool LoadConfig(const std::string& conf_file);
+
+    GBDT& setMaxEpochs(unsigned int max_epochs);
+    GBDT& setLRate(double lrate);
 
    private:
     bool ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse);
@@ -88,6 +91,7 @@ class GBDT : public IRegressor {
 
     void SaveTreeRecursive(node* n, std::fstream& f);
     void LoadTreeRecursive(node* n, std::fstream& f, std::string prefix);
+    string explainTreeRecursive(node* n, const StringVector& columnNames, size_t indent) const;
 
    private:
     node* m_trees;

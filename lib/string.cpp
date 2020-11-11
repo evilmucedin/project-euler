@@ -31,3 +31,11 @@ string join(const string& delim, const StringVector& parts) {
 }
 
 bool hasSubstring(const string& s, const string& substr) { return s.find(substr) != string::npos; }
+
+string rep(const string& s, size_t n) {
+    string result;
+    for (size_t i = 0; i < n; ++i) {
+        result += s;
+    }
+    return result;
+}
