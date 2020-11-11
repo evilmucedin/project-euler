@@ -5,7 +5,10 @@ class DataFrame {
     using PDataFrame = shared_ptr<DataFrame>;
     static PDataFrame loadFromCsv(const string& filename);
 
-   private:
+    size_t numLines() const;
+    StringVector columnNames() const;
+    StringVector line(size_t line) const;
+
     struct Column {
         Column(string name);
 
@@ -15,3 +18,5 @@ class DataFrame {
     using PColumn = shared_ptr<Column>;
     vector<PColumn> columns_;
 };
+
+ostream& operator<<(ostream& s, const DataFrame& df);
