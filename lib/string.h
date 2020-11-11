@@ -2,6 +2,8 @@
 
 #include "lib/header.h"
 
+#include <sstream>
+
 StringVector split(const string& s, char delim = '\t');
 
 template <typename T>
@@ -38,3 +40,12 @@ StringVector splitByFunctor(const string& s, T isDelimiter) {
 string join(const string& delim, const StringVector& parts);
 
 bool hasSubstring(const string& s, const string& substr);
+
+template <typename U, typename V = string>
+U stringCast(const V& x) {
+    stringstream ss;
+    ss << x;
+    U result;
+    ss >> result;
+    return result;
+}

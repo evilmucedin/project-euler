@@ -9,5 +9,6 @@
 int main() {
     auto df = DataFrame::loadFromCsv(repoRoot() + "/eulerRegression/kc_house_data.csv");
     cout << *df << endl;
+    cout << df->getColumn("price")->cast<double>() << endl;
     return 0;
 }

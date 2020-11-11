@@ -13,7 +13,7 @@ DataFrame::PDataFrame DataFrame::loadFromCsv(const string& filename) {
     }
     const auto header = reader.header();
     for (size_t i = 0; i < header.size(); ++i) {
-        result->columns_.emplace_back(make_shared<Column>(header[i]));
+        result->addColumn(make_shared<Column>(header[i]));
     }
 
     while (reader.readLine()) {
@@ -40,6 +40,19 @@ StringVector DataFrame::line(size_t line) const {
         result[i] = columns_[i]->data_[line];
     }
     return result;
+}
+
+const DataFrame::PColumn DataFrame::getColumn(const string& name) const {
+    auto toColumn = name2index_.find(name);
+    if (toColumn == name2index_.end()) {
+        THROW("Column '" << name << "' not found");
+    }
+    return columns_[toColumn->second];
+}
+
+void DataFrame::addColumn(PColumn column) {
+    columns_.emplace_back(column);
+    name2index_[column->name_] = columns_.size() - 1;
 }
 
 ostream& operator<<(ostream& s, const DataFrame& df) {

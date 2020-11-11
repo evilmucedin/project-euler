@@ -136,7 +136,7 @@ typename T::value_type average(const T& x) {
 #ifndef NDEBUG
     assert(!x.empty());
 #endif
-    return sum(x)/x.size();
+    return sum(x) / x.size();
 }
 
 template<typename T>
