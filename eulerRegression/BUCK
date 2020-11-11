@@ -8,6 +8,7 @@ cxx_binary(
     "//lib/ml:gbdt",
     "//lib/ml:ols",
     "//lib/ml:dataframe",
+    "//lib/ml:metrics",
     "//lib/io:utils",
     "//lib/io:csv",
   ],

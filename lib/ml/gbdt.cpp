@@ -309,6 +309,18 @@ bool GBDT::Train(const Data& data) {
     return true;
 }
 
+void GBDT::fit(const DoubleMatrix& x, const DoubleVector& y) {
+    Data dt;
+    dt.m_data = x;
+    dt.m_target = y;
+    dt.m_dimension = x[0].size();
+    dt.m_num = x.size();
+    for (size_t i = 0; i < x[0].size(); ++i) {
+        dt.m_valid_id.emplace(i);
+    }
+    Train(dt);
+}
+
 bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse) {
     int64_t t0 = Milliseconds();
 
@@ -747,6 +759,16 @@ void GBDT::PredictAllOutputs(const Data& data, T_VECTOR& predictions) {
         }
         predictions[i] = sum;
     }
+}
+
+DoubleVector GBDT::regress(const DoubleMatrix& m) {
+    Data dt;
+    dt.m_data = m;
+    dt.m_dimension = m[0].size();
+    dt.m_num = m.size();
+    DoubleVector result;
+    PredictAllOutputs(dt, result);
+    return result;
 }
 
 void GBDT::SaveWeights(const std::string& model_file) {

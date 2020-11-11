@@ -68,6 +68,7 @@ class GBDT : public IRegressor {
     void fit(const DoubleMatrix& x, const DoubleVector& y) override;
 
     void PredictAllOutputs(const Data& data, T_VECTOR& predictions);
+    DoubleVector regress(const DoubleMatrix& m) override;
 
     void SaveWeights(const std::string& model_file);
 

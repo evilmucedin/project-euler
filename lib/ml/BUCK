@@ -15,6 +15,22 @@ cxx_library(
 )
 
 cxx_library(
+  name="metrics",
+  exported_headers=[
+    "metrics.h",
+  ],
+  srcs=[
+    "metrics.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="gbdt",
   exported_headers=[
     "gbdt.h",

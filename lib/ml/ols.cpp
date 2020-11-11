@@ -95,6 +95,14 @@ void LinearRegressor::fit(const DoubleMatrix& x, const DoubleVector& y) {
     regress();
 }
 
+DoubleVector LinearRegressor::regress(const DoubleMatrix& m) {
+    DoubleVector result(m.size());
+    for (size_t i = 0; i < m.size(); ++i) {
+        result[i] = get(m[i]);
+    }
+    return result;
+}
+
 void LinearRegressor::l2Regularization(double lambda1, double lambda2) {
     for (size_t i = 0; i < numFeatures_; ++i) {
         const double xii = xtx_[i][i];

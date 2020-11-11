@@ -13,5 +13,7 @@ DoubleVector createVector(size_t n);
 class IRegressor {
    public:
     virtual void fit(const DoubleMatrix& x, const DoubleVector& y) = 0;
+    virtual DoubleVector regress(const DoubleMatrix& m) = 0;
+
     virtual ~IRegressor();
 };

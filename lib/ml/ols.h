@@ -9,7 +9,8 @@ struct LinearRegressor : public IRegressor {
     LinearRegressor(size_t numFeatures);
 
     void addSample(const DoubleVector& x, double y);
-    void fit(const DoubleMatrix& x, const DoubleVector& y);
+    void fit(const DoubleMatrix& x, const DoubleVector& y) override;
+    DoubleVector regress(const DoubleMatrix& m) override;
 
     void l2Regularization(double lambda1, double lambda2);
 
