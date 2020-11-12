@@ -40,6 +40,7 @@ cxx_library(
   ],
   deps=[
     "//lib:header",
+    "//lib:noncopyable",
     "//lib:string",
     ":regressor",
   ],

@@ -6,25 +6,12 @@
 #include <set>
 
 #include "lib/header.h"
+#include "lib/noncopyable.h"
 #include "lib/ml/regressor.h"
 
 using GBDTDType = double;
 using GBDTVectorType = std::vector<GBDTDType>;
 using GBDTMatrixType = std::vector<GBDTVectorType>;
-
-struct Node {
-    int m_featureNr;                 // decision on this feature
-    GBDTDType m_value;                 // the prediction value
-    Node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
-    Node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
-    int* m_trainSamples;             // a list of indices of the training samples in this node
-    int m_nSamples;                  // the length of m_trainSamples
-};
-
-struct NodeReduced {
-    Node* m_node;
-    uint m_size;
-};
 
 class Data {
    public:
@@ -56,7 +43,24 @@ class DataReader {
    private:
 };  // end of class DataReader
 
-class GBDT : public IRegressor {
+class GBDT : public IRegressor, NonCopyable {
+   private:
+    struct Node {
+        int m_featureNr;         // decision on this feature
+        GBDTDType m_value;       // the prediction value
+        Node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
+        Node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
+        int* m_trainSamples;     // a list of indices of the training samples in this node
+        int m_nSamples;          // the length of m_trainSamples
+    };
+
+    struct NodeReduced {
+        Node* m_node;
+        uint m_size;
+    };
+
+    friend bool compareNodeReduced(GBDT::NodeReduced n0, GBDT::NodeReduced n1);
+
    public:
     GBDT();
 

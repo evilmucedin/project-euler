@@ -195,7 +195,7 @@ bool DataReader::ReadDataFromL2R(const std::string& input_file, Data& data, unsi
     return true;
 }
 
-static bool compareNodeReduced(NodeReduced n0, NodeReduced n1) { return n0.m_size < n1.m_size; }
+bool compareNodeReduced(GBDT::NodeReduced n0, GBDT::NodeReduced n1) { return n0.m_size < n1.m_size; }
 
 static int64_t Milliseconds() {
     struct timeval t;
