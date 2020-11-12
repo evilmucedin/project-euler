@@ -190,7 +190,7 @@ bool DataReader::ReadDataFromL2R(const std::string& input_file, Data& data, unsi
     return true;
 }
 
-static bool compareNodeReduced(nodeReduced n0, nodeReduced n1) { return n0.m_size < n1.m_size; }
+static bool compareNodeReduced(NodeReduced n0, NodeReduced n1) { return n0.m_size < n1.m_size; }
 
 static int64_t Milliseconds() {
     struct timeval t;
@@ -271,7 +271,7 @@ GBDT& GBDT::setLRate(double lrate) {
 }
 
 bool GBDT::Init() {
-    m_trees = new node[m_max_epochs];
+    m_trees = new Node[m_max_epochs];
     for (unsigned int i = 0; i < m_max_epochs; ++i) {
         m_trees[i].m_featureNr = -1;
         m_trees[i].m_value = 1e10;
@@ -361,7 +361,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
         }
     }
 
-    deque<nodeReduced> largestNodes;
+    deque<NodeReduced> largestNodes;
     //----init feature mask----
     for (unsigned int j = 0; j < data.m_dimension; j++) {
         usedFeatures[j] = false;
@@ -391,7 +391,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     ///////////////////
 
     //----init first node for split----
-    nodeReduced firstNode;
+    NodeReduced firstNode;
     firstNode.m_node = &(m_trees[train_epoch]);
     firstNode.m_size = data_sample_num;
     largestNodes.push_back(firstNode);
@@ -418,7 +418,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     //---- train the tree loop wise----
     // call trainSingleTree recursive for the largest node
     for (unsigned int j = 0; j < m_max_tree_leafes; j++) {
-        node* largestNode = largestNodes[0].m_node;
+        Node* largestNode = largestNodes[0].m_node;
 
         TrainSingleTree(largestNode, largestNodes, data, usedFeatures, inputTmp, inputTargetsSort, sortIndex,
                         randFeatureIDs);
@@ -458,7 +458,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     return true;
 }
 
-void GBDT::cleanTree(node* n) {
+void GBDT::cleanTree(Node* n) {
     if (n->m_trainSamples) {
         delete[] n->m_trainSamples;
         n->m_trainSamples = 0;
@@ -473,7 +473,7 @@ void GBDT::cleanTree(node* n) {
     }
 }
 
-void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
+void GBDT::TrainSingleTree(Node* n, std::deque<NodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
                            T_DTYPE* inputTmp, T_DTYPE* inputTargetsSort, int* sortIndex, const int* randFeatureIDs) {
     unsigned int nFeatures = data.m_dimension;
 
@@ -692,7 +692,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
         n->m_trainSamples = 0;
         n->m_nSamples = 0;
 
-        nodeReduced currentNode;
+        NodeReduced currentNode;
         currentNode.m_node = n;
         currentNode.m_size = 0;
         largestNodes.push_back(currentNode);
@@ -702,7 +702,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     }
 
     // prepare first new node
-    n->m_toSmallerEqual = new node;
+    n->m_toSmallerEqual = new Node();
     n->m_toSmallerEqual->m_featureNr = -1;
     n->m_toSmallerEqual->m_value = lowMean;
     n->m_toSmallerEqual->m_toSmallerEqual = 0;
@@ -711,7 +711,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     n->m_toSmallerEqual->m_nSamples = lowCnt;
 
     // prepare second new node
-    n->m_toLarger = new node;
+    n->m_toLarger = new Node();
     n->m_toLarger->m_featureNr = -1;
     n->m_toLarger->m_value = hiMean;
     n->m_toLarger->m_toSmallerEqual = 0;
@@ -720,7 +720,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     n->m_toLarger->m_nSamples = hiCnt;
 
     // add the new two nodes to the heap
-    nodeReduced lowNode, hiNode;
+    NodeReduced lowNode, hiNode;
     lowNode.m_node = n->m_toSmallerEqual;
     lowNode.m_size = lowCnt;
     hiNode.m_node = n->m_toLarger;
@@ -733,7 +733,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     push_heap(largestNodes.begin(), largestNodes.end(), compareNodeReduced);
 }
 
-T_DTYPE GBDT::predictSingleTree(node* n, const Data& data, int data_index) {
+T_DTYPE GBDT::predictSingleTree(Node* n, const Data& data, int data_index) {
     int nFeatures = data.m_dimension;
     int nr = n->m_featureNr;
     if (nr < -1 || nr >= nFeatures) {
@@ -819,14 +819,14 @@ void GBDT::SaveWeights(const std::string& model_file) {
     f.close();
 }
 
-void GBDT::SaveTreeRecursive(node* n, std::fstream& f) {
+void GBDT::SaveTreeRecursive(Node* n, std::fstream& f) {
     // cerr << "debug_save: " << n->m_value << " " << n->m_featureNr << endl;
-    f.write((char*)n, sizeof(node));
+    f.write((char*)n, sizeof(Node));
     if (n->m_toSmallerEqual) SaveTreeRecursive(n->m_toSmallerEqual, f);
     if (n->m_toLarger) SaveTreeRecursive(n->m_toLarger, f);
 }
 
-string GBDT::explainTreeRecursive(node* n, const StringVector& columnNames, size_t indent) const {
+string GBDT::explainTreeRecursive(Node* n, const StringVector& columnNames, size_t indent) const {
     if (!n) {
         return "";
     }
@@ -862,7 +862,7 @@ void GBDT::LoadWeights(const std::string& model_file) {
     f.read((char*)&m_global_mean, sizeof(m_global_mean));
 
     // allocate and load the trees
-    m_trees = new node[m_train_epoch + 1];
+    m_trees = new Node[m_train_epoch + 1];
     for (unsigned int j = 0; j < m_train_epoch + 1; j++) {
         std::string prefix = "";
         LoadTreeRecursive(&(m_trees[j]), f, prefix);
@@ -871,8 +871,8 @@ void GBDT::LoadWeights(const std::string& model_file) {
     f.close();
 }
 
-void GBDT::LoadTreeRecursive(node* n, std::fstream& f, std::string prefix) {
-    f.read((char*)n, sizeof(node));
+void GBDT::LoadTreeRecursive(Node* n, std::fstream& f, std::string prefix) {
+    f.read((char*)n, sizeof(Node));
 
     // cerr << prefix;
     // cerr << "debug_load: " << n->m_value << " " << n->m_featureNr << endl;
@@ -881,11 +881,11 @@ void GBDT::LoadTreeRecursive(node* n, std::fstream& f, std::string prefix) {
     }
     prefix += "    ";
     if (n->m_toSmallerEqual) {
-        n->m_toSmallerEqual = new node;
+        n->m_toSmallerEqual = new Node();
         LoadTreeRecursive(n->m_toSmallerEqual, f, prefix);
     }
     if (n->m_toLarger) {
-        n->m_toLarger = new node;
+        n->m_toLarger = new Node();
         LoadTreeRecursive(n->m_toLarger, f, prefix);
     }
 }

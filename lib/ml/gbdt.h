@@ -12,17 +12,17 @@ using T_DTYPE = double;
 using T_VECTOR = std::vector<T_DTYPE>;
 using T_MATRIX = std::vector<T_VECTOR>;
 
-struct node {
+struct Node {
     int m_featureNr;                 // decision on this feature
     T_DTYPE m_value;                 // the prediction value
-    node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
-    node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
+    Node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
+    Node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
     int* m_trainSamples;             // a list of indices of the training samples in this node
     int m_nSamples;                  // the length of m_trainSamples
 };
 
-struct nodeReduced {
-    node* m_node;
+struct NodeReduced {
+    Node* m_node;
     uint m_size;
 };
 
@@ -82,19 +82,19 @@ class GBDT : public IRegressor {
    private:
     bool ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse);
 
-    void TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
+    void TrainSingleTree(Node* n, std::deque<NodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
                          T_DTYPE* inputTmp, T_DTYPE* inputTargetsSort, int* sortIndex, const int* randFeatureIDs);
 
-    T_DTYPE predictSingleTree(node* n, const Data& data, int data_index);
+    T_DTYPE predictSingleTree(Node* n, const Data& data, int data_index);
 
-    void cleanTree(node* n);
+    void cleanTree(Node* n);
 
-    void SaveTreeRecursive(node* n, std::fstream& f);
-    void LoadTreeRecursive(node* n, std::fstream& f, std::string prefix);
-    string explainTreeRecursive(node* n, const StringVector& columnNames, size_t indent) const;
+    void SaveTreeRecursive(Node* n, std::fstream& f);
+    void LoadTreeRecursive(Node* n, std::fstream& f, std::string prefix);
+    string explainTreeRecursive(Node* n, const StringVector& columnNames, size_t indent) const;
 
    private:
-    node* m_trees;
+    Node* m_trees;
     unsigned int m_max_epochs;
     unsigned int m_max_tree_leafes;
     unsigned int m_feature_subspace_size;
