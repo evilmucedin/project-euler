@@ -8,13 +8,13 @@
 #include "lib/header.h"
 #include "lib/ml/regressor.h"
 
-using T_DTYPE = double;
-using T_VECTOR = std::vector<T_DTYPE>;
-using T_MATRIX = std::vector<T_VECTOR>;
+using GBDTDType = double;
+using GBDTVectorType = std::vector<GBDTDType>;
+using GBDTMatrixType = std::vector<GBDTVectorType>;
 
 struct Node {
     int m_featureNr;                 // decision on this feature
-    T_DTYPE m_value;                 // the prediction value
+    GBDTDType m_value;                 // the prediction value
     Node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
     Node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
     int* m_trainSamples;             // a list of indices of the training samples in this node
@@ -33,8 +33,8 @@ class Data {
     ~Data() {}
 
    public:
-    T_MATRIX m_data;
-    T_VECTOR m_target;
+    GBDTMatrixType m_data;
+    GBDTVectorType m_target;
 
     std::set<int> m_valid_id;
 
@@ -67,7 +67,7 @@ class GBDT : public IRegressor {
     bool Train(const Data& data);
     void fit(const DoubleMatrix& x, const DoubleVector& y) override;
 
-    void PredictAllOutputs(const Data& data, T_VECTOR& predictions);
+    void PredictAllOutputs(const Data& data, GBDTVectorType& predictions);
     DoubleVector regress(const DoubleMatrix& m) override;
 
     string explain(const StringVector& columnNames) const;
@@ -83,9 +83,9 @@ class GBDT : public IRegressor {
     bool ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse);
 
     void TrainSingleTree(Node* n, std::deque<NodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
-                         T_DTYPE* inputTmp, T_DTYPE* inputTargetsSort, int* sortIndex, const int* randFeatureIDs);
+                         GBDTDType* inputTmp, GBDTDType* inputTargetsSort, int* sortIndex, const int* randFeatureIDs);
 
-    T_DTYPE predictSingleTree(Node* n, const Data& data, int data_index);
+    GBDTDType predictSingleTree(Node* n, const Data& data, int data_index);
 
     void cleanTree(Node* n);
 
@@ -105,8 +105,8 @@ class GBDT : public IRegressor {
     unsigned int m_min_samples;
     unsigned int m_norm_samples;
 
-    T_VECTOR m_tree_target;
+    GBDTVectorType m_tree_target;
 
-    T_DTYPE m_global_mean;
+    GBDTDType m_global_mean;
 
 };  // end of class GBDT
