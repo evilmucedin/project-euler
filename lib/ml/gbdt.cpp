@@ -3,11 +3,11 @@
 #include <sys/time.h>
 
 #include <cassert>
-
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
+#include "lib/exception.h"
 #include "lib/header.h"
 #include "lib/string.h"
 
@@ -64,12 +64,14 @@ static void Split(const std::string& strMain, char chSpliter, std::vector<std::s
     if (bReserveNullString || !strTemp.empty()) strList.push_back(strTemp);
 }
 
-bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data) {
+bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data, bool verbose) {
     std::ifstream fs;
     fs.open(input_file.c_str(), std::ios_base::in);
 
     if (fs.fail()) {
-        std::cerr << " Sorry ! The file isn't exist. " << input_file << std::endl;
+        if (verbose) {
+            std::cerr << " Sorry! The file isn't exist. " << input_file << std::endl;
+        }
         return false;
     }
 
@@ -123,8 +125,10 @@ bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data) {
         return false;
     }
 
-    std::cerr << "dimension: " << data.m_dimension << std::endl;
-    std::cerr << "data num: " << data.m_num << std::endl;
+    if (verbose) {
+        std::cerr << "dimension: " << data.m_dimension << std::endl;
+        std::cerr << "data num: " << data.m_num << std::endl;
+    }
 
     return true;
 }
@@ -218,6 +222,7 @@ GBDT::GBDT() {
     m_data_sample_ratio = 0.8;
     m_min_samples = 50;
     m_norm_samples = 1000;
+    verbose_ = true;
 }
 
 bool GBDT::LoadConfig(const std::string& conf_file) {
@@ -275,6 +280,11 @@ GBDT& GBDT::setLRate(double lrate) {
     return *this;
 }
 
+GBDT& GBDT::setVerbose(bool verbose) {
+    verbose_ = verbose;
+    return *this;
+}
+
 bool GBDT::Init() {
     m_trees = new Node[m_max_epochs];
     for (unsigned int i = 0; i < m_max_epochs; ++i) {
@@ -287,14 +297,16 @@ bool GBDT::Init() {
     }
 
     srand(time(0));
-    cerr << "configure--------" << endl;
-    cerr << "  max_epochs: " << m_max_epochs << endl;
-    cerr << "  max_tree_leafes: " << m_max_tree_leafes << endl;
-    cerr << "  feature_subspace_size: " << m_feature_subspace_size << endl;
-    cerr << "  use_opt_splitpoint: " << m_use_opt_splitpoint << endl;
-    cerr << "  learn_rate: " << m_lrate << endl;
-    cerr << "  data_sample_ratio: " << m_data_sample_ratio << endl;
-    cerr << endl;
+    if (verbose_) {
+        cerr << "configure--------" << endl;
+        cerr << "  max_epochs: " << m_max_epochs << endl;
+        cerr << "  max_tree_leafes: " << m_max_tree_leafes << endl;
+        cerr << "  feature_subspace_size: " << m_feature_subspace_size << endl;
+        cerr << "  use_opt_splitpoint: " << m_use_opt_splitpoint << endl;
+        cerr << "  learn_rate: " << m_lrate << endl;
+        cerr << "  data_sample_ratio: " << m_data_sample_ratio << endl;
+        cerr << endl;
+    }
 
     return true;
 }
@@ -308,14 +320,18 @@ bool GBDT::Train(const Data& data) {
     // TODO or rmse rise up
     for (; train_epoch < m_max_epochs; train_epoch++) {
         double rmse = 0.0;
-        cerr << "epoch: " << train_epoch << endl;
+        if (verbose_) {
+            cerr << "epoch: " << train_epoch << endl;
+        }
 
         ModelUpdate(data, train_epoch, rmse);
 
         // if (pre_rmse < rmse && pre_rmse != -1)
         // if (pre_rmse - rmse < ( m_lrate * 0.001 ) && pre_rmse != -1)
         if (pre_rmse < rmse && pre_rmse != -1) {
-            cerr << "debug: rmse:" << rmse << " " << pre_rmse << " " << pre_rmse - rmse << std::endl;
+            if (verbose_) {
+                cerr << "debug: rmse:" << rmse << " " << pre_rmse << " " << pre_rmse - rmse << std::endl;
+            }
             break;
         }
         pre_rmse = rmse;
@@ -358,7 +374,9 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
             mean /= (double)data.m_num;
         }
         m_global_mean = mean;
-        std::cerr << "globalMean:" << mean << " " << std::flush;
+        if (verbose_) {
+            std::cerr << "globalMean:" << mean << " " << std::flush;
+        }
 
         // align by targets mean
         for (unsigned int j = 0; j < data.m_num; j++) {
@@ -448,8 +466,10 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
         trainRMSE += err * err;
     }
     rmse = sqrt(trainRMSE / (double)nSamples);
-    cerr << "RMSE:" << rmse << " " << trainRMSE << " " << std::flush;
-    cerr << "cost: " << Milliseconds() - t0 << "[ms]" << endl;
+    if (verbose_) {
+        cerr << "RMSE:" << rmse << " " << trainRMSE << " " << std::flush;
+        cerr << "cost: " << Milliseconds() - t0 << "[ms]" << endl;
+    }
 
     delete[] usedFeatures;
     delete[] inputTmp;
@@ -635,7 +655,9 @@ void GBDT::TrainSingleTree(Node* n, std::deque<NodeReduced>& largestNodes, const
     n->m_value = optFeatureSplitValue;
 
     if (n->m_featureNr < 0 || n->m_featureNr >= (int)nFeatures) {
-        cerr << "f=" << n->m_featureNr << endl;
+        if (verbose_) {
+            cerr << "f=" << n->m_featureNr << endl;
+        }
         assert(false);
     }
 
@@ -742,7 +764,9 @@ GBDTDType GBDT::predictSingleTree(Node* n, const Data& data, int data_index) {
     int nFeatures = data.m_dimension;
     int nr = n->m_featureNr;
     if (nr < -1 || nr >= nFeatures) {
-        cerr << "Feature nr:" << nr << endl;
+        if (verbose_) {
+            cerr << "Feature nr:" << nr << endl;
+        }
         assert(false);
     }
 
@@ -753,7 +777,9 @@ GBDTDType GBDT::predictSingleTree(Node* n, const Data& data, int data_index) {
 
     // TODO : del duplicate check
     if (nr < 0 || nr >= nFeatures) {
-        cerr << endl << "Feature nr: " << nr << " (max:" << nFeatures << ")" << endl;
+        if (verbose_) {
+            cerr << endl << "Feature nr: " << nr << " (max:" << nFeatures << ")" << endl;
+        }
         assert(false);
     }
     GBDTDType thresh = n->m_value;
@@ -803,7 +829,9 @@ string GBDT::explain(const StringVector& columnNames) const {
 }
 
 void GBDT::SaveWeights(const std::string& model_file) {
-    cerr << "Save:" << model_file << endl;
+    if (verbose_) {
+        cerr << "Save:" << model_file << endl;
+    }
     std::fstream f(model_file.c_str(), std::ios::out);
 
     // save learnrate
@@ -820,7 +848,9 @@ void GBDT::SaveWeights(const std::string& model_file) {
         SaveTreeRecursive(&(m_trees[j]), f);
     }
 
-    cerr << "debug: train_epoch: " << m_train_epoch << endl;
+    if (verbose_) {
+        cerr << "debug: train_epoch: " << m_train_epoch << endl;
+    }
     f.close();
 }
 
@@ -850,11 +880,15 @@ string GBDT::explainTreeRecursive(Node* n, const StringVector& columnNames, size
 }
 
 void GBDT::LoadWeights(const std::string& model_file) {
-    cerr << "Load:" << model_file << endl;
+    if (verbose_) {
+        cerr << "Load:" << model_file << endl;
+    }
     std::fstream f(model_file.c_str(), std::ios::in);
-    if (f.is_open() == false) {
-        cerr << "Load " << model_file << "failed!" << endl;
-        _Exit(1);
+    if (!f.is_open()) {
+        if (verbose_) {
+            cerr << "Load " << model_file << "failed!" << endl;
+        }
+        THROW("Cannot load weights from: " << model_file);
     }
 
     // load learnrate

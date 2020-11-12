@@ -24,7 +24,7 @@ int main() {
     cout << r2(dfTest->getColumn("price")->cast<double>(), lr.regress(dfTestM->cast<double>())) << endl;
 
     GBDT gbdt;
-    gbdt.setMaxEpochs(100).setLRate(0.01);
+    gbdt.setMaxEpochs(100).setLRate(0.01).setVerbose(false);
     gbdt.fit(dfTrainM->cast<double>(), dfTrain->getColumn("price")->cast<double>());
     cout << gbdt.explain(dfTrainM->columnNames()) << endl;
     cout << r2(dfTest->getColumn("price")->cast<double>(), gbdt.regress(dfTestM->cast<double>())) << endl;

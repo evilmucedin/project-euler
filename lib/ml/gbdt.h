@@ -38,7 +38,7 @@ class DataReader {
 
     bool ReadDataFromL2R(const std::string& input_file, Data& data, unsigned int dimentions);
 
-    bool ReadDataFromCVS(const std::string& input_file, Data& data);
+    bool ReadDataFromCVS(const std::string& input_file, Data& data, bool verbose);
 
    private:
 };  // end of class DataReader
@@ -82,6 +82,7 @@ class GBDT : public IRegressor, NonCopyable {
 
     GBDT& setMaxEpochs(unsigned int max_epochs);
     GBDT& setLRate(double lrate);
+    GBDT& setVerbose(bool verbose);
 
    private:
     bool ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse);
@@ -108,6 +109,7 @@ class GBDT : public IRegressor, NonCopyable {
     float m_data_sample_ratio;
     unsigned int m_min_samples;
     unsigned int m_norm_samples;
+    bool verbose_;
 
     GBDTVectorType m_tree_target;
 
