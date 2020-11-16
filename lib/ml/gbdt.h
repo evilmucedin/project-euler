@@ -56,7 +56,7 @@ class GBDT : public IRegressor, NonCopyable {
 
     struct NodeReduced {
         Node* m_node;
-        uint m_size;
+        unsigned int m_size;
     };
 
     friend bool compareNodeReduced(GBDT::NodeReduced n0, GBDT::NodeReduced n1);
