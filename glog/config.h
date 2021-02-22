@@ -195,5 +195,16 @@
 #undef HAVE_PTHREAD
 #undef HAVE_UNISTD_H
 #undef HAVE_SYSCALL_H
+#undef HAVE_SYS_SYSCALL_H
+#undef HAVE_SYS_UTSNAME_H
+#undef HAVE___SYNC_VAL_COMPARE_AND_SWAP
+#undef HAVE_SIGACTION
+#undef HAVE_SYS_TIME_H
+#undef HAVE_PWD_H
+#undef HAVE_SYSLOG_H
+#undef HAVE_STACKTRACE
+#undef HAVE_FCNTL
+#undef HAVE___ATTRIBUTE__
+#undef HAVE_EXECINFO_H
 #define GOOGLE_GLOG_DLL_DECL __declspec(dllexport)
 #endif

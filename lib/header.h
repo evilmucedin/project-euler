@@ -48,12 +48,14 @@ using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;
 using U128Set = unordered_set<u128>;
 
+#ifndef _MSC_VER
 #ifdef __SIZEOF_INT128__
 ostream& operator<<(ostream& o, u128 v);
 ostream& operator<<(ostream& o, i128 v);
 #else
 #ifndef __clang__
 ostream& operator<<(ostream& o, u128 v);
+#endif
 #endif
 #endif
 

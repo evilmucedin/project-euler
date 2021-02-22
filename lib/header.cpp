@@ -1,13 +1,12 @@
 #include "lib/header.h"
 
+#ifndef _MSC_VER
+
 #include <pwd.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-ostream& operator<<(ostream& o, const Cycle& c) {
-    o << "(" << c.start_ << ", " << c.period_ << ")";
-    return o;
-}
+string homeDir() { return getpwuid(getuid())->pw_dir; }
 
 #ifdef __SIZEOF_INT128__
 ostream& operator<<(ostream& o, u128 v) {
@@ -38,10 +37,16 @@ ostream& operator<<(ostream& o, u128 v) {
 #endif
 #endif
 
+#endif
+
+ostream& operator<<(ostream& o, const Cycle& c) {
+    o << "(" << c.start_ << ", " << c.period_ << ")";
+    return o;
+}
+
 Exception::Exception() {}
 
 Exception::Exception(string msg) : msg_(move(msg)) {}
 
 const char* Exception::what() const noexcept { return msg_.c_str(); }
 
-string homeDir() { return getpwuid(getuid())->pw_dir; }
