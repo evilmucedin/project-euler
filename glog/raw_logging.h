@@ -169,11 +169,18 @@ static inline void RawLogStub__(int /* ignored */, ...) {
 // Logs format... at "severity" level, reporting it
 // as called from file:line.
 // This does not allocate memory or acquire locks.
+#ifndef _MSC_VER
 GOOGLE_GLOG_DLL_DECL void RawLog__(LogSeverity severity,
                                    const char* file,
                                    int line,
                                    const char* format, ...)
    __attribute__((__format__ (__printf__, 4, 5)));
+#else
+GOOGLE_GLOG_DLL_DECL void RawLog__(LogSeverity severity,
+                                   const char* file,
+                                   int line,
+                                   const char* format, ...);
+#endif
 
 // Hack to propagate time information into this module so that
 // this module does not have to directly call localtime_r(),

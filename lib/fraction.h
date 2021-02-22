@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "lib/header.h"
+
 using namespace std;
 
 template <typename T>
@@ -24,14 +26,14 @@ T fgcd(T a, T b) {
 }
 
 struct Frac {
-    __int128 a;
-    __int128 b;
+    i128 a;
+    i128 b;
 
     Frac() : a(0), b(0) {}
 
-    Frac(__int128 aa) : a(aa), b(1) {}
+    Frac(i128 aa) : a(aa), b(1) {}
 
-    Frac(__int128 aa, __int128 bb) : a(aa), b(bb) {
+    Frac(i128 aa, i128 bb) : a(aa), b(bb) {
         if (b < 0) {
             a = -a;
             b = -b;
@@ -52,7 +54,7 @@ struct Frac {
 };
 
 using Pair = pair<Frac, Frac>;
-using IPair = pair<__int128, __int128>;
+using IPair = pair<i128, i128>;
 
 string str(const Frac& f) {
     stringstream s;
@@ -83,14 +85,14 @@ int cmp(const IPair& a, const IPair& b, const Frac& w) {
     }
 };
 
-using CF = vector<__int128>;
+using CF = vector<i128>;
 
 vector<CF> toCF(const Frac& f) {
     CF result;
     auto x = f;
     while (true) {
-        __int128 q = x.a / x.b;
-        __int128 r = x.a % x.b;
+        i128 q = x.a / x.b;
+        i128 r = x.a % x.b;
         result.emplace_back(q);
         if (r == 0) {
             break;

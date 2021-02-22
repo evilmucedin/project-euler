@@ -128,7 +128,7 @@ typedef unsigned __int64 uint64;
 // the absence of better information (ie. -fprofile-arcs).
 //
 #ifndef GOOGLE_PREDICT_BRANCH_NOT_TAKEN
-#if 1
+#if !defined(_MSC_VER)
 #define GOOGLE_PREDICT_BRANCH_NOT_TAKEN(x) (__builtin_expect(x, 0))
 #else
 #define GOOGLE_PREDICT_BRANCH_NOT_TAKEN(x) x
@@ -136,7 +136,7 @@ typedef unsigned __int64 uint64;
 #endif
 
 #ifndef GOOGLE_PREDICT_FALSE
-#if 1
+#ifndef _MSC_VER
 #define GOOGLE_PREDICT_FALSE(x) (__builtin_expect(x, 0))
 #else
 #define GOOGLE_PREDICT_FALSE(x) x
@@ -144,7 +144,7 @@ typedef unsigned __int64 uint64;
 #endif
 
 #ifndef GOOGLE_PREDICT_TRUE
-#if 1
+#ifndef _MSC_VER
 #define GOOGLE_PREDICT_TRUE(x) (__builtin_expect(!!(x), 1))
 #else
 #define GOOGLE_PREDICT_TRUE(x) x
@@ -644,7 +644,7 @@ void MakeCheckOpValueString(std::ostream* os, const unsigned char& v);
 // Build the error message string. Specify no inlining for code size.
 template <typename T1, typename T2>
 std::string* MakeCheckOpString(const T1& v1, const T2& v2, const char* exprtext)
-    __attribute__ ((noinline));
+    ;
 
 namespace base {
 namespace internal {
@@ -1240,7 +1240,11 @@ public:
   void SendToSyslogAndLog();  // Actually dispatch to syslog and the logs
 
   // Call abort() or similar to perform LOG(FATAL) crash.
+#ifndef _MSC_VER
   static void __attribute__ ((noreturn)) Fail();
+#else
+  static void __declspec(noreturn) Fail();
+#endif
 
   std::ostream& stream();
 
@@ -1288,7 +1292,11 @@ class GOOGLE_GLOG_DLL_DECL LogMessageFatal : public LogMessage {
  public:
   LogMessageFatal(const char* file, int line);
   LogMessageFatal(const char* file, int line, const CheckOpString& result);
+#ifndef _MSC_VER
   __attribute__ ((noreturn)) ~LogMessageFatal();
+#else
+  __declspec(noreturn) ~LogMessageFatal();
+#endif
 };
 
 // A non-macro interface to the log facility; (useful
@@ -1592,7 +1600,11 @@ class GOOGLE_GLOG_DLL_DECL NullStreamFatal : public NullStream {
   NullStreamFatal() { }
   NullStreamFatal(const char* file, int line, const CheckOpString& result) :
       NullStream(file, line, result) { }
+#ifndef _MSC_VER
   __attribute__ ((noreturn)) ~NullStreamFatal() throw () { _exit(1); }
+#else
+  __declspec(noreturn) ~NullStreamFatal() throw () { _exit(1); }
+#endif
 };
 
 // Install a signal handler that will dump signal information and a stack

@@ -29,6 +29,7 @@ cxx_library(
     "./symbolize.cc",
     "./utilities.cpp",
     "./vlog_is_on.cc",
+    "./port.cc",
   ],
   visibility=[
     'PUBLIC',

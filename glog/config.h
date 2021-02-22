@@ -189,3 +189,11 @@
 
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
+
+#ifdef _MSC_VER
+#define HAVE_SNPRINTF
+#undef HAVE_PTHREAD
+#undef HAVE_UNISTD_H
+#undef HAVE_SYSCALL_H
+#define GOOGLE_GLOG_DLL_DECL __declspec(dllexport)
+#endif

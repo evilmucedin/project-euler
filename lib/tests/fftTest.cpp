@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "lib/fft.h"
 #include "lib/random.h"
 
