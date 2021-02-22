@@ -1,24 +1,24 @@
 #include <glog/logging.h>
 
 #include "lib/header.h"
-#include "lib/random.h"
 #include "lib/radixSort.h"
+#include "lib/random.h"
 #include "lib/timer.h"
 
 constexpr size_t kN = 100000;
 constexpr size_t kM = 100;
 constexpr size_t kD = 100;
 
-vector<IntVector> data;
+vector<IntVector> testData;
 
 void genData() {
     Timer tGen("Gen");
-    data.resize(kM);
+    testData.resize(kM);
     for (size_t i = 0; i < kM; ++i) {
         int next = dice(kD);
-        data[i].resize(kN);
+        testData[i].resize(kN);
         for (size_t j = 0; j < kN; ++j) {
-            data[i][j] = next;
+            testData[i][j] = next;
             next += dice(kD);
         }
     }
@@ -36,26 +36,15 @@ using PIIterators = vector<PIIterator>;
 struct Iterator {
     Iterator() : pos_(kN) {}
 
-    Iterator(size_t index)
-        : index_(index)
-    {
-    }
+    Iterator(size_t index) : index_(index) {}
 
-    bool has() const {
-        return pos_ != kN;
-    }
+    bool has() const { return pos_ != kN; }
 
-    int get() const {
-        return data[index_][pos_];
-    }
+    int get() const { return testData[index_][pos_]; }
 
-    void next() {
-        ++pos_;
-    }
+    void next() { ++pos_; }
 
-    bool operator<(const Iterator& it) const {
-        return get() < it.get();
-    }
+    bool operator<(const Iterator& it) const { return get() < it.get(); }
 
     size_t index_;
     size_t pos_{0};
@@ -66,26 +55,15 @@ using PIterators = vector<PIterator>;
 struct Iterator2 final : public IIterator {
     Iterator2() {}
 
-    Iterator2(size_t index)
-        : it_(index)
-    {
-    }
+    Iterator2(size_t index) : it_(index) {}
 
-    bool has() const override {
-        return it_.has();
-    }
+    bool has() const override { return it_.has(); }
 
-    int get() const override {
-        return it_.get();
-    }
+    int get() const override { return it_.get(); }
 
-    void next() override {
-        it_.next();
-    }
+    void next() override { it_.next(); }
 
-    bool operator<(const Iterator2& it) const {
-        return it_.get() < it.it_.get();
-    }
+    bool operator<(const Iterator2& it) const { return it_.get() < it.it_.get(); }
 
     Iterator it_;
 };
@@ -93,9 +71,7 @@ using PIterator2 = shared_ptr<Iterator2>;
 using PIterators2 = vector<PIterator2>;
 
 struct PIteratorsCmp {
-    bool operator()(const Iterator* a, const Iterator* b) const{
-        return *b < *a;
-    }
+    bool operator()(const Iterator* a, const Iterator* b) const { return *b < *a; }
 };
 
 struct HeapMergeIterator {
@@ -274,12 +250,9 @@ struct BufferedBinaryTreeMergeIterator final : public IIterator {
 };
 
 struct BufferedBinaryMergeIterator {
-    BufferedBinaryMergeIterator() {
-    }
+    BufferedBinaryMergeIterator() {}
 
-    BufferedBinaryMergeIterator(Iterator* a, Iterator* b) {
-        init(a, b);
-    }
+    BufferedBinaryMergeIterator(Iterator* a, Iterator* b) { init(a, b); }
 
     void init(Iterator* a, Iterator* b) {
         ia_ = a;
@@ -470,7 +443,7 @@ int main() {
         {
             Timer tCat("Cat");
             res.reserve(kM * kN);
-            for (const auto& v : data) {
+            for (const auto& v : testData) {
                 res.insert(res.end(), v.begin(), v.end());
             }
         }
@@ -483,7 +456,7 @@ int main() {
         U32Vector res;
         {
             res.reserve(kM * kN);
-            for (const auto& v : data) {
+            for (const auto& v : testData) {
                 res.insert(res.end(), v.begin(), v.end());
             }
         }
@@ -493,7 +466,7 @@ int main() {
 
     auto makePIterators = []() {
         PIterators result;
-        for (size_t i = 0; i < data.size(); ++i) {
+        for (size_t i = 0; i < testData.size(); ++i) {
             result.emplace_back(make_shared<Iterator>(i));
         }
         return result;
@@ -501,7 +474,7 @@ int main() {
 
     auto makePIIterators = []() {
         PIIterators result;
-        for (size_t i = 0; i < data.size(); ++i) {
+        for (size_t i = 0; i < testData.size(); ++i) {
             result.emplace_back(make_shared<Iterator2>(i));
         }
         return result;

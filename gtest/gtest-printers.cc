@@ -49,7 +49,7 @@
 #include <ostream>  // NOLINT
 #include <string>
 #include "gtest/internal/gtest-port.h"
-#include "src/gtest-internal-inl.h"
+#include "gtest/gtest-internal-inl.h"
 
 namespace testing {
 
