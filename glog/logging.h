@@ -43,7 +43,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
-#if 1
+#if !defined(_MSC_VER)
 # include <unistd.h>
 #endif
 #include <vector>
