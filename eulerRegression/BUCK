@@ -1,0 +1,15 @@
+cxx_binary(
+  name="Regression",
+  srcs=[
+    "Regression.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/ml:gbdt",
+    "//lib/ml:ols",
+    "//lib/ml:dataframe",
+    "//lib/ml:metrics",
+    "//lib/io:utils",
+    "//lib/io:csv",
+  ],
+)

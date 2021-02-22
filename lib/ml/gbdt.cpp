@@ -3,25 +3,29 @@
 #include <sys/time.h>
 
 #include <cassert>
-
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
+#include "lib/exception.h"
 #include "lib/header.h"
+#include "lib/string.h"
 
-static void InplaceTrimLeft(std::string& strValue) {
+static void inplaceTrimLeft(std::string& strValue) {
     size_t pos = 0;
     for (size_t i = 0; i < strValue.size(); ++i) {
-        if (isspace((unsigned char)strValue[i]))
+        if (isspace((unsigned char)strValue[i])) {
             ++pos;
-        else
+        } else {
             break;
+        }
     }
-    if (pos > 0) strValue.erase(0, pos);
+    if (pos > 0) {
+        strValue.erase(0, pos);
+    }
 }
 
-static void InplaceTrimRight(std::string& strValue) {
+static void inplaceTrimRight(std::string& strValue) {
     size_t n = 0;
     for (size_t i = 0; i < strValue.size(); ++i) {
         if (isspace((unsigned char)strValue[strValue.length() - i - 1]))
@@ -29,12 +33,14 @@ static void InplaceTrimRight(std::string& strValue) {
         else
             break;
     }
-    if (n != 0) strValue.erase(strValue.length() - n);
+    if (n != 0) {
+        strValue.erase(strValue.length() - n);
+    }
 }
 
-static void InplaceTrim(std::string& strValue) {
-    InplaceTrimRight(strValue);
-    InplaceTrimLeft(strValue);
+static void inplaceTrim(std::string& strValue) {
+    inplaceTrimRight(strValue);
+    inplaceTrimLeft(strValue);
 }
 
 static void Split(const std::string& strMain, char chSpliter, std::vector<std::string>& strList,
@@ -48,22 +54,24 @@ static void Split(const std::string& strMain, char chSpliter, std::vector<std::s
     std::string strTemp;
     while ((nPos = strMain.find(chSpliter, nPrevPos)) != std::string::npos) {
         strTemp.assign(strMain, nPrevPos, nPos - nPrevPos);
-        InplaceTrim(strTemp);
+        inplaceTrim(strTemp);
         if (bReserveNullString || !strTemp.empty()) strList.push_back(strTemp);
         nPrevPos = nPos + 1;
     }
 
     strTemp.assign(strMain, nPrevPos, strMain.length() - nPrevPos);
-    InplaceTrim(strTemp);
+    inplaceTrim(strTemp);
     if (bReserveNullString || !strTemp.empty()) strList.push_back(strTemp);
 }
 
-bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data) {
+bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data, bool verbose) {
     std::ifstream fs;
     fs.open(input_file.c_str(), std::ios_base::in);
 
     if (fs.fail()) {
-        std::cerr << " Sorry ! The file isn't exist. " << input_file << std::endl;
+        if (verbose) {
+            std::cerr << " Sorry! The file isn't exist. " << input_file << std::endl;
+        }
         return false;
     }
 
@@ -75,9 +83,9 @@ bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data) {
             Split(strLine, ',', vecResult, true);
             if (vecResult.size() >= 2) {
                 data.m_data.resize(line_num + 1);
-                T_VECTOR& fv = data.m_data[line_num];
+                GBDTVectorType& fv = data.m_data[line_num];
 
-                T_DTYPE f_value = 0;
+                GBDTDType f_value = 0;
                 for (size_t i = 0; i < vecResult.size() - 1; ++i) {
                     char** endptr = NULL;
                     f_value = strtof(vecResult[i].c_str(), endptr);
@@ -117,8 +125,10 @@ bool DataReader::ReadDataFromCVS(const std::string& input_file, Data& data) {
         return false;
     }
 
-    std::cerr << "dimension: " << data.m_dimension << std::endl;
-    std::cerr << "data num: " << data.m_num << std::endl;
+    if (verbose) {
+        std::cerr << "dimension: " << data.m_dimension << std::endl;
+        std::cerr << "data num: " << data.m_num << std::endl;
+    }
 
     return true;
 }
@@ -141,13 +151,13 @@ bool DataReader::ReadDataFromL2R(const std::string& input_file, Data& data, unsi
             Split(strLine, '\t', vecResult, true);
             if (vecResult.size() >= 3) {
                 data.m_data.resize(line_num + 1);
-                T_VECTOR& fv = data.m_data[line_num];
+                GBDTVectorType& fv = data.m_data[line_num];
                 fv.resize(dimentions);
 
                 // read target
                 unsigned int target_index = 0;
                 char** endptr = NULL;
-                T_DTYPE target_value = strtof(vecResult[target_index].c_str(), endptr);
+                GBDTDType target_value = strtof(vecResult[target_index].c_str(), endptr);
                 if (errno == ERANGE) {
                     std::cerr << " target out of the range: " << vecResult[target_index] << std::endl;
                     continue;
@@ -160,7 +170,7 @@ bool DataReader::ReadDataFromL2R(const std::string& input_file, Data& data, unsi
 
                 for (size_t i = 2; i < vecResult.size(); ++i) {
                     int f_index = -1;
-                    T_DTYPE f_value = 0.0;
+                    GBDTDType f_value = 0.0;
                     int ret = sscanf(vecResult[i].c_str(), "%d:%lf", &f_index, &f_value);
                     if (ret != 2 || f_index >= (int)dimentions) {
                         std::cerr << " feature format wrong: " << line_num << "\t" << vecResult[i] << std::endl;
@@ -189,7 +199,7 @@ bool DataReader::ReadDataFromL2R(const std::string& input_file, Data& data, unsi
     return true;
 }
 
-static bool compareNodeReduced(nodeReduced n0, nodeReduced n1) { return n0.m_size < n1.m_size; }
+bool compareNodeReduced(GBDT::NodeReduced n0, GBDT::NodeReduced n1) { return n0.m_size < n1.m_size; }
 
 static int64_t Milliseconds() {
     struct timeval t;
@@ -212,6 +222,7 @@ GBDT::GBDT() {
     m_data_sample_ratio = 0.8;
     m_min_samples = 50;
     m_norm_samples = 1000;
+    verbose_ = true;
 }
 
 bool GBDT::LoadConfig(const std::string& conf_file) {
@@ -259,8 +270,23 @@ bool GBDT::LoadConfig(const std::string& conf_file) {
     return true;
 }
 
+GBDT& GBDT::setMaxEpochs(unsigned int max_epochs) {
+    m_max_epochs = max_epochs;
+    return *this;
+}
+
+GBDT& GBDT::setLRate(double lrate) {
+    m_lrate = lrate;
+    return *this;
+}
+
+GBDT& GBDT::setVerbose(bool verbose) {
+    verbose_ = verbose;
+    return *this;
+}
+
 bool GBDT::Init() {
-    m_trees = new node[m_max_epochs];
+    m_trees = new Node[m_max_epochs];
     for (unsigned int i = 0; i < m_max_epochs; ++i) {
         m_trees[i].m_featureNr = -1;
         m_trees[i].m_value = 1e10;
@@ -271,14 +297,16 @@ bool GBDT::Init() {
     }
 
     srand(time(0));
-    cerr << "configure--------" << endl;
-    cerr << "  max_epochs: " << m_max_epochs << endl;
-    cerr << "  max_tree_leafes: " << m_max_tree_leafes << endl;
-    cerr << "  feature_subspace_size: " << m_feature_subspace_size << endl;
-    cerr << "  use_opt_splitpoint: " << m_use_opt_splitpoint << endl;
-    cerr << "  learn_rate: " << m_lrate << endl;
-    cerr << "  data_sample_ratio: " << m_data_sample_ratio << endl;
-    cerr << endl;
+    if (verbose_) {
+        cerr << "configure--------" << endl;
+        cerr << "  max_epochs: " << m_max_epochs << endl;
+        cerr << "  max_tree_leafes: " << m_max_tree_leafes << endl;
+        cerr << "  feature_subspace_size: " << m_feature_subspace_size << endl;
+        cerr << "  use_opt_splitpoint: " << m_use_opt_splitpoint << endl;
+        cerr << "  learn_rate: " << m_lrate << endl;
+        cerr << "  data_sample_ratio: " << m_data_sample_ratio << endl;
+        cerr << endl;
+    }
 
     return true;
 }
@@ -292,14 +320,18 @@ bool GBDT::Train(const Data& data) {
     // TODO or rmse rise up
     for (; train_epoch < m_max_epochs; train_epoch++) {
         double rmse = 0.0;
-        cerr << "epoch: " << train_epoch << endl;
+        if (verbose_) {
+            cerr << "epoch: " << train_epoch << endl;
+        }
 
         ModelUpdate(data, train_epoch, rmse);
 
         // if (pre_rmse < rmse && pre_rmse != -1)
         // if (pre_rmse - rmse < ( m_lrate * 0.001 ) && pre_rmse != -1)
         if (pre_rmse < rmse && pre_rmse != -1) {
-            cerr << "debug: rmse:" << rmse << " " << pre_rmse << " " << pre_rmse - rmse << std::endl;
+            if (verbose_) {
+                cerr << "debug: rmse:" << rmse << " " << pre_rmse << " " << pre_rmse - rmse << std::endl;
+            }
             break;
         }
         pre_rmse = rmse;
@@ -309,6 +341,20 @@ bool GBDT::Train(const Data& data) {
     return true;
 }
 
+void GBDT::fit(const DoubleMatrix& x, const DoubleVector& y) {
+    Init();
+    ASSERTEQ(x.size(), y.size());
+    Data dt;
+    dt.m_data = x;
+    dt.m_target = y;
+    dt.m_dimension = x[0].size();
+    dt.m_num = x.size();
+    for (size_t i = 0; i < x[0].size(); ++i) {
+        dt.m_valid_id.emplace(i);
+    }
+    Train(dt);
+}
+
 bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse) {
     int64_t t0 = Milliseconds();
 
@@ -316,8 +362,8 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     unsigned int nFeatures = data.m_dimension;
 
     bool* usedFeatures = new bool[data.m_dimension];
-    T_DTYPE* inputTmp = new T_DTYPE[(nSamples + 1) * m_feature_subspace_size];
-    T_DTYPE* inputTargetsSort = new T_DTYPE[(nSamples + 1) * m_feature_subspace_size];
+    GBDTDType* inputTmp = new GBDTDType[(nSamples + 1) * m_feature_subspace_size];
+    GBDTDType* inputTargetsSort = new GBDTDType[(nSamples + 1) * m_feature_subspace_size];
     int* sortIndex = new int[nSamples];
 
     //----first epoch----
@@ -328,7 +374,9 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
             mean /= (double)data.m_num;
         }
         m_global_mean = mean;
-        std::cerr << "globalMean:" << mean << " " << std::flush;
+        if (verbose_) {
+            std::cerr << "globalMean:" << mean << " " << std::flush;
+        }
 
         // align by targets mean
         for (unsigned int j = 0; j < data.m_num; j++) {
@@ -336,7 +384,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
         }
     }
 
-    deque<nodeReduced> largestNodes;
+    deque<NodeReduced> largestNodes;
     //----init feature mask----
     for (unsigned int j = 0; j < data.m_dimension; j++) {
         usedFeatures[j] = false;
@@ -344,7 +392,9 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
 
     //----data should be sampled !!!!----
     int data_sample_num = int(nSamples * m_data_sample_ratio);
-    if (data_sample_num < 10) data_sample_num = nSamples;
+    if (data_sample_num < 10) {
+        data_sample_num = nSamples;
+    }
 
     m_trees[train_epoch].m_trainSamples = new int[data_sample_num];
     m_trees[train_epoch].m_nSamples = data_sample_num;
@@ -364,7 +414,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     ///////////////////
 
     //----init first node for split----
-    nodeReduced firstNode;
+    NodeReduced firstNode;
     firstNode.m_node = &(m_trees[train_epoch]);
     firstNode.m_size = data_sample_num;
     largestNodes.push_back(firstNode);
@@ -391,7 +441,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     //---- train the tree loop wise----
     // call trainSingleTree recursive for the largest node
     for (unsigned int j = 0; j < m_max_tree_leafes; j++) {
-        node* largestNode = largestNodes[0].m_node;
+        Node* largestNode = largestNodes[0].m_node;
 
         TrainSingleTree(largestNode, largestNodes, data, usedFeatures, inputTmp, inputTargetsSort, sortIndex,
                         randFeatureIDs);
@@ -408,7 +458,7 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     double trainRMSE = 0.0;
     // fstream f("tmp/a0.txt",ios::out);
     for (int j = 0; j < nSamples; j++) {
-        T_DTYPE p = predictSingleTree(&(m_trees[train_epoch]), data, j);
+        GBDTDType p = predictSingleTree(&(m_trees[train_epoch]), data, j);
 
         // f<<p<<endl;
         m_tree_target[j] -= m_lrate * p;
@@ -416,8 +466,10 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
         trainRMSE += err * err;
     }
     rmse = sqrt(trainRMSE / (double)nSamples);
-    cerr << "RMSE:" << rmse << " " << trainRMSE << " " << std::flush;
-    cerr << "cost: " << Milliseconds() - t0 << "[ms]" << endl;
+    if (verbose_) {
+        cerr << "RMSE:" << rmse << " " << trainRMSE << " " << std::flush;
+        cerr << "cost: " << Milliseconds() - t0 << "[ms]" << endl;
+    }
 
     delete[] usedFeatures;
     delete[] inputTmp;
@@ -431,19 +483,23 @@ bool GBDT::ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse)
     return true;
 }
 
-void GBDT::cleanTree(node* n) {
+void GBDT::cleanTree(Node* n) {
     if (n->m_trainSamples) {
         delete[] n->m_trainSamples;
         n->m_trainSamples = 0;
     }
     n->m_nSamples = 0;
 
-    if (n->m_toSmallerEqual) cleanTree(n->m_toSmallerEqual);
-    if (n->m_toLarger) cleanTree(n->m_toLarger);
+    if (n->m_toSmallerEqual) {
+        cleanTree(n->m_toSmallerEqual);
+    }
+    if (n->m_toLarger) {
+        cleanTree(n->m_toLarger);
+    }
 }
 
-void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
-                           T_DTYPE* inputTmp, T_DTYPE* inputTargetsSort, int* sortIndex, const int* randFeatureIDs) {
+void GBDT::TrainSingleTree(Node* n, std::deque<NodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
+                           GBDTDType* inputTmp, GBDTDType* inputTargetsSort, int* sortIndex, const int* randFeatureIDs) {
     unsigned int nFeatures = data.m_dimension;
 
     // break criteria: tree size limit or too less training samples
@@ -465,29 +521,30 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     // precalc sums and squared sums of targets
     double sumTarget = 0.0, sum2Target = 0.0;
     for (int j = 0; j < nNodeSamples; j++) {
-        T_DTYPE v = m_tree_target[n->m_trainSamples[j]];
+        GBDTDType v = m_tree_target[n->m_trainSamples[j]];
         sumTarget += v;
         sum2Target += v * v;
     }
 
     static constexpr double INF = 1e12;
 
-    int bestFeature = -1, bestFeaturePos = -1;
+    int bestFeature = -1;
+    // int bestFeaturePos = -1;
     double bestFeatureRMSE = INF;
-    T_DTYPE bestFeatureLow = INF, bestFeatureHi = INF;
-    T_DTYPE optFeatureSplitValue = INF;
+    // GBDTDType bestFeatureLow = INF, bestFeatureHi = INF;
+    GBDTDType optFeatureSplitValue = INF;
 
     // TODO check m_feature_subspace_size not larger than nFeatures!!
     // search optimal split point in all tmp input features
     for (unsigned int i = 0; i < m_feature_subspace_size; i++) {
         // search the optimal split value, which reduce the RMSE the most
-        T_DTYPE optimalSplitValue = 0.0;
+        GBDTDType optimalSplitValue = 0.0;
         double rmseBest = 1e10;
-        T_DTYPE meanLowBest = INF, meanHiBest = INF;
+        // GBDTDType meanLowBest = INF, meanHiBest = INF;
         int bestPos = -1;
         double sumLow = 0.0, sum2Low = 0.0, sumHi = sumTarget, sum2Hi = sum2Target, cntLow = 0.0, cntHi = nNodeSamples;
-        T_DTYPE* ptrInput = inputTmp + i * nNodeSamples;
-        T_DTYPE* ptrTarget = inputTargetsSort + i * nNodeSamples;
+        GBDTDType* ptrInput = inputTmp + i * nNodeSamples;
+        GBDTDType* ptrTarget = inputTargetsSort + i * nNodeSamples;
 
         //  copy current feature into preInput
         int nr = randFeatureIDs[i];
@@ -500,7 +557,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
                 ptrTarget[j] = m_tree_target[n->m_trainSamples[j]];
             }
 
-            T_DTYPE* ptrInput = inputTmp + i * nNodeSamples;  // TODO: del ????
+            GBDTDType* ptrInput = inputTmp + i * nNodeSamples;  // TODO: del ????
             bestPos = rand() % nNodeSamples;
             optimalSplitValue = ptrInput[bestPos];
             sumLow = 0.0;
@@ -510,8 +567,8 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
             sum2Hi = 0.0;
             cntHi = 0.0;
             for (int j = 0; j < nNodeSamples; j++) {
-                // T_DTYPE v = ptrInput[j];
-                T_DTYPE t = ptrTarget[j];
+                // GBDTDType v = ptrInput[j];
+                GBDTDType t = ptrTarget[j];
                 if (ptrInput[j] <= optimalSplitValue) {
                     sumLow += t;
                     sum2Low += t * t;
@@ -525,8 +582,8 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
             rmseBest = (sum2Low / cntLow - (sumLow / cntLow) * (sumLow / cntLow)) * cntLow;
             rmseBest += (sum2Hi / cntHi - (sumHi / cntHi) * (sumHi / cntHi)) * cntHi;
             rmseBest = sqrt(rmseBest / (cntLow + cntHi));
-            meanLowBest = sumLow / cntLow;
-            meanHiBest = sumHi / cntHi;
+            // meanLowBest = sumLow / cntLow;
+            // meanHiBest = sumHi / cntHi;
         } else  // search for the optimal threshold value, goal: best RMSE reduction split
         {
             // fast sort of the input dimension
@@ -534,7 +591,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
                 sortIndex[j] = j;
             }
 
-            std::vector<std::pair<T_DTYPE, int>> list(nNodeSamples);
+            std::vector<std::pair<GBDTDType, int>> list(nNodeSamples);
             for (int j = 0; j < nNodeSamples; j++) {
                 list[j].first = ptrInput[j];
                 list[j].second = sortIndex[j];
@@ -550,7 +607,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
 
             int j = 0;
             while (j < nNodeSamples - 1) {
-                T_DTYPE t = ptrTarget[j];
+                GBDTDType t = ptrTarget[j];
                 sumLow += t;
                 sum2Low += t * t;
                 sumHi -= t;
@@ -558,7 +615,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
                 cntLow += 1.0;
                 cntHi -= 1.0;
 
-                T_DTYPE v0 = ptrInput[j], v1 = INF;
+                GBDTDType v0 = ptrInput[j], v1 = INF;
                 if (j < nNodeSamples - 1) v1 = ptrInput[j + 1];
                 if (v0 == v1)  // skip equal successors
                 {
@@ -574,8 +631,8 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
                     optimalSplitValue = v0;
                     rmseBest = rmse;
                     bestPos = j + 1;
-                    meanLowBest = sumLow / cntLow;
-                    meanHiBest = sumHi / cntHi;
+                    // meanLowBest = sumLow / cntLow;
+                    // meanHiBest = sumHi / cntHi;
                 }
 
                 j++;
@@ -584,11 +641,11 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
 
         if (rmseBest < bestFeatureRMSE) {
             bestFeature = i;
-            bestFeaturePos = bestPos;
+            // bestFeaturePos = bestPos;
             bestFeatureRMSE = rmseBest;
             optFeatureSplitValue = optimalSplitValue;
-            bestFeatureLow = meanLowBest;
-            bestFeatureHi = meanHiBest;
+            // bestFeatureLow = meanLowBest;
+            // bestFeatureHi = meanHiBest;
         }
     }
     // cerr << bestFeature << " rmse: " << bestFeatureRMSE << endl;
@@ -598,12 +655,14 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     n->m_value = optFeatureSplitValue;
 
     if (n->m_featureNr < 0 || n->m_featureNr >= (int)nFeatures) {
-        cerr << "f=" << n->m_featureNr << endl;
+        if (verbose_) {
+            cerr << "f=" << n->m_featureNr << endl;
+        }
         assert(false);
     }
 
     // count the samples of the low node
-    int cnt = 0;
+    unsigned int cnt = 0;
     for (int i = 0; i < nNodeSamples; i++) {
         int nr = n->m_featureNr;
         if (data.m_data[n->m_trainSamples[i]][nr] <= optFeatureSplitValue) {
@@ -613,12 +672,17 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
 
     int* lowList = new int[cnt];
     int* hiList = new int[nNodeSamples - cnt];
-    if (cnt == 0) lowList = 0;
-    if (nNodeSamples - cnt == 0) hiList = 0;
+    if (cnt == 0) {
+        lowList = 0;
+    }
+    if (nNodeSamples - cnt == 0) {
+        hiList = 0;
+    }
 
-    int lowCnt = 0, hiCnt = 0;
+    unsigned int lowCnt = 0;
+    unsigned int hiCnt = 0;
     double lowMean = 0.0, hiMean = 0.0;
-    int acnt = 0;
+    unsigned int acnt = 0;
     double amean = 0;
     for (int i = 0; i < nNodeSamples; i++) {
         int nr = n->m_featureNr;
@@ -638,7 +702,9 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     hiMean /= hiCnt;
     amean /= acnt;
 
-    if (hiCnt + lowCnt != nNodeSamples || lowCnt != cnt) assert(false);
+    if (static_cast<int>(hiCnt + lowCnt) != nNodeSamples || lowCnt != cnt) {
+        assert(false);
+    }
     ///////////////////////////
 
     // break, if too less samples
@@ -653,7 +719,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
         n->m_trainSamples = 0;
         n->m_nSamples = 0;
 
-        nodeReduced currentNode;
+        NodeReduced currentNode;
         currentNode.m_node = n;
         currentNode.m_size = 0;
         largestNodes.push_back(currentNode);
@@ -663,7 +729,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     }
 
     // prepare first new node
-    n->m_toSmallerEqual = new node;
+    n->m_toSmallerEqual = new Node();
     n->m_toSmallerEqual->m_featureNr = -1;
     n->m_toSmallerEqual->m_value = lowMean;
     n->m_toSmallerEqual->m_toSmallerEqual = 0;
@@ -672,7 +738,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     n->m_toSmallerEqual->m_nSamples = lowCnt;
 
     // prepare second new node
-    n->m_toLarger = new node;
+    n->m_toLarger = new Node();
     n->m_toLarger->m_featureNr = -1;
     n->m_toLarger->m_value = hiMean;
     n->m_toLarger->m_toSmallerEqual = 0;
@@ -681,7 +747,7 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     n->m_toLarger->m_nSamples = hiCnt;
 
     // add the new two nodes to the heap
-    nodeReduced lowNode, hiNode;
+    NodeReduced lowNode, hiNode;
     lowNode.m_node = n->m_toSmallerEqual;
     lowNode.m_size = lowCnt;
     hiNode.m_node = n->m_toLarger;
@@ -694,11 +760,13 @@ void GBDT::TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const
     push_heap(largestNodes.begin(), largestNodes.end(), compareNodeReduced);
 }
 
-T_DTYPE GBDT::predictSingleTree(node* n, const Data& data, int data_index) {
+GBDTDType GBDT::predictSingleTree(Node* n, const Data& data, int data_index) {
     int nFeatures = data.m_dimension;
     int nr = n->m_featureNr;
     if (nr < -1 || nr >= nFeatures) {
-        cerr << "Feature nr:" << nr << endl;
+        if (verbose_) {
+            cerr << "Feature nr:" << nr << endl;
+        }
         assert(false);
     }
 
@@ -709,11 +777,13 @@ T_DTYPE GBDT::predictSingleTree(node* n, const Data& data, int data_index) {
 
     // TODO : del duplicate check
     if (nr < 0 || nr >= nFeatures) {
-        cerr << endl << "Feature nr: " << nr << " (max:" << nFeatures << ")" << endl;
+        if (verbose_) {
+            cerr << endl << "Feature nr: " << nr << " (max:" << nFeatures << ")" << endl;
+        }
         assert(false);
     }
-    T_DTYPE thresh = n->m_value;
-    T_DTYPE feature = data.m_data[data_index][nr];
+    GBDTDType thresh = n->m_value;
+    GBDTDType feature = data.m_data[data_index][nr];
 
     if (feature <= thresh) {
         return predictSingleTree(n->m_toSmallerEqual, data, data_index);
@@ -721,7 +791,7 @@ T_DTYPE GBDT::predictSingleTree(node* n, const Data& data, int data_index) {
     return predictSingleTree(n->m_toLarger, data, data_index);
 }
 
-void GBDT::PredictAllOutputs(const Data& data, T_VECTOR& predictions) {
+void GBDT::PredictAllOutputs(const Data& data, GBDTVectorType& predictions) {
     unsigned int nSamples = data.m_num;
     predictions.resize(nSamples);
 
@@ -730,15 +800,38 @@ void GBDT::PredictAllOutputs(const Data& data, T_VECTOR& predictions) {
         double sum = m_global_mean;
         // for every boosting epoch : CORRECT, but slower
         for (unsigned int k = 0; k < m_train_epoch + 1; k++) {
-            T_DTYPE v = predictSingleTree(&(m_trees[k]), data, i);
+            GBDTDType v = predictSingleTree(&(m_trees[k]), data, i);
             sum += m_lrate * v;  // this is gradient boosting
         }
         predictions[i] = sum;
     }
 }
 
+DoubleVector GBDT::regress(const DoubleMatrix& m) {
+    Data dt;
+    dt.m_data = m;
+    dt.m_dimension = m[0].size();
+    dt.m_num = m.size();
+    DoubleVector result;
+    PredictAllOutputs(dt, result);
+    return result;
+}
+
+string GBDT::explain(const StringVector& columnNames) const {
+    string result;
+
+    for (unsigned int j = 0; j < m_train_epoch + 1; j++) {
+        result += explainTreeRecursive(&(m_trees[j]), columnNames, 0);
+        result += "\n";
+    }
+
+    return result;
+}
+
 void GBDT::SaveWeights(const std::string& model_file) {
-    cerr << "Save:" << model_file << endl;
+    if (verbose_) {
+        cerr << "Save:" << model_file << endl;
+    }
     std::fstream f(model_file.c_str(), std::ios::out);
 
     // save learnrate
@@ -751,25 +844,51 @@ void GBDT::SaveWeights(const std::string& model_file) {
     f.write((char*)&m_global_mean, sizeof(m_global_mean));
 
     // save trees
-    for (unsigned int j = 0; j < m_train_epoch + 1; j++) SaveTreeRecursive(&(m_trees[j]), f);
+    for (unsigned int j = 0; j < m_train_epoch + 1; j++) {
+        SaveTreeRecursive(&(m_trees[j]), f);
+    }
 
-    cerr << "debug: train_epoch: " << m_train_epoch << endl;
+    if (verbose_) {
+        cerr << "debug: train_epoch: " << m_train_epoch << endl;
+    }
     f.close();
 }
 
-void GBDT::SaveTreeRecursive(node* n, std::fstream& f) {
+void GBDT::SaveTreeRecursive(Node* n, std::fstream& f) {
     // cerr << "debug_save: " << n->m_value << " " << n->m_featureNr << endl;
-    f.write((char*)n, sizeof(node));
+    f.write((char*)n, sizeof(Node));
     if (n->m_toSmallerEqual) SaveTreeRecursive(n->m_toSmallerEqual, f);
     if (n->m_toLarger) SaveTreeRecursive(n->m_toLarger, f);
 }
 
+string GBDT::explainTreeRecursive(Node* n, const StringVector& columnNames, size_t indent) const {
+    if (!n) {
+        return "";
+    }
+
+    string sep = rep(" ", indent);
+    if (n->m_toSmallerEqual && n->m_toLarger) {
+        string result = stringSprintf("%s[%s < %lf]:\n", sep.c_str(), columnNames[n->m_featureNr].c_str(), n->m_value);
+        result += explainTreeRecursive(n->m_toSmallerEqual, columnNames, indent + 2);
+        result += sep;
+        result += "else:\n";
+        result += explainTreeRecursive(n->m_toLarger, columnNames, indent + 2);
+        return result;
+    } else {
+        return stringSprintf("%s%lf\n", sep.c_str(), n->m_value);
+    }
+}
+
 void GBDT::LoadWeights(const std::string& model_file) {
-    cerr << "Load:" << model_file << endl;
+    if (verbose_) {
+        cerr << "Load:" << model_file << endl;
+    }
     std::fstream f(model_file.c_str(), std::ios::in);
-    if (f.is_open() == false) {
-        cerr << "Load " << model_file << "failed!" << endl;
-        _Exit(1);
+    if (!f.is_open()) {
+        if (verbose_) {
+            cerr << "Load " << model_file << "failed!" << endl;
+        }
+        THROW("Cannot load weights from: " << model_file);
     }
 
     // load learnrate
@@ -782,7 +901,7 @@ void GBDT::LoadWeights(const std::string& model_file) {
     f.read((char*)&m_global_mean, sizeof(m_global_mean));
 
     // allocate and load the trees
-    m_trees = new node[m_train_epoch + 1];
+    m_trees = new Node[m_train_epoch + 1];
     for (unsigned int j = 0; j < m_train_epoch + 1; j++) {
         std::string prefix = "";
         LoadTreeRecursive(&(m_trees[j]), f, prefix);
@@ -791,8 +910,8 @@ void GBDT::LoadWeights(const std::string& model_file) {
     f.close();
 }
 
-void GBDT::LoadTreeRecursive(node* n, std::fstream& f, std::string prefix) {
-    f.read((char*)n, sizeof(node));
+void GBDT::LoadTreeRecursive(Node* n, std::fstream& f, std::string prefix) {
+    f.read((char*)n, sizeof(Node));
 
     // cerr << prefix;
     // cerr << "debug_load: " << n->m_value << " " << n->m_featureNr << endl;
@@ -801,11 +920,11 @@ void GBDT::LoadTreeRecursive(node* n, std::fstream& f, std::string prefix) {
     }
     prefix += "    ";
     if (n->m_toSmallerEqual) {
-        n->m_toSmallerEqual = new node;
+        n->m_toSmallerEqual = new Node();
         LoadTreeRecursive(n->m_toSmallerEqual, f, prefix);
     }
     if (n->m_toLarger) {
-        n->m_toLarger = new node;
+        n->m_toLarger = new Node();
         LoadTreeRecursive(n->m_toLarger, f, prefix);
     }
 }

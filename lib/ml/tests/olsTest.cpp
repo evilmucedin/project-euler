@@ -2,6 +2,4 @@
 
 #include "gtest/gtest.h"
 
-TEST(LinearRegressor, Simple) {
-    LinearRegressor simple(10);
-}
+TEST(OLS, Simple) { LinearRegressor lr(5); }

@@ -2,3 +2,4 @@ buck-out/
 common/common.pyc
 perf.data
 perf.data.old
+.buckconfig.local

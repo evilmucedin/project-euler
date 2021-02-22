@@ -1,7 +1,13 @@
 [cxx]
+#cc="c:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29333\\bin\\Hostx64\\x64\\cl.exe"
+#cxx="c:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29333\\bin\\Hostx64\\x64\\cl.exe"
+#cc="c:\\Program Files\\LLVM\\bin\\clang.exe"
+#cxx="c:\\Program Files\\LLVM\\bin\\clang++.exe"
+#cc="/usr/bin/gcc.exe"
+#cxx="/usr/bin/g++.exe"
 cflags=-march=native
 cppflags=-march=native
-cxxflags=-std=c++14 -march=native
-cxxppflags=-std=c++14 -march=native
+cxxflags=-std=c++17 -march=native
+cxxppflags=-std=c++17 -march=native
 ldflags=-march=native -pthread
 gtest_dep=//gtest:gtest

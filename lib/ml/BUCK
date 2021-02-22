@@ -1,4 +1,36 @@
 cxx_library(
+  name="regressor",
+  exported_headers=[
+    "regressor.h",
+  ],
+  srcs=[
+    "regressor.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="metrics",
+  exported_headers=[
+    "metrics.h",
+  ],
+  srcs=[
+    "metrics.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="gbdt",
   exported_headers=[
     "gbdt.h",
@@ -8,6 +40,10 @@ cxx_library(
   ],
   deps=[
     "//lib:header",
+    "//lib:exception",
+    "//lib:noncopyable",
+    "//lib:string",
+    ":regressor",
   ],
   visibility=[
     'PUBLIC',
@@ -24,6 +60,25 @@ cxx_library(
   ],
   deps=[
     "//lib:header",
+    ":regressor",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="dataframe",
+  exported_headers=[
+    "dataframe.h",
+  ],
+  srcs=[
+    "dataframe.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:string",
+    "//lib/io:csv",
   ],
   visibility=[
     'PUBLIC',

@@ -1,12 +1,5 @@
 #include "ols.h"
 
-DoubleMatrix createMatrix(size_t n) {
-    DoubleMatrix result(n, DoubleVector(n));
-    return result;
-}
-
-DoubleVector createVector(size_t n) { return DoubleVector(n); }
-
 DoubleVector LinearRegressor::mul(const DoubleMatrix& m, const DoubleVector& v) {
     DoubleVector result(v.size());
     for (size_t i = 0; i < v.size(); ++i) {
@@ -93,6 +86,21 @@ void LinearRegressor::addSample(const DoubleVector& x, double y) {
         }
         xty_[j] += x[j] * y;
     }
+}
+
+void LinearRegressor::fit(const DoubleMatrix& x, const DoubleVector& y) {
+    for (size_t i = 0; i < x.size(); ++i) {
+        addSample(x[i], y[i]);
+    }
+    regress();
+}
+
+DoubleVector LinearRegressor::regress(const DoubleMatrix& m) {
+    DoubleVector result(m.size());
+    for (size_t i = 0; i < m.size(); ++i) {
+        result[i] = get(m[i]);
+    }
+    return result;
 }
 
 void LinearRegressor::l2Regularization(double lambda1, double lambda2) {

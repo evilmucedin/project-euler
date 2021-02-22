@@ -3,6 +3,7 @@ cxx_library(
   exported_headers=[
     "gtest-death-test.h",
     "gtest.h",
+    "gtest-matchers.h",
     "gtest-message.h",
     "gtest-param-test.h",
     "gtest_pred_impl.h",

@@ -5,23 +5,13 @@
 #include <vector>
 #include <set>
 
-using T_DTYPE = double;
-using T_MATRIX = std::vector<std::vector<T_DTYPE>>;
-using T_VECTOR = std::vector<T_DTYPE>;
+#include "lib/header.h"
+#include "lib/noncopyable.h"
+#include "lib/ml/regressor.h"
 
-struct node {
-    int m_featureNr;                 // decision on this feature
-    T_DTYPE m_value;                 // the prediction value
-    node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
-    node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
-    int* m_trainSamples;             // a list of indices of the training samples in this node
-    int m_nSamples;                  // the length of m_trainSamples
-};
-
-struct nodeReduced {
-    node* m_node;
-    uint m_size;
-};
+using GBDTDType = double;
+using GBDTVectorType = std::vector<GBDTDType>;
+using GBDTMatrixType = std::vector<GBDTVectorType>;
 
 class Data {
    public:
@@ -30,8 +20,8 @@ class Data {
     ~Data() {}
 
    public:
-    T_MATRIX m_data;
-    T_VECTOR m_target;
+    GBDTMatrixType m_data;
+    GBDTVectorType m_target;
 
     std::set<int> m_valid_id;
 
@@ -44,17 +34,33 @@ class Data {
 class DataReader {
    public:
     DataReader() {}
-
     ~DataReader() {}
 
     bool ReadDataFromL2R(const std::string& input_file, Data& data, unsigned int dimentions);
 
-    bool ReadDataFromCVS(const std::string& input_file, Data& data);
+    bool ReadDataFromCVS(const std::string& input_file, Data& data, bool verbose);
 
    private:
 };  // end of class DataReader
 
-class GBDT {
+class GBDT : public IRegressor, NonCopyable {
+   private:
+    struct Node {
+        int m_featureNr;         // decision on this feature
+        GBDTDType m_value;       // the prediction value
+        Node* m_toSmallerEqual;  // pointer to node, if:  feature[m_featureNr] <=  m_value
+        Node* m_toLarger;        // pointer to node, if:  feature[m_featureNr] > m_value
+        int* m_trainSamples;     // a list of indices of the training samples in this node
+        int m_nSamples;          // the length of m_trainSamples
+    };
+
+    struct NodeReduced {
+        Node* m_node;
+        unsigned int m_size;
+    };
+
+    friend bool compareNodeReduced(GBDT::NodeReduced n0, GBDT::NodeReduced n1);
+
    public:
     GBDT();
 
@@ -63,30 +69,37 @@ class GBDT {
     bool Init();
 
     bool Train(const Data& data);
+    void fit(const DoubleMatrix& x, const DoubleVector& y) override;
 
-    void PredictAllOutputs(const Data& data, T_VECTOR& predictions);
+    void PredictAllOutputs(const Data& data, GBDTVectorType& predictions);
+    DoubleVector regress(const DoubleMatrix& m) override;
+
+    string explain(const StringVector& columnNames) const;
 
     void SaveWeights(const std::string& model_file);
-
     void LoadWeights(const std::string& model_file);
-
     bool LoadConfig(const std::string& conf_file);
+
+    GBDT& setMaxEpochs(unsigned int max_epochs);
+    GBDT& setLRate(double lrate);
+    GBDT& setVerbose(bool verbose);
 
    private:
     bool ModelUpdate(const Data& data, unsigned int train_epoch, double& rmse);
 
-    void TrainSingleTree(node* n, std::deque<nodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
-                         T_DTYPE* inputTmp, T_DTYPE* inputTargetsSort, int* sortIndex, const int* randFeatureIDs);
+    void TrainSingleTree(Node* n, std::deque<NodeReduced>& largestNodes, const Data& data, bool* usedFeatures,
+                         GBDTDType* inputTmp, GBDTDType* inputTargetsSort, int* sortIndex, const int* randFeatureIDs);
 
-    T_DTYPE predictSingleTree(node* n, const Data& data, int data_index);
+    GBDTDType predictSingleTree(Node* n, const Data& data, int data_index);
 
-    void cleanTree(node* n);
+    void cleanTree(Node* n);
 
-    void SaveTreeRecursive(node* n, std::fstream& f);
-    void LoadTreeRecursive(node* n, std::fstream& f, std::string prefix);
+    void SaveTreeRecursive(Node* n, std::fstream& f);
+    void LoadTreeRecursive(Node* n, std::fstream& f, std::string prefix);
+    string explainTreeRecursive(Node* n, const StringVector& columnNames, size_t indent) const;
 
    private:
-    node* m_trees;
+    Node* m_trees;
     unsigned int m_max_epochs;
     unsigned int m_max_tree_leafes;
     unsigned int m_feature_subspace_size;
@@ -96,9 +109,10 @@ class GBDT {
     float m_data_sample_ratio;
     unsigned int m_min_samples;
     unsigned int m_norm_samples;
+    bool verbose_;
 
-    T_VECTOR m_tree_target;
+    GBDTVectorType m_tree_target;
 
-    T_DTYPE m_global_mean;
+    GBDTDType m_global_mean;
 
 };  // end of class GBDT
