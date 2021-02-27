@@ -206,5 +206,6 @@
 #undef HAVE_FCNTL
 #undef HAVE___ATTRIBUTE__
 #undef HAVE_EXECINFO_H
+#undef GOOGLE_GLOG_IS_A_DLL
 #define GOOGLE_GLOG_DLL_DECL __declspec(dllexport)
 #endif
