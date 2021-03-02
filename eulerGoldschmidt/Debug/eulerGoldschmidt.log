@@ -1,2 +1,5 @@
 ﻿  Goldschmidt.cpp
-  eulerGoldschmidt.vcxproj -> C:\Users\denpl\Programming\project-euler\Debug\eulerGoldschmidt.exe
+Goldschmidt.obj : error LNK2019: unresolved external symbol "__declspec(dllimport) public: __thiscall google::LogMessage::LogMessage(char const *,int)" (__imp_??0LogMessage@google@@QAE@PBDH@Z) referenced in function _main
+Goldschmidt.obj : error LNK2019: unresolved external symbol "__declspec(dllimport) public: __thiscall google::LogMessage::~LogMessage(void)" (__imp_??1LogMessage@google@@QAE@XZ) referenced in function _main
+Goldschmidt.obj : error LNK2019: unresolved external symbol "__declspec(dllimport) public: class std::basic_ostream<char,struct std::char_traits<char> > & __thiscall google::LogMessage::stream(void)" (__imp_?stream@LogMessage@google@@QAEAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@XZ) referenced in function _main
+C:\Users\denpl\Programming\project-euler\Debug\eulerGoldschmidt.exe : fatal error LNK1120: 3 unresolved externals

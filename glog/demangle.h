@@ -71,7 +71,7 @@
 #define BASE_DEMANGLE_H_
 
 #include "config.h"
-#include "glog/logging.h"
+#include "logging.h"
 
 _START_GOOGLE_NAMESPACE_
 

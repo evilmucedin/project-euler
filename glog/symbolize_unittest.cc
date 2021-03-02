@@ -36,7 +36,7 @@
 #include <signal.h>
 #include <iostream>
 
-#include "glog/logging.h"
+#include "logging.h"
 #include "symbolize.h"
 #include "googletest.h"
 #include "config.h"

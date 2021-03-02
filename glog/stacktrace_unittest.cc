@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include "config.h"
 #include "base/commandlineflags.h"
-#include "glog/logging.h"
+#include "logging.h"
 #include "stacktrace.h"
 
 #ifdef HAVE_EXECINFO_H

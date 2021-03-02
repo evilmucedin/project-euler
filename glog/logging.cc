@@ -27,6 +27,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#define GLOG_IMPL
+
 #define _GNU_SOURCE 1 // needed for O_NOFOLLOW and pread()/pwrite()
 
 #include "utilities.h"
@@ -59,8 +61,8 @@
 #include <errno.h>                   // for errno
 #include <sstream>
 #include "base/commandlineflags.h"        // to get the program name
-#include "glog/logging.h"
-#include "glog/raw_logging.h"
+#include "logging.h"
+#include "raw_logging.h"
 #include "base/googleinit.h"
 
 #ifdef HAVE_STACKTRACE
