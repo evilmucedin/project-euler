@@ -59,7 +59,7 @@
 
 #else
 
-#include "logging.h"
+#include "../logging.h"
 
 #define DECLARE_VARIABLE(type, shorttype, name, tn)                     \
   namespace fL##shorttype {                                             \
