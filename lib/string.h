@@ -62,3 +62,5 @@ string stringSprintf(const string& format, Args... args) {
     snprintf(buf.get(), size, format.c_str(), args...);
     return std::string(buf.get(), buf.get() + size - 1);
 }
+
+string bytesToStr(size_t bytes);

@@ -39,3 +39,15 @@ string rep(const string& s, size_t n) {
     }
     return result;
 }
+
+string bytesToStr(size_t bytes) {
+    static constexpr size_t GB = 1024 * 1024 * 1024;
+    if (bytes >= GB) {
+        return stringSprintf("%zdGb", bytes / GB);
+    }
+    static constexpr size_t MB = 1024 * 1024;
+    if (bytes >= MB) {
+        return stringSprintf("%zdMb", bytes / MB);
+    }
+    return stringSprintf("%zd", bytes);
+}
