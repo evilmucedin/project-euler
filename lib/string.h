@@ -5,6 +5,7 @@
 #include <sstream>
 
 StringVector split(const string& s, char delim = '\t');
+StringVector splitQuoted(const string& s, char delim = '\t', char quote = '\'');
 
 template <typename T>
 StringVector splitByFunctor(const string& s, T isDelimiter) {
@@ -51,6 +52,7 @@ U stringCast(const V& x) {
 }
 
 string rep(const string& s, size_t n);
+string unquote(const string& s);
 
 template <typename... Args>
 string stringSprintf(const string& format, Args... args) {
@@ -64,3 +66,13 @@ string stringSprintf(const string& format, Args... args) {
 }
 
 string bytesToStr(size_t bytes);
+
+using WChar = wint_t;
+using WString = vector<WChar>;
+using WStringVector = vector<WString>;
+
+void FPutWString(FILE* fOut, const WString& ws);
+WStringVector split(const WString& s, WChar delim = '\t');
+WString unquote(const WString& s);
+
+WString& operator+=(WString& s, WChar wch);
