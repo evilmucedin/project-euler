@@ -18,6 +18,7 @@ int main() {
     size_t tuples = 0;
     size_t state = 0;
     WString token;
+    WString prevToken;
 
     struct LangPair {
         WString lang;
@@ -30,6 +31,7 @@ int main() {
             case 0:
                 if (ch == '(') {
                     state = 1;
+                    prevToken.swap(token);
                     token.clear();
                 }
                 break;
@@ -69,17 +71,21 @@ int main() {
     }
 
     LOG(INFO) << OUT(count) << OUT(tuples) << OUT(langLinks.size());
+    prevToken.emplace_back(0);
+    fwprintf(stdout, L"prev token: '%ls'\n", prevToken.data());
 
     fclose(fIn);
 
     FILE* fOut = fopen("eulerOsmLocalization/enwiki-langlings.tsv", "wb,ccs=UTF-8");
     for (const auto& langlink : langLinks) {
+        if (langlink.second.size() < 3) {
+            continue;
+        }
         fwprintf(fOut, L"%zd\t%zd", langlink.first, langlink.second.size());
         for (const auto& p : langlink.second) {
             fwprintf(fOut, L"\t%ls,%ls", p.lang.data(), p.title.data());
         }
         fwprintf(fOut, L"\n");
-        fflush(fOut);
     }
     fclose(fOut);
 
