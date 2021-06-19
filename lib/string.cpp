@@ -97,7 +97,17 @@ WString unquote(const WString& s, WChar quote) {
         return s;
     }
     if (s[0] == quote && s[s.size() - 1] == quote) {
-        return WString(s.data() + 1, s.data() + s.size() - 1);
+        WString result(s.data() + 1, s.data() + s.size() - 1);
+        result.emplace_back(0);
+        return result;
+    }
+    if (s.size() < 3) {
+        return s;
+    }
+    if (s[0] == quote && s[s.size() - 1] == 0 && s[s.size() - 2] == quote) {
+        WString result(s.data() + 1, s.data() + s.size() - 2);
+        result.emplace_back(0);
+        return result;
     }
     return s;
 }

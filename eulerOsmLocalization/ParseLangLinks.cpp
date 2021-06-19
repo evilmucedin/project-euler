@@ -35,16 +35,17 @@ int main() {
                 break;
             case 1:
                 if (ch == ')') {
-                    token.emplace_back(0);
                     const auto parts = split(token, ',');
                     if (parts.size() == 3) {
                         // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
                         // fPutWString(stderr, parts[0]);
                         // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
                         try {
-                        langLinks[wStringToU64(parts[0])].emplace_back(
-                            LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
+                            // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(), parts[2].data());
+                            langLinks[wStringToU64(parts[0])].emplace_back(
+                                LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
                         } catch (...) {
+                            token.emplace_back(0);
                             fwprintf(stderr, L"Bad token '%ls'\n", token.data());
                         }
                         ++tuples;
@@ -77,7 +78,7 @@ int main() {
         for (const auto& p : langlink.second) {
             fwprintf(fOut, L"\t%ls,%ls", p.lang.data(), p.title.data());
         }
-        fprintf(fOut, "\n");
+        fwprintf(fOut, L"\n");
         fflush(fOut);
     }
     fclose(fOut);
