@@ -6,11 +6,13 @@
 #include "lib/string.h"
 
 static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210601-langlinks.sql";
+static constexpr char UTF8_NEW_LINE[] = "\u2424";
+// static constexpr char UTF8_NEW_LINE[] = {(char)0xE2, (char)0x90, (char)0xA4};
 
 int main() {
-    setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "en_US.UTF8");
 
-    FILE* fIn = fopen(FILENAME, "rb");
+    FILE* fIn = fopen(FILENAME, "rb,ccs=UTF-8");
     WChar ch;
     size_t count = 0;
     size_t tuples = 0;
@@ -22,7 +24,7 @@ int main() {
         WString title;
     };
 
-    unordered_map<WString, vector<LangPair>> langLinks;
+    unordered_map<uint64_t, vector<LangPair>> langLinks;
     while (WEOF != (ch = fgetwc(fIn))) {
         switch (state) {
             case 0:
@@ -33,9 +35,18 @@ int main() {
                 break;
             case 1:
                 if (ch == ')') {
+                    token.emplace_back(0);
                     const auto parts = split(token, ',');
                     if (parts.size() == 3) {
-                        langLinks[parts[0]].emplace_back(LangPair{unquote(parts[1]), unquote(parts[2])});
+                        // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
+                        // fPutWString(stderr, parts[0]);
+                        // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
+                        try {
+                        langLinks[wStringToU64(parts[0])].emplace_back(
+                            LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
+                        } catch (...) {
+                            fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+                        }
                         ++tuples;
                     }
                     state = 2;
@@ -60,17 +71,14 @@ int main() {
 
     fclose(fIn);
 
-    FILE* fOut = fopen("eulerOsmLocalization/enwiki-langlings.tsv", "wb");
+    FILE* fOut = fopen("eulerOsmLocalization/enwiki-langlings.tsv", "wb,ccs=UTF-8");
     for (const auto& langlink : langLinks) {
-        FPutWString(fOut, langlink.first);
-        fprintf(fOut, "\t%zd", langlink.second.size());
+        fwprintf(fOut, L"%zd\t%zd", langlink.first, langlink.second.size());
         for (const auto& p : langlink.second) {
-            fprintf(fOut, "\t");
-            FPutWString(fOut, p.lang);
-            fprintf(fOut, ",");
-            FPutWString(fOut, p.title);
+            fwprintf(fOut, L"\t%ls,%ls", p.lang.data(), p.title.data());
         }
         fprintf(fOut, "\n");
+        fflush(fOut);
     }
     fclose(fOut);
 

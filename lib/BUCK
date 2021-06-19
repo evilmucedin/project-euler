@@ -57,6 +57,7 @@ cxx_library(
     ],
     deps=[
         ":header",
+        ":exception",
     ],
     visibility=[
         "PUBLIC",

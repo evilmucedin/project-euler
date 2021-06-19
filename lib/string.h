@@ -52,7 +52,7 @@ U stringCast(const V& x) {
 }
 
 string rep(const string& s, size_t n);
-string unquote(const string& s);
+string unquote(const string& s, char quote = '\'');
 
 template <typename... Args>
 string stringSprintf(const string& format, Args... args) {
@@ -71,8 +71,9 @@ using WChar = wint_t;
 using WString = vector<WChar>;
 using WStringVector = vector<WString>;
 
-void FPutWString(FILE* fOut, const WString& ws);
+void fPutWString(FILE* fOut, const WString& ws);
 WStringVector split(const WString& s, WChar delim = '\t');
-WString unquote(const WString& s);
+WString unquote(const WString& s, WChar = '\'');
+u64 wStringToU64(const WString& s);
 
 WString& operator+=(WString& s, WChar wch);
