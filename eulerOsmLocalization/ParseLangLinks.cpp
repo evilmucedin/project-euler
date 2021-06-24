@@ -10,9 +10,7 @@ static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210601-langlin
 static constexpr char UTF8_NEW_LINE[] = "\u2424";
 // static constexpr char UTF8_NEW_LINE[] = {(char)0xE2, (char)0x90, (char)0xA4};
 
-int main() {
-    setlocale(LC_ALL, "en_US.UTF8");
-
+void parseLangLinks() {
     // File fIn(FILENAME, "rb,ccs=UTF-8");
     File fIn(FILENAME, "rb");
     size_t count = 0;
@@ -98,6 +96,12 @@ int main() {
         fwprintf(fOut, L"\n");
     }
     fclose(fOut);
+}
+
+int main() {
+    setlocale(LC_ALL, "en_US.UTF8");
+
+    ParseLangLinks();
 
     return 0;
 }
