@@ -19,6 +19,16 @@ cxx_test(
 )
 
 cxx_test(
+  name="fileTest",
+  srcs=[
+    "fileTest.cpp",
+  ],
+  deps=[
+    "//lib:file",
+  ],
+)
+
+cxx_test(
   name="radixSortTest",
   srcs=[
     "radixSortTest.cpp",

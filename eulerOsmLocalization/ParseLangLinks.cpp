@@ -4,6 +4,7 @@
 
 #include "lib/header.h"
 #include "lib/string.h"
+#include "lib/file.h"
 
 static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210601-langlinks.sql";
 static constexpr char UTF8_NEW_LINE[] = "\u2424";
@@ -12,8 +13,8 @@ static constexpr char UTF8_NEW_LINE[] = "\u2424";
 int main() {
     setlocale(LC_ALL, "en_US.UTF8");
 
-    FILE* fIn = fopen(FILENAME, "rb,ccs=UTF-8");
-    WChar ch;
+    // File fIn(FILENAME, "rb,ccs=UTF-8");
+    File fIn(FILENAME, "rb");
     size_t count = 0;
     size_t tuples = 0;
     size_t state = 0;
@@ -26,42 +27,51 @@ int main() {
     };
 
     unordered_map<uint64_t, vector<LangPair>> langLinks;
-    while (WEOF != (ch = fgetwc(fIn))) {
-        switch (state) {
-            case 0:
-                if (ch == '(') {
-                    state = 1;
-                    prevToken.swap(token);
-                    token.clear();
-                }
-                break;
-            case 1:
-                if (ch == ')') {
-                    const auto parts = split(token, ',');
-                    if (parts.size() == 3) {
-                        // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
-                        // fPutWString(stderr, parts[0]);
-                        // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
-                        try {
-                            // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(), parts[2].data());
-                            langLinks[wStringToU64(parts[0])].emplace_back(
-                                LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
-                        } catch (...) {
-                            token.emplace_back(0);
-                            fwprintf(stderr, L"Bad token '%ls'\n", token.data());
-                        }
-                        ++tuples;
+    while (!fIn.eof()) {
+        WChar ch = fIn.getUTF8C();
+        /*
+        if (count < 10000) {
+            fwprintf(stderr, L"%lc", ch);
+        }
+        */
+        if (ch != WEOF) {
+            switch (state) {
+                case 0:
+                    if (ch == '(') {
+                        state = 1;
+                        prevToken.swap(token);
+                        token.clear();
                     }
-                    state = 2;
-                } else {
-                    token += ch;
-                }
-                break;
-            case 2:
-                if (ch == '(') {
-                    state = 0;
-                }
-                break;
+                    break;
+                case 1:
+                    if (ch == ')') {
+                        const auto parts = split(token, ',');
+                        if (parts.size() == 3) {
+                            // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
+                            // fPutWString(stderr, parts[0]);
+                            // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
+                            try {
+                                // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(),
+                                // parts[2].data());
+                                langLinks[wStringToU64(parts[0])].emplace_back(
+                                    LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
+                            } catch (...) {
+                                token.emplace_back(0);
+                                fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+                            }
+                            ++tuples;
+                        }
+                        state = 2;
+                    } else {
+                        token += ch;
+                    }
+                    break;
+                case 2:
+                    if (ch == '(') {
+                        state = 0;
+                    }
+                    break;
+            }
         }
 
         ++count;
@@ -74,7 +84,7 @@ int main() {
     prevToken.emplace_back(0);
     fwprintf(stdout, L"prev token: '%ls'\n", prevToken.data());
 
-    fclose(fIn);
+    fIn.close();
 
     FILE* fOut = fopen("eulerOsmLocalization/enwiki-langlings.tsv", "wb,ccs=UTF-8");
     for (const auto& langlink : langLinks) {

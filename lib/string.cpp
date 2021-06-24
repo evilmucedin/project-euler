@@ -55,11 +55,11 @@ string unquote(const string& s, char quote) {
 string bytesToStr(size_t bytes) {
     static constexpr size_t GB = 1024 * 1024 * 1024;
     if (bytes >= GB) {
-        return stringSprintf("%zdGb", bytes / GB);
+        return stringSprintf("%.1lfGb", static_cast<double>(bytes) / GB);
     }
     static constexpr size_t MB = 1024 * 1024;
     if (bytes >= MB) {
-        return stringSprintf("%zdMb", bytes / MB);
+        return stringSprintf("%.1lfMb", static_cast<double>(bytes) / MB);
     }
     return stringSprintf("%zd", bytes);
 }
