@@ -9,7 +9,11 @@ namespace {
 string strError() {
     string buff(80, '\0');
     auto p = strerror_r(errno, const_cast<char*>(buff.data()), buff.size());
+#ifndef __APPLE__
     return string(p, strlen(p));
+#else
+    return buff;
+#endif
 }
 
 string modeToString(ios_base::openmode mode) {
