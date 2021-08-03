@@ -16,7 +16,7 @@ using namespace std;
 void printTransactions(double m, int k, int d, vector<string> name, vector<int> owned, vector<vector<double> > prices) {
     vector<int> plan(k);
 
-    if (d == 0) {
+    if (d < 0) {
         for (int i = 0; i < k; ++k) {
             plan[i] = -owned[i];
         }
@@ -27,14 +27,19 @@ void printTransactions(double m, int k, int d, vector<string> name, vector<int> 
             pricesSum += prices[i].back();
             capital += prices[i].back() * owned[i];
         }
-        double remains = capital;
+        double remains = m;
         for (int i = 0; i < k; ++i) {
             if (prices[i].back()) {
                 double targetCapital = capital * prices[i].back() / pricesSum;
                 int target = targetCapital / prices[i].back();
                 int delta = target - owned[i];
-                plan[i] = delta;
-                remains -= target * prices[i].back();
+                if (delta > 0) {
+                    delta = min(delta, static_cast<int>(remains / prices[i].back()));
+                    plan[i] = delta;
+                    remains -= delta * prices[i].back();
+                } else {
+                    plan[i] = delta;
+                }
             }
         }
 
