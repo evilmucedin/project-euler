@@ -8,6 +8,7 @@ cxx_binary(
     "//lib:header",
     "//lib:matrix",
     "//lib:random",
+    "//lib:stat",
     "//lib:timer",
     "//lib/ml:dataframe",
   ],

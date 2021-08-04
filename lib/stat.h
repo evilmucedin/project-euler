@@ -2,7 +2,7 @@
 
 #include "lib/header.h"
 
-template <typename T>
+template <typename T = double>
 struct Stat {
    public:
     void add(T x) {
@@ -22,3 +22,9 @@ struct Stat {
     T sum2_{};
     size_t count_{};
 };
+
+template <typename T>
+ostream& operator<<(ostream& s, const Stat<T>& stat) {
+    s << "{mean=" << stat.mean() << ", stddev=" << stat.stddev() << "}";
+    return s;
+}
