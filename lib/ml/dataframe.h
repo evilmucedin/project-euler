@@ -29,6 +29,11 @@ class DataFrame {
             return result;
         }
 
+        template <typename T>
+        T as(size_t line) const {
+            return stringCast<T>(data_[line]);
+        }
+
         string name_;
         StringVector data_;
     };
