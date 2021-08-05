@@ -5,7 +5,8 @@
 #include "lib/stat.h"
 #include "lib/ml/dataframe.h"
 
-static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T"};
+static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG",
+                                     "IWM",   "VUG",   "MSFT",  "T",     "NCLH",  "OGZPY"};
 
 using PriceData = vector<DoubleVector>;
 
@@ -75,7 +76,12 @@ struct ModelResult {
     Portfolio originalShares;
     Portfolio finalNav;
     Stat<> returnsStat;
+    double sharpe{};
 };
+
+double sharpe(const ModelResult& res) {
+    return (sum(res.finalNav) - sum(res.originalNav)) / sum(res.originalNav) / res.returnsStat.stddev();
+}
 
 ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     ModelResult result;
@@ -84,27 +90,28 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     for (size_t i = 0; i < tickers.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.front()[i];
     }
+
     for (size_t i = 0; i < pd.size(); ++i) {
         for (size_t j = 0; j < tickers.size(); ++j) {
             double ret = pd[i][j]*result.originalShares[j] - result.originalNav[j];
             result.returnsStat.add(ret);
         }
     }
+
     result.finalNav.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
         result.finalNav[i] = result.originalShares[i] * pd.back()[i];
     }
-    return result;
-}
 
-double sharpe(const ModelResult& res) {
-    return (sum(res.finalNav) - sum(res.originalNav)) / sum(res.originalNav) / res.returnsStat.stddev();
+    result.sharpe = sharpe(result);
+
+    return result;
 }
 
 void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
-    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << sharpe(res)
+    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
          << endl;
 }
 
@@ -117,37 +124,63 @@ void testModeling(const PriceData& pd) {
     out(res);
 }
 
+Portfolio randomPortfolio() {
+    Portfolio result(tickers.size());
+    for (auto& x : result) {
+        x = rand();
+    }
+    normalizeNavInplace(result);
+    return result;
+}
+
 void gradientSearch(const PriceData& pd) {
-    Portfolio bestP(tickers.size(), 1);
     ModelResult bestRes;
-    normalizeNavInplace(bestP);
-    double bestSharpe = 0;
+    bestRes.originalNav.resize(tickers.size(), 1);
+    normalizeNavInplace(bestRes.originalNav);
 
     auto eval = [&](Portfolio& c) {
         normalizeNavInplace(c);
         const auto res = model(pd, c);
-        const auto s = sharpe(res);
-        if (s > bestSharpe) {
-            bestSharpe = s;
-            bestP = c;
+        if (res.sharpe > bestRes.sharpe) {
             bestRes = res;
         }
     };
 
-    for (size_t i = 0; i < 1000; ++i) {
-        for (size_t j = 0; j < tickers.size(); ++j) {
-            Portfolio c = bestP;
-            c[j] *= 0.995;
-            eval(c);
-            c = bestP;
-            c[j] *= 1.005;
-            eval(c);
+    for (size_t k = 0; k < 10; ++k) {
+        ModelResult bestRes1;
+        bestRes1.originalNav = randomPortfolio();
+
+        auto eval1 = [&](Portfolio& c) {
+            normalizeNavInplace(c);
+            const auto res = model(pd, c);
+            if (res.sharpe > bestRes1.sharpe) {
+                bestRes1 = res;
+            }
+        };
+
+        for (size_t i = 0; i < 200; ++i) {
+            for (size_t j = 0; j < tickers.size(); ++j) {
+                Portfolio c = bestRes.originalNav;
+                c[j] *= 0.995;
+                eval(c);
+                c = bestRes.originalNav;
+                c[j] *= 1.005;
+                eval(c);
+            }
+            cerr << i << " " << bestRes.sharpe << " " << bestRes.originalNav << endl;
         }
-        cerr << i << " " << bestSharpe << " " << bestP << endl;
+
+        eval(bestRes1.originalNav);
+    }
+
+    for (size_t j = 0; j < tickers.size(); ++j) {
+        auto c = bestRes.originalNav;
+        c[j] = 0;
+        eval(c);
     }
 
     for (size_t i = 0; i < tickers.size(); ++i) {
-        cout << tickers[i] << " " << bestP[i] << " " << bestRes.finalNav[i] << endl;
+        cout << tickers[i] << " " << bestRes.originalNav[i] << " " << bestRes.finalNav[i] << endl;
     }
     out(bestRes);
 }
