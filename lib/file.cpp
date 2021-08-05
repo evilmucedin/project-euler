@@ -16,11 +16,21 @@ void File::close() {
     }
 }
 
+void File::write(const char* p, size_t len) {
+    if (f_) {
+        if (fwrite(p, len, 1, f_) != 1) {
+            throw Exception("file write failed");
+        }
+    } else {
+        throw Exception("file is closed");
+    }
+}
+
+void File::write(const string& s) { write(s.c_str(), s.size()); }
+
 WChar File::getWC() { return fgetwc(f_); }
 
-int File::getC() {
-    return fgetc(f_);
-}
+int File::getC() { return fgetc(f_); }
 
 WChar File::getUTF8C() {
     size_t len;

@@ -139,7 +139,7 @@ Portfolio randomPortfolio() {
     return result;
 }
 
-void gradientSearch(const PriceData& pd) {
+ModelResult gradientSearch(const PriceData& pd) {
     ModelResult bestRes;
     bestRes.originalNav.resize(tickers.size(), 1);
     normalizeNavInplace(bestRes.originalNav);
@@ -189,11 +189,21 @@ void gradientSearch(const PriceData& pd) {
         cout << tickers[i] << " " << bestRes.originalNav[i] << " " << bestRes.finalNav[i] << endl;
     }
     out(bestRes);
+
+    return bestRes;
+}
+
+void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
+    DataFrame df(cat(StringVector{"Date", "Optimal"}, tickers));
+
+    df.saveToCsv("optimal.csv");
 }
 
 int main() {
     auto data = loadData();
     // testModeling(data);
-    gradientSearch(data);
+    auto best = gradientSearch(data);
+    dumpPricesToCsv(data, best);
+
     return 0;
 }

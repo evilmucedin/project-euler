@@ -9,6 +9,9 @@ public:
 
     void close();
 
+    void write(const char* p, size_t len);
+    void write(const string& s);
+
     int getC();
     WChar getWC();
     WChar getUTF8C();

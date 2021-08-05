@@ -1,7 +1,8 @@
 #include "lib/ml/dataframe.h"
 
-#include "lib/io/csv.h"
 #include "lib/exception.h"
+#include "lib/file.h"
+#include "lib/io/csv.h"
 
 DataFrame::Column::Column(string name) : name_(std::move(name)) {}
 
@@ -39,6 +40,30 @@ DataFrame::PDataFrame DataFrame::loadFromCsv(const string& filename) {
         }
     }
     return result;
+}
+
+void DataFrame::saveToCsv(const string& filename) const {
+    File fOut(filename, "wb");
+    bool first = true;
+    for (const auto& col : columns_) {
+        if (!first) {
+            fOut.write(",", 1);
+        }
+        fOut.write(col->name_);
+        first = false;
+    }
+    fOut.write("\n", 1);
+
+    for (size_t iLine = 0; iLine < numLines(); ++iLine) {
+        for (const auto& col : columns_) {
+            if (!first) {
+                fOut.write(",", 1);
+            }
+            fOut.write(col->as<string>(iLine));
+            first = false;
+        }
+        fOut.write("\n", 1);
+    }
 }
 
 size_t DataFrame::numLines() const { return columns_[0]->data_.size(); }

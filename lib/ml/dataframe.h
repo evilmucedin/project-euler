@@ -9,6 +9,7 @@ class DataFrame {
 
     using PDataFrame = shared_ptr<DataFrame>;
     static PDataFrame loadFromCsv(const string& filename);
+    void saveToCsv(const string& filename) const;
     PDataFrame shallowCopy();
 
     size_t numLines() const;
