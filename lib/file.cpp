@@ -17,6 +17,9 @@ void File::close() {
 }
 
 void File::write(const char* p, size_t len) {
+    if (!len) {
+        return;
+    }
     if (f_) {
         if (fwrite(p, len, 1, f_) != 1) {
             throw Exception("file write failed");

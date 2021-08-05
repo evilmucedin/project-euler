@@ -99,7 +99,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 
     for (size_t i = 0; i < pd.prices_.size(); ++i) {
         for (size_t j = 0; j < tickers.size(); ++j) {
-            double ret = pd.prices_[i][j]*result.originalShares[j] - result.originalNav[j];
+            double ret = pd.prices_[i][j] * result.originalShares[j] - result.originalNav[j];
             result.returnsStat.add(ret);
         }
     }
@@ -140,6 +140,8 @@ Portfolio randomPortfolio() {
 }
 
 ModelResult gradientSearch(const PriceData& pd) {
+    Timer tSolve("Gradient search");
+
     ModelResult bestRes;
     bestRes.originalNav.resize(tickers.size(), 1);
     normalizeNavInplace(bestRes.originalNav);
@@ -166,14 +168,14 @@ ModelResult gradientSearch(const PriceData& pd) {
 
         for (size_t i = 0; i < 200; ++i) {
             for (size_t j = 0; j < tickers.size(); ++j) {
-                Portfolio c = bestRes.originalNav;
+                Portfolio c = bestRes1.originalNav;
                 c[j] *= 0.995;
-                eval(c);
-                c = bestRes.originalNav;
+                eval1(c);
+                c = bestRes1.originalNav;
                 c[j] *= 1.005;
-                eval(c);
+                eval1(c);
             }
-            cerr << i << " " << bestRes.sharpe << " " << bestRes.originalNav << endl;
+            cerr << k << " " << i << " " << bestRes1.sharpe << " " << bestRes1.originalNav << endl;
         }
 
         eval(bestRes1.originalNav);
@@ -194,7 +196,33 @@ ModelResult gradientSearch(const PriceData& pd) {
 }
 
 void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
+    Timer tSolve("Gen CSV");
+
     DataFrame df(cat(StringVector{"Date", "Optimal"}, tickers));
+
+    vector<DoubleVector> prices(pd.dates_.size(), DoubleVector(1 + tickers.size()));
+    for (size_t i = 0; i < pd.dates_.size(); ++i) {
+        for (size_t j = 0; j < tickers.size(); ++j) {
+            prices[i][0] = model.originalShares[j] * pd.prices_[i][j];
+        }
+    }
+    for (size_t i = 0; i < pd.dates_.size(); ++i) {
+        for (size_t j = 0; j < tickers.size(); ++j) {
+            prices[i][j + 1] = pd.prices_[i][j];
+        }
+    }
+
+    df.resizeLines(pd.dates_.size());
+
+    for (size_t i = 0; i < pd.dates_.size(); ++i) {
+        df.columns_[0]->set(i, pd.dates_[i]);
+    }
+
+    for (size_t i = 0; i < prices.size(); ++i) {
+        for (size_t j = 0; j < prices[i].size(); ++j) {
+            df.columns_[j + 1]->set(i, prices[i][j] / prices.front()[j]);
+        }
+    }
 
     df.saveToCsv("optimal.csv");
 }

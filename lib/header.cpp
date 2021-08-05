@@ -6,6 +6,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+namespace std {
+string to_string(const string& s) { return s; }
+}  // namespace std
+
 string homeDir() { return getpwuid(getuid())->pw_dir; }
 
 #ifdef __SIZEOF_INT128__

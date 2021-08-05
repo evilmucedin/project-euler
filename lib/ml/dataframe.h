@@ -1,6 +1,7 @@
 #include "lib/header.h"
 
 #include "lib/string.h"
+#include "lib/exception.h"
 
 class DataFrame {
    public:
@@ -17,6 +18,7 @@ class DataFrame {
     StringVector line(size_t line) const;
     void pushBackLine(const StringVector& v) const;
     void emplaceBackLine(StringVector&& v) const;
+    void resizeLines(size_t lines);
 
     struct Column {
         Column(string name);
@@ -33,6 +35,14 @@ class DataFrame {
         template <typename T>
         T as(size_t line) const {
             return stringCast<T>(data_[line]);
+        }
+
+        template <typename T>
+        void set(size_t line, const T& value) {
+            if (line > data_.size()) {
+                THROW("Bad line index " << line);
+            }
+            data_[line] = to_string(value);
         }
 
         string name_;

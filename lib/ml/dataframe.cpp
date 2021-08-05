@@ -55,6 +55,7 @@ void DataFrame::saveToCsv(const string& filename) const {
     fOut.write("\n", 1);
 
     for (size_t iLine = 0; iLine < numLines(); ++iLine) {
+        first = true;
         for (const auto& col : columns_) {
             if (!first) {
                 fOut.write(",", 1);
@@ -93,6 +94,12 @@ void DataFrame::pushBackLine(const StringVector& v) const {
 void DataFrame::emplaceBackLine(StringVector&& v) const {
     for (size_t i = 0; i < columns_.size(); ++i) {
         columns_[i]->data_.emplace_back(std::move(v[i]));
+    }
+}
+
+void DataFrame::resizeLines(size_t lines) {
+    for (size_t i = 0; i < columns_.size(); ++i) {
+        columns_[i]->data_.resize(lines);
     }
 }
 

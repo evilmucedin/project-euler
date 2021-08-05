@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <queue>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -60,18 +61,20 @@ ostream& operator<<(ostream& o, u128 v);
 #endif
 
 namespace std {
-template<typename T>
+template <typename T>
 struct hash<vector<T>> {
     size_t operator()(const vector<T>& v) const {
         size_t result = 0;
         hash<T> hasher;
-        for (const auto& e: v) {
+        for (const auto& e : v) {
             result += hasher(e);
         }
         return result;
     }
 };
-}
+
+string to_string(const string& s);
+}  // namespace std
 
 template<typename T, typename A>
 ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
