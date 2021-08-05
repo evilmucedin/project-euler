@@ -8,7 +8,10 @@
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG",
                                      "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",   "IVV",   "VOO",  "QQQ"};
 
-using PriceData = vector<DoubleVector>;
+struct PriceData {
+    vector<DoubleVector> prices_;
+    vector<string> dates_;
+};
 
 PriceData loadData() {
     Timer tSolve("Load data");
@@ -32,8 +35,9 @@ PriceData loadData() {
         }
     }
 
-    PriceData result(dates.size());
-    for (auto& col : result) {
+    PriceData result;
+    result.prices_.resize(dates.size());
+    for (auto& col : result.prices_) {
         col.resize(tickers.size());
     }
     size_t iDate = 0;
@@ -41,10 +45,10 @@ PriceData loadData() {
         for (size_t i = 0; i < tickers.size(); ++i) {
             const auto toDate = mappedData[i].find(date);
             if (toDate != mappedData[i].end()) {
-                result[iDate][i] = toDate->second;
+                result.prices_[iDate][i] = toDate->second;
             } else {
                 if (iDate) {
-                    result[iDate][i] = result[iDate - 1][i];
+                    result.prices_[iDate][i] = result.prices_[iDate - 1][i];
                 }
             }
         }
@@ -53,11 +57,13 @@ PriceData loadData() {
 
     for (ssize_t i = dates.size() - 2; i >= 0; --i) {
         for (size_t j = 0; j < tickers.size(); ++j) {
-            if (!result[i][j]) {
-                result[i][j] = result[i + 1][j];
+            if (!result.prices_[i][j]) {
+                result.prices_[i][j] = result.prices_[i + 1][j];
             }
         }
     }
+
+    result.dates_.insert(result.dates_.end(), dates.begin(), dates.end());
 
     return result;
 }
@@ -88,19 +94,19 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     result.originalNav = originalNav;
     result.originalShares.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
-        result.originalShares[i] = result.originalNav[i] / pd.front()[i];
+        result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
     }
 
-    for (size_t i = 0; i < pd.size(); ++i) {
+    for (size_t i = 0; i < pd.prices_.size(); ++i) {
         for (size_t j = 0; j < tickers.size(); ++j) {
-            double ret = pd[i][j]*result.originalShares[j] - result.originalNav[j];
+            double ret = pd.prices_[i][j]*result.originalShares[j] - result.originalNav[j];
             result.returnsStat.add(ret);
         }
     }
 
     result.finalNav.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
-        result.finalNav[i] = result.originalShares[i] * pd.back()[i];
+        result.finalNav[i] = result.originalShares[i] * pd.prices_.back()[i];
     }
 
     result.sharpe = sharpe(result);
@@ -116,8 +122,8 @@ void out(const ModelResult& res) {
 }
 
 void testModeling(const PriceData& pd) {
-    cout << "Init prices: " << pd.front() << endl;
-    cout << "Final prices: " << pd.back() << endl;
+    cout << "Init prices: " << pd.prices_.front() << endl;
+    cout << "Final prices: " << pd.prices_.back() << endl;
     Portfolio p(tickers.size(), 1);
     normalizeNavInplace(p);
     auto res = model(pd, p);
