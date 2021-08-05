@@ -9,6 +9,8 @@ static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX"
                                      "IWM",   "VUG",   "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",
                                      "IVV",   "VOO",   "QQQ",   "AMZN",  "FB",    "TSLA"};
 
+// static const StringVector tickers = {"TSLA"};
+
 struct PriceData {
     vector<DoubleVector> prices_;
     vector<string> dates_;
