@@ -90,6 +90,7 @@ struct ModelResult {
 
 double sharpe(const ModelResult& res) {
     return (sum(res.finalNav) - sum(res.originalNav)) / sum(res.originalNav) / res.returnsStat.stddev();
+    // return (sum(res.finalNav) - sum(res.originalNav)) / sum(res.originalNav) - 5 * res.returnsStat.stddev();
 }
 
 ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
