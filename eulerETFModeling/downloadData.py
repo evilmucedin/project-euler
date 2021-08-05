@@ -7,7 +7,7 @@ import yfinance
 
 # print(help(yfinance))
 
-tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY"]
+tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY", "SPY", "IVV", "VOO", "QQQ"]
 
 for ticker in tickers:
     data = yfinance.download(ticker, '2010-08-01', '2021-08-01')
