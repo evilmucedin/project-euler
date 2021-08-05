@@ -86,6 +86,11 @@ struct ModelResult {
     Portfolio finalNav;
     Stat<> returnsStat;
     double sharpe{};
+    DoubleVector dailyPrices;
+    DoubleVector dailyReturns;
+    Stat<> dailyReturnsStat;
+    Stat<> dailyNegReturnsStat;
+    double sortino{};
 };
 
 double sharpe(const ModelResult& res) {
@@ -100,13 +105,32 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     for (size_t i = 0; i < tickers.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
     }
+    double originalNavSum = sum(originalNav);
 
+    result.dailyPrices.reserve(pd.prices_.size());
+    result.dailyReturns.reserve(pd.prices_.size());
     for (size_t i = 0; i < pd.prices_.size(); ++i) {
+        double nav = 0.0;
         for (size_t j = 0; j < tickers.size(); ++j) {
-            double ret = pd.prices_[i][j] * result.originalShares[j] - result.originalNav[j];
-            result.returnsStat.add(ret);
+            nav += pd.prices_[i][j] * result.originalShares[j];
+        }
+        result.dailyPrices.emplace_back(nav);
+        double ret = (nav - originalNavSum) / originalNavSum;
+        result.returnsStat.add(ret);
+    }
+
+    for (size_t i = 1; i < result.dailyPrices.size(); ++i) {
+        double dailyRet = log(result.dailyPrices[i]/result.dailyPrices[i - 1]);
+        result.dailyReturns.emplace_back(dailyRet);
+        result.dailyReturnsStat.add(dailyRet);
+        if (dailyRet < 0) {
+            result.dailyNegReturnsStat.add(dailyRet);
+        } else {
+            result.dailyNegReturnsStat.add(0.0);
         }
     }
+
+    result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
 
     result.finalNav.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
@@ -114,6 +138,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sharpe = sharpe(result);
+    result.sharpe = result.sortino;
 
     return result;
 }
