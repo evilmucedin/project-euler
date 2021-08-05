@@ -147,7 +147,7 @@ void gradientSearch(const PriceData& pd) {
     }
 
     for (size_t i = 0; i < tickers.size(); ++i) {
-        cout << tickers[i] << " " << bestP[i] << endl;
+        cout << tickers[i] << " " << bestP[i] << " " << bestRes.finalNav[i] << endl;
     }
     out(bestRes);
 }
