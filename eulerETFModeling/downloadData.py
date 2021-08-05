@@ -7,11 +7,10 @@ import yfinance
 
 # print(help(yfinance))
 
-tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT"]
+tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T"]
 
 for ticker in tickers:
-# Get the data for the stock AAPL
-    data = yfinance.download(ticker, '2011-08-01', '2021-08-01')
+    data = yfinance.download(ticker, '2010-08-01', '2021-08-01')
     data.to_csv("%s.csv" % ticker)
 
 # Import the plotting library

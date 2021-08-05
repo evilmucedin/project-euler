@@ -5,7 +5,7 @@
 #include "lib/stat.h"
 #include "lib/ml/dataframe.h"
 
-static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT"};
+static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T"};
 
 using PriceData = vector<DoubleVector>;
 

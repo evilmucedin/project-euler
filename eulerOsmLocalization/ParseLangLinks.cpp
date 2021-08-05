@@ -6,25 +6,14 @@
 #include "lib/string.h"
 #include "lib/file.h"
 
-static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210601-langlinks.sql";
-static constexpr char UTF8_NEW_LINE[] = "\u2424";
-// static constexpr char UTF8_NEW_LINE[] = {(char)0xE2, (char)0x90, (char)0xA4};
-
-void parseLangLinks() {
-    // File fIn(FILENAME, "rb,ccs=UTF-8");
-    File fIn(FILENAME, "rb");
+template<typename T>
+void parseTuples(File& fIn, T callback) {
     size_t count = 0;
     size_t tuples = 0;
     size_t state = 0;
     WString token;
     WString prevToken;
 
-    struct LangPair {
-        WString lang;
-        WString title;
-    };
-
-    unordered_map<uint64_t, vector<LangPair>> langLinks;
     while (!fIn.eof()) {
         WChar ch = fIn.getUTF8C();
         /*
@@ -43,23 +32,9 @@ void parseLangLinks() {
                     break;
                 case 1:
                     if (ch == ')') {
-                        const auto parts = split(token, ',');
-                        if (parts.size() == 3) {
-                            // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
-                            // fPutWString(stderr, parts[0]);
-                            // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
-                            try {
-                                // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(),
-                                // parts[2].data());
-                                langLinks[wStringToU64(parts[0])].emplace_back(
-                                    LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
-                            } catch (...) {
-                                token.emplace_back(0);
-                                fwprintf(stderr, L"Bad token '%ls'\n", token.data());
-                            }
-                            ++tuples;
-                        }
+                        callback(token);
                         state = 2;
+                        ++tuples;
                     } else {
                         token += ch;
                     }
@@ -74,13 +49,45 @@ void parseLangLinks() {
 
         ++count;
         if (0 == count % 10000) {
-            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(count)) << OUT(tuples) << OUT(langLinks.size());
+            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(count)) << OUT(tuples);
         }
     }
 
-    LOG(INFO) << OUT(count) << OUT(tuples) << OUT(langLinks.size());
     prevToken.emplace_back(0);
     fwprintf(stdout, L"prev token: '%ls'\n", prevToken.data());
+    LOG(INFO) << OUT(count) << OUT(tuples);
+}
+
+void parseLangLinks() {
+    static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210601-langlinks.sql";
+
+    // File fIn(FILENAME, "rb,ccs=UTF-8");
+    File fIn(FILENAME, "rb");
+
+    struct LangPair {
+        WString lang;
+        WString title;
+    };
+
+    unordered_map<uint64_t, vector<LangPair>> langLinks;
+    parseTuples(fIn, [&](WString& token) {
+        const auto parts = split(token, ',');
+        if (parts.size() == 3) {
+            // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
+            // fPutWString(stderr, parts[0]);
+            // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
+            try {
+                // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(),
+                // parts[2].data());
+                langLinks[wStringToU64(parts[0])].emplace_back(
+                    LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
+            } catch (...) {
+                token.emplace_back(0);
+                fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+            }
+        }
+    });
+    LOG(INFO) << OUT(langLinks.size());
 
     fIn.close();
 
@@ -98,10 +105,20 @@ void parseLangLinks() {
     fclose(fOut);
 }
 
+void parseTitles() {
+    static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210620-page.sql";
+
+    // File fIn(FILENAME, "rb,ccs=UTF-8");
+    File fIn(FILENAME, "rb");
+
+}
+
 int main() {
     setlocale(LC_ALL, "en_US.UTF8");
 
-    ParseLangLinks();
+    parseTitles();
+
+    // parseLangLinks();
 
     return 0;
 }
