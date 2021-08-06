@@ -1,10 +1,15 @@
 #include <set>
 
+#include "gflags/gflags.h"
+
 #include "lib/header.h"
 #include "lib/timer.h"
 #include "lib/stat.h"
 #include "lib/ml/dataframe.h"
 #include "lib/random.h"
+#include "lib/init.h"
+
+DEFINE_string(first_date, "", "First modeling date");
 
 /*
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG",
@@ -39,8 +44,10 @@ PriceData loadData() {
             Date2Price tickerPrices;
             for (size_t i = 0; i < df->numLines(); ++i) {
                 const auto iDate = date->as<string>(i);
-                tickerPrices[iDate] = price->as<double>(i);
-                dates.emplace(iDate);
+                if (FLAGS_first_date.empty() || (iDate >= FLAGS_first_date)) {
+                    tickerPrices[iDate] = price->as<double>(i);
+                    dates.emplace(iDate);
+                }
             }
             mappedData.emplace_back(std::move(tickerPrices));
         }
@@ -277,7 +284,9 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
     df.saveToCsv("optimal.csv");
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    standardInit(argc, argv);
+
     auto data = loadData();
     // testModeling(data);
     auto best = gradientSearch(data);

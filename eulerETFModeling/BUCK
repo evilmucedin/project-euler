@@ -4,8 +4,10 @@ cxx_binary(
     "ETFModeling.cpp"
   ],
   deps=[
+    "//gflags:gflags",
     "//glog:glog",
     "//lib:header",
+    "//lib:init",
     "//lib:matrix",
     "//lib:random",
     "//lib:stat",
