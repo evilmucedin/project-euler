@@ -7,9 +7,9 @@
 #include "lib/random.h"
 
 /*
-static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG",
-                                     "IWM",   "VUG",   "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",
-                                     "IVV",   "VOO",   "QQQ",   "AMZN",  "FB",    "TSLA"};
+static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG",
+                                     "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",   "IVV",   "VOO",  "QQQ", "AMZN",
+                                     "FB",    "TSLA",  "BND",   "FBND",  "HDV",   "VEU",   "VWO"};
 */
 
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM", "VUG", "SPY",
@@ -154,7 +154,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     result.sharpe = sharpe(result);
     result.dailySharpe = result.dailyReturnsStat.mean() / result.dailyReturnsStat.stddev();
 
-    result.f = result.sharpe;
+    result.f = result.sortino;
 
     return result;
 }
