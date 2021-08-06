@@ -4,10 +4,18 @@
 #include "lib/timer.h"
 #include "lib/stat.h"
 #include "lib/ml/dataframe.h"
+#include "lib/random.h"
 
+/*
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG",
                                      "IWM",   "VUG",   "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",
                                      "IVV",   "VOO",   "QQQ",   "AMZN",  "FB",    "TSLA"};
+*/
+
+static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM", "VUG", "SPY",
+                                     "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU", "VWO"};
+/*
+*/
 
 // static const StringVector tickers = {"TSLA"};
 
@@ -63,6 +71,7 @@ PriceData loadData() {
             if (!result.prices_[i][j]) {
                 result.prices_[i][j] = result.prices_[i + 1][j];
             }
+            ALWAYS_ASSERT(isfinite(result.prices_[i][j]));
         }
     }
 
@@ -75,6 +84,7 @@ using Portfolio = DoubleVector;
 
 void normalizeNavInplace(Portfolio& p) {
     double sm = sum(p);
+    ASSERTNEQ(sm, 0);
     for (auto& x: p) {
         x /= sm;
     }
@@ -91,6 +101,7 @@ struct ModelResult {
     Stat<> dailyReturnsStat;
     Stat<> dailyNegReturnsStat;
     double sortino{};
+    double f{};
 };
 
 double sharpe(const ModelResult& res) {
@@ -104,8 +115,9 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     result.originalShares.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
+        ALWAYS_ASSERT(isfinite(result.originalShares[i]));
     }
-    double originalNavSum = sum(originalNav);
+    const double originalNavSum = sum(originalNav);
 
     result.dailyPrices.reserve(pd.prices_.size());
     result.dailyReturns.reserve(pd.prices_.size());
@@ -120,7 +132,8 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     for (size_t i = 1; i < result.dailyPrices.size(); ++i) {
-        double dailyRet = log(result.dailyPrices[i]/result.dailyPrices[i - 1]);
+        const double dailyRet = log(result.dailyPrices[i]/result.dailyPrices[i - 1]);
+        ALWAYS_ASSERT(isfinite(dailyRet));
         result.dailyReturns.emplace_back(dailyRet);
         result.dailyReturnsStat.add(dailyRet);
         if (dailyRet < 0) {
@@ -138,7 +151,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sharpe = sharpe(result);
-    result.sharpe = result.sortino;
+    result.f = result.sortino;
 
     return result;
 }
@@ -147,7 +160,7 @@ void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
     cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
-         << endl;
+         << ", f: " << res.f << endl;
 }
 
 void testModeling(const PriceData& pd) {
@@ -176,10 +189,12 @@ ModelResult gradientSearch(const PriceData& pd) {
     normalizeNavInplace(bestRes.originalNav);
 
     auto eval = [&](Portfolio& c) {
-        normalizeNavInplace(c);
-        const auto res = model(pd, c);
-        if (res.sharpe > bestRes.sharpe) {
-            bestRes = res;
+        if (sum(c) != 0) {
+            normalizeNavInplace(c);
+            const auto res = model(pd, c);
+            if (res.f > bestRes.f) {
+                bestRes = res;
+            }
         }
     };
 
@@ -190,7 +205,7 @@ ModelResult gradientSearch(const PriceData& pd) {
         auto eval1 = [&](Portfolio& c) {
             normalizeNavInplace(c);
             const auto res = model(pd, c);
-            if (res.sharpe > bestRes1.sharpe) {
+            if (res.f > bestRes1.f) {
                 bestRes1 = res;
             }
         };
@@ -204,7 +219,7 @@ ModelResult gradientSearch(const PriceData& pd) {
                 c[j] *= 1.005;
                 eval1(c);
             }
-            cerr << k << " " << i << " " << bestRes1.sharpe << " " << bestRes1.originalNav << endl;
+            cerr << k << " " << i << " " << bestRes1.f << " " << bestRes1.originalNav << endl;
         }
 
         eval(bestRes1.originalNav);

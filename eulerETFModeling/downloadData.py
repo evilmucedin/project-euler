@@ -7,11 +7,11 @@ import yfinance
 
 # print(help(yfinance))
 
-tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY", "SPY", "IVV", "VOO", "QQQ", "AMZN", "FB", "TSLA"]
+tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY", "SPY", "IVV", "VOO", "QQQ", "AMZN", "FB", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO"]
 assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
-    data = yfinance.download(ticker, '2010-08-01', '2021-08-01')
+    data = yfinance.download(ticker, '2000-08-01', '2021-08-01')
     data.to_csv("%s.csv" % ticker)
 
 # Import the plotting library

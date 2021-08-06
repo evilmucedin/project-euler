@@ -334,4 +334,5 @@ string homeDir();
 #endif
 
 #define ASSERT          assert
-#define ASSERTEQ(x, y) assert((x) == (y))
+#define ASSERTEQ(x, y)  assert((x) == (y))
+#define ASSERTNEQ(x, y) assert((x) != (y))

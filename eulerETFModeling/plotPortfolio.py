@@ -6,6 +6,5 @@ import matplotlib.pyplot as plt
 
 series = pandas.read_csv("optimal.csv")
 
-plt.figure()
 series.plot()
 plt.show()
