@@ -247,7 +247,8 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
     vector<DoubleVector> prices(pd.dates_.size(), DoubleVector(1 + tickers.size()));
     for (size_t i = 0; i < pd.dates_.size(); ++i) {
         for (size_t j = 0; j < tickers.size(); ++j) {
-            prices[i][0] = model.originalShares[j] * pd.prices_[i][j];
+            ALWAYS_ASSERT(isfinite(model.originalShares[j]));
+            prices[i][0] += model.originalShares[j] * pd.prices_[i][j];
         }
     }
     for (size_t i = 0; i < pd.dates_.size(); ++i) {
@@ -264,7 +265,9 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
 
     for (size_t i = 0; i < prices.size(); ++i) {
         for (size_t j = 0; j < prices[i].size(); ++j) {
-            df.columns_[j + 1]->set(i, prices[i][j] / prices.front()[j]);
+            double norm = prices[i][j] / prices.front()[j];
+            ALWAYS_ASSERT(isfinite(norm));
+            df.columns_[j + 1]->set(i, norm);
         }
     }
 
