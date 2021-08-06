@@ -14,11 +14,12 @@ DEFINE_string(first_date, "", "First modeling date");
 /*
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG",
                                      "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",   "IVV",   "VOO",  "QQQ", "AMZN",
-                                     "FB",    "TSLA",  "BND",   "FBND",  "HDV",   "VEU",   "VWO"};
+                                     "FB",    "TSLA",  "BND",   "FBND",  "HDV",   "VEU",   "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB"};
 */
 
-static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM", "VUG", "SPY",
-                                     "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU", "VWO"};
+static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM", "VUG",
+                                     "SPY",   "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV", "VEU",
+                                     "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",    "VB"};
 /*
 */
 

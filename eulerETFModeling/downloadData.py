@@ -3,11 +3,13 @@
 # from inspect import getmembers, isfunction
 
 # Import the yfinance. If you get module not found error the run !pip install yfinance from your Jupyter notebook
+import matplotlib.pyplot as plt
 import yfinance
 
 # print(help(yfinance))
 
-tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY", "SPY", "IVV", "VOO", "QQQ", "AMZN", "FB", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO"]
+tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY",
+           "SPY", "IVV", "VOO", "QQQ", "AMZN", "FB", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB"]
 assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
@@ -15,7 +17,6 @@ for ticker in tickers:
     data.to_csv("%s.csv" % ticker)
 
 # Import the plotting library
-import matplotlib.pyplot as plt
 # %matplotlib inline
 
 # Plot the close price of the AAPL
