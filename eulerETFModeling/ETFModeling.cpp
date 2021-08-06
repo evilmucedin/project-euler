@@ -96,6 +96,7 @@ struct ModelResult {
     Portfolio finalNav;
     Stat<> returnsStat;
     double sharpe{};
+    double dailySharpe{};
     DoubleVector dailyPrices;
     DoubleVector dailyReturns;
     Stat<> dailyReturnsStat;
@@ -151,7 +152,9 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sharpe = sharpe(result);
-    result.f = result.sortino;
+    result.dailySharpe = result.dailyReturnsStat.mean() / result.dailyReturnsStat.stddev();
+
+    result.f = result.sharpe;
 
     return result;
 }
