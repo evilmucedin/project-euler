@@ -222,12 +222,13 @@ ModelResult gradientSearch(const PriceData& pd) {
         };
 
         for (size_t i = 0; i < 200; ++i) {
+            double scale = (i & 1) ? 0.005 : 0.05;
             for (size_t j = 0; j < tickers.size(); ++j) {
                 Portfolio c = bestRes1.originalNav;
-                c[j] *= 0.995;
+                c[j] *= 1.0 - scale;
                 eval1(c);
                 c = bestRes1.originalNav;
-                c[j] *= 1.005;
+                c[j] *= 1.0 + scale;
                 eval1(c);
             }
             cerr << k << " " << i << " " << bestRes1.f << " " << bestRes1.originalNav << endl;
