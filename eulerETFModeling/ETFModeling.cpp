@@ -19,7 +19,7 @@ static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX"
 
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM", "VUG",
                                      "SPY",   "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV", "VEU",
-                                     "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",    "VB"};
+                                     "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",    "VB", "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD", "INKM", "IYLD", "FCEF", "MLTI", "YYY", "MDIV", "HIPS", "CVY", "GYLD"};
 /*
 */
 
