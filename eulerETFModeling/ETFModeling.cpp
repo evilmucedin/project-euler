@@ -1,27 +1,28 @@
 #include <set>
 
 #include "gflags/gflags.h"
-
 #include "lib/header.h"
-#include "lib/timer.h"
-#include "lib/stat.h"
+#include "lib/init.h"
 #include "lib/ml/dataframe.h"
 #include "lib/random.h"
-#include "lib/init.h"
+#include "lib/stat.h"
+#include "lib/timer.h"
 
 DEFINE_string(first_date, "", "First modeling date");
 
 /*
 static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG",
                                      "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",   "IVV",   "VOO",  "QQQ", "AMZN",
-                                     "FB",    "TSLA",  "BND",   "FBND",  "HDV",   "VEU",   "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB"};
+                                     "FB",    "TSLA",  "BND",   "FBND",  "HDV",   "VEU",   "VWO", "FDHY", "FDIS",
+"ONEQ", "VV", "VB"};
 */
 
-static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM", "VUG",
-                                     "SPY",   "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV", "VEU",
-                                     "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",    "VB", "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD", "INKM", "IYLD", "FCEF", "MLTI", "YYY", "MDIV", "HIPS", "CVY", "GYLD"};
+static const StringVector tickers = {
+    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",  "VOO",  "QQQ",  "BND",
+    "FBND",  "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS",  "ONEQ", "VV",   "VB",   "HNDL", "WBII", "PCEF", "FDIV",
+    "CEFS",  "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",  "MDIV", "HIPS", "CVY",  "GYLD"};
 /*
-*/
+ */
 
 // static const StringVector tickers = {"TSLA"};
 
@@ -60,7 +61,7 @@ PriceData loadData() {
         col.resize(tickers.size());
     }
     size_t iDate = 0;
-    for (const auto& date: dates) {
+    for (const auto& date : dates) {
         for (size_t i = 0; i < tickers.size(); ++i) {
             const auto toDate = mappedData[i].find(date);
             if (toDate != mappedData[i].end()) {
@@ -93,7 +94,7 @@ using Portfolio = DoubleVector;
 void normalizeNavInplace(Portfolio& p) {
     double sm = sum(p);
     ASSERTNEQ(sm, 0);
-    for (auto& x: p) {
+    for (auto& x : p) {
         x /= sm;
     }
 }
@@ -141,7 +142,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     for (size_t i = 1; i < result.dailyPrices.size(); ++i) {
-        const double dailyRet = log(result.dailyPrices[i]/result.dailyPrices[i - 1]);
+        const double dailyRet = log(result.dailyPrices[i] / result.dailyPrices[i - 1]);
         ALWAYS_ASSERT(isfinite(dailyRet));
         result.dailyReturns.emplace_back(dailyRet);
         result.dailyReturnsStat.add(dailyRet);
