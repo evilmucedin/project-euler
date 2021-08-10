@@ -35,6 +35,9 @@ void parseTuples(File& fIn, T callback) {
                         callback(token);
                         state = 2;
                         ++tuples;
+                    } else if (ch == '\'') {
+                        token += ch;
+                        state = 3;
                     } else {
                         token += ch;
                     }
@@ -43,6 +46,20 @@ void parseTuples(File& fIn, T callback) {
                     if (ch == '(') {
                         state = 0;
                     }
+                    break;
+                case 3:
+                    if (ch == '\'') {
+                        token += ch;
+                        state = 1;
+                    } else if (ch == '\\') {
+                        state = 4;
+                    } else {
+                        token += ch;
+                    }
+                    break;
+                case 4:
+                    token += ch;
+                    state = 3;
                     break;
             }
         }
@@ -113,12 +130,47 @@ void parseTitles() {
 
 }
 
+void parseEnTitles() {
+    static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210620-page.sql";
+
+    File fIn(FILENAME, "rb");
+    unordered_map<uint64_t, WString> pageTitles;
+    parseTuples(fIn, [&](WString& token) {
+        const auto parts = split(token, ',');
+        if (parts.size() == 13) {
+            // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
+            // fPutWString(stderr, parts[0]);
+            // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
+            try {
+                // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(),
+                // parts[2].data());
+                pageTitles[wStringToU64(parts[0])] = unquote(parts[2]);
+            } catch (...) {
+                token.emplace_back(0);
+                fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+            }
+        } else {
+            token.emplace_back(0);
+            fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+        }
+    });
+    LOG(INFO) << OUT(pageTitles.size());
+
+    fIn.close();
+
+    FILE* fOut = fopen("eulerOsmLocalization/enwiki-pagetitles.tsv", "wb,ccs=UTF-8");
+    for (const auto& pageTitle : pageTitles) {
+        fwprintf(fOut, L"%zd\t%ls\n", pageTitle.first, pageTitle.second.data());
+    }
+    fclose(fOut);
+}
+
 int main() {
     setlocale(LC_ALL, "en_US.UTF8");
 
-    parseTitles();
-
-    // parseLangLinks();
+    // parseEnTitles();
+    // parseTitles();
+    parseLangLinks();
 
     return 0;
 }
