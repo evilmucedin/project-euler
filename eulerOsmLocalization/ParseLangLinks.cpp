@@ -6,6 +6,31 @@
 #include "lib/string.h"
 #include "lib/file.h"
 
+struct TupleParser {
+    TupleParser(File& file) : file_(file) {}
+
+    struct Tuple {
+        WStringVector tokens_;
+    };
+
+    bool nextTuple(Tuple& tuple) {
+        tuple.tokens_.clear();
+
+        WChar ch = file_.getUTF8C();
+        while (ch != WEOF && ch != '(') {
+            ch = file_.getUTF8C();
+        }
+
+        while (readToken(tuple)) {
+
+        }
+
+        return !tuple.tokens_.empty();
+    }
+
+    File& file_;
+};
+
 template<typename T>
 void parseTuples(File& fIn, T callback) {
     size_t count = 0;

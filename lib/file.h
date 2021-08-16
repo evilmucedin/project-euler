@@ -4,7 +4,7 @@
 #include "lib/string.h"
 
 class File {
-public:
+   public:
     File(string filename, string mode);
 
     void close();
@@ -17,8 +17,24 @@ public:
     WChar getUTF8C();
     bool eof();
 
-private:
+   private:
     string filename_;
     string mode_;
     FILE* f_;
+};
+
+class BufferedFileReader {
+   public:
+    BufferedFileReader(File& f);
+
+    bool eof() const;
+    WChar peek() const;
+    WChar advance();
+
+   private:
+    void tryRead();
+
+    File& f_;
+    bool eof_;
+    WChar next_;
 };

@@ -96,3 +96,20 @@ error:
 }
 
 bool File::eof() { return feof(f_); }
+
+BufferedFileReader::BufferedFileReader(File& f) : f_(f) { tryRead(); }
+
+bool BufferedFileReader::eof() const { return eof_; }
+
+WChar BufferedFileReader::peek() const { return next_; }
+
+WChar BufferedFileReader::advance() {
+    const char result = next_;
+    tryRead();
+    return result;
+}
+
+void BufferedFileReader::tryRead() {
+    next_ = f_.getUTF8C();
+    eof_ = next_ == WEOF;
+}
