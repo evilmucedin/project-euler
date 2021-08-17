@@ -106,7 +106,7 @@ bool BufferedFileReader::eof() const { return eof_; }
 WChar BufferedFileReader::peek() const { return next_; }
 
 WChar BufferedFileReader::advance() {
-    const char result = next_;
+    const auto result = next_;
     tryRead();
     return result;
 }
@@ -117,7 +117,7 @@ u64 BufferedFileReader::offset() const {
 
 void BufferedFileReader::tryRead() {
     next_ = f_.getUTF8C();
-    eof_ = next_ == WEOF;
+    eof_ = f_.eof();
     if (!eof_) {
         ++offset_;
     }

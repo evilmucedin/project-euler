@@ -195,9 +195,9 @@ void parseEnTitles() {
 int main() {
     setlocale(LC_ALL, "en_US.UTF8");
 
-    parseEnTitles();
+    // parseEnTitles();
     // parseTitles();
-    // parseLangLinks();
+    parseLangLinks();
 
     return 0;
 }
