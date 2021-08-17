@@ -30,6 +30,7 @@ class BufferedFileReader {
     bool eof() const;
     WChar peek() const;
     WChar advance();
+    u64 offset() const;
 
    private:
     void tryRead();
@@ -37,4 +38,5 @@ class BufferedFileReader {
     File& f_;
     bool eof_;
     WChar next_;
+    size_t offset_;
 };

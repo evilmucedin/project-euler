@@ -7,7 +7,7 @@
 #include "lib/file.h"
 
 struct TupleParser {
-    TupleParser(File& file) : file_(file) {}
+    TupleParser(File& file) : file_(file), bufFile_(file_) {}
 
     struct Tuple {
         WStringVector tokens_;
@@ -16,19 +16,44 @@ struct TupleParser {
     bool nextTuple(Tuple& tuple) {
         tuple.tokens_.clear();
 
-        WChar ch = file_.getUTF8C();
+        auto ch = bufFile_.advance();
         while (ch != WEOF && ch != '(') {
-            ch = file_.getUTF8C();
+            ch = bufFile_.advance();
         }
 
-        while (readToken(tuple)) {
-
+        while (nextToken(tuple)) {
+            const auto comma = bufFile_.advance();
+            ASSERTEQ(comma, ',');
         }
 
         return !tuple.tokens_.empty();
     }
 
+    bool nextToken(Tuple& tuple) {
+        if (bufFile_.peek() == '\'') {
+            return nextQuotedString(tuple);
+        } else {
+            return nextString(tuple);
+        }
+    }
+
+    bool nextQuotedString(Tuple& tuple) {
+        ASSERTEQ(bufFile_.peek(), '\'');
+        bufFile_.advance();
+        WString token;
+        while (bufFile_.peek() != '\'') {
+            auto next = bufFile_.advance();
+            if (next != '\\') {
+                token += next;
+            } else {
+                token += bufFile_.advance();
+            }
+        }
+        tuple.tokens_.emplace_back(std::move(token));
+    }
+
     File& file_;
+    BufferedFileReader& bufFile_;
 };
 
 template<typename T>

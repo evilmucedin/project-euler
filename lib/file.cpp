@@ -97,7 +97,7 @@ error:
 
 bool File::eof() { return feof(f_); }
 
-BufferedFileReader::BufferedFileReader(File& f) : f_(f) { tryRead(); }
+BufferedFileReader::BufferedFileReader(File& f) : f_(f), offset_(0) { tryRead(); }
 
 bool BufferedFileReader::eof() const { return eof_; }
 
@@ -109,7 +109,12 @@ WChar BufferedFileReader::advance() {
     return result;
 }
 
+u64 BufferedFileReader::offset() const {
+    return offset_;
+}
+
 void BufferedFileReader::tryRead() {
     next_ = f_.getUTF8C();
     eof_ = next_ == WEOF;
+    ++offset_;
 }
