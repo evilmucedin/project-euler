@@ -21,9 +21,10 @@ struct TupleParser {
             ch = bufFile_.advance();
         }
 
-        while (nextToken(tuple)) {
-            const auto comma = bufFile_.advance();
-            ASSERTEQ(comma, ',');
+        while ((bufFile_.peek() != ')') && nextToken(tuple)) {
+            if (bufFile_.peek() == ',') {
+                bufFile_.advance();
+            }
         }
 
         return !tuple.tokens_.empty();
@@ -41,87 +42,59 @@ struct TupleParser {
         ASSERTEQ(bufFile_.peek(), '\'');
         bufFile_.advance();
         WString token;
-        while (bufFile_.peek() != '\'') {
+        while (!bufFile_.eof() && (bufFile_.peek() != '\'')) {
             auto next = bufFile_.advance();
             if (next != '\\') {
-                token += next;
+                token.emplace_back(next);
             } else {
-                token += bufFile_.advance();
+                token.emplace_back(bufFile_.advance());
             }
+            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(bufFile_.offset())) << OUT(static_cast<char>(bufFile_.peek()))
+                                     << OUT(token.size());
         }
+        const auto len = token.size();
+        token.emplace_back(0);
         tuple.tokens_.emplace_back(std::move(token));
+        return len != 0;
+    }
+
+    bool nextString(Tuple& tuple) {
+        ASSERTNEQ(bufFile_.peek(), '\'');
+        WString token;
+        while (!bufFile_.eof() && bufFile_.peek() != ',' && bufFile_.peek() != ')') {
+            token.emplace_back(bufFile_.advance());
+        }
+        const auto len = token.size();
+        token.emplace_back(0);
+        tuple.tokens_.emplace_back(std::move(token));
+        return len != 0;
+    }
+
+    u64 offset() const {
+        return bufFile_.offset();
     }
 
     File& file_;
-    BufferedFileReader& bufFile_;
+    BufferedFileReader bufFile_;
 };
 
 template<typename T>
 void parseTuples(File& fIn, T callback) {
     size_t count = 0;
     size_t tuples = 0;
-    size_t state = 0;
-    WString token;
-    WString prevToken;
 
-    while (!fIn.eof()) {
-        WChar ch = fIn.getUTF8C();
-        /*
-        if (count < 10000) {
-            fwprintf(stderr, L"%lc", ch);
-        }
-        */
-        if (ch != WEOF) {
-            switch (state) {
-                case 0:
-                    if (ch == '(') {
-                        state = 1;
-                        prevToken.swap(token);
-                        token.clear();
-                    }
-                    break;
-                case 1:
-                    if (ch == ')') {
-                        callback(token);
-                        state = 2;
-                        ++tuples;
-                    } else if (ch == '\'') {
-                        token += ch;
-                        state = 3;
-                    } else {
-                        token += ch;
-                    }
-                    break;
-                case 2:
-                    if (ch == '(') {
-                        state = 0;
-                    }
-                    break;
-                case 3:
-                    if (ch == '\'') {
-                        token += ch;
-                        state = 1;
-                    } else if (ch == '\\') {
-                        state = 4;
-                    } else {
-                        token += ch;
-                    }
-                    break;
-                case 4:
-                    token += ch;
-                    state = 3;
-                    break;
-            }
-        }
+    TupleParser parser(fIn);
+    TupleParser::Tuple tuple;
+    while (parser.nextTuple(tuple)) {
+        callback(tuple.tokens_);
+        count = parser.offset();
+        ++tuples;
 
-        ++count;
-        if (0 == count % 10000) {
-            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(count)) << OUT(tuples);
+        if (0 == tuples % 10000) {
+            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(count)) << OUT(tuples) << OUT(tuple.tokens_.size());
         }
     }
 
-    prevToken.emplace_back(0);
-    fwprintf(stdout, L"prev token: '%ls'\n", prevToken.data());
     LOG(INFO) << OUT(count) << OUT(tuples);
 }
 
@@ -137,8 +110,7 @@ void parseLangLinks() {
     };
 
     unordered_map<uint64_t, vector<LangPair>> langLinks;
-    parseTuples(fIn, [&](WString& token) {
-        const auto parts = split(token, ',');
+    parseTuples(fIn, [&](const WStringVector& parts) {
         if (parts.size() == 3) {
             // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
             // fPutWString(stderr, parts[0]);
@@ -149,8 +121,7 @@ void parseLangLinks() {
                 langLinks[wStringToU64(parts[0])].emplace_back(
                     LangPair{unquote(parts[1], '\''), unquote(parts[2], '\'')});
             } catch (...) {
-                token.emplace_back(0);
-                fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+                fwprintf(stderr, L"Bad token '%ls'\n", parts[0].data());
             }
         }
     });
@@ -185,8 +156,7 @@ void parseEnTitles() {
 
     File fIn(FILENAME, "rb");
     unordered_map<uint64_t, WString> pageTitles;
-    parseTuples(fIn, [&](WString& token) {
-        const auto parts = split(token, ',');
+    parseTuples(fIn, [&](const WStringVector& parts) {
         if (parts.size() == 13) {
             // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
             // fPutWString(stderr, parts[0]);
@@ -196,12 +166,10 @@ void parseEnTitles() {
                 // parts[2].data());
                 pageTitles[wStringToU64(parts[0])] = unquote(parts[2]);
             } catch (...) {
-                token.emplace_back(0);
-                fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+                fwprintf(stderr, L"Bad token '%ls'\n", parts[0].data());
             }
         } else {
-            token.emplace_back(0);
-            fwprintf(stderr, L"Bad token '%ls'\n", token.data());
+            fwprintf(stderr, L"Bad token '%ls'\n", parts[0].data());
         }
     });
     LOG(INFO) << OUT(pageTitles.size());

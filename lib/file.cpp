@@ -116,5 +116,7 @@ u64 BufferedFileReader::offset() const {
 void BufferedFileReader::tryRead() {
     next_ = f_.getUTF8C();
     eof_ = next_ == WEOF;
-    ++offset_;
+    if (!eof_) {
+        ++offset_;
+    }
 }
