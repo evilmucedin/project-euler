@@ -52,10 +52,9 @@ struct TupleParser {
             LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(bufFile_.offset())) << OUT(static_cast<char>(bufFile_.peek()))
                                      << OUT(token.size());
         }
-        const auto len = token.size();
         token.emplace_back(0);
         tuple.tokens_.emplace_back(std::move(token));
-        return len != 0;
+        return true;
     }
 
     bool nextString(Tuple& tuple) {
@@ -90,7 +89,7 @@ void parseTuples(File& fIn, T callback) {
         count = parser.offset();
         ++tuples;
 
-        if (0 == tuples % 10000) {
+        if (0 == tuples % 1000) {
             LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(count)) << OUT(tuples) << OUT(tuple.tokens_.size());
         }
     }
@@ -169,7 +168,7 @@ void parseEnTitles() {
                 fwprintf(stderr, L"Bad token '%ls'\n", parts[0].data());
             }
         } else {
-            fwprintf(stderr, L"Bad token '%ls'\n", parts[0].data());
+            fwprintf(stderr, L"Bad token '%ls' %zd\n", parts[0].data(), parts.size());
         }
     });
     LOG(INFO) << OUT(pageTitles.size());
@@ -186,9 +185,9 @@ void parseEnTitles() {
 int main() {
     setlocale(LC_ALL, "en_US.UTF8");
 
-    // parseEnTitles();
+    parseEnTitles();
     // parseTitles();
-    parseLangLinks();
+    // parseLangLinks();
 
     return 0;
 }
