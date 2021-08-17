@@ -7,7 +7,7 @@
 #include "lib/file.h"
 
 struct TupleParser {
-    TupleParser(File& file) : file_(file), bufFile_(file_) {}
+    TupleParser(File& file) : file_(file), bufFile_(file_), tuples_(0) {}
 
     struct Tuple {
         WStringVector tokens_;
@@ -16,16 +16,21 @@ struct TupleParser {
     bool nextTuple(Tuple& tuple) {
         tuple.tokens_.clear();
 
-        auto ch = bufFile_.advance();
-        while (ch != WEOF && ch != '(') {
-            ch = bufFile_.advance();
+        while (!bufFile_.eof() && bufFile_.peek() != '(') {
+            bufFile_.advance();
+        }
+        if (bufFile_.peek() == '(') {
+            bufFile_.advance();
         }
 
-        while ((bufFile_.peek() != ')') && nextToken(tuple)) {
+        while (!bufFile_.eof() && (bufFile_.peek() != ')') && nextToken(tuple)) {
+            // LOG_EVERY_MS(INFO, 1000) << OUT(tuple.tokens_.size()) << OUT(static_cast<char>(bufFile_.peek()));
             if (bufFile_.peek() == ',') {
                 bufFile_.advance();
             }
         }
+
+        ++tuples_;
 
         return !tuple.tokens_.empty();
     }
@@ -49,8 +54,11 @@ struct TupleParser {
             } else {
                 token.emplace_back(bufFile_.advance());
             }
-            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(bufFile_.offset())) << OUT(static_cast<char>(bufFile_.peek()))
-                                     << OUT(token.size());
+            // LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(bufFile_.offset())) << OUT(static_cast<char>(bufFile_.peek()))
+            //                          << OUT(token.size()) << OUT(tuples_);
+        }
+        if (bufFile_.peek() == '\'') {
+            bufFile_.advance();
         }
         token.emplace_back(0);
         tuple.tokens_.emplace_back(std::move(token));
@@ -73,28 +81,29 @@ struct TupleParser {
         return bufFile_.offset();
     }
 
+    size_t tuples() const {
+        return tuples_;
+    }
+
     File& file_;
     BufferedFileReader bufFile_;
+    size_t tuples_;
 };
 
 template<typename T>
 void parseTuples(File& fIn, T callback) {
-    size_t count = 0;
-    size_t tuples = 0;
-
     TupleParser parser(fIn);
     TupleParser::Tuple tuple;
     while (parser.nextTuple(tuple)) {
         callback(tuple.tokens_);
-        count = parser.offset();
-        ++tuples;
 
-        if (0 == tuples % 1000) {
-            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(count)) << OUT(tuples) << OUT(tuple.tokens_.size());
+        if (0 == parser.tuples() % 1000) {
+            LOG_EVERY_MS(INFO, 1000) << OUT(bytesToStr(parser.offset())) << OUT(parser.tuples())
+                                     << OUT(tuple.tokens_.size()) << OUT(parser.tuples());
         }
     }
 
-    LOG(INFO) << OUT(count) << OUT(tuples);
+    LOG(INFO) << OUT(parser.offset()) << OUT(parser.tuples());
 }
 
 void parseLangLinks() {
@@ -156,19 +165,20 @@ void parseEnTitles() {
     File fIn(FILENAME, "rb");
     unordered_map<uint64_t, WString> pageTitles;
     parseTuples(fIn, [&](const WStringVector& parts) {
+        // LOG_EVERY_MS(INFO, 1000) << OUT(parts.size());
         if (parts.size() == 13) {
             // fwprintf(stderr, L"%ls\n", parts[0].data(), UTF8_NEW_LINE);
             // fPutWString(stderr, parts[0]);
             // fprintf(stderr, "%s\n", UTF8_NEW_LINE);
             try {
-                // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(),
-                // parts[2].data());
-                pageTitles[wStringToU64(parts[0])] = unquote(parts[2]);
+                // fwprintf(stderr, L"%ls %ls %ls\n", parts[0].data(), parts[1].data(), parts[2].data());
+                pageTitles[wStringToU64(parts[0])] = parts[2];
             } catch (...) {
-                fwprintf(stderr, L"Bad token '%ls'\n", parts[0].data());
+                fwprintf(stderr, L"Bad token '%ls' %zd\n", parts[0].data(), fIn.offset());
             }
         } else {
-            fwprintf(stderr, L"Bad token '%ls' %zd\n", parts[0].data(), parts.size());
+            fwprintf(stderr, L"Bad token '%ls' %zd %s\n", parts[0].data(), parts.size(),
+                     bytesToStr(fIn.offset()).c_str());
         }
     });
     LOG(INFO) << OUT(pageTitles.size());

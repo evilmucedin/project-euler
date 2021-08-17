@@ -16,6 +16,7 @@ class File {
     WChar getWC();
     WChar getUTF8C();
     bool eof();
+    u64 offset() const;
 
    private:
     string filename_;

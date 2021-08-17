@@ -97,6 +97,8 @@ error:
 
 bool File::eof() { return feof(f_); }
 
+u64 File::offset() const { return ftell(f_); }
+
 BufferedFileReader::BufferedFileReader(File& f) : f_(f), offset_(0) { tryRead(); }
 
 bool BufferedFileReader::eof() const { return eof_; }
