@@ -75,5 +75,6 @@ void fPutWString(FILE* fOut, const WString& ws);
 WStringVector split(const WString& s, WChar delim = '\t');
 WString unquote(const WString& s, WChar = '\'');
 u64 wStringToU64(const WString& s);
+WString stringToWString(const string& s);
 
 WString& operator+=(WString& s, WChar wch);

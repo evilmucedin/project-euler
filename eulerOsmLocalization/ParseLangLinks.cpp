@@ -192,12 +192,71 @@ void parseEnTitles() {
     fclose(fOut);
 }
 
+template<typename Callback>
+void parseArticles(File& fIn, const WString& open, const WString& close, Callback cb) {
+    WString vctOpen;
+    WString vctContent;
+    WString vctClose;
+    while (!fIn.eof()) {
+        vctOpen.clear();
+        while (!fIn.eof() && (vctOpen.size() != open.size())) {
+            auto next = fIn.getUTF8C();
+            if (next == open[vctOpen.size()]) {
+                vctOpen.emplace_back(next);
+            } else {
+                vctOpen.clear();
+                if (next == open[vctOpen.size()]) {
+                    vctOpen.emplace_back(next);
+                }
+            }
+        }
+
+        vctContent.clear();
+        vctClose.clear();
+        while (!fIn.eof() && (vctClose.size() != close.size())) {
+            auto next = fIn.getUTF8C();
+            if (next == close[vctClose.size()]) {
+                vctClose.emplace_back(next);
+            } else {
+                vctContent.insert(vctContent.end(), vctClose.begin(), vctClose.end());
+                vctClose.clear();
+                if (next == close[vctClose.size()]) {
+                    vctClose.emplace_back(next);
+                } else {
+                    vctContent.emplace_back(next);
+                }
+            }
+        }
+
+        if (vctContent.size()) {
+            vctContent.emplace_back(0);
+            cb(vctContent);
+        }
+    }
+}
+
+void parseEnArticles() {
+    static constexpr char FILENAME[] = "eulerOsmLocalization/enwiki-20210601-pages-articles-multistream.xml";
+
+    File fIn(FILENAME, "rb");
+    size_t count = 0;
+    parseArticles(fIn, stringToWString("<page>"), stringToWString("</page>"), [&](const WString& article) {
+        // fwprintf(stderr, L"%ls\n", article.data());
+        // fwprintf(stderr, L"-----------------------------\n");
+        ++count;
+        LOG_EVERY_MS(INFO, 10000) << count << " " << bytesToStr(fIn.offset());
+    });
+
+    LOG(INFO) << "Found " << count << " articles";
+}
+
 int main() {
     setlocale(LC_ALL, "en_US.UTF8");
 
     // parseEnTitles();
     // parseTitles();
-    parseLangLinks();
+    // parseLangLinks();
+    parseEnArticles();
 
     return 0;
 }
