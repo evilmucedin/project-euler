@@ -10,20 +10,19 @@
 
 DEFINE_string(first_date, "", "First modeling date");
 
-static const StringVector tickers = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM",  "VUG",
-                                     "MSFT",  "T",     "NCLH",  "OGZPY", "SPY",   "IVV",   "VOO",  "QQQ",  "AMZN",
-                                     "FB",    "TSLA",  "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS",
-                                     "ONEQ",  "VV",    "VB",    "HNDL",  "WBII",  "PCEF",  "FDIV", "CEFS", "YLD",
-                                     "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV",  "HIPS", "CVY",  "GYLD"};
-/*
-*/
-
-/*
-static const StringVector tickers = {
+static const StringVector etfs = {
     "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",  "VOO",  "QQQ",  "BND",
     "FBND",  "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS",  "ONEQ", "VV",   "VB",   "HNDL", "WBII", "PCEF", "FDIV",
     "CEFS",  "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",  "MDIV", "HIPS", "CVY",  "GYLD"};
- */
+
+static const StringVector stocks = {
+    "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
+};
+
+static const StringVector tickers = cat(etfs, stocks);
+
+/*
+*/
 
 // static const StringVector tickers = {"TSLA"};
 
