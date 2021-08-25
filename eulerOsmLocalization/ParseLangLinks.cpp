@@ -1,10 +1,9 @@
 #include <cstdio>
 
 #include "glog/logging.h"
-
+#include "lib/file.h"
 #include "lib/header.h"
 #include "lib/string.h"
-#include "lib/file.h"
 
 struct TupleParser {
     TupleParser(File& file) : file_(file), bufFile_(file_), tuples_(0) {}
@@ -77,20 +76,16 @@ struct TupleParser {
         return len != 0;
     }
 
-    u64 offset() const {
-        return bufFile_.offset();
-    }
+    u64 offset() const { return bufFile_.offset(); }
 
-    size_t tuples() const {
-        return tuples_;
-    }
+    size_t tuples() const { return tuples_; }
 
     File& file_;
     BufferedFileReader bufFile_;
     size_t tuples_;
 };
 
-template<typename T>
+template <typename T>
 void parseTuples(File& fIn, T callback) {
     TupleParser parser(fIn);
     TupleParser::Tuple tuple;
@@ -156,7 +151,6 @@ void parseTitles() {
 
     // File fIn(FILENAME, "rb,ccs=UTF-8");
     File fIn(FILENAME, "rb");
-
 }
 
 void parseEnTitles() {
@@ -192,7 +186,7 @@ void parseEnTitles() {
     fclose(fOut);
 }
 
-template<typename Callback>
+template <typename Callback>
 void parseArticles(File& fIn, const WString& open, const WString& close, Callback cb) {
     WString vctOpen;
     WString vctContent;
