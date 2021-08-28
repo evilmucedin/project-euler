@@ -24,6 +24,7 @@ cxx_test(
     "fileTest.cpp",
   ],
   deps=[
+    "//glog:glog",
     "//lib:file",
   ],
 )

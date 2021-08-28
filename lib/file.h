@@ -41,3 +41,22 @@ class BufferedFileReader {
     WChar next_;
     size_t offset_;
 };
+
+class BufferedStringReader {
+   public:
+    BufferedStringReader(const WString& s);
+
+    bool eof() const;
+    WChar peek() const;
+    WChar advance();
+    u64 offset() const;
+    WChar getUTF8C();
+
+   private:
+    void tryRead();
+
+    const WString& s_;
+    bool eof_;
+    WChar next_;
+    size_t offset_;
+};

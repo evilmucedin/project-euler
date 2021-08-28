@@ -131,6 +131,7 @@ u64 wStringToU64(const WString& s) {
 }
 
 WString stringToWString(const string& s) { return {s.begin(), s.end()}; }
+string wstringToString(const WString& ws) { return {ws.begin(), ws.end()}; }
 
 WString& operator+=(WString& s, WChar wch) {
     s.emplace_back(wch);

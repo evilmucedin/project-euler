@@ -186,8 +186,8 @@ void parseEnTitles() {
     fclose(fOut);
 }
 
-template <typename Callback>
-void parseArticles(File& fIn, const WString& open, const WString& close, Callback cb) {
+template <typename TFile, typename Callback>
+void parseArticles(TFile& fIn, const WString& open, const WString& close, Callback cb) {
     WString vctOpen;
     WString vctContent;
     WString vctClose;
@@ -234,11 +234,27 @@ void parseEnArticles() {
 
     File fIn(FILENAME, "rb");
     size_t count = 0;
+    size_t infoboxCount = 0;
     parseArticles(fIn, stringToWString("<page>"), stringToWString("</page>"), [&](const WString& article) {
         // fwprintf(stderr, L"%ls\n", article.data());
         // fwprintf(stderr, L"-----------------------------\n");
+
+        BufferedStringReader rArticle(article);
+        parseArticles(rArticle, stringToWString("{{infobox"), stringToWString("}}"), [&](const WString& infobox) {
+            WString id;
+            BufferedStringReader rArticle2(article);
+            parseArticles(rArticle2, stringToWString("<id>"), stringToWString("</id>"), [&](const WString& sid) {
+                id = sid;
+            });
+            LOG_EVERY_MS(INFO, 10000) << OUT(infobox.size()) << OUT(wstringToString(id)) << OUT(wstringToString(infobox));
+            fwprintf(stderr, L"%ls\n", infobox.data());
+            fwprintf(stderr, L"-----------------------------\n");
+            fflush(stderr);
+            ++infoboxCount;
+        });
+
         ++count;
-        LOG_EVERY_MS(INFO, 10000) << count << " " << bytesToStr(fIn.offset());
+        LOG_EVERY_MS(INFO, 10000) << OUT(count) << OUT(infoboxCount) << OUT(bytesToStr(fIn.offset()));
     });
 
     LOG(INFO) << "Found " << count << " articles";

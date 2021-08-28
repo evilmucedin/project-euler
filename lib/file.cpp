@@ -99,7 +99,7 @@ bool File::eof() { return feof(f_); }
 
 u64 File::offset() const { return ftell(f_); }
 
-BufferedFileReader::BufferedFileReader(File& f) : f_(f), offset_(0) { tryRead(); }
+BufferedFileReader::BufferedFileReader(File& f) : f_(f), eof_(false), offset_(0) { tryRead(); }
 
 bool BufferedFileReader::eof() const { return eof_; }
 
@@ -116,9 +116,35 @@ u64 BufferedFileReader::offset() const {
 }
 
 void BufferedFileReader::tryRead() {
-    next_ = f_.getUTF8C();
+    if (!eof_) {
+        next_ = f_.getUTF8C();
+    }
     eof_ = f_.eof();
     if (!eof_) {
+        ++offset_;
+    }
+}
+
+BufferedStringReader::BufferedStringReader(const WString& s) : s_(s), offset_(0) { tryRead(); }
+
+bool BufferedStringReader::eof() const { return eof_; }
+
+WChar BufferedStringReader::peek() const { return next_; }
+
+WChar BufferedStringReader::advance() {
+    const auto result = next_;
+    tryRead();
+    return result;
+}
+
+u64 BufferedStringReader::offset() const { return offset_; }
+
+WChar BufferedStringReader::getUTF8C() { return advance(); }
+
+void BufferedStringReader::tryRead() {
+    eof_ = offset_ >= s_.size();
+    if (!eof_) {
+        next_ = s_[offset_];
         ++offset_;
     }
 }
