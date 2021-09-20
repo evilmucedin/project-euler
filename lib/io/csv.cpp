@@ -71,7 +71,7 @@ double CsvParser::getDouble(size_t index) const { return stod(get(index)); }
 
 float CsvParser::getFloat(size_t index) const { return stof(get(index)); }
 
-u64 CsvParser::getU64(size_t index) const { return stol(get(index)); }
+u64 CsvParser::getU64(size_t index) const { return stoll(get(index)); }
 
 bool CsvParser::getBool(size_t index) const { return stringToBool(get(index)); }
 
