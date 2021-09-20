@@ -2,6 +2,8 @@
 
 #include "lib/exception.h"
 
+bool stringToBool(const string& s) { return s == "1" || s == "true" || s == "True"; }
+
 StringVector split(const string& s, char delim) {
     StringVector result;
     auto p = s.data();

@@ -15,6 +15,8 @@ class CsvParser {
     int getInt(size_t index) const;
     double getDouble(size_t index) const;
     float getFloat(size_t index) const;
+    u64 getU64(size_t index) const;
+    bool getBool(size_t index) const;
     bool empty(size_t index) const;
 
     int getIndex(const string& s) const;
