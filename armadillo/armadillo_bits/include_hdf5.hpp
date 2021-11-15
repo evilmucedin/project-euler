@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -15,6 +17,10 @@
 
 
 #if defined(ARMA_USE_HDF5)
+  
+  #undef  H5_USE_110_API
+  #define H5_USE_110_API
+  
   #if !defined(ARMA_HDF5_INCLUDE_DIR)
     #include <hdf5.h>
   #else

@@ -7,7 +7,6 @@
 
 #ifndef __APPLE__
 #include "GL/freeglut.h"
-#include "GL/gl.h"
 #else
 #include "OpenGL/glu.h"
 #include "OpenGL/gl.h"

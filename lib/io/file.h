@@ -19,6 +19,11 @@ class File : NonCopyable {
     }
 
     template <typename T>
+    bool readT(T& value) {
+        return read(reinterpret_cast<char*>(&value), sizeof(T)) == sizeof(T);
+    }
+
+    template <typename T>
     bool maybeReadT(T* result) {
         return read(reinterpret_cast<char*>(result), sizeof(T)) == sizeof(T);
     }

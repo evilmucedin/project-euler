@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -23,14 +25,15 @@
 //! For each row or for each column, find the median value.
 //! The result is stored in a dense matrix that has either one column or one row.
 //! The dimension, for which the medians are found, is set via the median() function.
-template<typename T1>
+template<typename eT, typename T1>
 inline
 void
-op_median::apply(Mat<typename T1::elem_type>& out, const Op<T1,op_median>& in)
+op_median::apply(Mat<eT>& out, const Op<T1,op_median>& in, const typename arma_not_cx<eT>::result* junk)
   {
   arma_extra_debug_sigprint();
+  arma_ignore(junk);
   
-  typedef typename T1::elem_type eT;
+  // typedef typename T1::elem_type eT;
   
   const uword dim = in.aux_uword_a;
   arma_debug_check( (dim > 1), "median(): parameter 'dim' must be 0 or 1" );
@@ -41,7 +44,7 @@ op_median::apply(Mat<typename T1::elem_type>& out, const Op<T1,op_median>& in)
   
   const bool is_alias = P.is_alias(out);
   
-  if( (is_Mat<P_stored_type>::value == true) || is_alias )
+  if(is_Mat<P_stored_type>::value || is_alias)
     {
     const unwrap_check<P_stored_type> tmp(P.Q, is_alias);
     
@@ -134,14 +137,16 @@ op_median::apply(Mat<typename T1::elem_type>& out, const Op<T1,op_median>& in)
 
 
 //! Implementation for complex numbers
-template<typename T, typename T1>
+template<typename eT, typename T1>
 inline
 void
-op_median::apply(Mat< std::complex<T> >& out, const Op<T1,op_median>& in)
+op_median::apply(Mat<eT>& out, const Op<T1,op_median>& in, const typename arma_cx_only<eT>::result* junk)
   {
   arma_extra_debug_sigprint();
+  arma_ignore(junk);
   
-  typedef typename std::complex<T> eT;
+  // typedef typename std::complex<T> eT;
+  typedef typename get_pod_type<eT>::result T;
   
   arma_type_check(( is_same_type<eT, typename T1::elem_type>::no ));
   
@@ -242,7 +247,7 @@ op_median::median_vec
   
   std::vector<eT> tmp_vec(n_elem);
   
-  if(is_Mat<P_stored_type>::value == true)
+  if(is_Mat<P_stored_type>::value)
     {
     const unwrap<P_stored_type> tmp(P.Q);
     
@@ -385,6 +390,8 @@ op_median::direct_median(std::vector<eT>& X)
   {
   arma_extra_debug_sigprint();
   
+  // TODO: if NaN is detected, return NaN
+  
   const uword n_elem = uword(X.size());
   const uword half   = n_elem/2;
   
@@ -425,6 +432,8 @@ op_median::direct_cx_median_index
   arma_extra_debug_sigprint();
   
   typedef arma_cx_median_packet<T> eT;
+  
+  // TODO: if NaN is detected, return bool set to false, indicating presence of NaN
   
   const uword n_elem = uword(X.size());
   const uword half   = n_elem/2;

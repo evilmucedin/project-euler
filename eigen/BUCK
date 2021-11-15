@@ -17,6 +17,8 @@ cxx_library(
         "src/Core/arch/AVX/MathFunctions.h",
         "src/Core/arch/AVX/PacketMath.h",
         "src/Core/arch/AVX/TypeCasting.h",
+        "src/Core/arch/AVX512/MathFunctions.h",
+        "src/Core/arch/AVX512/PacketMath.h",
         "src/Core/arch/CUDA/Complex.h",
         "src/Core/arch/CUDA/Half.h",
         "src/Core/arch/CUDA/PacketMathHalf.h",

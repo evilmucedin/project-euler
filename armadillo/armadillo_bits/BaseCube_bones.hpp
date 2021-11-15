@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -22,14 +24,14 @@
 template<typename elem_type, typename derived>
 struct BaseCube_eval_Cube
   {
-  arma_inline const derived& eval() const;
+  arma_inline arma_warn_unused const derived& eval() const;
   };
 
 
 template<typename elem_type, typename derived>
 struct BaseCube_eval_expr
   {
-  arma_inline Cube<elem_type> eval() const;   //!< force the immediate evaluation of a delayed expression
+  inline arma_warn_unused Cube<elem_type> eval() const;   //!< force the immediate evaluation of a delayed expression
   };
 
 
@@ -57,11 +59,16 @@ struct BaseCube
   arma_cold inline void raw_print(                           const std::string extra_text = "") const;
   arma_cold inline void raw_print(std::ostream& user_stream, const std::string extra_text = "") const;
   
+  arma_cold inline void brief_print(                           const std::string extra_text = "") const;
+  arma_cold inline void brief_print(std::ostream& user_stream, const std::string extra_text = "") const;
+  
   inline arma_warn_unused elem_type min() const;
   inline arma_warn_unused elem_type max() const;
   
   inline arma_warn_unused uword index_min() const;
   inline arma_warn_unused uword index_max() const;
+  
+  inline arma_warn_unused bool is_zero(const typename get_pod_type<elem_type>::result tol = 0) const;
   
   inline arma_warn_unused bool is_empty()  const;
   inline arma_warn_unused bool is_finite() const;

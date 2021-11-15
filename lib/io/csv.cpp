@@ -2,8 +2,9 @@
 
 #include <cassert>
 
-#include "lib/io/fstream.h"
 #include "lib/exception.h"
+#include "lib/io/fstream.h"
+#include "lib/string.h"
 
 CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote)
     : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
@@ -64,21 +65,17 @@ const string& CsvParser::get(size_t index) const {
     return line_[index];
 }
 
-int CsvParser::getInt(size_t index) const {
-    return stoi(get(index));
-}
+int CsvParser::getInt(size_t index) const { return stoi(get(index)); }
 
-double CsvParser::getDouble(size_t index) const {
-    return stod(get(index));
-}
+double CsvParser::getDouble(size_t index) const { return stod(get(index)); }
 
-float CsvParser::getFloat(size_t index) const {
-    return stof(get(index));
-}
+float CsvParser::getFloat(size_t index) const { return stof(get(index)); }
 
-bool CsvParser::empty(size_t index) const {
-    return line_[index].empty();
-}
+u64 CsvParser::getU64(size_t index) const { return stoll(get(index)); }
+
+bool CsvParser::getBool(size_t index) const { return stringToBool(get(index)); }
+
+bool CsvParser::empty(size_t index) const { return line_[index].empty(); }
 
 int CsvParser::getIndex(const string& s) const {
     return findWithDefault(fieldToIndex_, s, -1);

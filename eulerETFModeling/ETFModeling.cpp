@@ -19,7 +19,7 @@ static const StringVector stocks = {
     "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
 };
 
-static const StringVector tickers = cat(etfs, stocks);
+static const StringVector tickers = etfs; // cat(etfs, stocks);
 
 /*
 */

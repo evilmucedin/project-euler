@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -124,7 +126,6 @@ running_mean_scalar<eT>::mean() const
 
 template<typename eT>
 arma_inline
-arma_hot
 eT
 distance<eT, uword(1)>::eval(const uword N, const eT* A, const eT* B, const eT*)
   {
@@ -158,7 +159,6 @@ distance<eT, uword(1)>::eval(const uword N, const eT* A, const eT* B, const eT*)
 
 template<typename eT>
 arma_inline
-arma_hot
 eT
 distance<eT, uword(2)>::eval(const uword N, const eT* A, const eT* B, const eT* C)
   {

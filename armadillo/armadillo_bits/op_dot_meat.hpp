@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -21,7 +23,6 @@
 
 //! for two arrays, generic version for non-complex values
 template<typename eT>
-arma_hot
 arma_inline
 typename arma_not_cx<eT>::result
 op_dot::direct_dot_arma(const uword n_elem, const eT* const A, const eT* const B)
@@ -474,7 +475,7 @@ op_cdot::apply(const T1& X, const T2& Y)
   {
   arma_extra_debug_sigprint();
   
-  if( (is_Mat<T1>::value == true) && (is_Mat<T2>::value == true) )
+  if(is_Mat<T1>::value && is_Mat<T2>::value)
     {
     return op_cdot::apply_unwrap(X,Y);
     }

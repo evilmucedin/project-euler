@@ -6,5 +6,5 @@ cxx_binary(
   deps=[
     "//lib:header",
   ],
-  linker_flags=["-lglut", "-lGL", "-lGLU"],
+  linker_flags=["-L/usr/lib/x86_64-linux-gnu", "-lGL", "-lGLU", "-lglut"],
 )

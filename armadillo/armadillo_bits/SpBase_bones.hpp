@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -22,14 +24,14 @@
 template<typename elem_type, typename derived>
 struct SpBase_eval_SpMat
   {
-  inline const derived& eval() const;
+  inline arma_warn_unused const derived& eval() const;
   };
 
 
 template<typename elem_type, typename derived>
 struct SpBase_eval_expr
   {
-  inline SpMat<elem_type> eval() const;   //!< force the immediate evaluation of a delayed expression
+  inline arma_warn_unused SpMat<elem_type> eval() const;   //!< force the immediate evaluation of a delayed expression
   };
 
 
@@ -52,9 +54,9 @@ struct SpBase
   
   arma_inline bool is_alias(const SpMat<elem_type>& X) const;
   
-  inline const SpOp<derived,spop_htrans>  t() const;  //!< Hermitian transpose
-  inline const SpOp<derived,spop_htrans> ht() const;  //!< Hermitian transpose
-  inline const SpOp<derived,spop_strans> st() const;  //!< simple transpose
+  inline arma_warn_unused const SpOp<derived,spop_htrans>  t() const;  //!< Hermitian transpose
+  inline arma_warn_unused const SpOp<derived,spop_htrans> ht() const;  //!< Hermitian transpose
+  inline arma_warn_unused const SpOp<derived,spop_strans> st() const;  //!< simple transpose
   
   arma_cold inline void print(                           const std::string extra_text = "") const;
   arma_cold inline void print(std::ostream& user_stream, const std::string extra_text = "") const;
@@ -67,6 +69,9 @@ struct SpBase
   
   arma_cold inline void raw_print_dense(                           const std::string extra_text = "") const;
   arma_cold inline void raw_print_dense(std::ostream& user_stream, const std::string extra_text = "") const;
+  
+  arma_cold inline void brief_print(                           const std::string extra_text = "") const;
+  arma_cold inline void brief_print(std::ostream& user_stream, const std::string extra_text = "") const;
   
   inline arma_warn_unused elem_type min() const;
   inline arma_warn_unused elem_type max() const;
@@ -86,18 +91,22 @@ struct SpBase
   inline arma_warn_unused bool is_hermitian() const;
   inline arma_warn_unused bool is_hermitian(const typename get_pod_type<elem_type>::result tol) const;
   
-  inline arma_warn_unused bool is_empty()  const;
-  inline arma_warn_unused bool is_square() const;
-  inline arma_warn_unused bool is_vec()    const;
-  inline arma_warn_unused bool is_colvec() const;
-  inline arma_warn_unused bool is_rowvec() const;
-  inline arma_warn_unused bool is_finite() const;
-  inline arma_warn_unused bool has_inf()   const;
-  inline arma_warn_unused bool has_nan()   const;
+  inline arma_warn_unused bool is_zero(const typename get_pod_type<elem_type>::result tol = 0) const;
   
-  inline const SpOp<derived,spop_vectorise_col> as_col() const;
-  inline const SpOp<derived,spop_vectorise_row> as_row() const;
+  inline arma_warn_unused bool is_trimatu() const;
+  inline arma_warn_unused bool is_trimatl() const;
+  inline arma_warn_unused bool is_diagmat() const;
+  inline arma_warn_unused bool is_empty()   const;
+  inline arma_warn_unused bool is_square()  const;
+  inline arma_warn_unused bool is_vec()     const;
+  inline arma_warn_unused bool is_colvec()  const;
+  inline arma_warn_unused bool is_rowvec()  const;
+  inline arma_warn_unused bool is_finite()  const;
+  inline arma_warn_unused bool has_inf()    const;
+  inline arma_warn_unused bool has_nan()    const;
   
+  inline arma_warn_unused const SpOp<derived,spop_vectorise_col> as_col() const;
+  inline arma_warn_unused const SpOp<derived,spop_vectorise_row> as_row() const;
   };
 
 

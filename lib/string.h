@@ -4,6 +4,8 @@
 
 #include <sstream>
 
+bool stringToBool(const string& s);
+
 StringVector split(const string& s, char delim = '\t');
 StringVector splitQuoted(const string& s, char delim = '\t', char quote = '\'');
 

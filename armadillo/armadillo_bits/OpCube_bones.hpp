@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -21,7 +23,7 @@
 //! Analog of the Op class, intended for cubes
 
 template<typename T1, typename op_type>
-class OpCube : public BaseCube<typename T1::elem_type, OpCube<T1, op_type> >
+class OpCube : public BaseCube< typename T1::elem_type, OpCube<T1, op_type> >
   {
   public:
   

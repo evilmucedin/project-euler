@@ -1,1 +1,1 @@
-libcgal-dev freeglut3-dev libmkl-dev ant vim exuberant-ctags gcc g++
+libcgal-dev freeglut3-dev libmkl-dev ant vim exuberant-ctags gcc g++ libomp-dev clang ldd

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -21,7 +23,7 @@
 
 struct podarray_prealloc_n_elem
   {
-  static const uword val = 16;
+  static constexpr uword val = 16;
   };
 
 
@@ -76,7 +78,7 @@ class podarray
   arma_inline       eT* memptr();
   arma_inline const eT* memptr() const;
   
-  arma_hot inline void copy_row(const Mat<eT>& A, const uword row);
+  inline void copy_row(const Mat<eT>& A, const uword row);
   
   
   protected:
