@@ -1,5 +1,11 @@
+include_defs('//armadillo/DEFS', 'armadillo_defs')
+
 cxx_library(
     name="armadillo",
+    srcs=[
+        "wrapper1.cpp",
+        "wrapper2.cpp",
+    ],
     exported_headers=[
         "armadillo",
 
@@ -612,4 +618,7 @@ cxx_library(
     visibility=[
         "PUBLIC",
     ],
+    
+    linker_flags=armadillo_defs.linker_flags,
 )
+

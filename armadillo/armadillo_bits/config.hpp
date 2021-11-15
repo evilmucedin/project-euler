@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-// 
+//
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,7 +45,7 @@
 #if !defined(ARMA_USE_NEWARP)
 #define ARMA_USE_NEWARP
 //// Uncomment the above line to enable the built-in partial emulation of ARPACK.
-//// This is used for eigen decompositions of real (non-complex) sparse matrices, eg. eigs_sym(), svds() 
+//// This is used for eigen decompositions of real (non-complex) sparse matrices, eg. eigs_sym(), svds()
 #endif
 
 #if !defined(ARMA_USE_ARPACK)
@@ -68,7 +68,7 @@
 //// Make sure the directory has a trailing /
 #endif
 
-// #define ARMA_USE_WRAPPER
+#define ARMA_USE_WRAPPER
 //// Comment out the above line if you're getting linking errors when compiling your programs,
 //// or if you prefer to directly link with LAPACK, BLAS + etc instead of the Armadillo runtime library.
 //// You will then need to link your programs directly with -llapack -lblas instead of -larmadillo
@@ -153,7 +153,7 @@
 #if defined(ARMA_USE_HDF5_ALT) && defined(ARMA_USE_WRAPPER)
   #undef  ARMA_USE_HDF5
   #define ARMA_USE_HDF5
-  
+
   // #define ARMA_HDF5_INCLUDE_DIR /usr/include/
 #endif
 
