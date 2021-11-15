@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -27,9 +29,9 @@ class SpCol : public SpMat<eT>
   typedef eT                                elem_type;
   typedef typename get_pod_type<eT>::result pod_type;
   
-  static const bool is_row  = false;
-  static const bool is_col  = true;
-  static const bool is_xvec = false;
+  static constexpr bool is_row  = false;
+  static constexpr bool is_col  = true;
+  static constexpr bool is_xvec = false;
   
   
   inline          SpCol();
@@ -53,6 +55,10 @@ class SpCol : public SpMat<eT>
   
   template<typename T1, typename T2>
   inline explicit SpCol(const SpBase<pod_type,T1>& A, const SpBase<pod_type,T2>& B);
+  
+  inline arma_warn_unused const SpOp<SpCol<eT>,spop_htrans>  t() const;
+  inline arma_warn_unused const SpOp<SpCol<eT>,spop_htrans> ht() const;
+  inline arma_warn_unused const SpOp<SpCol<eT>,spop_strans> st() const;
   
   inline void shed_row (const uword row_num);
   inline void shed_rows(const uword in_row1, const uword in_row2);

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -26,7 +28,7 @@ arma_cout_stream(std::ostream* user_stream)
   {
   static std::ostream* cout_stream = &(ARMA_COUT_STREAM);
   
-  if(user_stream != NULL)  { cout_stream = user_stream; }
+  if(user_stream != nullptr)  { cout_stream = user_stream; }
   
   return (*cout_stream);
   }
@@ -40,7 +42,7 @@ arma_cerr_stream(std::ostream* user_stream)
   {
   static std::ostream* cerr_stream = &(ARMA_CERR_STREAM);
   
-  if(user_stream != NULL)  { cerr_stream = user_stream; }
+  if(user_stream != nullptr)  { cerr_stream = user_stream; }
   
   return (*cerr_stream);
   }
@@ -69,7 +71,7 @@ inline
 std::ostream&
 get_cout_stream()
   {
-  return arma_cout_stream<char>(NULL);
+  return arma_cout_stream<char>(nullptr);
   }
 
 
@@ -78,7 +80,7 @@ inline
 std::ostream&
 get_cerr_stream()
   {
-  return arma_cerr_stream<char>(NULL);
+  return arma_cerr_stream<char>(nullptr);
   }
 
 
@@ -135,13 +137,43 @@ static
 void
 arma_stop_logic_error(const T1& x)
   {
-  #if defined(ARMA_PRINT_ERRORS)
+  #if (defined(ARMA_PRINT_EXCEPTIONS) && defined(ARMA_PRINT_ERRORS))
     {
     get_cerr_stream() << "\nerror: " << x << std::endl;
     }
   #endif
   
   throw std::logic_error( std::string(x) );
+  }
+
+
+
+arma_cold
+arma_noinline
+static
+void
+arma_stop_logic_error(const char* x, const char* y)
+  {
+  arma_stop_logic_error( std::string(x) + std::string(y) );
+  }
+
+
+
+//! print a message to get_cerr_stream() and throw logic_error exception
+template<typename T1>
+arma_cold
+arma_noinline
+static
+void
+arma_stop_bounds_error(const T1& x)
+  {
+  #if (defined(ARMA_PRINT_EXCEPTIONS) && defined(ARMA_PRINT_ERRORS))
+    {
+    get_cerr_stream() << "\nerror: " << x << std::endl;
+    }
+  #endif
+  
+  throw std::out_of_range( std::string(x) );
   }
 
 
@@ -154,7 +186,7 @@ static
 void
 arma_stop_bad_alloc(const T1& x)
   {
-  #if defined(ARMA_PRINT_ERRORS)
+  #if (defined(ARMA_PRINT_EXCEPTIONS) && defined(ARMA_PRINT_ERRORS))
     {
     get_cerr_stream() << "\nerror: " << x << std::endl;
     }
@@ -177,7 +209,7 @@ static
 void
 arma_stop_runtime_error(const T1& x)
   {
-  #if defined(ARMA_PRINT_ERRORS)
+  #if (defined(ARMA_PRINT_EXCEPTIONS) && defined(ARMA_PRINT_ERRORS))
     {
     get_cerr_stream() << "\nerror: " << x << std::endl;
     }
@@ -313,15 +345,15 @@ arma_cold
 arma_noinline
 static
 void
-arma_warn(const T1& x)
+arma_warn(const T1& arg1)
   {
   #if defined(ARMA_PRINT_ERRORS)
     {
-    get_cerr_stream() << "\nwarning: " << x << '\n';
+    get_cerr_stream() << "\nwarning: " << arg1 << '\n';
     }
   #else
     {
-    arma_ignore(x);
+    arma_ignore(arg1);
     }
   #endif
   }
@@ -332,16 +364,16 @@ arma_cold
 arma_noinline
 static
 void
-arma_warn(const T1& x, const T2& y)
+arma_warn(const T1& arg1, const T2& arg2)
   {
   #if defined(ARMA_PRINT_ERRORS)
     {
-    get_cerr_stream() << "\nwarning: " << x << y << '\n';
+    get_cerr_stream() << "\nwarning: " << arg1 << arg2 << '\n';
     }
   #else
     {
-    arma_ignore(x);
-    arma_ignore(y);
+    arma_ignore(arg1);
+    arma_ignore(arg2);
     }
   #endif
   }
@@ -352,19 +384,90 @@ arma_cold
 arma_noinline
 static
 void
-arma_warn(const T1& x, const T2& y, const T3& z)
+arma_warn(const T1& arg1, const T2& arg2, const T3& arg3)
   {
   #if defined(ARMA_PRINT_ERRORS)
     {
-    get_cerr_stream() << "\nwarning: " << x << y << z << '\n';
+    get_cerr_stream() << "\nwarning: " << arg1 << arg2 << arg3 << '\n';
     }
   #else
     {
-    arma_ignore(x);
-    arma_ignore(y);
-    arma_ignore(z);
+    arma_ignore(arg1);
+    arma_ignore(arg2);
+    arma_ignore(arg3);
     }
   #endif
+  }
+
+
+template<typename T1, typename T2, typename T3, typename T4>
+arma_cold
+arma_noinline
+static
+void
+arma_warn(const T1& arg1, const T2& arg2, const T3& arg3, const T4& arg4)
+  {
+  #if defined(ARMA_PRINT_ERRORS)
+    {
+    get_cerr_stream() << "\nwarning: " << arg1 << arg2 << arg3 << arg4 << '\n';
+    }
+  #else
+    {
+    arma_ignore(arg1);
+    arma_ignore(arg2);
+    arma_ignore(arg3);
+    arma_ignore(arg4);
+    }
+  #endif
+  }
+
+
+
+//
+// arma_warn_level
+
+
+template<typename T1>
+inline
+void
+arma_warn_level(const uword level, const T1& arg1)
+  {
+  constexpr uword config_level = (sword(ARMA_WARN_LEVEL) > 0) ? uword(ARMA_WARN_LEVEL) : uword(0);
+  
+  if((config_level > 0) && (level <= config_level))  { arma_warn(arg1); }
+  }
+
+
+template<typename T1, typename T2>
+inline
+void
+arma_warn_level(const uword level, const T1& arg1, const T2& arg2)
+  {
+  constexpr uword config_level = (sword(ARMA_WARN_LEVEL) > 0) ? uword(ARMA_WARN_LEVEL) : uword(0);
+  
+  if((config_level > 0) && (level <= config_level))  { arma_warn(arg1,arg2); }
+  }
+
+
+template<typename T1, typename T2, typename T3>
+inline
+void
+arma_warn_level(const uword level, const T1& arg1, const T2& arg2, const T3& arg3)
+  {
+  constexpr uword config_level = (sword(ARMA_WARN_LEVEL) > 0) ? uword(ARMA_WARN_LEVEL) : uword(0);
+  
+  if((config_level > 0) && (level <= config_level))  { arma_warn(arg1,arg2,arg3); }
+  }
+
+
+template<typename T1, typename T2, typename T3, typename T4>
+inline
+void
+arma_warn_level(const uword level, const T1& arg1, const T2& arg2, const T3& arg3, const T4& arg4)
+  {
+  constexpr uword config_level = (sword(ARMA_WARN_LEVEL) > 0) ? uword(ARMA_WARN_LEVEL) : uword(0);
+  
+  if((config_level > 0) && (level <= config_level))  { arma_warn(arg1,arg2,arg3,arg4); }
   }
 
 
@@ -383,13 +486,22 @@ arma_check(const bool state, const T1& x)
   }
 
 
-template<typename T1, typename T2>
 arma_hot
 inline
 void
-arma_check(const bool state, const T1& x, const T2& y)
+arma_check(const bool state, const char* x, const char* y)
   {
-  if(state)  { arma_stop_logic_error( std::string(x) + std::string(y) ); }
+  if(state)  { arma_stop_logic_error(x,y); }
+  }
+
+
+template<typename T1>
+arma_hot
+inline
+void
+arma_check_bounds(const bool state, const T1& x)
+  {
+  if(state)  { arma_stop_bounds_error(arma_str::str_wrapper(x)); }
   }
 
 
@@ -413,7 +525,7 @@ arma_inline
 void
 arma_set_error(bool& err_state, char*& err_msg, const bool expression, const char* message)
   {
-  if(expression == true)
+  if(expression)
     {
     err_state = true;
     err_msg   = const_cast<char*>(message);
@@ -780,6 +892,28 @@ arma_assert_same_size(const subview_cube<eT1>& A, const subview_cube<eT2>& B, co
 
 
 
+template<typename eT, typename T1>
+arma_hot
+inline
+void
+arma_assert_same_size(const subview_cube<eT>& A, const ProxyCube<T1>& B, const char* x)
+  {
+  const uword A_n_rows   = A.n_rows;
+  const uword A_n_cols   = A.n_cols;
+  const uword A_n_slices = A.n_slices;
+  
+  const uword B_n_rows   = B.get_n_rows();
+  const uword B_n_cols   = B.get_n_cols();
+  const uword B_n_slices = B.get_n_slices();
+  
+  if( (A_n_rows != B_n_rows) || (A_n_cols != B_n_cols) || (A_n_slices != B_n_slices) )
+    {
+    arma_stop_logic_error( arma_incompat_size_string(A_n_rows, A_n_cols, A_n_slices, B_n_rows, B_n_cols, B_n_slices, x) );
+    }
+  }
+
+
+
 //! stop if given cube proxies have different sizes
 template<typename eT1, typename eT2>
 arma_hot
@@ -804,7 +938,7 @@ arma_assert_same_size(const ProxyCube<eT1>& A, const ProxyCube<eT2>& B, const ch
 
 
 //
-// functions for checking whether a cube or subcube can be interpreted as a matrix (i.e. single slice)
+// functions for checking whether a cube or subcube can be interpreted as a matrix (ie. single slice)
 
 
 
@@ -934,7 +1068,7 @@ arma_assert_cube_as_mat(const Mat<eT>& M, const T1& Q, const char* x, const bool
     }
   
   
-  if(check_compat_size == true)
+  if(check_compat_size)
     {
     const uword M_n_rows = M.n_rows;
     const uword M_n_cols = M.n_cols;
@@ -1236,11 +1370,11 @@ arma_assert_atlas_size(const T1& A, const T2& B)
 
 #if defined(ARMA_NO_DEBUG)
   
-  #undef ARMA_EXTRA_DEBUG
-  
   #define arma_debug_print                   true ? (void)0 : arma_print
   #define arma_debug_warn                    true ? (void)0 : arma_warn
+  #define arma_debug_warn_level              true ? (void)0 : arma_warn_level
   #define arma_debug_check                   true ? (void)0 : arma_check
+  #define arma_debug_check_bounds            true ? (void)0 : arma_check_bounds
   #define arma_debug_set_error               true ? (void)0 : arma_set_error
   #define arma_debug_assert_same_size        true ? (void)0 : arma_assert_same_size
   #define arma_debug_assert_mul_size         true ? (void)0 : arma_assert_mul_size
@@ -1253,7 +1387,9 @@ arma_assert_atlas_size(const T1& A, const T2& B)
   
   #define arma_debug_print                 arma_print
   #define arma_debug_warn                  arma_warn
+  #define arma_debug_warn_level            arma_warn_level
   #define arma_debug_check                 arma_check
+  #define arma_debug_check_bounds          arma_check_bounds
   #define arma_debug_set_error             arma_set_error
   #define arma_debug_assert_same_size      arma_assert_same_size
   #define arma_debug_assert_mul_size       arma_assert_mul_size
@@ -1268,19 +1404,18 @@ arma_assert_atlas_size(const T1& A, const T2& B)
 
 #if defined(ARMA_EXTRA_DEBUG)
   
+  #undef  ARMA_WARN_LEVEL
+  #define ARMA_WARN_LEVEL 3
+  
   #define arma_extra_debug_sigprint       arma_sigprint(ARMA_FNSIG); arma_bktprint
   #define arma_extra_debug_sigprint_this  arma_sigprint(ARMA_FNSIG); arma_thisprint
   #define arma_extra_debug_print          arma_print
-  #define arma_extra_debug_warn           arma_warn
-  #define arma_extra_debug_check          arma_check
 
 #else
   
   #define arma_extra_debug_sigprint        true ? (void)0 : arma_bktprint
   #define arma_extra_debug_sigprint_this   true ? (void)0 : arma_thisprint
   #define arma_extra_debug_print           true ? (void)0 : arma_print
-  #define arma_extra_debug_warn            true ? (void)0 : arma_warn
-  #define arma_extra_debug_check           true ? (void)0 : arma_check
  
 #endif
 
@@ -1317,7 +1452,9 @@ arma_assert_atlas_size(const T1& A, const T2& B)
             << " (" << nickname << ")\n";
         
         out << "@ arma_config::wrapper      = " << arma_config::wrapper      << '\n';
-        out << "@ arma_config::cxx11        = " << arma_config::cxx11        << '\n';
+        out << "@ arma_config::cxx14        = " << arma_config::cxx14        << '\n';
+        out << "@ arma_config::cxx17        = " << arma_config::cxx17        << '\n';
+        out << "@ arma_config::std_mutex    = " << arma_config::std_mutex    << '\n';
         out << "@ arma_config::posix        = " << arma_config::posix        << '\n';
         out << "@ arma_config::openmp       = " << arma_config::openmp       << '\n';
         out << "@ arma_config::lapack       = " << arma_config::lapack       << '\n';
