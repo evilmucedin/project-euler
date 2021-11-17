@@ -1,5 +1,7 @@
 #include "lib/header.h"
 
+#include <random>
+
 int main() {
     static constexpr size_t kM = 10;
     double ops = 0.0;
