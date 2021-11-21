@@ -24,8 +24,11 @@ done
 
 shift $((${OPTIND} - 1))
 
-OUT=/tmp/build$1.log
-${buck_bin} build @mode/opt euler$1/... 2>&1 | tee ${OUT}
+DIR=$(eulerDir $1)
+FNAME=$(eulerFilename $1)
+
+OUT=/tmp/build${FNAME}.log
+${buck_bin} build @mode/opt ${DIR}/... 2>&1 | tee ${OUT}
 if [[ $? != 0 ]]; then
     vim ${OUT}
 fi
