@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-DIR=euler$1
+. ./cCommon.sh
+
+DIR=$(eulerDir $1)
 if [ ! -d ${DIR} ]; then
-    mkdir ${DIR}
+    mkdir -p ${DIR}
 
     cat  >${DIR}/$1.cpp << EOF
 #include "lib/header.h"

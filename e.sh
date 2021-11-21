@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-dir=euler$1
+. ./cCommon.sh
+
+dir=$(eulerDir $1)
 if [ ! -e $dir ]; then
     echo "$dir not found"
     exit 1
