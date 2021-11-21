@@ -2,20 +2,23 @@
 
 . ./cCommon.sh
 
-dir=$(eulerDir $1)
-if [ ! -e $dir ]; then
-    echo "$dir not found"
+DR=$(eulerDir $1)
+FNAME="$(eulerFilename $1).cpp"
+echo "use ${DR} directory and ${FNAME} filename"
+
+if [ ! -d ${DR} ]; then
+    echo "${DR} not found"
     exit 1
 fi
 
 pushd .
-cd $dir
+cd ${DR}
 
-filename=$1.cpp
-if [ -e $filename ]; then
-    vim -p $filename BUCK ${@:2}
+echo "Current directory: `pwd`"
+if [ -f ${FNAME} ]; then
+    vim -p ${FNAME} BUCK ${@:2}
 else
-    echo "$filename not found"
+    echo "${FMAME} not found"
     exit 1
 fi
 

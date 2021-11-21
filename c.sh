@@ -4,7 +4,8 @@
 
 DIR=$(eulerDir $1)
 FILENAME=$(eulerFilename $1)
-echo "use ${DIR} directory"
+echo "use ${DIR} directory and ${FILENAME} filename"
+
 if [ ! -d ${DIR} ]; then
     mkdir -p ${DIR}
 

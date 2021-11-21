@@ -20,7 +20,7 @@ eulerDir() {
 eulerFilename() {
     prj=$1
     if [[ "${prj}" == *"/"* ]]; then
-        echo "${prj}"
+        echo "${prj##*/}"
     else
         echo "${prj}"
     fi
