@@ -16,3 +16,12 @@ eulerDir() {
         echo "euler${prj}"
     fi
 }
+
+eulerFilename() {
+    prj=$1
+    if [[ "${prj}" == *"/"* ]]; then
+        echo "${prj}"
+    else
+        echo "${prj}"
+    fi
+}
