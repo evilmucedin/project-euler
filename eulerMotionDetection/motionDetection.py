@@ -4,7 +4,7 @@ import pandas
 import numpy as np
 import matplotlib.pyplot as plt
 
-for a in ["sitting", "running"]:
+for a in ["standing", "sitting", "running"]:
 	data = pandas.read_csv("%s.txt" % a, header=None)
 	print(data.head())
 
