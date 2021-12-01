@@ -1,0 +1,9 @@
+cxx_binary(
+  name="pistacheTest",
+  deps=[
+    "//pistache/client:client",
+  ],
+  srcs=[
+    "pistacheTest.cpp",
+  ],
+)
