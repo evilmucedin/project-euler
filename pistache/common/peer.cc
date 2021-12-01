@@ -27,7 +27,7 @@ namespace Pistache::Tcp
     {
         struct ConcretePeer : Peer
         {
-            ConcretePeer() = default;
+            // ConcretePeer() = default;
             [[maybe_unused]] ConcretePeer(Fd fd, const Address& addr, void* ssl)
                 : Peer(fd, addr, ssl)
             { }
