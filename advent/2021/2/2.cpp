@@ -1,7 +1,6 @@
+#include "gflags/gflags.h"
 #include "lib/header.h"
 #include "lib/init.h"
-
-#include "gflags/gflags.h"
 
 DEFINE_int32(test, 1, "test number");
 
@@ -29,7 +28,7 @@ void first() {
 
     cout << x << endl;
     cout << y << endl;
-    cout << x*y << endl;
+    cout << x * y << endl;
 }
 
 void second() {
@@ -45,7 +44,7 @@ void second() {
     while (!cmd.empty()) {
         if (cmd == "forward") {
             x += d;
-            y += d*aim;
+            y += d * aim;
         } else if (cmd == "down") {
             aim += d;
         } else if (cmd == "up") {
@@ -58,7 +57,7 @@ void second() {
 
     cout << x << endl;
     cout << y << endl;
-    cout << x*y << endl;
+    cout << x * y << endl;
 }
 
 int main(int argc, char* argv[]) {
