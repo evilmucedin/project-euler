@@ -1,0 +1,13 @@
+
+cxx_binary(
+  name="3",
+  srcs=[
+    "3.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//gflags:gflags",
+  ],
+)
+

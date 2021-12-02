@@ -2,56 +2,67 @@
 
 import sys
 import os
+import subprocess
 
 import argparse
 
+YEAR = 2021
+
 parser = argparse.ArgumentParser(
-    description="Prepare directory structure for Code Jam")
-parser.add_argument("--dir", type=str,
-                    help="directory to create", required=True)
+    description="Prepare directory structure for Advent of Code")
+parser.add_argument("--task", type=int,
+                    help="task#", required=True)
 
 args = parser.parse_args()
-print(args.dir)
+print(f"task = {args.task}")
 
-os.makedirs(args.dir)
-for problem in ["a", "b", "c", "d"]:
-    problemDir = "%s/%s" % (args.dir, problem)
-    os.makedirs(problemDir)
-    with open("%s/makefile" % problemDir, "w") as fOut:
-        print(f"""
-{problem}: {problem}.cpp
-	g++ -o {problem} -O3 -march=native {problem}.cpp
+dr = "%d/%d" % (YEAR, args.task)
 
-test: {problem}
-	./{problem} <input.txt
+os.makedirs(dr)
+with open("%s/BUCK" % dr, "w") as fOut:
+    print(f"""
+cxx_binary(
+  name="{args.task}",
+  srcs=[
+    "{args.task}.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//gflags:gflags",
+  ],
+)
+""", file=fOut)
 
-submit:
-	cat {problem}.cpp | xclip
+with open("%s/%d.cpp" % (dr, args.task), "w") as fOut:
+    print("""#include "lib/header.h"
+#include "lib/init.h"
 
-{problem}.dbg: {problem}.cpp
-	g++ -o {problem}.dbg -O0 -g {problem}.cpp
-               """, file=fOut)
-    with open("%s/%s.cpp" % (problemDir, problem), "w") as fOut:
-        print("""#include <cstdio>
-#include <cmath>
+#include "gflags/gflags.h"
 
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <utility>
+DEFINE_int32(test, 1, "test number");
 
-using namespace std;
+void first() {
+    cout << endl;
+}
 
-int main() {
-    int nT;
-    scanf("%d", &nT);
+void second() {
+    cout << endl;
+}
 
-    for (int iTest = 0; iTest < nT; ++iTest) {
-        printf("Case #%d: ", iTest + 1);
-        printf("\\n");
+int main(int argc, char* argv[]) {
+    standardInit(argc, argv);
+
+    if (FLAGS_test == 1) {
+        first();
+    } else if (FLAGS_test == 2) {
+        second();
     }
-
     return 0;
 }
-               """, file=fOut)
+    """, file=fOut)
+
+with open("%s/TASK" % dr, "w") as fOut:
+    print(f"""{args.task}""", file=fOut)
+
+subprocess.check_output(["git", "add", "%s/%d.cpp" % (dr, args.task), "%s/TASK" % dr, "%s/BUCK" % dr])

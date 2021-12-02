@@ -6,15 +6,16 @@
 DEFINE_int32(test, 1, "test number");
 
 void first() {
-    cout << 1 << endl;
+    cout << endl;
 }
 
 void second() {
-    cout << 2 << endl;
+    cout << endl;
 }
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
+
     if (FLAGS_test == 1) {
         first();
     } else if (FLAGS_test == 2) {
@@ -22,3 +23,4 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 }
+    
