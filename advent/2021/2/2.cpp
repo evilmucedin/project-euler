@@ -1,6 +1,12 @@
 #include "lib/header.h"
+#include "lib/init.h"
+
+#include "gflags/gflags.h"
+
+DEFINE_int32(test, 1, "test number");
 
 void first() {
+    // cerr << "first" << endl;
     string cmd;
     int d;
 
@@ -27,6 +33,7 @@ void first() {
 }
 
 void second() {
+    // cerr << "second" << endl;
     string cmd;
     int d;
 
@@ -54,7 +61,21 @@ void second() {
     cout << x*y << endl;
 }
 
-int main() {
-    second();
+int main(int argc, char* argv[]) {
+    /*
+    cerr << argc << endl;
+    for (int i = 1; i < argc; ++i) {
+        cerr << i << " " << argv[i] << endl;
+    }
+    */
+
+    standardInit(argc, argv);
+
+    if (FLAGS_test == 1) {
+        first();
+    } else if (FLAGS_test == 2) {
+        second();
+    }
+
     return 0;
 }
