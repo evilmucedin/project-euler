@@ -1,16 +1,117 @@
+#include "gflags/gflags.h"
 #include "lib/header.h"
 #include "lib/init.h"
 
-#include "gflags/gflags.h"
-
 DEFINE_int32(test, 1, "test number");
 
+StringVector read() {
+    StringVector v;
+    string s;
+    cin >> s;
+    while (!s.empty()) {
+        v.emplace_back(s);
+        s.clear();
+        cin >> s;
+    }
+    return v;
+}
+
+u64 bin2int(const IntVector& v) {
+    u64 result = 0;
+    for (auto i : v) {
+        result = 2 * result + i;
+    }
+    return result;
+}
+
+IntVector countFreq(const StringVector& v) {
+    const auto m = v[0].size();
+    IntVector count(m);
+    for (const auto& s : v) {
+        for (size_t i = 0; i < m; ++i) {
+            count[i] += s[i] == '1';
+        }
+    }
+    return count;
+}
+
 void first() {
-    cout << endl;
+    const auto v = read();
+
+    const auto n = v.size();
+    const auto m = v[0].size();
+    const auto count = countFreq(v);
+    // cerr << count << " " << m << endl;
+
+    IntVector gamma(m);
+    IntVector eps(m);
+    for (size_t i = 0; i < m; ++i) {
+        if (2 * count[i] < n) {
+            gamma[i] = 0;
+            eps[i] = 1;
+        } else {
+            gamma[i] = 1;
+            eps[i] = 0;
+        }
+    }
+
+    // cerr << gamma << endl;
+    // cerr << eps << endl;
+
+    cout << bin2int(gamma) * bin2int(eps) << endl;
+}
+
+IntVector filter(int index, StringVector v) {
+    const auto m = v[0].size();
+    for (size_t i = 0; (i < m) && (v.size() > 1); ++i) {
+        // cerr << v << endl;
+        const auto count = countFreq(v);
+
+        char target = 0;
+        if (index == 0) {
+            if (2 * count[i] == v.size()) {
+                target = '1';
+            } else {
+                if (2 * count[i] > v.size()) {
+                    target = '1';
+                } else {
+                    target = '0';
+                }
+            }
+        } else {
+            if (2 * count[i] == v.size()) {
+                target = '0';
+            } else {
+                if (2 * count[i] > v.size()) {
+                    target = '0';
+                } else {
+                    target = '1';
+                }
+            }
+        }
+
+        StringVector vv;
+        for (const auto& s : v) {
+            if (s[i] == target) {
+                vv.emplace_back(s);
+            }
+        }
+        v.swap(vv);
+    }
+    if (v.size() == 1) {
+        IntVector iv;
+        for (auto ch : v[0]) {
+            iv.emplace_back(ch - '0');
+        }
+        // cerr << iv << endl;
+        return iv;
+    }
+    throw std::exception();
 }
 
 void second() {
-    cout << endl;
+    const auto v = read();
+    cout << bin2int(filter(0, v)) * bin2int(filter(1, v)) << endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -23,4 +124,3 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 }
-
