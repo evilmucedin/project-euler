@@ -11,8 +11,11 @@ if [ ! -d ${DIR} ]; then
 
     cat  >${DIR}/${FILENAME}.cpp << EOF
 #include "lib/header.h"
+#include "lib/init.h"
+#include "glog/logging.h"
 
-int main() {
+int main(int argc, char* argv[]) {
+    standardInit(argc, argv);
     return 0;
 }
 EOF
@@ -25,6 +28,8 @@ cxx_binary(
   ],
   deps=[
     "//lib:header",
+    "//lib:init",
+    "//glog:glog",
   ],
 )
 EOF
