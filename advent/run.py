@@ -7,7 +7,7 @@ import requests
 def main():
     YEAR = 2021
 
-    subprocess.check_output(["buck", "build", "..."])
+    subprocess.check_output(["buck", "build", "@mode/opt", "..."])
 
     task = int(open("TASK").read().strip())
     bn = f"../../../buck-out/gen/advent/{YEAR}/{task}/{task}"
