@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+#define GLUT_DISABLE_ATEXIT_HACK
+
 #ifndef __APPLE__
 #include "GL/freeglut.h"
 #include "GL/gl.h"
