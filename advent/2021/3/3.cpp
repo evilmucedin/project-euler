@@ -1,20 +1,9 @@
+#include "advent/lib/aoc.h"
 #include "gflags/gflags.h"
 #include "lib/header.h"
 #include "lib/init.h"
 
 DEFINE_int32(test, 1, "test number");
-
-StringVector read() {
-    StringVector v;
-    string s;
-    cin >> s;
-    while (!s.empty()) {
-        v.emplace_back(s);
-        s.clear();
-        cin >> s;
-    }
-    return v;
-}
 
 u64 bin2int(const IntVector& v) {
     u64 result = 0;
@@ -36,7 +25,7 @@ IntVector countFreq(const StringVector& v) {
 }
 
 void first() {
-    const auto v = read();
+    const auto v = readInputLines();
 
     const auto n = v.size();
     const auto m = v[0].size();
@@ -110,7 +99,7 @@ IntVector filter(int index, StringVector v) {
 }
 
 void second() {
-    const auto v = read();
+    const auto v = readInputLines();
     cout << bin2int(filter(0, v)) * bin2int(filter(1, v)) << endl;
 }
 
