@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -16,9 +18,6 @@
 
 //! \addtogroup arma_rng_cxx11
 //! @{
-
-
-#if defined(ARMA_USE_CXX11)
 
 
 class arma_rng_cxx11
@@ -206,9 +205,6 @@ arma_rng_cxx11::randg_fill(eT* mem, const uword N, const double a, const double 
     }
   #endif
   }
-
-
-#endif
 
 
 //! @}

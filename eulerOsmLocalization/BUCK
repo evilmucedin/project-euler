@@ -1,0 +1,12 @@
+cxx_binary(
+  name="ParseLangLinks",
+  srcs=[
+    "ParseLangLinks.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:string",
+    "//lib:file",
+    "//glog:glog",
+  ],
+)

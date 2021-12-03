@@ -79,6 +79,8 @@ cxx_library(
     "//lib:header",
     "//lib:string",
     "//lib/io:csv",
+    "//lib:file",
+    "//lib:exception",
   ],
   visibility=[
     'PUBLIC',

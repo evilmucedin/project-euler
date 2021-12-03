@@ -1,4 +1,5 @@
 #include <cmath>
+
 #include <iostream>
 #include <vector>
 
@@ -8,6 +9,7 @@ int main() {
     static constexpr int N = 100;
 
     vector<vector<uint64_t>> pointsInTriangle(N + 1, vector<uint64_t>(N + 1, 0));
+
     for (uint64_t x = 1; x <= N; ++x) {
         for (uint64_t y = 1; y <= N; ++y) {
             uint64_t& count = pointsInTriangle[x][y];

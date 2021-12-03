@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -29,9 +31,9 @@ class gemv_emul_tinysq
   template<const uword row, const uword col>
   struct pos
     {
-    static const uword n2 = (do_trans_A == false) ? (row + col*2) : (col + row*2);
-    static const uword n3 = (do_trans_A == false) ? (row + col*3) : (col + row*3);
-    static const uword n4 = (do_trans_A == false) ? (row + col*4) : (col + row*4);
+    static constexpr uword n2 = (do_trans_A == false) ? (row + col*2) : (col + row*2);
+    static constexpr uword n3 = (do_trans_A == false) ? (row + col*3) : (col + row*3);
+    static constexpr uword n4 = (do_trans_A == false) ? (row + col*4) : (col + row*4);
     };
   
   
@@ -208,7 +210,7 @@ class gemv_emul_helper
 
 //! \brief
 //! Partial emulation of ATLAS/BLAS gemv().
-//! 'y' is assumed to have been set to the correct size (i.e. taking into account the transpose)
+//! 'y' is assumed to have been set to the correct size (ie. taking into account the transpose)
 
 template<const bool do_trans_A=false, const bool use_alpha=false, const bool use_beta=false>
 class gemv_emul
@@ -292,7 +294,7 @@ class gemv_emul
 
 //! \brief
 //! Wrapper for ATLAS/BLAS gemv function, using template arguments to control the arguments passed to gemv.
-//! 'y' is assumed to have been set to the correct size (i.e. taking into account the transpose)
+//! 'y' is assumed to have been set to the correct size (ie. taking into account the transpose)
 
 template<const bool do_trans_A=false, const bool use_alpha=false, const bool use_beta=false>
 class gemv

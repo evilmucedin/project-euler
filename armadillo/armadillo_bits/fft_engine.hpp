@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 AND BSD-3-Clause
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -18,7 +20,6 @@
 // licensed under the following conditions.
 // 
 // Copyright (c) 2003-2010 Mark Borgerding
-// 
 // All rights reserved.
 // 
 // Redistribution and use in source and binary forms, with or without modification,
@@ -59,7 +60,7 @@ template<typename cx_type, uword fixed_N, bool> struct fft_store {};
 template<typename cx_type, uword fixed_N>
 struct fft_store<cx_type, fixed_N, true>
   {
-  static const uword N = fixed_N;
+  static constexpr uword N = fixed_N;
   
   arma_aligned cx_type coeffs_array[fixed_N];
   

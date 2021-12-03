@@ -1,6 +1,7 @@
 #include "lib/header.h"
 
 #include "lib/string.h"
+#include "lib/exception.h"
 
 class DataFrame {
    public:
@@ -9,6 +10,7 @@ class DataFrame {
 
     using PDataFrame = shared_ptr<DataFrame>;
     static PDataFrame loadFromCsv(const string& filename);
+    void saveToCsv(const string& filename) const;
     PDataFrame shallowCopy();
 
     size_t numLines() const;
@@ -16,6 +18,7 @@ class DataFrame {
     StringVector line(size_t line) const;
     void pushBackLine(const StringVector& v) const;
     void emplaceBackLine(StringVector&& v) const;
+    void resizeLines(size_t lines);
 
     struct Column {
         Column(string name);
@@ -27,6 +30,19 @@ class DataFrame {
                 result[i] = stringCast<T>(data_[i]);
             }
             return result;
+        }
+
+        template <typename T>
+        T as(size_t line) const {
+            return stringCast<T>(data_[line]);
+        }
+
+        template <typename T>
+        void set(size_t line, const T& value) {
+            if (line > data_.size()) {
+                THROW("Bad line index " << line);
+            }
+            data_[line] = to_string(value);
         }
 
         string name_;

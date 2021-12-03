@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -65,11 +67,13 @@ class op_vectorise_cube_col
   {
   public:
   
-  template<typename T1> inline static void apply(Mat<typename T1::elem_type>& out, const BaseCube<typename T1::elem_type, T1>& in);
+  template<typename T1> inline static void apply(Mat<typename T1::elem_type>& out, const CubeToMatOp<T1, op_vectorise_cube_col>& in);
   
   template<typename eT> inline static void apply_subview(Mat<eT>& out, const subview_cube<eT>& sv);
   
-  template<typename T1> inline static void apply_proxy(Mat<typename T1::elem_type>& out, const ProxyCube<T1>& P);
+  template<typename T1> inline static void apply_unwrap(Mat<typename T1::elem_type>& out, const T1& expr);
+  
+  template<typename T1> inline static void apply_proxy(Mat<typename T1::elem_type>& out, const T1& expr);
   };
 
 

@@ -28,6 +28,7 @@ VectorPoint getRandomVectorPoint(const Vector& plane) {
 }
 
 int main() {
+    LOG(INFO) << OUT(kDim);
     auto b = genRandomVector(kDim);
 
     Matrix xtx(kDim);
@@ -35,9 +36,9 @@ int main() {
 
     {
         Timer tGen("Generate");
-        constexpr u32 kVectorPoints = 4000 * kDim;
+        constexpr u32 kVectorPoints = 400 * kDim;
         for (u32 iVectorPoint = 0; iVectorPoint < kVectorPoints; ++iVectorPoint) {
-            auto p = getRandomVectorPoint(b);
+            const auto p = getRandomVectorPoint(b);
             for (size_t i = 0; i < p.dimension(); ++i) {
                 for (size_t j = 0; j < p.dimension(); ++j) {
                     xtx.data_[i][j] += p.a_[i] * p.a_[j];

@@ -1,0 +1,11 @@
+cxx_binary(
+  name="template",
+  srcs=[
+    "template.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//gflags:gflags",
+  ],
+)

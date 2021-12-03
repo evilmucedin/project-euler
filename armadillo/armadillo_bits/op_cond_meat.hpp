@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -26,15 +28,18 @@ op_cond::cond(const Base<typename T1::elem_type, T1>& X)
   {
   arma_extra_debug_sigprint();
   
-  typedef typename T1::pod_type T;
+  typedef typename T1::elem_type eT;
+  typedef typename T1::pod_type   T;
+  
+  Mat<eT> A(X.get_ref());
   
   Col<T> S;
   
-  const bool status = auxlib::svd_dc(S, X);
+  const bool status = auxlib::svd_dc(S, A);
   
   if(status == false)
     {
-    arma_debug_warn("cond(): svd failed");
+    arma_debug_warn_level(3, "cond(): svd failed");
     
     return T(0);
     }
@@ -54,13 +59,40 @@ op_cond::rcond(const Base<typename T1::elem_type, T1>& X)
   typedef typename T1::elem_type eT;
   typedef typename T1::pod_type   T;
   
+  if(strip_trimat<T1>::do_trimat)
+    {
+    const strip_trimat<T1> S(X.get_ref());
+    
+    const quasi_unwrap<typename strip_trimat<T1>::stored_type> U(S.M);
+    
+    arma_debug_check( (U.M.is_square() == false), "rcond(): matrix must be square sized" );
+    
+    const uword layout = (S.do_triu) ? uword(0) : uword(1);
+    
+    return auxlib::rcond_trimat(U.M, layout);
+    }
+  
   Mat<eT> A = X.get_ref();
   
   arma_debug_check( (A.is_square() == false), "rcond(): matrix must be square sized" );
   
   if(A.is_empty()) { return Datum<T>::inf; }
   
-  const bool try_sympd = (auxlib::crippled_lapack(A) == false) ? sympd_helper::guess_sympd(A) : false;
+  const bool is_triu =                     trimat_helper::is_triu(A);
+  const bool is_tril = (is_triu) ? false : trimat_helper::is_tril(A);
+  
+  if(is_triu || is_tril)
+    {
+    const uword layout = (is_triu) ? uword(0) : uword(1);
+    
+    return auxlib::rcond_trimat(A, layout);
+    }
+  
+  #if defined(ARMA_OPTIMISE_SYMPD)
+    const bool try_sympd = auxlib::crippled_lapack(A) ? false : sympd_helper::guess_sympd_anysize(A);
+  #else
+    const bool try_sympd = false;
+  #endif
   
   if(try_sympd)
     {

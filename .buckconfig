@@ -4,10 +4,29 @@
 #cc="c:\\Program Files\\LLVM\\bin\\clang.exe"
 #cxx="c:\\Program Files\\LLVM\\bin\\clang++.exe"
 #cc="/usr/bin/gcc.exe"
-#cxx="/usr/bin/g++.exe"
+# #cxx="/usr/bin/g++.exe"
+# cc=/usr/bin/clang
+# cxx=/usr/bin/clang
+# ld=/usr/bin/clang
+
+cc=/usr/bin/clang
+cxx=/usr/bin/clang++
+cxxpp=/usr/bin/clang++
+ld=/usr/bin/clang++
+
+# cc=/usr/local/Cellar/llvm@11/11.1.0_2/bin/clang
+# cxx=/usr/local/Cellar/llvm@11/11.1.0_2/bin/clang++
+# cxxpp=/usr/local/Cellar/llvm@11/11.1.0_2/bin/clang++
+# ld=/usr/local/Cellar/llvm@11/11.1.0_2/bin/ld64.lld
+# ld=/usr/bin/ld.lld
+
 cflags=-march=native
 cppflags=-march=native
 cxxflags=-std=c++17 -march=native
 cxxppflags=-std=c++17 -march=native
 ldflags=-march=native -pthread
 gtest_dep=//gtest:gtest
+
+[tools]
+python=/usr/bin/python3
+interpreter=/usr/bin/python3

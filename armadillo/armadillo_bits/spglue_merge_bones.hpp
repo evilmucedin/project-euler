@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -19,17 +21,21 @@
 
 
 
-//! used only by SpSubview
 class spglue_merge
-  : public traits_glue_or
   {
   public:
   
   template<typename eT>
-  arma_hot inline static void apply(SpMat<eT>& out, const SpMat<eT>& A, const SpMat<eT>& B);
+  arma_hot inline static void subview_merge(SpSubview<eT>& sv, const SpMat<eT>& B);
   
   template<typename eT>
-  arma_hot inline static void apply_noalias(SpMat<eT>& out, const SpMat<eT>& A, const SpMat<eT>& B);
+  arma_hot inline static void subview_merge(SpSubview<eT>& sv, const   Mat<eT>& B);
+  
+  template<typename eT>
+  arma_hot inline static void symmat_merge(SpMat<eT>& out, const SpMat<eT>& A, const SpMat<eT>& B);
+  
+  template<typename eT>
+  arma_hot inline static void diagview_merge(SpMat<eT>& out, const SpMat<eT>& A, const SpMat<eT>& B);
   };
 
 

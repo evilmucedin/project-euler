@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -43,20 +45,20 @@ class op_median
   {
   public:
   
-  template<typename T1>
-  inline static void apply(Mat<typename T1::elem_type>& out, const Op<T1,op_median>& in);
+  template<typename eT, typename T1>
+  inline static void apply(Mat<eT>& out, const Op<T1,op_median>& in, const typename arma_not_cx<eT>::result* junk = nullptr);
   
-  template<typename T, typename T1>
-  inline static void apply(Mat< std::complex<T> >& out, const Op<T1,op_median>& in);
+  template<typename eT, typename T1>
+  inline static void apply(Mat<eT>& out, const Op<T1,op_median>& in, const typename arma_cx_only<eT>::result* junk = nullptr);
   
   //
   //
   
   template<typename T1>
-  inline static typename T1::elem_type median_vec(const T1& X, const typename arma_not_cx<typename T1::elem_type>::result* junk = 0);
+  inline static typename T1::elem_type median_vec(const T1& X, const typename arma_not_cx<typename T1::elem_type>::result* junk = nullptr);
   
   template<typename T1>
-  inline static typename T1::elem_type median_vec(const T1& X, const typename arma_cx_only<typename T1::elem_type>::result* junk = 0);
+  inline static typename T1::elem_type median_vec(const T1& X, const typename arma_cx_only<typename T1::elem_type>::result* junk = nullptr);
   
   //
   //

@@ -46,4 +46,10 @@ void shuffle(T& vct) {
     random_shuffle(vct.begin(), vct.end());
 }
 
+template <typename T>
+T shuffled(T vct) {
+    random_shuffle(vct.begin(), vct.end());
+    return vct;
+}
+
 int randInt();

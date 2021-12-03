@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
-DIR=euler$1
-if [ ! -d ${DIR} ]; then
-    mkdir ${DIR}
+. ./cCommon.sh
 
-    cat  >${DIR}/$1.cpp << EOF
+DIR=$(eulerDir $1)
+FILENAME=$(eulerFilename $1)
+echo "use ${DIR} directory and ${FILENAME} filename"
+
+if [ ! -d ${DIR} ]; then
+    mkdir -p ${DIR}
+
+    cat  >${DIR}/${FILENAME}.cpp << EOF
 #include "lib/header.h"
 
 int main() {
@@ -14,9 +19,9 @@ EOF
 
     cat  >${DIR}/BUCK << EOF
 cxx_binary(
-  name="$1",
+  name="${FILENAME}",
   srcs=[
-    "$1.cpp"
+    "${FILENAME}.cpp"
   ],
   deps=[
     "//lib:header",

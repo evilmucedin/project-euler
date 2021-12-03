@@ -44,6 +44,7 @@ cxx_library(
   deps=[
     "//lib:header",
     "//lib:exception",
+    "//lib:string",
     "//lib/io:fstream",
   ],
   visibility=[
@@ -92,6 +93,19 @@ cxx_library(
   ],
   srcs=[
     "varlen.cpp",
+  ],
+  deps=[
+    "//lib/io:file",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="structFile",
+  exported_headers=[
+    "structFile.h",
   ],
   deps=[
     "//lib/io:file",

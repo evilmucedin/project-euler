@@ -1,0 +1,17 @@
+cxx_binary(
+  name="ETFModeling",
+  srcs=[
+    "ETFModeling.cpp"
+  ],
+  deps=[
+    "//gflags:gflags",
+    "//glog:glog",
+    "//lib:header",
+    "//lib:init",
+    "//lib:matrix",
+    "//lib:random",
+    "//lib:stat",
+    "//lib:timer",
+    "//lib/ml:dataframe",
+  ],
+)

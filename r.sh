@@ -22,13 +22,15 @@ done
 
 shift $((${OPTIND} - 1))
 
-${buck_bin} build @mode/opt euler$1/...
+DIR=$(eulerDir $1)
+FNAME=$(eulerFilename $1)
+${buck_bin} build @mode/opt ${DIR}/...
 res=$?
 args="${@:2}"
 if [ 0 -eq ${res} ]; then
     if [ ${measure_time} -eq 1 ]; then
-       time buck-out/gen/euler$1/$1 $args
+       time buck-out/gen/${DIR}/${FNAME} $args
     else
-       buck-out/gen/euler$1/$1 $args
+       buck-out/gen/${DIR}/${FNAME} $args
     fi
 fi

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// 
 // Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
 // Copyright 2008-2016 National ICT Australia (NICTA)
 // 
@@ -267,7 +269,7 @@ op_fft_cx::apply_noalias(Mat<typename T1::elem_type>& out, const Proxy<T1>& P, c
     
   
   // correct the scaling for the inverse transform
-  if(inverse == true)
+  if(inverse)
     {
     typedef typename get_pod_type<eT>::result T;
     
@@ -291,7 +293,7 @@ op_fft_cx::copy_vec(typename Proxy<T1>::elem_type* dest, const Proxy<T1>& P, con
   {
   arma_extra_debug_sigprint();
   
-  if(is_Mat< typename Proxy<T1>::stored_type >::value == true)
+  if(is_Mat< typename Proxy<T1>::stored_type >::value)
     {
     op_fft_cx::copy_vec_unwrap(dest, P, N);
     }

@@ -4,7 +4,10 @@
 
 #include <sstream>
 
+bool stringToBool(const string& s);
+
 StringVector split(const string& s, char delim = '\t');
+StringVector splitQuoted(const string& s, char delim = '\t', char quote = '\'');
 
 template <typename T>
 StringVector splitByFunctor(const string& s, T isDelimiter) {
@@ -51,6 +54,7 @@ U stringCast(const V& x) {
 }
 
 string rep(const string& s, size_t n);
+string unquote(const string& s, char quote = '\'');
 
 template <typename... Args>
 string stringSprintf(const string& format, Args... args) {
@@ -62,3 +66,18 @@ string stringSprintf(const string& format, Args... args) {
     snprintf(buf.get(), size, format.c_str(), args...);
     return std::string(buf.get(), buf.get() + size - 1);
 }
+
+string bytesToStr(size_t bytes);
+
+using WChar = wint_t;
+using WString = vector<WChar>;
+using WStringVector = vector<WString>;
+
+void fPutWString(FILE* fOut, const WString& ws);
+WStringVector split(const WString& s, WChar delim = '\t');
+WString unquote(const WString& s, WChar = '\'');
+u64 wStringToU64(const WString& s);
+WString stringToWString(const string& s);
+string wstringToString(const WString& ws);
+
+WString& operator+=(WString& s, WChar wch);
