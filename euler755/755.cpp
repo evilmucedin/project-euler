@@ -4,6 +4,7 @@
 
 static constexpr u64 N = 65;
 static constexpr u64 M = 10000000000000;
+// static constexpr u64 M = 10000;
 
 U64Vector genFib(size_t n) {
     U64Vector result(n);
@@ -50,9 +51,36 @@ u64 genSum(const U64Vector& fib, u64 now, u64 index) {
     return result;
 }
 
+u64 genSum2(const U64Vector& fib, const U64Vector& sums, size_t index, i64 remain) {
+    if (remain < 0) {
+        return 0;
+    }
+    if (index >= fib.size()) {
+        return 1;
+    }
+    if (sums[index] <= remain) {
+        return 1ULL << (sums.size() - index);
+    }
+    u64 result = 0;
+    result += genSum2(fib, sums, index + 1, remain);
+    result += genSum2(fib, sums, index + 1, remain - fib[index]);
+    LOG_EVERY_MS(INFO, 1000) << OUT(slice(fib, 0, index)) << OUT(remain) << OUT(sums[index]);
+    return result;
+}
+
 int main() {
     const auto fib = genFib(N);
     LOG(INFO) << OUT(fib) << OUT((fib.back() > M));
+
+    const auto rfib = reversed(fib);
+    U64Vector sums(rfib.size());
+    {
+        for (size_t i = 0; i < rfib.size(); ++i) {
+            sums[i] = sum(slice(rfib, i, rfib.size()));
+        }
+    }
+
+    cout << genSum2(rfib, sums, 0, M) << endl;
 
     /*
     I64Vector mem(M + 1, 0);
