@@ -29,6 +29,7 @@ cxx_binary(
   deps=[
     "//lib:header",
     "//lib:init",
+    "//lib:string",
     "//gflags:gflags",
     "//advent/lib:aoc",
   ],
@@ -38,6 +39,7 @@ cxx_binary(
 with open("%s/%d.cpp" % (dr, args.task), "w") as fOut:
     print("""#include "advent/lib/aoc.h"
 #include "lib/init.h"
+#include "lib/string.h"
 
 #include "gflags/gflags.h"
 

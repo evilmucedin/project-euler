@@ -2,8 +2,8 @@
 
 #include "glog/logging.h"
 
-static constexpr size_t N = 100;
-static constexpr size_t M = 100;
+static constexpr u64 N = 65;
+static constexpr u64 M = 10000000000000;
 
 U64Vector genFib(size_t n) {
     U64Vector result(n);
@@ -52,8 +52,9 @@ u64 genSum(const U64Vector& fib, u64 now, u64 index) {
 
 int main() {
     const auto fib = genFib(N);
-    LOG(INFO) << OUT(fib);
+    LOG(INFO) << OUT(fib) << OUT((fib.back() > M));
 
+    /*
     I64Vector mem(M + 1, 0);
     mem[0] = 0;
     gen(fib, mem, 0, 0);
@@ -71,6 +72,8 @@ int main() {
 
     u64 sum2 = genSum(fib, 1, 0);
     LOG(INFO) << OUT(sum2);
+
+    */
 
     return 0;
 }
