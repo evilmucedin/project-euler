@@ -55,6 +55,7 @@ U stringCast(const V& x) {
 
 string rep(const string& s, size_t n);
 string unquote(const string& s, char quote = '\'');
+string replaceAll(const string& s, const string& from, const string& to);
 
 template <typename... Args>
 string stringSprintf(const string& format, Args... args) {

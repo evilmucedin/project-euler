@@ -54,6 +54,20 @@ string unquote(const string& s, char quote) {
     return s;
 }
 
+string replaceAll(const string& s, const string& from, const string& to) {
+    string result = s;
+    size_t index = 0;
+    while (true) {
+        index = result.find(from, index);
+        if (index == string::npos) {
+            break;
+        }
+        result.replace(index, from.size(), to);
+        index += to.size();
+    }
+    return result;
+}
+
 string bytesToStr(size_t bytes) {
     static constexpr size_t GB = 1024 * 1024 * 1024;
     if (bytes >= GB) {

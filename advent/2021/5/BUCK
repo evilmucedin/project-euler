@@ -1,0 +1,15 @@
+
+cxx_binary(
+  name="5",
+  srcs=[
+    "5.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//lib:string",
+    "//gflags:gflags",
+    "//advent/lib:aoc",
+  ],
+)
+
