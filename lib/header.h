@@ -272,6 +272,30 @@ void sortAndUnique(vector<T>& v) {
     v.erase(unique(v.begin(), v.end()), v.end());
 }
 
+template <typename T>
+void reverse(T& v) {
+    std::reverse(v.begin(), v.end());
+}
+
+template <typename T>
+T reversed(const T& x) {
+    T copy(x);
+    reverse(copy);
+    return copy;
+}
+
+template <typename V, typename T = typename V::value_type>
+vector<T> slice(const V& vct, size_t start, size_t finish) {
+    vector<T> result;
+    result.reserve(finish - start);
+    size_t i = start;
+    while (i < finish && i < vct.size()) {
+        result.emplace_back(vct[i]);
+        ++i;
+    }
+    return result;
+}
+
 template <typename K, typename V>
 V findWithDefault(const unordered_map<K, V>& map, const K& key, const V& value) {
     auto it = map.find(key);
