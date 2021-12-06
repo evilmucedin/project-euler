@@ -74,16 +74,20 @@ int notMarked(const Board& b) {
     return sum;
 }
 
-void first() {
-    string s;
-    cin >> s;
-    const auto iParts = stringVectorCast<int>(split(s, ','));
-
+vector<Board> readBoards() {
     vector<Board> boards;
     Board board;
     while (readBoard(board)) {
         boards.emplace_back(board);
     }
+    return boards;
+}
+
+void first() {
+    string s;
+    cin >> s;
+    const auto iParts = stringVectorCast<int>(split(s, ','));
+    auto boards = readBoards();
 
     i64 result = -1;
     for (const auto& num: iParts) {
@@ -106,12 +110,7 @@ void second() {
     string s;
     cin >> s;
     const auto iParts = stringVectorCast<int>(split(s, ','));
-
-    vector<Board> boards;
-    Board board;
-    while (readBoard(board)) {
-        boards.emplace_back(board);
-    }
+    auto boards = readBoards();
 
     BoolVector was(boards.size());
     for (const auto& num: iParts) {
