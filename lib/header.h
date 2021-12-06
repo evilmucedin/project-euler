@@ -254,6 +254,18 @@ T subVector(const T& vct, size_t start, size_t end) {
     return T(vct.begin() + start, vct.begin() + end);
 }
 
+template <typename V, typename T = typename V::value_type>
+vector<T> slice(const V& vct, size_t start, size_t finish) {
+    vector<T> result;
+    result.reserve(finish - start);
+    size_t i = start;
+    while (i < finish && i < vct.size()) {
+        result.emplace_back(vct[i]);
+        ++i;
+    }
+    return result;
+}
+
 template <typename T>
 void sort(T& v) {
     std::sort(v.begin(), v.end());
@@ -282,18 +294,6 @@ T reversed(const T& x) {
     T copy(x);
     reverse(copy);
     return copy;
-}
-
-template <typename V, typename T = typename V::value_type>
-vector<T> slice(const V& vct, size_t start, size_t finish) {
-    vector<T> result;
-    result.reserve(finish - start);
-    size_t i = start;
-    while (i < finish && i < vct.size()) {
-        result.emplace_back(vct[i]);
-        ++i;
-    }
-    return result;
 }
 
 template <typename K, typename V>

@@ -77,12 +77,7 @@ int notMarked(const Board& b) {
 void first() {
     string s;
     cin >> s;
-    const auto parts = split(s, ',');
-
-    IntVector iParts;
-    for (const auto& p: parts) {
-        iParts.emplace_back(stoi(p));
-    }
+    const auto iParts = stringVectorCast<int>(split(s, ','));
 
     vector<Board> boards;
     Board board;
@@ -110,12 +105,7 @@ void first() {
 void second() {
     string s;
     cin >> s;
-    const auto parts = split(s, ',');
-
-    IntVector iParts;
-    for (const auto& p: parts) {
-        iParts.emplace_back(stoi(p));
-    }
+    const auto iParts = stringVectorCast<int>(split(s, ','));
 
     vector<Board> boards;
     Board board;

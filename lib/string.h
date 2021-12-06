@@ -53,6 +53,19 @@ U stringCast(const V& x) {
     return result;
 }
 
+template <typename U, typename V = string>
+vector<U> stringVectorCast(const vector<V>& v) {
+    vector<U> result;
+    for (const auto& x : v) {
+        stringstream ss;
+        ss << x;
+        U res;
+        ss >> res;
+        result.emplace_back(res);
+    }
+    return result;
+}
+
 string rep(const string& s, size_t n);
 string unquote(const string& s, char quote = '\'');
 string replaceAll(const string& s, const string& from, const string& to);
