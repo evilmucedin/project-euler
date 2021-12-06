@@ -436,3 +436,17 @@ cxx_library(
         'PUBLIC',
     ],
 )
+
+cxx_library(
+    name="cycles",
+    deps=[
+        ":header",
+    ],
+    exported_headers=[
+        "cycles.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+

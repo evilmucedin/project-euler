@@ -4,6 +4,7 @@ cxx_binary(
     "435.cpp"
   ],
   deps=[
+    "//lib:cycles",
     "//lib:primes",
     "//lib:threads",
   ],

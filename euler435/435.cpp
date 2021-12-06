@@ -1,4 +1,5 @@
 #include "lib/primes.h"
+#include "lib/cycles.h"
 
 static U64Vector fillFib(u64 m, u64 mod) {
     U64Vector result;

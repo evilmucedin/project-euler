@@ -43,11 +43,6 @@ ostream& operator<<(ostream& o, u128 v) {
 
 #endif
 
-ostream& operator<<(ostream& o, const Cycle& c) {
-    o << "(" << c.start_ << ", " << c.period_ << ")";
-    return o;
-}
-
 Exception::Exception() {}
 
 Exception::Exception(string msg) : msg_(move(msg)) {}
