@@ -55,13 +55,9 @@ U stringCast(const V& x) {
 
 template <typename U, typename V = string>
 vector<U> stringVectorCast(const vector<V>& v) {
-    vector<U> result;
-    for (const auto& x : v) {
-        stringstream ss;
-        ss << x;
-        U res;
-        ss >> res;
-        result.emplace_back(res);
+    vector<U> result(v.size());
+    for (size_t i = 0; i < v.size(); ++i) {
+        result[i] = stringCast<U, V>(v[i]);
     }
     return result;
 }
