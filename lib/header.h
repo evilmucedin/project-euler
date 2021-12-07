@@ -238,6 +238,16 @@ T subVector(const T& vct, size_t start, size_t end) {
     return T(vct.begin() + start, vct.begin() + end);
 }
 
+template <typename T>
+T subVector(const T& vct, const SizeTVector& indices) {
+    T result(indices.size());
+    size_t index = 0;
+    for (auto i : indices) {
+        result[index++] = vct[i];
+    }
+    return result;
+}
+
 template <typename V, typename T = typename V::value_type>
 vector<T> slice(const V& vct, size_t start, size_t finish) {
     vector<T> result;

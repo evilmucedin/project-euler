@@ -30,6 +30,15 @@ static const StringVector tickers = etfs; // cat(etfs, stocks);
 struct PriceData {
     vector<DoubleVector> prices_;
     vector<string> dates_;
+
+    PriceData subPriceData(const SizeTVector& indices) {
+        PriceData result;
+        result.dates_ = dates_;
+        for (const auto& v: prices_) {
+            result.prices_.emplace_back(subVector(v, indices));
+        }
+        return result;
+    }
 };
 
 PriceData loadData() {
@@ -253,7 +262,8 @@ ModelResult gradientSearch(const PriceData& pd) {
     return bestRes;
 }
 
-void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
+void dumpPricesToCsv(const PriceData& pd, const ModelResult& model, const StringVector& tickers,
+                     const string& filename) {
     Timer tSolve("Gen CSV");
 
     DataFrame df(cat(StringVector{"Date", "Optimal"}, tickers));
@@ -285,7 +295,7 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model) {
         }
     }
 
-    df.saveToCsv("optimal.csv");
+    df.saveToCsv(filename);
 }
 
 int main(int argc, char* argv[]) {
@@ -294,7 +304,20 @@ int main(int argc, char* argv[]) {
     auto data = loadData();
     // testModeling(data);
     auto best = gradientSearch(data);
-    dumpPricesToCsv(data, best);
+    dumpPricesToCsv(data, best, tickers, "optimalAll.csv");
+
+    StringVector nonZeroTickers;
+    SizeTVector nonZeroIndices;
+    auto nonZeroBest = best;
+    size_t index = 0;
+    for (size_t i = 0; i < tickers.size(); ++i) {
+        if (best.originalShares[i]) {
+            nonZeroBest.originalShares[index++] = best.originalShares[i];
+            nonZeroTickers.emplace_back(tickers[i]);
+            nonZeroIndices.emplace_back(i);
+        }
+    }
+    dumpPricesToCsv(data.subPriceData(nonZeroIndices), nonZeroBest, nonZeroTickers, "optimalNZ.csv");
 
     return 0;
 }

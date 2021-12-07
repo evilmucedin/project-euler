@@ -23,6 +23,14 @@ DataFrame::PDataFrame DataFrame::shallowCopy() {
     return result;
 }
 
+DataFrame::PDataFrame DataFrame::subDataFrame(const SizeTVector& indices) {
+    auto result = make_shared<DataFrame>();
+    for (auto i : indices) {
+        result->addColumn(columns_[i]);
+    }
+    return result;
+}
+
 DataFrame::PDataFrame DataFrame::loadFromCsv(const string& filename) {
     auto result = make_shared<DataFrame>();
     CsvParser reader(filename);

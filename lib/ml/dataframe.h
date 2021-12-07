@@ -12,6 +12,7 @@ class DataFrame {
     static PDataFrame loadFromCsv(const string& filename);
     void saveToCsv(const string& filename) const;
     PDataFrame shallowCopy();
+    PDataFrame subDataFrame(const SizeTVector& indices);
 
     size_t numLines() const;
     StringVector columnNames() const;
