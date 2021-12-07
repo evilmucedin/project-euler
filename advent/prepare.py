@@ -46,10 +46,12 @@ with open("%s/%d.cpp" % (dr, args.task), "w") as fOut:
 DEFINE_int32(test, 1, "test number");
 
 void first() {
+    const auto input = readInputLines();
     cout << endl;
 }
 
 void second() {
+    const auto input = readInputLines();
     cout << endl;
 }
 

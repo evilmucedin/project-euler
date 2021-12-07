@@ -145,6 +145,35 @@ typename T::value_type average(const T& x) {
 }
 
 template<typename T>
+typename T::value_type minV(const T& x) {
+#ifndef NDEBUG
+    assert(!x.empty());
+#endif
+    typename T::value_type res = x[0];
+    for (size_t i = 1; i < x.size(); ++i) {
+        if (x[i] < res) {
+            res = x[i];
+        }
+    }
+
+    return res;
+}
+
+template<typename T>
+typename T::value_type maxV(const T& x) {
+#ifndef NDEBUG
+    assert(!x.empty());
+#endif
+    typename T::value_type res = x[0];
+    for (size_t i = 1; i < x.size(); ++i) {
+        if (x[i] > res) {
+            res = x[i];
+        }
+    }
+
+    return res;
+}
+template<typename T>
 vector<T> operator+(const vector<T>& a, const vector<T>& b) {
 #ifndef NDEBUG
     assert(a.size() == b.size());
