@@ -167,7 +167,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
-    result.additiveSortino = result.dailyReturnsStat.mean() - 0.002*result.dailyNegReturnsStat.stddev();
+    result.additiveSortino = result.dailyReturnsStat.mean() - 0.05*result.dailyNegReturnsStat.stddev();
 
     result.finalNav.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
