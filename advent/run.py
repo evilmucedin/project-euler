@@ -3,6 +3,7 @@
 import os
 import subprocess
 import requests
+import re
 
 import argparse
 
@@ -24,6 +25,13 @@ def main():
     bn = f"../../../buck-out/gen/advent/{YEAR}/{task}/{task}"
     # print(bn)
     cookies = {"session": "53616c7465645f5f396f77dccd06e249b33e25731f82cc9c72bc1bb12a51e8462e1dcb216cb73e67f06c9b1e3c770b1a"}
+
+    if not args.input:
+        url = f"https://adventofcode.com/{YEAR}/day/{task}"
+        content = requests.get(url, allow_redirects=True, cookies=cookies).content.decode('utf-8')
+        matches = re.findall(r'<pre><code>(.+?)</code></pre>', content)
+        with open("input.txt", "wb") as fOut:
+            fOut.write(matches[0].encode())
 
     def test(testFilename, testNumber):
         if not args.input:
