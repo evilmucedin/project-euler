@@ -9,6 +9,8 @@
 #include "lib/timer.h"
 
 DEFINE_string(first_date, "", "First modeling date");
+DEFINE_bool(additive_sortino, false, "subtract risk");
+DEFINE_int32(iterations, 10, "nuimber of iterations");
 
 static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",
                                   "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",  "VWO",  "FDHY",
@@ -121,7 +123,8 @@ struct ModelResult {
     Stat<> dailyReturnsStat;
     Stat<> dailyNegReturnsStat;
     double sortino{};
-    double f{};
+    double additiveSortino{};
+    double f{-1e10};
 };
 
 double sharpe(const ModelResult& res) {
@@ -164,6 +167,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
+    result.additiveSortino = result.dailyReturnsStat.mean() - 0.05*result.dailyNegReturnsStat.stddev();
 
     result.finalNav.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
@@ -173,7 +177,11 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     result.sharpe = sharpe(result);
     result.dailySharpe = result.dailyReturnsStat.mean() / result.dailyReturnsStat.stddev();
 
-    result.f = result.sortino;
+    if (FLAGS_additive_sortino) {
+        result.f = result.additiveSortino;
+    } else {
+        result.f = result.sortino;
+    }
 
     return result;
 }
@@ -181,7 +189,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
-    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
+    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe << ", sortino: " << res.sortino
          << ", f: " << res.f << endl;
 }
 
@@ -220,7 +228,7 @@ ModelResult gradientSearch(const PriceData& pd) {
         }
     };
 
-    for (size_t k = 0; k < 10; ++k) {
+    for (size_t k = 0; k < FLAGS_iterations; ++k) {
         ModelResult bestRes1;
         bestRes1.originalNav = randomPortfolio();
 

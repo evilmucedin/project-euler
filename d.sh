@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+pushd `pwd`
+cd "$(dirname "$0")"
+
 . ./cCommon.sh
 
 measure_time=0
@@ -22,6 +25,9 @@ shift $((${OPTIND} - 1))
 ${buck_bin} build @mode/dbg euler$1/...
 res=$?
 args="${@:2}"
+exe=$(realpath buck-out/gen/euler$1/$1)
+
+popd
 if [ 0 -eq ${res} ]; then
-    gdb --args buck-out/gen/euler$1/$1 $args
+    gdb --args ${exe} ${args}
 fi
