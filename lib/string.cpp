@@ -36,6 +36,39 @@ string join(const string& delim, const StringVector& parts) {
 
 bool hasSubstring(const string& s, const string& substr) { return s.find(substr) != string::npos; }
 
+string ltrim(const string& s) {
+    string res = s;
+    res.erase(res.begin(), std::find_if(res.begin(), res.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+    return res;
+}
+
+string rtrim(const string& s) {
+    string res = s;
+    res.erase(std::find_if(res.rbegin(), res.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(),
+              res.end());
+    return res;
+}
+
+string trim(const string& s) { return ltrim(rtrim(s)); }
+
+StringVector removeEmpty(const StringVector& ss) {
+    StringVector res;
+    for (const auto& s: ss) {
+        if (s.size()) {
+            res.emplace_back(s);
+        }
+    }
+    return res;
+}
+
+StringVector trimAll(const StringVector& v) {
+    StringVector result = v;
+    for (auto& s: result) {
+        s = trim(s);
+    }
+    return result;
+}
+
 string rep(const string& s, size_t n) {
     string result;
     for (size_t i = 0; i < n; ++i) {

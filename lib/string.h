@@ -62,6 +62,12 @@ vector<U> stringVectorCast(const vector<V>& v) {
     return result;
 }
 
+string ltrim(const string& s);
+string rtrim(const string& s);
+string trim(const string& s);
+StringVector trimAll(const StringVector& v);
+StringVector removeEmpty(const StringVector& ss);
+
 string rep(const string& s, size_t n);
 string unquote(const string& s, char quote = '\'');
 string replaceAll(const string& s, const string& from, const string& to);

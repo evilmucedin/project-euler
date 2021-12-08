@@ -30,8 +30,9 @@ def main():
         url = f"https://adventofcode.com/{YEAR}/day/{task}"
         content = requests.get(url, allow_redirects=True, cookies=cookies).content.decode('utf-8')
         matches = re.findall(r'<pre><code>(.+?)</code></pre>', content)
-        with open("input.txt", "wb") as fOut:
-            fOut.write(matches[0].encode())
+        if len(matches) > 0:
+            with open("input.txt", "wb") as fOut:
+                fOut.write(matches[0].encode())
 
     def test(testFilename, testNumber, download):
         if download:
