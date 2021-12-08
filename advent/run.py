@@ -33,18 +33,20 @@ def main():
         with open("input.txt", "wb") as fOut:
             fOut.write(matches[0].encode())
 
-    def test(testFilename, testNumber):
-        if not args.input:
+    def test(testFilename, testNumber, download):
+        if download:
             url = f"https://adventofcode.com/{YEAR}/day/{task}/input"
             with open(testFilename, "wb") as fOut:
                 fOut.write(requests.get(url, allow_redirects=True, cookies=cookies).content)
         subprocess.check_call(f"{bn} --test={testNumber}", shell=True, stderr=subprocess.STDOUT, stdin=open(testFilename))
 
     if args.input:
-        test(args.input, args.task)
+        test(args.input, args.task, False)
     else:
-        test("first.in", 1)
-        test("second.in", 2)
+        test("input.txt", 1, False)
+        test("input.txt", 2, False)
+        test("first.in", 1, True)
+        test("second.in", 2, True)
 
 if __name__ == "__main__":
     main()
