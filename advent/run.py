@@ -44,8 +44,9 @@ def main():
     if args.input:
         test(args.input, args.task, False)
     else:
-        test("input.txt", 1, False)
-        test("input.txt", 2, False)
+        if os.path.isfile("input.txt"):
+            test("input.txt", 1, False)
+            test("input.txt", 2, False)
         test("first.in", 1, True)
         test("second.in", 2, True)
 
