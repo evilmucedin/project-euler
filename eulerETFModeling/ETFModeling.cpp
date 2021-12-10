@@ -16,16 +16,17 @@ static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "
                                   "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",  "VWO",  "FDHY",
                                   "FDIS",  "ONEQ",  "VV",    "VB",    "HNDL",  "WBII",  "PCEF", "FDIV", "CEFS",
                                   "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV", "HIPS", "CVY",
-                                  "GYLD",  "VTI",   "VEA",   "IEFA",  "AGG",   "GLD",   "XLF",  "VNQ", "LQD"};
+                                  "GYLD",  "VTI",   "VEA",   "IEFA",  "AGG",   "GLD",   "XLF",  "VNQ",  "LQD"};
 
 static const StringVector stocks = {
     "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
 };
 
-static const StringVector tickers = etfs; // cat(etfs, stocks);
+static const StringVector tickers = etfs;
+// static const StringVector tickers = cat(etfs, stocks);
 
 /*
-*/
+ */
 
 // static const StringVector tickers = {"TSLA"};
 
@@ -36,7 +37,7 @@ struct PriceData {
     PriceData subPriceData(const SizeTVector& indices) {
         PriceData result;
         result.dates_ = dates_;
-        for (const auto& v: prices_) {
+        for (const auto& v : prices_) {
             result.prices_.emplace_back(subVector(v, indices));
         }
         return result;
@@ -167,7 +168,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
-    result.additiveSortino = result.dailyReturnsStat.mean() - 0.05*result.dailyNegReturnsStat.stddev();
+    result.additiveSortino = result.dailyReturnsStat.mean() - 0.05 * result.dailyNegReturnsStat.stddev();
 
     result.finalNav.resize(tickers.size());
     for (size_t i = 0; i < tickers.size(); ++i) {
@@ -189,8 +190,8 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
-    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe << ", sortino: " << res.sortino
-         << ", f: " << res.f << endl;
+    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
+         << ", sortino: " << res.sortino << ", f: " << res.f << endl;
 }
 
 void testModeling(const PriceData& pd) {
