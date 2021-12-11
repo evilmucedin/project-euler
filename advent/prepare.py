@@ -18,6 +18,10 @@ print(f"task = {args.task}")
 
 dr = "%d/%d" % (YEAR, args.task)
 
+if os.path.isdir(dr):
+    print("Directory exists")
+    sys.exit(1)
+
 os.makedirs(dr)
 with open("%s/BUCK" % dr, "w") as fOut:
     print(f"""
