@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+pushd `pwd`
+cd "$(dirname "$0")"
+
 . ./cCommon.sh
 
 set -o pipefail
@@ -32,3 +35,5 @@ ${buck_bin} build @mode/opt ${DIR}/... 2>&1 | tee ${OUT}
 if [[ $? != 0 ]]; then
     vim ${OUT}
 fi
+
+popd
