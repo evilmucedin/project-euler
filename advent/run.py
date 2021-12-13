@@ -30,13 +30,14 @@ def main():
         if not os.path.isfile("input.txt"):
             url = f"https://adventofcode.com/{YEAR}/day/{task}"
             content = requests.get(url, allow_redirects=True, cookies=cookies).content.decode('utf-8')
-            if not os.path.isfile("task.html"):
-                with open("task.html", "w") as fOut:
-                    fOut.write(content.encode())
-            matches = re.findall(r'<pre><code>(.+?)</code></pre>', content)
-            if len(matches) > 0:
-                with open("input.txt", "wb") as fOut:
-                    fOut.write(matches[0].encode())
+            if content:
+                if not os.path.isfile("task.html"):
+                    with open("task.html", "w") as fOut:
+                        fOut.write(content.encode())
+                matches = re.findall(r'<pre><code>(.+?)</code></pre>', content)
+                if len(matches) > 0:
+                    with open("input.txt", "wb") as fOut:
+                        fOut.write(matches[0].encode())
 
     def test(testFilename, testNumber, download):
         if download:
