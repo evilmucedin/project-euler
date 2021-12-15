@@ -16,6 +16,8 @@ def main():
                         help="task#", default=1)
     parser.add_argument("--input", type=str,
                         help="input file", default="")
+    parser.add_argument("--time", action="store_true",
+                        help="time run")
 
     args = parser.parse_args()
 
@@ -44,7 +46,10 @@ def main():
             url = f"https://adventofcode.com/{YEAR}/day/{task}/input"
             with open(testFilename, "wb") as fOut:
                 fOut.write(requests.get(url, allow_redirects=True, cookies=cookies).content)
-        subprocess.check_call(f"{bn} --test={testNumber}", shell=True, stderr=subprocess.STDOUT, stdin=open(testFilename))
+        prefix = ""
+        if args.time:
+            prefix = "time "
+        subprocess.check_call(f"{prefix}{bn} --test={testNumber}", shell=True, stderr=subprocess.STDOUT, stdin=open(testFilename))
 
     if args.input:
         test(args.input, args.task, False)
