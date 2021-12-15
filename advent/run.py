@@ -33,7 +33,7 @@ def main():
             if content:
                 if not os.path.isfile("task.html"):
                     with open("task.html", "w") as fOut:
-                        fOut.write(content.encode())
+                        fOut.write(content)
                 matches = re.findall(r'<pre><code>(.+?)</code></pre>', content)
                 if len(matches) > 0:
                     with open("input.txt", "wb") as fOut:
