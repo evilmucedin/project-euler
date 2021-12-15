@@ -14,6 +14,52 @@ struct Vertex {
 using Line = vector<Vertex>;
 using Matrix = vector<Line>;
 
+struct QueueItem {
+    int x;
+    int y;
+    int d;
+
+    QueueItem() {
+    }
+
+    QueueItem(int x, int y, int d) : x(x), y(y), d(d) {
+    }
+
+    bool operator<(const QueueItem& rhs) const {
+        return d > rhs.d;
+    }
+};
+
+void dijkstra(Matrix& m) {
+    m[0][0].min = 0;
+
+    priority_queue<QueueItem> q;
+    q.emplace(0, 0, 0);
+
+    size_t steps = 0;
+    while (!q.empty()) {
+        const auto now = q.top();
+        q.pop();
+        static const int D[] = {-1, 0, 1, 0, 0, -1, 0, 1};
+        for (int d = 0; d < 4; ++d) {
+            const int x = now.x + D[2 * d];
+            const int y = now.y + D[2 * d + 1];
+            if (x >= 0 && x < m.size()) {
+                if (y >= 0 && y < m[x].size()) {
+                    const auto next = m[now.x][now.y].min + m[x][y].risk;
+                    if (next < m[x][y].min) {
+                        m[x][y].min = next;
+                        q.emplace(x, y, next);
+                    }
+                }
+            }
+        }
+        ++steps;
+    }
+
+    cerr << steps << " " << m.size() * m[0].size() << endl;
+}
+
 void first() {
     const auto input = readInputLines();
 
@@ -25,29 +71,7 @@ void first() {
         }
     }
 
-    m[0][0].min = 0;
-
-    queue<pair<int, int>> q;
-    q.emplace(0, 0);
-
-    while (!q.empty()) {
-        const auto now = q.front();
-        q.pop();
-        static const int D[] = {-1, 0, 1, 0, 0, -1, 0, 1};
-        for (int d = 0; d < 4; ++d) {
-            const int x = now.first + D[2 * d];
-            const int y = now.second + D[2 * d + 1];
-            if (x >= 0 && x < m.size()) {
-                if (y >= 0 && y < m[x].size()) {
-                    auto next = m[now.first][now.second].min + m[x][y].risk;
-                    if (next < m[x][y].min) {
-                        m[x][y].min = next;
-                        q.emplace(x, y);
-                    }
-                }
-            }
-        }
-    }
+    dijkstra(m);
 
     cout << m.back().back().min << endl;
 }
@@ -71,32 +95,7 @@ void second() {
         }
     }
 
-    m[0][0].min = 0;
-
-    queue<pair<int, int>> q;
-    q.emplace(0, 0);
-
-    size_t steps = 0;
-    while (!q.empty()) {
-        const auto now = q.front();
-        q.pop();
-        static const int D[] = {-1, 0, 1, 0, 0, -1, 0, 1};
-        for (int d = 0; d < 4; ++d) {
-            const int x = now.first + D[2 * d];
-            const int y = now.second + D[2 * d + 1];
-            if (x >= 0 && x < m.size()) {
-                if (y >= 0 && y < m[x].size()) {
-                    auto next = m[now.first][now.second].min + m[x][y].risk;
-                    if (next < m[x][y].min) {
-                        m[x][y].min = next;
-                        q.emplace(x, y);
-                    }
-                }
-            }
-        }
-        ++steps;
-    }
-    cerr << steps << " " << in * im << endl;
+    dijkstra(m);
 
     cout << m.back().back().min << endl;
 }
