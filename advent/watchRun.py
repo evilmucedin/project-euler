@@ -7,10 +7,17 @@ import subprocess
 task = open('TASK').readline().strip()
 cpp = f"{task}.cpp"
 
+def openRetry(filename, mode):
+    while True:
+        try:
+            return open(filename, mode)
+        except OSError:
+            pass
+
 def cs():
     while not os.path.isfile(cpp):
         time.sleep(0.1)
-    with open(cpp, "rb") as fIn:
+    with openRetry(cpp, "rb") as fIn:
         return hashlib.md5(fIn.read()).hexdigest()
 
 oldCs = 1
