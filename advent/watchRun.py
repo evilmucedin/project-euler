@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import hashlib
 import subprocess
 
@@ -7,12 +8,10 @@ task = open('TASK').readline().strip()
 cpp = f"{task}.cpp"
 
 def cs():
-    fIn = open(cpp, "rb")
-    while not fIn:
-        fIn = open(cpp, "rb")
-    res = hashlib.md5(fIn.read()).hexdigest()
-    fIn.close()
-    return res
+    while not os.path.isfile(cpp):
+        time.sleep(0.1)
+    with open(cpp, "rb") as fIn:
+        return hashlib.md5(fIn.read()).hexdigest()
 
 oldCs = 1
 while True:
