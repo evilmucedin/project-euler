@@ -13,5 +13,5 @@ oldCs = 1
 while True:
     newCs = cs()
     if newCs != oldCs:
-        subprocess.check_call(f"../../run.py", shell=True, stderr=subprocess.STDOUT)
+        subprocess.call(f"../../run.py", shell=True, stderr=subprocess.STDOUT)
         oldCs = newCs
