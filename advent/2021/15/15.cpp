@@ -8,7 +8,7 @@ DEFINE_int32(test, 1, "test number");
 
 struct Vertex {
     int risk;
-    int min{1000000000};
+    i64 min{1000000000};
 };
 
 using Line = vector<Vertex>;
