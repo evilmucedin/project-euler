@@ -7,7 +7,12 @@ task = open('TASK').readline().strip()
 cpp = f"{task}.cpp"
 
 def cs():
-    return hashlib.md5(open(cpp, "rb").read()).hexdigest()
+    fIn = open(cpp, "rb")
+    while not fIn:
+        fIn = open(cpp, "rb")
+    res = hashlib.md5(fIn.read()).hexdigest()
+    fIn.close()
+    return res
 
 oldCs = 1
 while True:
