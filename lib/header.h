@@ -137,6 +137,15 @@ typename T::value_type sum(const T& x) {
 }
 
 template<typename T>
+typename T::value_type product(const T& x) {
+    typename T::value_type result = 1;
+    for (auto v : x) {
+        result *= v;
+    }
+    return result;
+}
+
+template<typename T>
 typename T::value_type average(const T& x) {
 #ifndef NDEBUG
     assert(!x.empty());
