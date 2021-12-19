@@ -1,53 +1,17 @@
 #include <set>
 
-#include "advent/lib/aoc.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+
 #include "lib/init.h"
 #include "lib/string.h"
+#include "lib/geometry.h"
+
+#include "advent/lib/aoc.h"
 
 DEFINE_int32(test, 1, "test number");
 
-struct Point {
-    int x;
-    int y;
-    int z;
-
-    Point() {}
-
-    Point(int x, int y, int z) : x(x), y(y), z(z) {}
-
-    int get(int index) const {
-        if (index == 0) {
-            return x;
-        }
-        if (index == 1) {
-            return y;
-        }
-        if (index == 2) {
-            return z;
-        }
-        throw Exception("bad index");
-    }
-
-    bool operator==(const Point& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
-
-    bool operator<(const Point& rhs) const {
-        if (x != rhs.x) {
-            return x < rhs.x;
-        }
-        if (y != rhs.y) {
-            return y < rhs.y;
-        }
-        return z < rhs.z;
-    }
-};
-
-ostream& operator<<(ostream& s, const Point& p) {
-    s << "{" << p.x << ", " << p.y << ", " << p.z << "}";
-    return s;
-}
-
+using Point = Point3<int>;
 using Points = vector<Point>;
 
 vector<Points> input() {
@@ -72,19 +36,17 @@ using Matrix = vector<vector<int>>;
 struct Operator {
     vector<int> perm{0, 0, 0};
     vector<int> sign{0, 0, 0};
-    vector<int> move{0, 0, 0};
+    Point move{0, 0, 0};
 
     Point apply(const Point& p) const {
         Point result;
-        result.x = p.get(perm[0]);
-        result.y = p.get(perm[1]);
-        result.z = p.get(perm[2]);
+        result.x = p[perm[0]];
+        result.y = p[perm[1]];
+        result.z = p[perm[2]];
         result.x *= sign[0];
         result.y *= sign[1];
         result.z *= sign[2];
-        result.x += move[0];
-        result.y += move[1];
-        result.z += move[2];
+        result += move;
         return result;
     }
 };
@@ -128,7 +90,7 @@ bool findOperator(const set<Point>& s0, const vector<Point>& data0, const vector
                                     const auto& p0 = data0[i];
                                     const auto& p = o.apply(data[j]);
                                     // cerr << o.move << endl;
-                                    o.move = {p0.x - p.x, p0.y - p.y, p0.z - p.z};
+                                    o.move = p0 - p;
 
                                     // cerr << p0 << ", " << data[j] << ", " << o.apply(data[j]) << endl;
 
@@ -197,7 +159,7 @@ void first() {
             if (findOperator(result, data0, data[i], o)) {
                 good[i] = true;
                 change = true;
-                moves.emplace_back(Point(o.move[0], o.move[1], o.move[2]));
+                moves.emplace_back(o.move);
                 for (const auto& p : data[i]) {
                     auto ps = o.apply(p);
                     if (!result.count(ps)) {

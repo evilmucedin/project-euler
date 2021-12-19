@@ -4,13 +4,13 @@
 
 template <typename T>
 struct Point3 {
-    T x;
-    T y;
-    T z;
+    T x{};
+    T y{};
+    T z{};
 
     Point3() {}
 
-    Point3(double xx, double yy, double zz) : x(xx), y(yy), z(zz) {}
+    Point3(T xx, T yy, T zz) : x(xx), y(yy), z(zz) {}
 
     T norm() const { return sqrt(*this * *this); }
 
@@ -29,6 +29,18 @@ struct Point3 {
                 return 0;
         }
     }
+
+    bool operator==(const Point3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
+
+    bool operator<(const Point3& rhs) const {
+        if (x != rhs.x) {
+            return x < rhs.x;
+        }
+        if (y != rhs.y) {
+            return y < rhs.y;
+        }
+        return z < rhs.z;
+    }
 };
 
 template <typename T>
@@ -39,6 +51,14 @@ Point3<T> operator*(const Point3<T>& p, T c) {
 template <typename T>
 Point3<T> operator+(const Point3<T>& p1, const Point3<T>& p2) {
     return Point3<T>(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
+}
+
+template <typename T>
+Point3<T>& operator+=(Point3<T>& p1, const Point3<T>& p2) {
+    p1.x += p2.x;
+    p1.y += p2.y;
+    p1.z += p2.z;
+    return p1;
 }
 
 template <typename T>
