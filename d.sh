@@ -22,10 +22,12 @@ done
 
 shift $((${OPTIND} - 1))
 
-${buck_bin} build @mode/dbg euler$1/...
+DIR=$(eulerDir $1)
+FNAME=$(eulerFilename $1)
+${buck_bin} build @mode/dbg ${DIR}/...
 res=$?
 args="${@:2}"
-exe=$(realpath buck-out/gen/euler$1/$1)
+exe=$(realpath buck-out/gen/${DIR}/${FNAME})
 
 popd
 if [ 0 -eq ${res} ]; then
