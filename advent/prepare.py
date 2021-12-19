@@ -36,6 +36,7 @@ cxx_binary(
     "//lib:string",
     "//gflags:gflags",
     "//advent/lib:aoc",
+    "//glog:glog",
   ],
 )
 """, file=fOut)
@@ -46,6 +47,7 @@ with open("%s/%d.cpp" % (dr, args.task), "w") as fOut:
 #include "lib/string.h"
 
 #include "gflags/gflags.h"
+#include "glog/logging.h"
 
 DEFINE_int32(test, 1, "test number");
 
