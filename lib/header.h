@@ -76,7 +76,16 @@ struct hash<vector<T>> {
 string to_string(const string& s);
 }  // namespace std
 
-template<typename T, typename A>
+inline void hashCombine(std::size_t& seed) {}
+
+template <typename T, typename... Rest>
+inline void hashCombine(std::size_t& seed, const T& v, Rest... rest) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    hashCombine(seed, rest...);
+}
+
+template <typename T, typename A>
 ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
     o << "[";
     bool first = true;

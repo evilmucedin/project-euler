@@ -52,8 +52,9 @@ namespace std {
 template <typename T>
 struct hash<Point3<T>> {
     size_t operator()(const Point3<T>& p) const {
-        hash<T> hasher;
-        return hasher(p.x) + hasher(p.y) + hasher(p.z);
+        size_t result = 0;
+        hashCombine(result, p.x, p.y, p.z);
+        return result;
     }
 };
 }
