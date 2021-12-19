@@ -41,7 +41,22 @@ struct Point3 {
         }
         return z < rhs.z;
     }
+
+    static const Point3<T> ZERO;
 };
+
+template <typename T>
+const Point3<T> Point3<T>::ZERO(0, 0, 0);
+
+namespace std {
+template <typename T>
+struct hash<Point3<T>> {
+    size_t operator()(const Point3<T>& p) const {
+        hash<T> hasher;
+        return hasher(p.x) + hasher(p.y) + hasher(p.z);
+    }
+};
+}
 
 template <typename T>
 Point3<T> operator*(const Point3<T>& p, T c) {

@@ -1,4 +1,5 @@
 #include <set>
+#include <unordered_set>
 
 #include "gflags/gflags.h"
 #include "glog/logging.h"
@@ -13,6 +14,7 @@ DEFINE_int32(test, 1, "test number");
 
 using Point = Point3<int>;
 using Points = vector<Point>;
+using PointSet = unordered_set<Point>;
 
 vector<Points> input() {
     const auto input = readInputLinesAll();
@@ -68,7 +70,7 @@ size_t setIntersectionSize(InputIterator1 first1, InputIterator1 last1, InputIte
     return result;
 }
 
-bool findOperator(const set<Point>& s0, const vector<Point>& data0, const vector<Point> data, Operator& o) {
+bool findOperator(const PointSet& s0, const vector<Point>& data0, const vector<Point> data, Operator& o) {
     size_t maxCount = 0;
     for (int perm1 = 0; perm1 < 3; ++perm1) {
         for (int perm2 = 0; perm2 < 3; ++perm2) {
@@ -79,15 +81,18 @@ bool findOperator(const set<Point>& s0, const vector<Point>& data0, const vector
                 if (perm1 == perm3 || perm2 == perm3) {
                     continue;
                 }
+                o.perm = {perm1, perm2, perm3};
+
                 for (int sign1 = -1; sign1 < 2; sign1 += 2) {
                     for (int sign2 = -1; sign2 < 2; sign2 += 2) {
                         for (int sign3 = -1; sign3 < 2; sign3 += 2) {
+                            o.sign = {sign1, sign2, sign3};
+
                             for (int i = 0; i < data0.size(); ++i) {
+                                const auto& p0 = data0[i];
+
                                 for (int j = 0; j < data.size(); ++j) {
-                                    o.perm = {perm1, perm2, perm3};
-                                    o.sign = {sign1, sign2, sign3};
-                                    o.move = {0, 0, 0};
-                                    const auto& p0 = data0[i];
+                                    o.move = Point::ZERO;
                                     const auto& p = o.apply(data[j]);
                                     // cerr << o.move << endl;
                                     o.move = p0 - p;
@@ -138,7 +143,7 @@ void first() {
     const auto data = input();
     cerr << data.size() << "x" << data[0].size() << endl;
 
-    set<Point> result;
+    PointSet result;
     for (const auto& p : data[0]) {
         result.insert(p);
     }
@@ -148,7 +153,7 @@ void first() {
     bool change = true;
     vector<Point> data0 = data[0];
     vector<Point> moves;
-    moves.emplace_back(Point{0, 0, 0});
+    moves.emplace_back(Point::ZERO);
     while (change) {
         change = false;
         for (int i = 1; i < data.size(); ++i) {

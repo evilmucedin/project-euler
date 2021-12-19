@@ -269,6 +269,16 @@ vector<T> slice(const V& vct, size_t start, size_t finish) {
     return result;
 }
 
+template <typename T, typename V>
+bool has(const T& v, const V& x) {
+    for (const auto& i : v) {
+        if (i == x) {
+            return true;
+        }
+    }
+    return false;
+}
+
 template <typename T>
 void sort(T& v) {
     std::sort(v.begin(), v.end());
