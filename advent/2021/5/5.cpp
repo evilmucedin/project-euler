@@ -1,71 +1,28 @@
 #include "advent/lib/aoc.h"
 #include "lib/init.h"
+#include "lib/geometry.h"
 #include "lib/string.h"
 
 #include "gflags/gflags.h"
 
 DEFINE_int32(test, 1, "test number");
 
-struct Point {
-    i64 x;
-    i64 y;
+using Point = Point2<i64>;
+using Line = Line2<i64>;
+using Interval = Interval2<i64>;
 
-    Point() {
-    }
-
-    Point(i64 x, i64 y) : x(x), y(y) {}
-};
-
-struct Line {
-    i64 a;
-    i64 b;
-    i64 c;
-
-    bool on(const Point& p) const {
-        return v(p) == 0;
-    }
-
-    i64 v(const Point& p) const {
-        return a*p.x + b*p.y + c;
-    }
-};
-
-struct Interval {
-    Line l;
-    Point start;
-    Point finish;
-
-    Interval(Line l, Point start, Point finish) : l(l), start(start), finish(finish) {}
-
-    bool on(const Point& p) const {
-        if (l.on(p)) {
-            if ((p.x - start.x)*(p.x - finish.x) > 0) {
-                return false;
-            }
-            if ((p.y - start.y)*(p.y - finish.y) > 0) {
-                return false;
-            }
-            return true;
-        }
-        return false;
-    }
-};
-
-Line pointsToLine(const Point& a, const Point& b) {
-    Line result;
-    result.a = a.y - b.y;
-    result.b = b.x - a.x;
-    result.c = -result.a * a.x - result.b * a.y;
-    return result;
-}
-
-void first() {
+StringVector preprocess() {
     auto strings = readInputLines();
     for (auto& s : strings) {
         s = replaceAll(s, "->", " ");
         s = replaceAll(s, ",", " ");
         // cerr << s << endl;
     }
+    return strings;
+}
+
+void first() {
+    const auto strings = preprocess();
 
     vector<Interval> ints;
     i64 minX = 100000000;
@@ -87,7 +44,7 @@ void first() {
         minY = min(minY, b.y);
         maxY = max(maxY, b.y);
 
-        ints.emplace_back(pointsToLine(a, b), a, b);
+        ints.emplace_back(Line::fromPoints(a, b), a, b);
     }
 
     size_t count = 0;
@@ -111,12 +68,7 @@ void first() {
 }
 
 void second() {
-    auto strings = readInputLines();
-    for (auto& s : strings) {
-        s = replaceAll(s, "->", " ");
-        s = replaceAll(s, ",", " ");
-        // cerr << s << endl;
-    }
+    const auto strings = preprocess();
 
     vector<Interval> ints;
     i64 minX = 100000000;
@@ -138,7 +90,7 @@ void second() {
         minY = min(minY, b.y);
         maxY = max(maxY, b.y);
 
-        ints.emplace_back(pointsToLine(a, b), a, b);
+        ints.emplace_back(Line::fromPoints(a, b), a, b);
     }
 
     size_t count = 0;

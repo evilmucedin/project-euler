@@ -7,13 +7,6 @@ ostream& operator<<(ostream& s, const Point2D& p) {
     return s;
 }
 
-bool operator<(const Point2D& a, const Point2D& b) {
-    if (a.x != b.x) {
-        return a.x < b.x;
-    }
-    return a.y < b.y;
-}
-
 bool operator!=(const Point2D& a, const Point2D& b) { return (abs(a.x - b.x) > EPS) || (abs(a.y - b.y) > EPS); }
 
 int orientation(const Point2D& p, const Point2D& q, const Point2D& r) {
