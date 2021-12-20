@@ -1,14 +1,12 @@
 #include <set>
 #include <unordered_set>
 
+#include "advent/lib/aoc.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
-
+#include "lib/geometry.h"
 #include "lib/init.h"
 #include "lib/string.h"
-#include "lib/geometry.h"
-
-#include "advent/lib/aoc.h"
 
 DEFINE_int32(test, 1, "test number");
 
@@ -32,8 +30,6 @@ vector<Points> input() {
     }
     return result;
 }
-
-using Matrix = vector<vector<int>>;
 
 struct Operator {
     vector<int> perm{0, 0, 0};
@@ -91,9 +87,7 @@ bool findOperator(const PointSet& s0, const Points& data0, const Points& data, O
                             o.sign = {sign1, sign2, sign3};
 
                             o.move = Point::ZERO;
-                            REP(i, data.size()) {
-                                dataRotated[i] = o.apply(data[i]);
-                            }
+                            REP(i, data.size()) { dataRotated[i] = o.apply(data[i]); }
 
                             for (int i = 0; i < data0.size(); ++i) {
                                 for (int j = 0; j < data.size(); ++j) {
@@ -103,7 +97,7 @@ bool findOperator(const PointSet& s0, const Points& data0, const Points& data, O
                                     // cerr << p0 << ", " << data[j] << ", " << o.apply(data[j]) << endl;
 
                                     size_t count = 0;
-                                    REP (k, data.size()) {
+                                    REP(k, data.size()) {
                                         if (s0.count(dataRotated[k] + o.move)) {
                                             ++count;
                                         }
