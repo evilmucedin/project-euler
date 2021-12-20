@@ -11,13 +11,18 @@ using Point = Point2<i64>;
 using Line = Line2<i64>;
 using Interval = Interval2<i64>;
 
-void first() {
-    const auto strings = readInputLines();
+StringVector preprocess() {
+    auto strings = readInputLines();
     for (auto& s : strings) {
         s = replaceAll(s, "->", " ");
         s = replaceAll(s, ",", " ");
         // cerr << s << endl;
     }
+    return strings;
+}
+
+void first() {
+    const auto strings = preprocess();
 
     vector<Interval> ints;
     i64 minX = 100000000;
@@ -63,12 +68,7 @@ void first() {
 }
 
 void second() {
-    const auto strings = readInputLines();
-    for (auto& s : strings) {
-        s = replaceAll(s, "->", " ");
-        s = replaceAll(s, ",", " ");
-        // cerr << s << endl;
-    }
+    const auto strings = preprocess();
 
     vector<Interval> ints;
     i64 minX = 100000000;
