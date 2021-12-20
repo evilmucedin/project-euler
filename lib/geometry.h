@@ -97,19 +97,19 @@ using Point3D = Point3<double>;
 
 using Points3 = vector<Point3D>;
 
-struct Point2 {
+struct Point2D {
     double x;
     double y;
 };
 
-ostream& operator<<(ostream& s, const Point2& p);
+ostream& operator<<(ostream& s, const Point2D& p);
 
-bool operator<(const Point2& a, const Point2& b);
-bool operator!=(const Point2& a, const Point2& b);
+bool operator<(const Point2D& a, const Point2D& b);
+bool operator!=(const Point2D& a, const Point2D& b);
 
-using Points2 = vector<Point2>;
+using Points2 = vector<Point2D>;
 
-int orientation(const Point2& p, const Point2& q, const Point2& r);
+int orientation(const Point2D& p, const Point2D& q, const Point2D& r);
 
 Points2 convexHull(const Points2& points);
 

@@ -2,23 +2,21 @@
 
 static constexpr double EPS = 1e-9;
 
-ostream& operator<<(ostream& s, const Point2& p) {
+ostream& operator<<(ostream& s, const Point2D& p) {
     s << "{" << p.x << ", " << p.y << "}";
     return s;
 }
 
-bool operator<(const Point2& a, const Point2& b) {
+bool operator<(const Point2D& a, const Point2D& b) {
     if (a.x != b.x) {
         return a.x < b.x;
     }
     return a.y < b.y;
 }
 
-bool operator!=(const Point2& a, const Point2& b) {
-    return (abs(a.x - b.x) > EPS) || (abs(a.y - b.y) > EPS);
-}
+bool operator!=(const Point2D& a, const Point2D& b) { return (abs(a.x - b.x) > EPS) || (abs(a.y - b.y) > EPS); }
 
-int orientation(const Point2& p, const Point2& q, const Point2& r) {
+int orientation(const Point2D& p, const Point2D& q, const Point2D& r) {
     double val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
 
     if (abs(val) < EPS) {
