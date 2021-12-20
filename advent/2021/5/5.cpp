@@ -12,7 +12,7 @@ using Line = Line2<i64>;
 using Interval = Interval2<i64>;
 
 void first() {
-    auto strings = readInputLines();
+    const auto strings = readInputLines();
     for (auto& s : strings) {
         s = replaceAll(s, "->", " ");
         s = replaceAll(s, ",", " ");
@@ -63,7 +63,7 @@ void first() {
 }
 
 void second() {
-    auto strings = readInputLines();
+    const auto strings = readInputLines();
     for (auto& s : strings) {
         s = replaceAll(s, "->", " ");
         s = replaceAll(s, ",", " ");
