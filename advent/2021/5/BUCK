@@ -1,4 +1,3 @@
-
 cxx_binary(
   name="5",
   srcs=[
@@ -7,6 +6,7 @@ cxx_binary(
   deps=[
     "//lib:header",
     "//lib:init",
+    "//lib:geometry",
     "//lib:string",
     "//gflags:gflags",
     "//advent/lib:aoc",

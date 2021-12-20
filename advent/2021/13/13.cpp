@@ -2,33 +2,14 @@
 
 #include "advent/lib/aoc.h"
 #include "lib/init.h"
+#include "lib/geometry.h"
 #include "lib/string.h"
 
 #include "gflags/gflags.h"
 
 DEFINE_int32(test, 1, "test number");
 
-struct Point {
-    int x;
-    int y;
-
-    Point() {
-    }
-
-    Point(int x, int y) : x(x), y(y) {
-    }
-
-    bool operator<(const Point& p) const {
-        if (x != p.x) {
-            return x < p.x;
-        }
-        return y < p.y;
-    }
-
-    bool operator==(const Point& p) const {
-        return (x == p.x) && (y == p.y);
-    }
-};
+using Point = Point2<int>;
 using Points = vector<Point>;
 
 Points mirrorX(const Points& ps, int x) {

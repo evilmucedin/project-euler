@@ -97,15 +97,50 @@ using Point3D = Point3<double>;
 
 using Points3 = vector<Point3D>;
 
-struct Point2D {
-    double x;
-    double y;
+template <typename T>
+struct Point2 {
+    T x{};
+    T y{};
+
+    Point2() {}
+
+    Point2(T xx, T yy) : x(xx), y(yy) {}
+
+    T norm() const { return sqrt(*this * *this); }
+
+    Point2<T> normalize() const { return *this * (T(1) / norm()); }
+
+    T operator[](size_t index) const {
+        switch (index) {
+            case 0:
+                return x;
+            case 1:
+                return y;
+            default:
+                assert(0);
+                return 0;
+        }
+    }
+
+    bool operator==(const Point2& rhs) const { return x == rhs.x && y == rhs.y; }
+    bool operator!=(const Point2& rhs) const { return x != rhs.x || y != rhs.y; }
+
+    bool operator<(const Point2& rhs) const {
+        if (x != rhs.x) {
+            return x < rhs.x;
+        }
+        return y < rhs.y;
+    }
+
+    static const Point2<T> ZERO;
 };
 
-ostream& operator<<(ostream& s, const Point2D& p);
+template <typename T>
+const Point2<T> Point2<T>::ZERO(0, 0);
 
-bool operator<(const Point2D& a, const Point2D& b);
-bool operator!=(const Point2D& a, const Point2D& b);
+using Point2D = Point2<double>;
+
+ostream& operator<<(ostream& s, const Point2D& p);
 
 using Points2 = vector<Point2D>;
 

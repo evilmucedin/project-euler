@@ -1,20 +1,13 @@
 #include "advent/lib/aoc.h"
 #include "lib/init.h"
+#include "lib/geometry.h"
 #include "lib/string.h"
 
 #include "gflags/gflags.h"
 
 DEFINE_int32(test, 1, "test number");
 
-struct Point {
-    i64 x;
-    i64 y;
-
-    Point() {
-    }
-
-    Point(i64 x, i64 y) : x(x), y(y) {}
-};
+using Point = Point2<i64>;
 
 struct Line {
     i64 a;
