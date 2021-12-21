@@ -44,6 +44,10 @@ using DoubleVector = vector<double>;
 using StringVector = vector<string>;
 using FloatVector = vector<float>;
 using SizeTVector = vector<size_t>;
+using IntMatrix = vector<IntVector>;
+using I64Matrix = vector<I64Vector>;
+using U64Matrix = vector<U64Vector>;
+using DoubleMatrix = vector<DoubleVector>;
 
 using I32Set = unordered_set<i32>;
 using U64Set = unordered_set<u64>;
