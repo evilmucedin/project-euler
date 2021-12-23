@@ -14,3 +14,16 @@ int randAB(int a, int b) {
 int randInt() {
     return randAB<int>(0, std::numeric_limits<int>::max());
 }
+
+char randChar() {
+    return 40 + (randInt() % 87);
+}
+
+std::string randString(size_t len) {
+    std::string result;
+    result.resize(len);
+    for (char& ch: result) {
+        ch = randChar();
+    }
+    return result;
+}

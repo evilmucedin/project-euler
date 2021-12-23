@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <random>
+#include <string>
 
 std::mt19937_64& getRandomNumberGenerator();
 
@@ -48,8 +49,10 @@ void shuffle(T& vct) {
 
 template <typename T>
 T shuffled(T vct) {
-    random_shuffle(vct.begin(), vct.end());
+    shuffle(vct);
     return vct;
 }
 
 int randInt();
+char randChar();
+std::string randString(size_t len);

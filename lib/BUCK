@@ -450,3 +450,13 @@ cxx_library(
     ],
 )
 
+cxx_library(
+    name="robinHood",
+    exported_headers=[
+        "robinHood.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
