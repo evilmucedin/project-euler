@@ -158,6 +158,7 @@ bool goodRoom(const Item& f, int room) {
 
 template <int LEN>
 int dijkstra(const Item& f0) {
+    size_t its = 0;
     int best = 1000000000;
 
     priority_queue<pair<int, Item>> q;
@@ -222,7 +223,11 @@ int dijkstra(const Item& f0) {
                 }
             }
         }
+
+        ++its;
     }
+
+    LOG(INFO) << OUT(its) << OUT(bestD.size());
 
     return best;
 }
