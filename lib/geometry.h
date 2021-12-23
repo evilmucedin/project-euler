@@ -57,7 +57,7 @@ struct hash<Point3<T>> {
         return result;
     }
 };
-}
+}  // namespace std
 
 template <typename T>
 Point3<T> operator*(const Point3<T>& p, T c) {

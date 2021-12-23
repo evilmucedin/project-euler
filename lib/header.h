@@ -282,6 +282,11 @@ vector<T> slice(const V& vct, size_t start, size_t finish) {
     return result;
 }
 
+template <typename V, typename K = V>
+void insertVector(vector<V>& v, size_t pos, const vector<K>& ins) {
+    v.insert(v.begin() + pos, ins.begin(), ins.end());
+}
+
 template <typename T, typename V>
 bool has(const T& v, const V& x) {
     for (const auto& i : v) {
