@@ -62,6 +62,28 @@ vector<U> stringVectorCast(const vector<V>& v) {
     return result;
 }
 
+template <typename T = int>
+vector<T> parseIntegers(const string& s) {
+    vector<T> result;
+    size_t begin = 0;
+    bool in = false;
+    for (size_t i = 0; i <= s.size(); ++i) {
+        const bool isDigit = isdigit(s[i]) || s[i] == '-';
+        if (in) {
+            if (!isDigit) {
+                result.emplace_back(stringCast<T>(s.substr(begin, i - begin)));
+                in = false;
+            }
+        } else {
+            if (isDigit) {
+                in = true;
+                begin = i;
+            }
+        }
+    }
+    return result;
+}
+
 string ltrim(const string& s);
 string rtrim(const string& s);
 string trim(const string& s);
