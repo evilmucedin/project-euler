@@ -180,3 +180,16 @@ cxx_test(
     "//lib:primes",
   ],
 )
+
+cxx_test(
+  name="robinHoodTest",
+  srcs=[
+    "robinHoodTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+    "//lib:robinHood",
+    "//lib:timer",
+  ],
+)
