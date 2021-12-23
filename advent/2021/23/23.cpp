@@ -12,7 +12,7 @@ struct Item {
 
     void print() const {
         REP(i, 4) {
-            for (int j = 0; j < rooms[i].size(); ++j) {
+            REP (j, rooms[i].size()) {
                 if (j) {
                     cerr << ", ";
                 }
@@ -120,7 +120,7 @@ bool can2(const Item& f, int room, int hallway) {
     hallway += 1;
     const int x = room * 2 + 3;
     if (x < hallway) {
-        for (int i = x; i < hallway; ++i) {
+        FOR (i, x, hallway) {
             if (f.hallway[i - 1]) {
                 return false;
             }
