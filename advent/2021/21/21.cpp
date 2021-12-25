@@ -2,6 +2,7 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "lib/init.h"
+#include "lib/robinHood.h"
 #include "lib/string.h"
 
 DEFINE_int32(test, 1, "test number");
@@ -55,7 +56,7 @@ void first() {
 }
 
 using Res = pair<u64, u64>;
-using Store = unordered_map<vector<int>, Res>;
+using Store = robin_hood::unordered_map<IntVector, Res>;
 
 Store store;
 
@@ -108,7 +109,7 @@ Res countWins_(int pos1, int points1, int pos2, int points2, int turn) {
 }
 
 Res countWins(int pos1, int points1, int pos2, int points2, int turn) {
-    const vector<int> state = {pos1, points1, pos2, points2, turn};
+    const IntVector state = {pos1, points1, pos2, points2, turn};
     auto toState = store.find(state);
     if (toState == store.end()) {
         auto res = countWins_(pos1, points1, pos2, points2, turn);
