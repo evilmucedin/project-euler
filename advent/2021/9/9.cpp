@@ -5,12 +5,13 @@
 
 DEFINE_int32(test, 1, "test number");
 
+static const int DIRS[] = {-1, 0, 1, 0, 0, -1, 0, 1};
+
 void first() {
     const auto input = readInputLines();
     size_t sum = 0;
     for (int i = 0; i < input.size(); ++i) {
         for (int j = 0; j < input[i].size(); ++j) {
-            static const int DIRS[] = {-1, 0, 1, 0, 0, -1, 0, 1};
             bool good = true;
             for (int k = 0; k < 4; ++k) {
                 int ii = i + DIRS[2 * k];
@@ -47,10 +48,9 @@ int dfs(int x, int y, StringVector& s) {
     int res = 0;
     s[x][y] = 0;
     ++res;
-    res += dfs(x - 1, y, s);
-    res += dfs(x + 1, y, s);
-    res += dfs(x, y - 1, s);
-    res += dfs(x, y + 1, s);
+    for (int k = 0; k < 4; ++k) {
+        res += dfs(x + DIRS[2 * k], y + DIRS[2 * k + 1], s);
+    }
     return res;
 }
 
@@ -60,7 +60,6 @@ void second() {
     IntVector sizes;
     for (int i = 0; i < input.size(); ++i) {
         for (int j = 0; j < input[i].size(); ++j) {
-            static const int DIRS[] = {-1, 0, 1, 0, 0, -1, 0, 1};
             bool good = true;
             for (int k = 0; k < 4; ++k) {
                 int ii = i + DIRS[2 * k];
