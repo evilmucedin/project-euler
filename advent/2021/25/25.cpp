@@ -76,10 +76,10 @@ void print(int n, int m, const Points& ps) {
 void first() {
     auto input = readInputLines();
 
-    Points ps;
-    int n = input.size();
-    int m = input[0].size();
+    const int n = input.size();
+    const int m = input[0].size();
 
+    Points ps;
     REP(i, n) {
         REP(j, m) {
             if (input[i][j] != '.') {
@@ -114,9 +114,11 @@ void second() {
 
     int steps = 0;
     auto f = input;
-    while (true) {
-        bool cont = false;
-        auto newF = f;
+    auto newF = f;
+    bool cont = true;
+    while (cont) {
+        cont = false;
+        newF = f;
         REP(i, input.size()) {
             REP(j, input[i].size()) {
                 if (f[i][j] == '>' && f[i][(j + 1) % m] == '.') {
@@ -134,11 +136,8 @@ void second() {
                 }
             }
         }
-        f = newF;
+        f.swap(newF);
         ++steps;
-        if (!cont) {
-            break;
-        }
     }
 
     cout << "1: " << steps << endl;
