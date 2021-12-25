@@ -1,0 +1,17 @@
+
+cxx_binary(
+  name="24",
+  srcs=[
+    "24.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//lib:random",
+    "//lib:string",
+    "//gflags:gflags",
+    "//advent/lib:aoc",
+    "//glog:glog",
+  ],
+)
+

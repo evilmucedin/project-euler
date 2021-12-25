@@ -195,6 +195,7 @@ typename T::value_type maxV(const T& x) {
 
     return res;
 }
+
 template<typename T>
 vector<T> operator+(const vector<T>& a, const vector<T>& b) {
 #ifndef NDEBUG
@@ -325,6 +326,29 @@ T reversed(const T& x) {
     T copy(x);
     reverse(copy);
     return copy;
+}
+
+template <typename T>
+IntVector numToDigits(T n, int base = 10) {
+    if (n == 0) {
+        return {0};
+    }
+    IntVector result;
+    while (n) {
+        result.emplace_back(n % base);
+        n /= base;
+    }
+    reverse(result);
+    return result;
+}
+
+template <typename T = int>
+T digitsToNum(const IntVector& digits, int base = 10) {
+    T result = 0;
+    for (auto d : digits) {
+        result = base * result + d;
+    }
+    return result;
 }
 
 template <typename K, typename V>
