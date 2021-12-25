@@ -5,14 +5,6 @@
 
 DEFINE_int32(test, 1, "test number");
 
-u64 bin2int(const IntVector& v) {
-    u64 result = 0;
-    for (auto i : v) {
-        result = 2 * result + i;
-    }
-    return result;
-}
-
 IntVector countFreq(const StringVector& v) {
     const auto m = v[0].size();
     IntVector count(m);
@@ -47,7 +39,7 @@ void first() {
     // cerr << gamma << endl;
     // cerr << eps << endl;
 
-    cout << bin2int(gamma) * bin2int(eps) << endl;
+    cout << digitsToNum(gamma, 2) * digitsToNum(eps, 2) << endl;
 }
 
 IntVector filter(int index, StringVector v) {
@@ -100,7 +92,7 @@ IntVector filter(int index, StringVector v) {
 
 void second() {
     const auto v = readInputLines();
-    cout << bin2int(filter(0, v)) * bin2int(filter(1, v)) << endl;
+    cout << digitsToNum(filter(0, v), 2) * digitsToNum(filter(1, v), 2) << endl;
 }
 
 int main(int argc, char* argv[]) {
