@@ -1,21 +1,20 @@
 #include "advent/lib/aoc.h"
+#include "gflags/gflags.h"
 #include "lib/init.h"
 #include "lib/string.h"
 
-#include "gflags/gflags.h"
-
 DEFINE_int32(test, 1, "test number");
 
-void first() {
+i64 solve(int its) {
     const auto strings = readInputLines();
     const auto parts = split(strings[0], ',');
 
     vector<i64> counts(9, 0);
-    for (const auto& s: parts) {
+    for (const auto& s : parts) {
         ++counts[stoi(s)];
     }
 
-    for (size_t i = 0; i < 80; ++i) {
+    for (size_t i = 0; i < its; ++i) {
         vector<i64> newCounts(9, 0);
         for (size_t i = 1; i < 9; ++i) {
             newCounts[i - 1] += counts[i];
@@ -24,29 +23,13 @@ void first() {
         newCounts[6] += counts[0];
         swap(counts, newCounts);
     }
-    cout << sum(counts) << endl;
+
+    return sum(counts);
 }
 
-void second() {
-    const auto strings = readInputLines();
-    const auto parts = split(strings[0], ',');
+void first() { cout << solve(80) << endl; }
 
-    vector<i64> counts(9, 0);
-    for (const auto& s: parts) {
-        ++counts[stoi(s)];
-    }
-
-    for (size_t i = 0; i < 256; ++i) {
-        vector<i64> newCounts(9, 0);
-        for (size_t i = 1; i < 9; ++i) {
-            newCounts[i - 1] += counts[i];
-        }
-        newCounts[8] += counts[0];
-        newCounts[6] += counts[0];
-        swap(counts, newCounts);
-    }
-    cout << sum(counts) << endl;
-}
+void second() { cout << solve(256) << endl; }
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
@@ -58,4 +41,3 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 }
-

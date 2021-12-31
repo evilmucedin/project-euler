@@ -9,6 +9,7 @@ def multiMode():
         data = pandas.read_csv("%s.txt" % a, header=None)
         print(data.head())
 
+        plt.title(a)
         figure, ax1 = plt.subplots()
         ax1.plot(data[0])
         ax1.plot(data[1])
@@ -20,6 +21,27 @@ def multiMode():
         plt.cla()
         figure, ax1 = plt.subplots()
         freq = np.fft.fft(data[0])
+        ax1.plot(freq.real[1:])
+        figure.savefig("%sFFT.png" % a)
+        plt.show()
+
+def arduinoMode():
+    for a in ["arduino.csv"]:
+        data = pandas.read_csv(a)
+        print(data.head())
+
+        plt.title(a)
+        figure, ax1 = plt.subplots()
+        ax1.plot(data["AxX"])
+        ax1.plot(data["AxY"])
+        ax1.plot(data["AxZ"])
+        figure.savefig("%sData.png" % a)
+        plt.show()
+
+        plt.clf()
+        plt.cla()
+        figure, ax1 = plt.subplots()
+        freq = np.fft.fft(data["AxZ"])
         ax1.plot(freq.real[1:])
         figure.savefig("%sFFT.png" % a)
         plt.show()
@@ -43,4 +65,5 @@ def singleMode():
 
 if __name__ == "__main__":
     # multiMode()
-    singleMode()
+    # singleMode()
+    arduinoMode()

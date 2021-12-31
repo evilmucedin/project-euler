@@ -26,9 +26,9 @@ void first() {
         cin >> cmd >> d;
     }
 
-    cout << x << endl;
-    cout << y << endl;
-    cout << x * y << endl;
+    cerr << x << endl;
+    cerr << y << endl;
+    cout << "1: " << x * y << endl;
 }
 
 void second() {
@@ -55,9 +55,9 @@ void second() {
         cin >> cmd >> d;
     }
 
-    cout << x << endl;
-    cout << y << endl;
-    cout << x * y << endl;
+    cerr << x << endl;
+    cerr << y << endl;
+    cout << "2: " <<  x * y << endl;
 }
 
 int main(int argc, char* argv[]) {

@@ -64,22 +64,6 @@ ostream& operator<<(ostream& o, u128 v);
 #endif
 #endif
 
-namespace std {
-template <typename T>
-struct hash<vector<T>> {
-    size_t operator()(const vector<T>& v) const {
-        size_t result = 0;
-        hash<T> hasher;
-        for (const auto& e : v) {
-            result += hasher(e);
-        }
-        return result;
-    }
-};
-
-string to_string(const string& s);
-}  // namespace std
-
 inline void hashCombine(std::size_t& seed) {}
 
 template <typename T, typename... Rest>
@@ -88,6 +72,21 @@ inline void hashCombine(std::size_t& seed, const T& v, Rest... rest) {
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     hashCombine(seed, rest...);
 }
+
+namespace std {
+template <typename T>
+struct hash<vector<T>> {
+    size_t operator()(const vector<T>& v) const {
+        size_t result = 0;
+        for (const auto& e : v) {
+            hashCombine(result, e);
+        }
+        return result;
+    }
+};
+
+string to_string(const string& s);
+}  // namespace std
 
 template <typename T, typename A>
 ostream& operator<<(ostream& o, const std::vector<T, A>& v) {

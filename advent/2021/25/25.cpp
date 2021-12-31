@@ -76,10 +76,10 @@ void print(int n, int m, const Points& ps) {
 void first() {
     auto input = readInputLines();
 
-    Points ps;
-    int n = input.size();
-    int m = input[0].size();
+    const int n = input.size();
+    const int m = input[0].size();
 
+    Points ps;
     REP(i, n) {
         REP(j, m) {
             if (input[i][j] != '.') {
@@ -109,8 +109,40 @@ void first() {
 
 void second() {
     const auto input = readInputLines();
+    const int n = input.size();
+    const int m = input[0].size();
+
+    int steps = 0;
+    auto f = input;
+    auto newF = f;
+    bool cont = true;
+    while (cont) {
+        cont = false;
+        newF = f;
+        REP(i, input.size()) {
+            REP(j, input[i].size()) {
+                if (f[i][j] == '>' && f[i][(j + 1) % m] == '.') {
+                    swap(newF[i][(j + 1) % m], newF[i][j]);
+                    cont = true;
+                }
+            }
+        }
+        f = newF;
+        REP(i, input.size()) {
+            REP(j, input[i].size()) {
+                if (f[i][j] == 'v' && f[(i + 1) % n][j] == '.') {
+                    swap(newF[(i + 1) % n][j], newF[i][j]);
+                    cont = true;
+                }
+            }
+        }
+        f.swap(newF);
+        ++steps;
+    }
+
+    cout << "1: " << steps << endl;
     string s(50, '*');
-    cout << s << endl;
+    cout << "2: " << s << endl;
 }
 
 int main(int argc, char* argv[]) {
