@@ -53,7 +53,7 @@ ZStreamWrapper::~ZStreamWrapper() {
 }
 
 ZIStreamBuf::ZIStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
-    assert(pSBuf);
+    assert(pSBuf_);
     inBuff_.resize(buffSize_);
     inBuffStart_ = inBuff_.data();
     inBuffEnd_ = inBuff_.data();
@@ -85,9 +85,9 @@ streambuf::int_type ZIStreamBuf::underflow() {
                 throw ZException(ret);
             }
             inBuffStart_ = reinterpret_cast<char*>(zStrm_->next_in);
-            assert(inBuffEnd_ == inBuffStart_ + zStrm_->avail_in);
+            EXPECTEQ(inBuffEnd_, inBuffStart_ + zStrm_->avail_in);
             outBuffFreeStart = reinterpret_cast<char*>(zStrm_->next_out);
-            assert(outBuffFreeStart + zStrm_->avail_out == outBuff_.data() + buffSize_);
+            EXPECTEQ(outBuffFreeStart + zStrm_->avail_out, outBuff_.data() + buffSize_);
             if (ret == Z_STREAM_END) {
                 zStrm_.reset();
             }
@@ -102,3 +102,58 @@ ZIStream::ZIStream(shared_ptr<istream> stream) : istream(new ZIStreamBuf(stream-
 ZIStream::~ZIStream() {
     delete rdbuf();
 }
+
+ZOStreamBuf::ZOStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
+    assert(pSBuf_);
+    inBuff_.resize(buffSize_);
+    inBuffStart_ = inBuff_.data();
+    inBuffEnd_ = inBuff_.data();
+    outBuff_.resize(buffSize_);
+    setp(outBuff_.data(), outBuff_.data() + buffSize_);
+}
+
+ZOStreamBuf::~ZOStreamBuf() {}
+
+int ZOStreamBuf::sync() {
+    if (pptr() && pptr() > pbase()) {
+        int c = overflow(EOF);
+        if (c == EOF) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+void ZOStreamBuf::zflush() {
+    if (!zStrm_) {
+        zStrm_ = make_unique<ZStreamWrapper>(false);
+    }
+    zStrm_->next_in = outBuff_.data();
+    zStrm_->avail_in = pptr() - outBuff_.data();
+    zStrm_->next_out = inBuff_.data();
+    zStrm_->avail_out = buffSize_;
+
+    int err = Z_OK;
+    do {
+        err = deflate(zStrm_.get(), 0);
+        if (err == Z_OK || err == Z_STREAM_END) {
+            pSBuf_->
+        }
+    } while ((zStrm_->avail_in != 0 && err == Z_OK)
+}
+
+int_type ZOStreamBuf::overflow(int_type c) {
+    if (pptr() == outBuff_.data() + buffSize_) {
+        zflush();
+    }
+    if (c != EOF) {
+        *pptr() = (char)c;
+        pbump(1);
+    }
+    return c;
+}
+
+ZOStream::ZOStream(shared_ptr<ostream> stream) : ostream(new ZOStreamBuf(stream->rdbuf())), stream_(stream) {}
+
+ZOStream::~ZOStream() { delete rdbuf(); }

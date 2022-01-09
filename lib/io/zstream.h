@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lib/header.h"
-
 #include "zlib/zlib.h"
 
 class ZException : public Exception {
@@ -43,9 +42,46 @@ class ZIStreamBuf : public streambuf {
 };
 
 class ZIStream : public istream {
-public:
+   public:
     ZIStream(shared_ptr<istream> stream);
     virtual ~ZIStream();
-private:
+
+   private:
     shared_ptr<istream> stream_;
+};
+
+class ZOStreamBuf : public streambuf {
+   public:
+    ZOStreamBuf(streambuf* pSBuf, size_t buffSize = kDefaultBuffSize);
+    ZOStreamBuf(const ZOStreamBuf&) = delete;
+    ZOStreamBuf(ZOStreamBuf&&) = default;
+    ZOStreamBuf& operator=(const ZOStreamBuf&) = delete;
+    ZOStreamBuf& operator=(ZOStreamBuf&&) = default;
+    virtual ~ZOStreamBuf();
+
+   protected:
+    int sync();
+    int_type overflow(int_type c);
+
+   private:
+    void zflush();
+
+    streambuf* pSBuf_;
+    vector<char> inBuff_;
+    char* inBuffStart_;
+    char* inBuffEnd_;
+    vector<char> outBuff_;
+    unique_ptr<ZStreamWrapper> zStrm_;
+    size_t buffSize_;
+
+    static constexpr size_t kDefaultBuffSize = 1 << 20;
+};
+
+class ZOStream : public ostream {
+   public:
+    ZOStream(shared_ptr<ostream> stream);
+    virtual ~ZOStream();
+
+   private:
+    shared_ptr<ostream> stream_;
 };
