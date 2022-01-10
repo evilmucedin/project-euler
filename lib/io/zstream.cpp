@@ -127,7 +127,9 @@ int ZOStreamBuf::sync() {
     return 0;
 }
 
-void ZOStreamBuf::zflush(bool flush) {
+std::streamsize ZOStreamBuf::zflush(bool flush) {
+    cerr << "zflush" << endl;
+    std::streamsize totalWritten = 0;
     if (!zStrm_) {
         zStrm_ = make_unique<ZStreamWrapper>(false);
     }
@@ -138,25 +140,42 @@ void ZOStreamBuf::zflush(bool flush) {
 
     int err = Z_OK;
     do {
-        err = deflate(zStrm_.get(), flush);
+        err = deflate(zStrm_.get(), (flush) ? Z_FINISH : 0);
+        const auto written = buffSize_ - zStrm_->avail_out;
+        totalWritten += written;
         if (err == Z_OK || err == Z_STREAM_END) {
-            pSBuf_->sputn(inBuff_.data(), zStrm_->next_out - reinterpret_cast<Bytef*>(inBuff_.data()));
+            pSBuf_->sputn(inBuff_.data(), written);
+        } else {
+            throw Exception("compression error");
         }
     } while (zStrm_->avail_in != 0 && err == Z_OK);
+    ASSERTEQ(zStrm_->avail_in, 0);
+
+    setp(outBuff_.data(), outBuff_.data() + buffSize_);
+    return totalWritten;
 }
 
 ZOStreamBuf::int_type ZOStreamBuf::overflow(int_type c) {
-    if (pptr() == outBuff_.data() + buffSize_) {
-        zflush(false);
-    }
-    ASSERTLT(pptr(), outBuff_.data() + buffSize_);
     if (c != EOF) {
-        *pptr() = (char)c;
+        if (pptr() == outBuff_.data() + buffSize_) {
+            zflush(false);
+        }
+        ASSERTLT(pptr(), outBuff_.data() + buffSize_);
+
+        *pptr() = c;
         pbump(1);
     }
     return c;
 }
 
-ZOStream::ZOStream(shared_ptr<ostream> stream) : ostream(new ZOStreamBuf(stream->rdbuf())), stream_(stream) {}
+ZOStream::ZOStream(shared_ptr<ostream> stream)
+    : ostream(new ZOStreamBuf(stream->rdbuf())), buf_(reinterpret_cast<ZOStreamBuf*>(rdbuf())), stream_(stream) {}
 
-ZOStream::~ZOStream() { delete rdbuf(); }
+ZOStream::~ZOStream() { delete buf_; }
+
+std::streamsize ZOStream::flush() {
+    const auto res = buf_->zflush(true);
+    stream_->flush();
+    return res;
+}
+

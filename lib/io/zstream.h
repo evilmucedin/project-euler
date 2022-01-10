@@ -59,13 +59,14 @@ class ZOStreamBuf : public streambuf {
     ZOStreamBuf& operator=(ZOStreamBuf&&) = default;
     virtual ~ZOStreamBuf();
 
+    std::streamsize zflush(bool flush);
+
    protected:
     int sync();
     int_type overflow(int_type c);
+    std::streamsize flush();
 
    private:
-    void zflush(bool flush);
-
     streambuf* pSBuf_;
     vector<char> inBuff_;
     char* inBuffStart_;
@@ -80,8 +81,10 @@ class ZOStreamBuf : public streambuf {
 class ZOStream : public ostream {
    public:
     ZOStream(shared_ptr<ostream> stream);
+    std::streamsize flush();
     virtual ~ZOStream();
 
    private:
+    ZOStreamBuf* buf_;
     shared_ptr<ostream> stream_;
 };
