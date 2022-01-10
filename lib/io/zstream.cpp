@@ -149,6 +149,7 @@ ZOStreamBuf::int_type ZOStreamBuf::overflow(int_type c) {
     if (pptr() == outBuff_.data() + buffSize_) {
         zflush(false);
     }
+    ASSERTLT(pptr(), outBuff_.data() + buffSize_);
     if (c != EOF) {
         *pptr() = (char)c;
         pbump(1);
