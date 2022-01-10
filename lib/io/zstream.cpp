@@ -85,9 +85,9 @@ streambuf::int_type ZIStreamBuf::underflow() {
                 throw ZException(ret);
             }
             inBuffStart_ = reinterpret_cast<char*>(zStrm_->next_in);
-            EXPECTEQ(inBuffEnd_, inBuffStart_ + zStrm_->avail_in);
+            ASSERTEQ(inBuffEnd_, inBuffStart_ + zStrm_->avail_in);
             outBuffFreeStart = reinterpret_cast<char*>(zStrm_->next_out);
-            EXPECTEQ(outBuffFreeStart + zStrm_->avail_out, outBuff_.data() + buffSize_);
+            ASSERTEQ(outBuffFreeStart + zStrm_->avail_out, outBuff_.data() + buffSize_);
             if (ret == Z_STREAM_END) {
                 zStrm_.reset();
             }
@@ -112,7 +112,9 @@ ZOStreamBuf::ZOStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buf
     setp(outBuff_.data(), outBuff_.data() + buffSize_);
 }
 
-ZOStreamBuf::~ZOStreamBuf() {}
+ZOStreamBuf::~ZOStreamBuf() {
+    zflush(true);
+}
 
 int ZOStreamBuf::sync() {
     if (pptr() && pptr() > pbase()) {
@@ -125,27 +127,27 @@ int ZOStreamBuf::sync() {
     return 0;
 }
 
-void ZOStreamBuf::zflush() {
+void ZOStreamBuf::zflush(bool flush) {
     if (!zStrm_) {
         zStrm_ = make_unique<ZStreamWrapper>(false);
     }
-    zStrm_->next_in = outBuff_.data();
+    zStrm_->next_in = reinterpret_cast<Bytef*>(outBuff_.data());
     zStrm_->avail_in = pptr() - outBuff_.data();
-    zStrm_->next_out = inBuff_.data();
+    zStrm_->next_out = reinterpret_cast<Bytef*>(inBuff_.data());
     zStrm_->avail_out = buffSize_;
 
     int err = Z_OK;
     do {
-        err = deflate(zStrm_.get(), 0);
+        err = deflate(zStrm_.get(), flush);
         if (err == Z_OK || err == Z_STREAM_END) {
-            pSBuf_->
+            pSBuf_->sputn(inBuff_.data(), zStrm_->next_out - reinterpret_cast<Bytef*>(inBuff_.data()));
         }
-    } while ((zStrm_->avail_in != 0 && err == Z_OK)
+    } while (zStrm_->avail_in != 0 && err == Z_OK);
 }
 
-int_type ZOStreamBuf::overflow(int_type c) {
+ZOStreamBuf::int_type ZOStreamBuf::overflow(int_type c) {
     if (pptr() == outBuff_.data() + buffSize_) {
-        zflush();
+        zflush(false);
     }
     if (c != EOF) {
         *pptr() = (char)c;

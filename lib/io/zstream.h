@@ -64,7 +64,7 @@ class ZOStreamBuf : public streambuf {
     int_type overflow(int_type c);
 
    private:
-    void zflush();
+    void zflush(bool flush);
 
     streambuf* pSBuf_;
     vector<char> inBuff_;
