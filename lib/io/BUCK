@@ -114,3 +114,18 @@ cxx_library(
     'PUBLIC',
   ],
 )
+
+cxx_library(
+  name="stream",
+  exported_headers=[
+    "stream.h",
+  ],
+  srcs=[
+    "stream.cpp",
+  ],
+  deps=[
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
