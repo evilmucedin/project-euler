@@ -12,6 +12,19 @@ cxx_test(
 )
 
 cxx_test(
+  name="streamTest",
+  srcs=[
+    "streamTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+    "//lib/io:stream",
+    "//glog:glog",
+  ],
+)
+
+cxx_test(
   name="csvTest",
   srcs=[
     "csvTest.cpp",
