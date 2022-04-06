@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "lib/io/file.h"
+
 using namespace std;
 
 class InputStream {
@@ -34,17 +36,32 @@ class StdOutputStream : public OutputStream {
     void flush() override;
 };
 
+class FileOutputStream : public OutputStream {
+   public:
+    FileOutputStream(const string& filename);
+    size_t write(const char* buffer, size_t toWrite) override;
+    void flush() override;
+
+   private:
+    string filename_;
+    File file_;
+};
+
 class BufferedInputStream : public InputStream {
    public:
-    BufferedInputStream(PInputStream nested);
+    static constexpr size_t DEFAULT_BUFFER_SIZE = 1 << 20;
+    BufferedInputStream(PInputStream nested, size_t bufferSize = DEFAULT_BUFFER_SIZE);
     ~BufferedInputStream();
     size_t read(char* buffer, size_t toRead) override;
 
    private:
+    void refill();
+
     PInputStream nested_;
     size_t bufferSize_;
     unique_ptr<char[]> buffer_;
     size_t bufferPos_;
+    size_t bufferEnd_;
 };
 
 class BufferedOutputStream : public OutputStream {

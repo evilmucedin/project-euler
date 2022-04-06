@@ -20,7 +20,7 @@ T rand01() {
 
 template<typename T>
 T randAB(T a, T b) {
-    return rand01<T>() * (b - a) + a;
+    return static_cast<T>(rand01<double>() * (b - a)) + a;
 }
 
 template<>

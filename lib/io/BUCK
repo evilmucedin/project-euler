@@ -124,6 +124,7 @@ cxx_library(
     "stream.cpp",
   ],
   deps=[
+    ":file",
     "//lib:exception",
   ],
   visibility=[
