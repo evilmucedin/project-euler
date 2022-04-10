@@ -8,24 +8,22 @@
 
 InputStream::~InputStream() {}
 
+void OutputStream::write(char ch) { write(&ch, 1); }
+
 OutputStream::~OutputStream() {}
 
-size_t StdOutputStream::write(const char* buffer, size_t toWrite) {
+void StdOutputStream::write(const char* buffer, size_t toWrite) {
     const auto res = ::write(1, buffer, toWrite);
     if (res != toWrite) {
         throw Exception("write to stdout failed");
     }
-    return res;
 }
 
 void StdOutputStream::flush() {}
 
 FileOutputStream::FileOutputStream(const string& filename) : filename_(filename), file_(filename, "wb") {}
 
-size_t FileOutputStream::write(const char* buffer, size_t toWrite) {
-    file_.write(buffer, toWrite);
-    return toWrite;
-}
+void FileOutputStream::write(const char* buffer, size_t toWrite) { file_.write(buffer, toWrite); }
 
 void FileOutputStream::flush() {}
 
@@ -63,20 +61,17 @@ BufferedOutputStream::BufferedOutputStream(POutputStream nested, size_t bufferSi
 
 BufferedOutputStream::~BufferedOutputStream() { flush(); }
 
-size_t BufferedOutputStream::write(const char* buffer, size_t toWrite) {
-    size_t written = 0;
+void BufferedOutputStream::write(const char* buffer, size_t toWrite) {
     while (toWrite) {
         const size_t canWrite = std::min(toWrite, bufferSize_ - bufferPos_);
         memcpy(buffer_.get() + bufferPos_, buffer, canWrite);
         toWrite -= canWrite;
         buffer += canWrite;
-        written += canWrite;
         bufferPos_ += canWrite;
         if (bufferPos_ == bufferSize_) {
             flush();
         }
     }
-    return written;
 }
 
 void BufferedOutputStream::flush() {

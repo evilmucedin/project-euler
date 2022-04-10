@@ -19,7 +19,8 @@ class OutputStream {
    public:
     virtual ~OutputStream();
 
-    virtual size_t write(const char* buffer, size_t toWrite) = 0;
+    virtual void write(char ch);
+    virtual void write(const char* buffer, size_t toWrite) = 0;
     virtual void flush() = 0;
 };
 
@@ -32,14 +33,14 @@ class StdInputStream : public InputStream {
 
 class StdOutputStream : public OutputStream {
    public:
-    size_t write(const char* buffer, size_t toWrite) override;
+    void write(const char* buffer, size_t toWrite) override;
     void flush() override;
 };
 
 class FileOutputStream : public OutputStream {
    public:
     FileOutputStream(const string& filename);
-    size_t write(const char* buffer, size_t toWrite) override;
+    void write(const char* buffer, size_t toWrite) override;
     void flush() override;
 
    private:
@@ -70,7 +71,7 @@ class BufferedOutputStream : public OutputStream {
     BufferedOutputStream(POutputStream nested, size_t bufferSize = DEFAULT_BUFFER_SIZE);
     ~BufferedOutputStream();
 
-    size_t write(const char* buffer, size_t toWrite) override;
+    void write(const char* buffer, size_t toWrite) override;
     void flush() override;
 
    private:
