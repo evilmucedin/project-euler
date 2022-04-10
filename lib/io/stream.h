@@ -19,6 +19,7 @@ class OutputStream {
    public:
     virtual ~OutputStream();
 
+    virtual void write(const string& s);
     virtual void write(char ch);
     virtual void write(const char* buffer, size_t toWrite) = 0;
     virtual void flush() = 0;
@@ -80,3 +81,9 @@ class BufferedOutputStream : public OutputStream {
     unique_ptr<char[]> buffer_;
     size_t bufferPos_;
 };
+
+template <typename T>
+OutputStream& operator<<(OutputStream& stream, const T& x) {
+    stream.write(to_string(x));
+    return stream;
+}

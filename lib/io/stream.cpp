@@ -8,6 +8,8 @@
 
 InputStream::~InputStream() {}
 
+void OutputStream::write(const string& s) { write(s.data(), s.size()); }
+
 void OutputStream::write(char ch) { write(&ch, 1); }
 
 OutputStream::~OutputStream() {}

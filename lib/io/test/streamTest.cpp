@@ -1,6 +1,7 @@
 #include "lib/io/stream.h"
 #include "lib/random.h"
 #include "lib/header.h"
+#include "lib/timer.h"
 
 #include <gtest/gtest.h>
 #include <glog/logging.h>
@@ -40,4 +41,20 @@ TEST(Stream, File1) {
         slen += len;
     }
     LOG(INFO) << OUT(slen);
+}
+
+template <typename T>
+void benchmark(T& s) {
+    Timer t("benchmark");
+    for (size_t i = 0; i < 10000000; ++i) {
+        s << rand();
+    }
+}
+
+TEST(Stream, Benchmark) {
+    ofstream of("test1.bin");
+    benchmark(of);
+    auto sFOut = make_shared<FileOutputStream>("test2.bin");
+    auto sBOut = make_shared<BufferedOutputStream>(sFOut, 1 << 11);
+    benchmark(*sBOut);
 }
