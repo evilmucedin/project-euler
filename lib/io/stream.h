@@ -87,3 +87,9 @@ OutputStream& operator<<(OutputStream& stream, const T& x) {
     stream.write(to_string(x));
     return stream;
 }
+
+template <>
+inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
+    stream.write(s);
+    return stream;
+}
