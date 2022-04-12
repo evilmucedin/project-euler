@@ -55,6 +55,6 @@ TEST(Stream, Benchmark) {
     ofstream of("test1.bin");
     benchmark(of);
     auto sFOut = make_shared<FileOutputStream>("test2.bin");
-    auto sBOut = make_shared<BufferedOutputStream>(sFOut, 1 << 11);
+    auto sBOut = make_shared<BufferedOutputStream>(sFOut, 1 << 16);
     benchmark(*sBOut);
 }
