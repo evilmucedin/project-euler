@@ -340,6 +340,32 @@ IntVector numToDigits(T n, int base = 10) {
     return result;
 }
 
+template<typename T, int BASE>
+size_t numToBuffer(T n, char* buffer) {
+    size_t len = 0;
+    if (n < 0) {
+        *buffer = '-';
+	++buffer;
+	++len;
+    }
+    if (n != 0) {
+        char* begin = buffer;
+	while (n) {
+	    T nn = n / BASE;
+	    *buffer = (n - nn*BASE) + '0';
+	    ++buffer;
+	    ++len;
+	    n = nn;
+	}
+	reverse(begin, buffer);
+    } else {
+        *buffer = '0';
+	++buffer;
+	++len;
+    }
+    return len;
+}
+
 template <typename T = int>
 T digitsToNum(const IntVector& digits, int base = 10) {
     T result = 0;

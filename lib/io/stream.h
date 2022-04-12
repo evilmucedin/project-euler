@@ -89,6 +89,14 @@ OutputStream& operator<<(OutputStream& stream, const T& x) {
 }
 
 template <>
+inline OutputStream& operator<<<int>(OutputStream& stream, const int& x) {
+    thread_local char buffer[128];
+    const size_t len = numToBuffer<int, 10>(x, buffer);
+    stream.write(buffer, len);
+    return stream;
+}
+
+template <>
 inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
     stream.write(s);
     return stream;
