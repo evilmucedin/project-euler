@@ -47,7 +47,7 @@ class FileOutputStream : public OutputStream {
 
    private:
     string filename_;
-    int fd_;
+    int fd_{-1};
 };
 
 class BufferedInputStream : public InputStream {

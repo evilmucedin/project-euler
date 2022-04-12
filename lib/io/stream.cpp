@@ -34,8 +34,10 @@ FileOutputStream::FileOutputStream(const string& filename) : filename_(filename)
 }
 
 FileOutputStream::~FileOutputStream() {
-    close(fd_);
-    fd_ = -1;
+    if (-1 != fd_) {
+        close(fd_);
+        fd_ = -1;
+    }
 }
 
 void FileOutputStream::write(const char* buffer, size_t toWrite) {
