@@ -344,30 +344,35 @@ IntVector numToDigits(T n, int base = 10) {
     return result;
 }
 
-template<typename T, int BASE>
+template <typename T, int BASE>
 size_t numToBuffer(T n, char* buffer) {
-    size_t len = 0;
+    const char* buffer0 = buffer;
     if (n < 0) {
         *buffer = '-';
-	++buffer;
-	++len;
+        ++buffer;
+        n = -n;
     }
     if (n != 0) {
         char* begin = buffer;
-	while (n) {
-	    T nn = n / BASE;
-	    *buffer = (n - nn*BASE) + '0';
-	    ++buffer;
-	    ++len;
-	    n = nn;
-	}
-	reverse(begin, buffer);
+        while (n) {
+            const T nn = n / BASE;
+            *buffer = (n - nn * BASE) + '0';
+            ++buffer;
+            n = nn;
+        }
+        reverse(begin, buffer);
     } else {
         *buffer = '0';
-	++buffer;
-	++len;
+        ++buffer;
     }
-    return len;
+    return buffer - buffer0;
+}
+
+template <typename T, int BASE = 10>
+string numToString(T n) {
+    thread_local char buffer[64];
+    buffer[numToBuffer<T, BASE>(n, buffer)] = 0;
+    return buffer;
 }
 
 template <typename T = int>

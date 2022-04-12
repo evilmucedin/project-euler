@@ -1,4 +1,14 @@
 cxx_test(
+  name="headerTest",
+  srcs=[
+    "headerTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)
+
+cxx_test(
   name="datetimeTest",
   srcs=[
     "datetimeTest.cpp",
