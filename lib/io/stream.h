@@ -88,13 +88,25 @@ OutputStream& operator<<(OutputStream& stream, const T& x) {
     return stream;
 }
 
-template <>
-inline OutputStream& operator<<<int>(OutputStream& stream, const int& x) {
-    thread_local char buffer[128];
-    const size_t len = numToBuffer<int, 10>(x, buffer);
-    stream.write(buffer, len);
-    return stream;
+#define OUT_INT_TEMPLATE(TYPENAME) \
+ template <> \
+ inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
+    thread_local char buffer[64]; \
+    const size_t len = numToBuffer<TYPENAME, 10>(x, buffer); \
+     stream.write(buffer, len); \
+     return stream; \
 }
+
+OUT_INT_TEMPLATE(i8)
+OUT_INT_TEMPLATE(u8)
+OUT_INT_TEMPLATE(i16)
+OUT_INT_TEMPLATE(u16)
+OUT_INT_TEMPLATE(i32)
+OUT_INT_TEMPLATE(u32)
+OUT_INT_TEMPLATE(i64)
+OUT_INT_TEMPLATE(u64)
+
+#undef OUT_INT_TEMPLATE
 
 template <>
 inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
