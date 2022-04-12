@@ -51,10 +51,21 @@ void benchmark(T& s) {
     }
 }
 
+template <typename T>
+void benchmark2(T& s) {
+    Timer t("benchmark2");
+    for (size_t i = 0; i < 10000000; ++i) {
+        s.printf("%d", rand());
+    }
+}
+
 TEST(Stream, Benchmark) {
     ofstream of("test1.bin");
     benchmark(of);
     auto sFOut = make_shared<FileOutputStream>("test2.bin");
     auto sBOut = make_shared<BufferedOutputStream>(sFOut, 1 << 16);
     benchmark(*sBOut);
+    File fOut("test3.bin", "wb");
+    fOut.setvbuf(1 << 16);
+    benchmark2(fOut);
 }

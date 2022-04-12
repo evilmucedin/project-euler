@@ -67,3 +67,11 @@ void File::close() {
 }
 
 bool File::opened() const { return f_ != nullptr; }
+
+size_t File::printf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    const auto res = fprintf(f_, fmt, args);
+    va_end(args);
+    return res;
+}
