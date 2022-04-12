@@ -1,8 +1,11 @@
 #include "stream.h"
 
-#include <unistd.h>
-
 #include <cstring>
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <lib/exception.h>
 
@@ -23,9 +26,26 @@ void StdOutputStream::write(const char* buffer, size_t toWrite) {
 
 void StdOutputStream::flush() {}
 
-FileOutputStream::FileOutputStream(const string& filename) : filename_(filename), file_(filename, "wb") {}
+FileOutputStream::FileOutputStream(const string& filename) : filename_(filename) {
+    fd_ = open(filename_.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (-1 == fd_) {
+        throw Exception("failed to open file");
+    }
+}
 
-void FileOutputStream::write(const char* buffer, size_t toWrite) { file_.write(buffer, toWrite); }
+FileOutputStream::~FileOutputStream() {
+    close(fd_);
+    fd_ = -1;
+}
+
+void FileOutputStream::write(const char* buffer, size_t toWrite) {
+    if (toWrite) {
+        const auto written = ::write(fd_, buffer, toWrite);
+        if (toWrite != written) {
+            THROW("write failed " << written << " " << toWrite << " " << errno);
+        }
+    }
+}
 
 void FileOutputStream::flush() {}
 

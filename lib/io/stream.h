@@ -41,12 +41,13 @@ class StdOutputStream : public OutputStream {
 class FileOutputStream : public OutputStream {
    public:
     FileOutputStream(const string& filename);
+    ~FileOutputStream();
     void write(const char* buffer, size_t toWrite) override;
     void flush() override;
 
    private:
     string filename_;
-    File file_;
+    int fd_;
 };
 
 class BufferedInputStream : public InputStream {
