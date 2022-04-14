@@ -38,6 +38,18 @@ class StdOutputStream : public OutputStream {
     void flush() override;
 };
 
+class FileInputStream : public InputStream {
+   public:
+    FileInputStream(const string& filename);
+    ~FileInputStream();
+
+    size_t read(char* buffer, size_t toRead) override;
+
+   private:
+    string filename_;
+    int fd_{-1};
+};
+
 class FileOutputStream : public OutputStream {
    public:
     FileOutputStream(const string& filename);

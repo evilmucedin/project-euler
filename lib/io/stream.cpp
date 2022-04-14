@@ -26,6 +26,26 @@ void StdOutputStream::write(const char* buffer, size_t toWrite) {
 
 void StdOutputStream::flush() {}
 
+FileInputStream::FileInputStream(const string& filename) : filename_(filename), fd_(-1) {
+    fd_ = open(filename_.c_str(), O_RDONLY);
+    if (-1 == fd_) {
+        throw Exception("failed to open file");
+    }
+}
+
+FileInputStream::~FileInputStream() {
+    if (-1 != fd_) {
+        close(fd_);
+        fd_ = -1;
+    }
+}
+
+size_t FileInputStream::read(char* buffer, size_t toRead) {
+    if (toRead) {
+        return ::read(fd_, buffer, toRead);
+    }
+}
+
 FileOutputStream::FileOutputStream(const string& filename) : filename_(filename) {
     fd_ = open(filename_.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (-1 == fd_) {

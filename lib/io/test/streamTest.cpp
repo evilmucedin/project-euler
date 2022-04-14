@@ -28,7 +28,8 @@ TEST(Stream, File) {
 }
 
 TEST(Stream, File1) {
-    auto sFOut = make_shared<FileOutputStream>("streamTest1.bin");
+    static const string FILENAME = "streamTest1.bin";
+    auto sFOut = make_shared<FileOutputStream>(FILENAME);
     auto sBOut = make_shared<BufferedOutputStream>(sFOut, 1 << 11);
     char buffer[1024];
     size_t slen = 0;
@@ -41,6 +42,16 @@ TEST(Stream, File1) {
         slen += len;
     }
     LOG(INFO) << OUT(slen);
+    sBOut.reset();
+    sFOut.reset();
+    auto sFIn = make_shared<FileInputStream>(FILENAME);
+    auto sBIn = make_shared<BufferedInputStream>(sFIn, 1 << 11);
+    size_t read = 0;
+    size_t readTotal = 0;
+    while ((read = sBIn->read(buffer, 1024))) {
+        readTotal += read;
+    }
+    EXPECT_EQ(readTotal, slen);
 }
 
 template <typename T>
