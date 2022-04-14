@@ -12,12 +12,15 @@ DEFINE_string(first_date, "", "First modeling date");
 DEFINE_bool(additive_sortino, false, "subtract risk");
 DEFINE_int32(iterations, 10, "nuimber of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
+DEFINE_string(input, "portfolio input", "");
 
-static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",
-                                  "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",  "VWO",  "FDHY",
-                                  "FDIS",  "ONEQ",  "VV",    "VB",    "HNDL",  "WBII",  "PCEF", "FDIV", "CEFS",
-                                  "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV", "HIPS", "CVY",
-                                  "GYLD",  "VTI",   "VEA",   "IEFA",  "AGG",   "GLD",   "XLF",  "VNQ",  "LQD", "SWPPX"};
+static const StringVector etfs = {
+    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",
+    "SPY",   "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",  "VEU",
+    "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",    "VB",    "HNDL", "WBII",
+    "PCEF",  "FDIV",  "CEFS",  "YLD",   "INKM",  "IYLD",  "FCEF", "MLTI",
+    "YYY",   "MDIV",  "HIPS",  "CVY",   "GYLD",  "VTI",   "VEA",  "IEFA",
+    "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX"};
 
 static const StringVector stocks = {
     "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
@@ -217,6 +220,25 @@ Portfolio randomPortfolio(const StringVector& tickers) {
     return result;
 }
 
+Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
+  auto df = DataFrame::loadFromCsv(filename);
+  auto colSymbol = df->getColumn("Symbol");
+  auto colValue = df->getColumn("Current Value");
+  unordered_map<string, double> symbol2value;
+  for (size_t i = 0; i < colSymbol->size(); ++i) {
+    symbol2value[colSymbol->as(i)] = colValue->as<double>(i);
+  }
+  Portfolio result(pd.tickers_.size(), 0);
+  for (size_t i = 0; i < pd.tickers_.size(); ++i) {
+    const auto toSymbol = symbol2value.find(pd.tickers_[i]);
+    if (toSymbol != symbol2value.end()) {
+      result[i] = toSymbol->second;
+    }
+  }
+  normalizeNavInplace(result);
+  return result;
+}
+
 ModelResult gradientSearch(const PriceData& pd) {
     Timer tSolve("Gradient search");
 
@@ -276,8 +298,8 @@ ModelResult gradientSearch(const PriceData& pd) {
     return bestRes;
 }
 
-void dumpPricesToCsv(const PriceData &pd, const ModelResult &model,
-                     const string &filename) {
+void dumpPricesToCsv(const PriceData& pd, const ModelResult& model,
+                     const string& filename) {
   Timer tSolve("Gen CSV");
 
   DataFrame df(cat(StringVector{"Date", "Optimal"}, pd.tickers_));
@@ -316,7 +338,6 @@ void dumpPricesToCsv(const PriceData &pd, const ModelResult &model,
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
 
-
     if (FLAGS_mode == "optimize") {
       const StringVector tickers = etfs;
       auto data = loadData(tickers);
@@ -338,6 +359,9 @@ int main(int argc, char* argv[]) {
     } else if (FLAGS_mode == "optimize1") {
       const StringVector tickers = cat(etfs, stocks);
       auto data = loadData(tickers);
+      auto p0 = loadPortfolio(data, FLAGS_input);
+      auto res = model(data, p0);
+      out(res);
     } else {
       THROW("Unknown mode '" << FLAGS_mode << "'");
     }

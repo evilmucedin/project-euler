@@ -33,7 +33,7 @@ class DataFrame {
             return result;
         }
 
-        template <typename T>
+        template <typename T = string>
         T as(size_t line) const {
             return stringCast<T>(data_[line]);
         }
@@ -44,6 +44,10 @@ class DataFrame {
                 THROW("Bad line index " << line);
             }
             data_[line] = to_string(value);
+        }
+
+        size_t size() const {
+            return data_.size();
         }
 
         string name_;
