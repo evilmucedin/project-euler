@@ -7,7 +7,7 @@
 #include <glog/logging.h>
 
 TEST(Stream, Stdout) {
-    auto stream = new StdOutputStream();
+    auto stream = make_shared<StdOutputStream>();
     stream->write("test\n", 5);
 }
 
