@@ -387,7 +387,9 @@ int main(int argc, char* argv[]) {
         out(resP0);
         dumpPricesToCsv(data, resP0, "p0.csv");
 
-        vector<pair<double, string>> results;
+        vector<pair<double, size_t>> results;
+        double bestF = -1.0;
+        ModelResult bestRes;
         for (size_t i = 0; i < data.tickers_.size(); ++i) {
             if (!FLAGS_stocks && has(stocks, data.tickers_[i])) {
                 continue;
@@ -397,12 +399,17 @@ int main(int argc, char* argv[]) {
             p[i] += DX;
             normalizeNavInplace(p);
             const auto res = model(data, p);
-            results.emplace_back(make_pair((res.f - resP0.f) / DX, data.tickers_[i]));
+            if (res.f > bestF) {
+                bestF = res.f;
+                bestRes = res;
+            }
+            results.emplace_back(make_pair((res.f - resP0.f) / DX, i));
         }
         sort(results);
         for (const auto& r: results) {
-            cout << r.first << "\t" << r.second << endl;
+            cout << r.first << "\t" << data.tickers_[r.second] << "\t" << p0[r.second] << endl;
         }
+        out(bestRes);
     } else {
         THROW("Unknown mode '" << FLAGS_mode << "'");
     }
