@@ -38,6 +38,7 @@ static const StringVector stocks = {
 struct PriceData {
     StringVector tickers_;
     vector<DoubleVector> prices_;
+    vector<DoubleVector> dividends_;
     vector<string> dates_;
 
     PriceData subPriceData(const SizeTVector& indices) {
@@ -49,6 +50,9 @@ struct PriceData {
         for (const auto& v : prices_) {
             result.prices_.emplace_back(subVector(v, indices));
         }
+        for (const auto& v : dividends_) {
+            result.dividends_.emplace_back(subVector(v, indices));
+        }
         return result;
     }
 };
@@ -57,7 +61,8 @@ PriceData loadData(const StringVector& tickers) {
     Timer tSolve("Load data");
 
     using Date2Price = unordered_map<string, double>;
-    vector<Date2Price> mappedData;
+    vector<Date2Price> mappedPricesData;
+    vector<Date2Price> mappedDividendsData;
     set<string> dates;
     {
         Timer tFileRead("Read files");
@@ -66,7 +71,9 @@ PriceData loadData(const StringVector& tickers) {
             auto df = DataFrame::loadFromCsv("marketData/" + ticker + ".csv");
             auto date = df->getColumn("Date");
             auto price = df->getColumn("Adj Close");
+            auto dividends = df->getColumn("Dividends");
             Date2Price tickerPrices;
+            Date2Price tickerDividends;
             for (size_t i = 0; i < df->numLines(); ++i) {
                 if (i >= date->size()) {
                     THROW("No date in '" << ticker << "' index: " << i);
@@ -77,36 +84,47 @@ PriceData loadData(const StringVector& tickers) {
                         THROW("No price in '" << ticker << "' index: " << i);
                     }
                     tickerPrices[iDate] = price->as<double>(i);
+                    tickerDividends[iDate] = dividends->as<double>(i);
                     dates.emplace(iDate);
                 }
             }
-            mappedData.emplace_back(std::move(tickerPrices));
+            mappedPricesData.emplace_back(std::move(tickerPrices));
+            mappedDividendsData.emplace_back(std::move(tickerDividends));
         }
     }
 
     PriceData result;
-    result.tickers_ = tickers;
+    result.tickers_ = cat(StringVector{"CORE**"}, tickers);
     result.prices_.resize(dates.size());
+    result.dividends_.resize(dates.size());
     for (auto& col : result.prices_) {
-        col.resize(tickers.size());
+        col.resize(result.tickers_.size());
+    }
+    for (auto& col : result.dividends_) {
+        col.resize(result.dividends_.size());
     }
     size_t iDate = 0;
     for (const auto& date : dates) {
-        for (size_t i = 0; i < tickers.size(); ++i) {
-            const auto toDate = mappedData[i].find(date);
-            if (toDate != mappedData[i].end()) {
+        result.prices_[iDate][0] = 1.0;
+        for (size_t i = 1; i < result.tickers_.size(); ++i) {
+            const auto toDate = mappedPricesData[i - 1].find(date);
+            if (toDate != mappedPricesData[i - 1].end()) {
                 result.prices_[iDate][i] = toDate->second;
             } else {
                 if (iDate) {
                     result.prices_[iDate][i] = result.prices_[iDate - 1][i];
                 }
             }
+            const auto toDateD = mappedDividendsData[i - 1].find(date);
+            if (toDateD != mappedDividendsData[i - 1].end()) {
+                result.dividends_[iDate][i] = toDateD->second;
+            }
         }
         ++iDate;
     }
 
     for (ssize_t i = dates.size() - 2; i >= 0; --i) {
-        for (size_t j = 0; j < tickers.size(); ++j) {
+        for (size_t j = 0; j < result.tickers_.size(); ++j) {
             if (!result.prices_[i][j]) {
                 result.prices_[i][j] = result.prices_[i + 1][j];
             }
@@ -144,6 +162,7 @@ struct ModelResult {
     double sortino{};
     double additiveSortino{};
     double f{-1e10};
+    double dividends{};
 };
 
 double sharpe(const ModelResult& res) {
@@ -164,8 +183,12 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 
     result.dailyPrices.reserve(pd.prices_.size());
     result.dailyReturns.reserve(pd.prices_.size());
+    double dividendsSoFar = 0;
     for (size_t i = 0; i < pd.prices_.size(); ++i) {
-        double nav = 0.0;
+        for (size_t j = 1; j < pd.tickers_.size(); ++j) {
+            dividendsSoFar += pd.dividends_[i][j] * result.originalShares[j];
+        }
+        double nav = dividendsSoFar;
         for (size_t j = 0; j < pd.tickers_.size(); ++j) {
             nav += pd.prices_[i][j] * result.originalShares[j];
         }
@@ -200,6 +223,8 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         result.finalNav[i] = result.originalShares[i] * pd.prices_.back()[i];
     }
+    result.dividends = dividendsSoFar;
+    result.finalNav[0] += dividendsSoFar;
 
     result.sharpe = sharpe(result);
     result.dailySharpe = result.dailyReturnsStat.mean() / result.dailyReturnsStat.stddev();
@@ -216,9 +241,12 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
-    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
-         << ", sortino: " << res.sortino << ", return mean: " << res.dailyReturnsStat.mean()
-         << ", neg return stddev: " << res.dailyNegReturnsStat.stddev() << ", f: " << res.f << endl;
+    cout << res.returnsStat << ", initial NAV: " << before
+         << ", final NAV: " << after << ", sharpe: " << res.sharpe
+         << ", sortino: " << res.sortino
+         << ", return mean: " << res.dailyReturnsStat.mean()
+         << ", neg return stddev: " << res.dailyNegReturnsStat.stddev()
+         << ", dividends: " << res.dividends << ", f: " << res.f << endl;
 }
 
 void testModeling(const PriceData& pd) {
@@ -371,7 +399,7 @@ int main(int argc, char* argv[]) {
         SizeTVector nonZeroIndices;
         auto nonZeroBest = best;
         size_t index = 0;
-        for (size_t i = 0; i < tickers.size(); ++i) {
+        for (size_t i = 0; i < data.tickers_.size(); ++i) {
             if (best.originalShares[i]) {
                 nonZeroBest.originalShares[index++] = best.originalShares[i];
                 nonZeroIndices.emplace_back(i);

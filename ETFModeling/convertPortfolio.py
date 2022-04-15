@@ -12,5 +12,5 @@ pdData['Current Value'] = pdData['Current Value'].div(total)
 print(pdData)
 pdExport = pdData[['Symbol', 'Current Value']]
 print(pdExport)
-pdExport = pdExport[pdExport['Symbol'] != 'CORE**']
+# pdExport = pdExport[pdExport['Symbol'] != 'CORE**']
 pdExport.to_csv('portfolio.csv', index=False)
