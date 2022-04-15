@@ -376,6 +376,19 @@ int main(int argc, char* argv[]) {
         const auto resP0 = model(data, p0);
         out(resP0);
         dumpPricesToCsv(data, resP0, "p0.csv");
+
+        vector<pair<double, string>> results;
+        for (size_t i = 0; i < data.tickers_.size(); ++i) {
+            auto p = p0;
+            p[i] += 0.0001;
+            normalizeNavInplace(p);
+            const auto res = model(data, p);
+            results.emplace_back(make_pair(res.f - resP0.f, data.tickers_[i]));
+        }
+        sort(results);
+        for (const auto& r: results) {
+            cout << r.first << "\t" << r.second << endl;
+        }
     } else {
         THROW("Unknown mode '" << FLAGS_mode << "'");
     }
