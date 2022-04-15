@@ -20,7 +20,6 @@ struct Stat {
     void decay(T alpha) {
         sum_ *= alpha;
         sum2_ *= alpha;
-        sum2_ *= alpha;
         count_ *= alpha;
     }
 
