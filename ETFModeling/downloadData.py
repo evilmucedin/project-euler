@@ -9,14 +9,14 @@ import yfinance
 # print(help(yfinance))
 
 tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", "VUG", "MSFT", "T", "NCLH", "OGZPY",
-           "SPY", "IVV", "VOO", "QQQ", "AMZN", "FB", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB", "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD", "INKM", "IYLD", "FCEF", "MLTI", "YYY", "MDIV", "HIPS", "CVY", "GYLD", "VTI", "VEA", "IEFA", "AGG", "GLD", "XLF", "VNQ", "LQD", "SWPPX", "MGK", "GME"
+           "SPY", "IVV", "VOO", "QQQ", "AMZN", "FB", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB", "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD", "INKM", "IYLD", "FCEF", "MLTI", "YYY", "MDIV", "HIPS", "CVY", "GYLD", "VTI", "VEA", "IEFA", "AGG", "GLD", "XLF", "VNQ", "LQD", "SWPPX", "MGK", "GME", "UNG", "OIH", "XME", "PFIX", "VXX", "EWZ", "ILF"
            # "59101K877", "09259A395"
            ]
 assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
     data = yfinance.download(ticker, '2000-08-01', '2022-04-12')
-    data.to_csv(f"{ticker}.csv")
+    data.to_csv(f"marketData/{ticker}.csv")
 
 # Import the plotting library
 # %matplotlib inline
