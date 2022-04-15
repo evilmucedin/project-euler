@@ -14,6 +14,7 @@ DEFINE_bool(additive_sortino, false, "subtract risk");
 DEFINE_int32(iterations, 10, "nuimber of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
 DEFINE_string(input, "portfolio input", "");
+DEFINE_bool(stocks, false, "add stocks");
 
 static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",
                                   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS", "ONEQ",
@@ -183,7 +184,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
-    result.additiveSortino = result.dailyReturnsStat.mean() - 0.05 * result.dailyNegReturnsStat.stddev();
+    result.additiveSortino = result.dailyReturnsStat.mean() - 0.005 * result.dailyNegReturnsStat.stddev();
 
     result.finalNav.resize(pd.tickers_.size());
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
@@ -206,7 +207,8 @@ void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
     cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
-         << ", sortino: " << res.sortino << ", f: " << res.f << endl;
+         << ", sortino: " << res.sortino << ", return mean: " << res.dailyReturnsStat.mean()
+         << ", neg return stddev: " << res.dailyNegReturnsStat.stddev() << ", f: " << res.f << endl;
 }
 
 void testModeling(const PriceData& pd) {
@@ -344,7 +346,13 @@ int main(int argc, char* argv[]) {
     standardInit(argc, argv);
 
     if (FLAGS_mode == "optimize") {
-        const StringVector tickers = etfs;
+        StringVector tickers;
+        if (FLAGS_stocks) {
+            tickers = cat(etfs, stocks);
+        } else {
+            tickers = etfs;
+        }
+
         auto data = loadData(tickers);
         // testModeling(data);
         auto best = gradientSearch(data);
