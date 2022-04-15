@@ -24,7 +24,7 @@ static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "
                                   "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK"};
 
 static const StringVector stocks = {
-    "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
+    "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA", "GME",
 };
 
 // static const StringVector tickers = etfs;
@@ -110,6 +110,7 @@ PriceData loadData(const StringVector& tickers) {
                 result.prices_[i][j] = result.prices_[i + 1][j];
             }
             ALWAYS_ASSERT(isfinite(result.prices_[i][j]));
+            ASSERTNE(result.prices_[i][j], 0.0);
         }
     }
 
