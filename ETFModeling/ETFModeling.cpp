@@ -10,7 +10,7 @@
 #include "lib/timer.h"
 
 DEFINE_string(first_date, "", "First modeling date");
-DEFINE_bool(additive_sortino, false, "subtract risk");
+DEFINE_bool(additive_sortino, true, "subtract risk");
 DEFINE_int32(iterations, 10, "nuimber of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
 DEFINE_string(input, "portfolio input", "");
@@ -379,6 +379,9 @@ int main(int argc, char* argv[]) {
 
         vector<pair<double, string>> results;
         for (size_t i = 0; i < data.tickers_.size(); ++i) {
+            if (!FLAGS_stocks && has(stocks, data.tickers_[i])) {
+                continue;
+            }
             auto p = p0;
             p[i] += 0.0001;
             normalizeNavInplace(p);
