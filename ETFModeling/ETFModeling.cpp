@@ -383,10 +383,11 @@ int main(int argc, char* argv[]) {
                 continue;
             }
             auto p = p0;
-            p[i] += 0.0001;
+            static const double DX = 0.0001;
+            p[i] += DX;
             normalizeNavInplace(p);
             const auto res = model(data, p);
-            results.emplace_back(make_pair(res.f - resP0.f, data.tickers_[i]));
+            results.emplace_back(make_pair((res.f - resP0.f) / DX, data.tickers_[i]));
         }
         sort(results);
         for (const auto& r: results) {
