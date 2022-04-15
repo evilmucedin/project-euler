@@ -22,7 +22,7 @@ static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "
                                   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS", "ONEQ",
                                   "VV",    "VB",    "HNDL",  "WBII",  "PCEF",  "FDIV",  "CEFS", "YLD",  "INKM", "IYLD",
                                   "FCEF",  "MLTI",  "YYY",   "MDIV",  "HIPS",  "CVY",   "GYLD", "VTI",  "VEA",  "IEFA",
-                                  "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK", "UNG", "OIH", "XME", "PFIX", "VXX", "EWZ", "ILF", };
+                                  "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK", "UNG", "OIH", "XME", "PFIX", "VXX", "EWZ", "ILF", "SCHE"};
 
 static const StringVector stocks = {
     "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA", "GME",
