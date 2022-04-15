@@ -16,6 +16,7 @@ DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
 DEFINE_string(input, "portfolio input", "");
 DEFINE_bool(stocks, false, "add stocks");
 DEFINE_double(risk_weight, 0.005, "risk weight");
+DEFINE_bool(decay, false, "decay");
 
 static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",
                                   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS", "ONEQ",
@@ -174,6 +175,13 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     for (size_t i = 1; i < result.dailyPrices.size(); ++i) {
+        if (FLAGS_decay) {
+            static constexpr double DECAY_SPEED = 0.999;
+            result.returnsStat.decay(DECAY_SPEED);
+            result.dailyReturnsStat.decay(DECAY_SPEED);
+            result.dailyNegReturnsStat.decay(DECAY_SPEED);
+        }
+
         const double dailyRet = log(result.dailyPrices[i] / result.dailyPrices[i - 1]);
         ALWAYS_ASSERT(isfinite(dailyRet));
         result.dailyReturns.emplace_back(dailyRet);

@@ -17,10 +17,17 @@ struct Stat {
 
     size_t count() const { return count_; };
 
+    void decay(T alpha) {
+        sum_ *= alpha;
+        sum2_ *= alpha;
+        sum2_ *= alpha;
+        count_ *= alpha;
+    }
+
    private:
     T sum_{};
     T sum2_{};
-    size_t count_{};
+    T count_{};
 };
 
 template <typename T>
