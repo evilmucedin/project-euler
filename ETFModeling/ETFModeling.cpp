@@ -351,11 +351,14 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model, const string
     DataFrame df(cat(StringVector{"Date", "Optimal"}, pd.tickers_));
 
     vector<DoubleVector> prices(pd.dates_.size(), DoubleVector(1 + pd.tickers_.size()));
+    double dividends = 0;
     for (size_t i = 0; i < pd.dates_.size(); ++i) {
         for (size_t j = 0; j < pd.tickers_.size(); ++j) {
             ALWAYS_ASSERT(isfinite(model.originalShares[j]));
             prices[i][0] += model.originalShares[j] * pd.prices_[i][j];
+            dividends += model.originalShares[j] * pd.dividends_[i][j];
         }
+        prices[i][0] += dividends;
     }
     for (size_t i = 0; i < pd.dates_.size(); ++i) {
         for (size_t j = 0; j < pd.tickers_.size(); ++j) {
