@@ -15,6 +15,7 @@ DEFINE_int32(iterations, 10, "nuimber of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
 DEFINE_string(input, "portfolio input", "");
 DEFINE_bool(stocks, false, "add stocks");
+DEFINE_double(risk_weight, 0.005, "risk weight");
 
 static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",
                                   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS", "ONEQ",
@@ -184,7 +185,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
-    result.additiveSortino = result.dailyReturnsStat.mean() - 0.005 * result.dailyNegReturnsStat.stddev();
+    result.additiveSortino = result.dailyReturnsStat.mean() - FLAGS_risk_weight * result.dailyNegReturnsStat.stddev();
 
     result.finalNav.resize(pd.tickers_.size());
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
