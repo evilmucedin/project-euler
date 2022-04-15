@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+pushd `pwd`
+cd "$(dirname "$0")"
 . ./cCommon.sh
 
 measure_time=0
@@ -19,9 +21,14 @@ done
 
 shift $((${OPTIND} - 1))
 
-${buck_bin} build @mode/sandbg euler$1/...
+DIR=$(eulerDir $1)
+FNAME=$(eulerFilename $1)
+${buck_bin} build @mode/sandbg ${DIR}/...
 res=$?
 args="${@:2}"
+exe=$(realpath buck-out/gen/${DIR}/${FNAME})
+
+popd
 if [ 0 -eq ${res} ]; then
-    LSAN_OPTIONS="verbosity=1:log_threads=1" gdb --args buck-out/gen/euler$1/$1 $args
+    LSAN_OPTIONS="verbosity=1:log_threads=1" gdb --args ${exe} $args
 fi

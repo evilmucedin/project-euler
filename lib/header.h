@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cmath>
-#include <cassert>
-
 #include <algorithm>
+#include <cassert>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -16,6 +15,10 @@
 
 using namespace std;
 
+using u8 = uint8_t;
+using i8 = int8_t;
+using u16 = uint16_t;
+using i16 = int16_t;
 using u32 = uint32_t;
 using i32 = int32_t;
 using u64 = uint64_t;
@@ -103,17 +106,17 @@ ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
     return o;
 }
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 ostream& operator<<(ostream& o, const std::pair<T1, T2>& p) {
     o << "(" << p.first << ", " << p.second << ")";
     return o;
 }
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 ostream& operator<<(ostream& o, const std::map<T1, T2>& m) {
     o << "{";
     bool first = true;
-    for (const auto& p: m) {
+    for (const auto& p : m) {
         if (!first) {
             o << ", ";
         }
@@ -124,11 +127,11 @@ ostream& operator<<(ostream& o, const std::map<T1, T2>& m) {
     return o;
 }
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 ostream& operator<<(ostream& o, const std::unordered_map<T1, T2>& m) {
     o << "{";
     bool first = true;
-    for (const auto& p: m) {
+    for (const auto& p : m) {
         if (!first) {
             o << ", ";
         }
@@ -139,7 +142,7 @@ ostream& operator<<(ostream& o, const std::unordered_map<T1, T2>& m) {
     return o;
 }
 
-template<typename T>
+template <typename T>
 typename T::value_type sum(const T& x) {
     typename T::value_type result = 0;
     for (auto v : x) {
@@ -148,7 +151,7 @@ typename T::value_type sum(const T& x) {
     return result;
 }
 
-template<typename T>
+template <typename T>
 typename T::value_type product(const T& x) {
     typename T::value_type result = 1;
     for (auto v : x) {
@@ -157,7 +160,7 @@ typename T::value_type product(const T& x) {
     return result;
 }
 
-template<typename T>
+template <typename T>
 typename T::value_type average(const T& x) {
 #ifndef NDEBUG
     assert(!x.empty());
@@ -165,7 +168,7 @@ typename T::value_type average(const T& x) {
     return sum(x) / x.size();
 }
 
-template<typename T>
+template <typename T>
 typename T::value_type minV(const T& x) {
 #ifndef NDEBUG
     assert(!x.empty());
@@ -180,7 +183,7 @@ typename T::value_type minV(const T& x) {
     return res;
 }
 
-template<typename T>
+template <typename T>
 typename T::value_type maxV(const T& x) {
 #ifndef NDEBUG
     assert(!x.empty());
@@ -195,7 +198,7 @@ typename T::value_type maxV(const T& x) {
     return res;
 }
 
-template<typename T>
+template <typename T>
 vector<T> operator+(const vector<T>& a, const vector<T>& b) {
 #ifndef NDEBUG
     assert(a.size() == b.size());
@@ -207,7 +210,7 @@ vector<T> operator+(const vector<T>& a, const vector<T>& b) {
     return result;
 }
 
-template<typename T>
+template <typename T>
 vector<T> operator-(const vector<T>& a, const vector<T>& b) {
 #ifndef NDEBUG
     assert(a.size() == b.size());
@@ -226,12 +229,12 @@ vector<T> cat(const vector<T>& a, const vector<T>& b) {
     return result;
 }
 
-template<typename T>
+template <typename T>
 T sqr(const T& x) {
-    return x*x;
+    return x * x;
 }
 
-template<typename T>
+template <typename T>
 T clamp(T x, T scale) {
     if (x < -scale) {
         return -scale;
@@ -241,10 +244,10 @@ T clamp(T x, T scale) {
     return x;
 }
 
-template<typename T>
+template <typename T>
 double length(const vector<T>& a) {
     double l2 = 0.0;
-    for (const auto& x: a) {
+    for (const auto& x : a) {
         l2 += sqr(x);
     }
     return sqrt(l2);
@@ -341,6 +344,37 @@ IntVector numToDigits(T n, int base = 10) {
     return result;
 }
 
+template <typename T, int BASE>
+size_t numToBuffer(T n, char* buffer) {
+    const char* buffer0 = buffer;
+    if (n < 0) {
+        *buffer = '-';
+        ++buffer;
+        n = -n;
+    }
+    if (n != 0) {
+        char* begin = buffer;
+        while (n) {
+            const T nn = n / BASE;
+            *buffer = (n - nn * BASE) + '0';
+            ++buffer;
+            n = nn;
+        }
+        reverse(begin, buffer);
+    } else {
+        *buffer = '0';
+        ++buffer;
+    }
+    return buffer - buffer0;
+}
+
+template <typename T, int BASE = 10>
+string numToString(T n) {
+    thread_local char buffer[64];
+    buffer[numToBuffer<T, BASE>(n, buffer)] = 0;
+    return buffer;
+}
+
 template <typename T = int>
 T digitsToNum(const IntVector& digits, int base = 10) {
     T result = 0;
@@ -411,10 +445,10 @@ string homeDir();
 #define ALWAYS_ASSERT(...) __VA_ARGS__
 #endif
 
-#define ASSERT          assert
-#define ASSERTEQ(x, y)  assert((x) == (y))
+#define ASSERT assert
+#define ASSERTEQ(x, y) assert((x) == (y))
 #define ASSERTNEQ(x, y) assert((x) != (y))
-#define ASSERTLT(x, y)  assert((x) < (y))
+#define ASSERTLT(x, y) assert((x) < (y))
 
 #define FOR(i, a, b) for (int i = (a); i < (b); ++i)
 #define REP(i, n) FOR(i, 0, n)

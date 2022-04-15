@@ -1,6 +1,7 @@
 #include <set>
 
 #include "gflags/gflags.h"
+#include "glog/logging.h"
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/ml/dataframe.h"
@@ -11,19 +12,21 @@
 DEFINE_string(first_date, "", "First modeling date");
 DEFINE_bool(additive_sortino, false, "subtract risk");
 DEFINE_int32(iterations, 10, "nuimber of iterations");
+DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
+DEFINE_string(input, "portfolio input", "");
+DEFINE_bool(stocks, false, "add stocks");
 
-static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",
-                                  "IVV",   "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",  "VWO",  "FDHY",
-                                  "FDIS",  "ONEQ",  "VV",    "VB",    "HNDL",  "WBII",  "PCEF", "FDIV", "CEFS",
-                                  "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV", "HIPS", "CVY",
-                                  "GYLD",  "VTI",   "VEA",   "IEFA",  "AGG",   "GLD",   "XLF",  "VNQ",  "LQD", "SWPPX"};
+static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",
+                                  "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS", "ONEQ",
+                                  "VV",    "VB",    "HNDL",  "WBII",  "PCEF",  "FDIV",  "CEFS", "YLD",  "INKM", "IYLD",
+                                  "FCEF",  "MLTI",  "YYY",   "MDIV",  "HIPS",  "CVY",   "GYLD", "VTI",  "VEA",  "IEFA",
+                                  "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX"};
 
 static const StringVector stocks = {
     "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
 };
 
-static const StringVector tickers = etfs;
-// static const StringVector tickers = cat(etfs, stocks);
+// static const StringVector tickers = etfs;
 
 /*
  */
@@ -31,12 +34,16 @@ static const StringVector tickers = etfs;
 // static const StringVector tickers = {"TSLA"};
 
 struct PriceData {
+    StringVector tickers_;
     vector<DoubleVector> prices_;
     vector<string> dates_;
 
     PriceData subPriceData(const SizeTVector& indices) {
         PriceData result;
         result.dates_ = dates_;
+        for (auto i : indices) {
+            result.tickers_.emplace_back(tickers_[i]);
+        }
         for (const auto& v : prices_) {
             result.prices_.emplace_back(subVector(v, indices));
         }
@@ -44,7 +51,7 @@ struct PriceData {
     }
 };
 
-PriceData loadData() {
+PriceData loadData(const StringVector& tickers) {
     Timer tSolve("Load data");
 
     using Date2Price = unordered_map<string, double>;
@@ -53,13 +60,20 @@ PriceData loadData() {
     {
         Timer tFileRead("Read files");
         for (const auto& ticker : tickers) {
+            DLOG(INFO) << "Ticker: " << ticker;
             auto df = DataFrame::loadFromCsv(ticker + ".csv");
             auto date = df->getColumn("Date");
             auto price = df->getColumn("Adj Close");
             Date2Price tickerPrices;
             for (size_t i = 0; i < df->numLines(); ++i) {
+                if (i >= date->size()) {
+                    THROW("No date in '" << ticker << "' index: " << i);
+                }
                 const auto iDate = date->as<string>(i);
                 if (FLAGS_first_date.empty() || (iDate >= FLAGS_first_date)) {
+                    if (i >= price->size()) {
+                        THROW("No price in '" << ticker << "' index: " << i);
+                    }
                     tickerPrices[iDate] = price->as<double>(i);
                     dates.emplace(iDate);
                 }
@@ -69,6 +83,7 @@ PriceData loadData() {
     }
 
     PriceData result;
+    result.tickers_ = tickers;
     result.prices_.resize(dates.size());
     for (auto& col : result.prices_) {
         col.resize(tickers.size());
@@ -134,10 +149,11 @@ double sharpe(const ModelResult& res) {
 }
 
 ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
+    ASSERTEQ(pd.tickers_.size(), originalNav.size());
     ModelResult result;
     result.originalNav = originalNav;
-    result.originalShares.resize(tickers.size());
-    for (size_t i = 0; i < tickers.size(); ++i) {
+    result.originalShares.resize(pd.tickers_.size());
+    for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
         ALWAYS_ASSERT(isfinite(result.originalShares[i]));
     }
@@ -147,7 +163,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     result.dailyReturns.reserve(pd.prices_.size());
     for (size_t i = 0; i < pd.prices_.size(); ++i) {
         double nav = 0.0;
-        for (size_t j = 0; j < tickers.size(); ++j) {
+        for (size_t j = 0; j < pd.tickers_.size(); ++j) {
             nav += pd.prices_[i][j] * result.originalShares[j];
         }
         result.dailyPrices.emplace_back(nav);
@@ -168,10 +184,10 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
 
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
-    result.additiveSortino = result.dailyReturnsStat.mean() - 0.05 * result.dailyNegReturnsStat.stddev();
+    result.additiveSortino = result.dailyReturnsStat.mean() - 0.005 * result.dailyNegReturnsStat.stddev();
 
-    result.finalNav.resize(tickers.size());
-    for (size_t i = 0; i < tickers.size(); ++i) {
+    result.finalNav.resize(pd.tickers_.size());
+    for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         result.finalNav[i] = result.originalShares[i] * pd.prices_.back()[i];
     }
 
@@ -191,22 +207,42 @@ void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
     cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
-         << ", sortino: " << res.sortino << ", f: " << res.f << endl;
+         << ", sortino: " << res.sortino << ", return mean: " << res.dailyReturnsStat.mean()
+         << ", neg return stddev: " << res.dailyNegReturnsStat.stddev() << ", f: " << res.f << endl;
 }
 
 void testModeling(const PriceData& pd) {
     cout << "Init prices: " << pd.prices_.front() << endl;
     cout << "Final prices: " << pd.prices_.back() << endl;
-    Portfolio p(tickers.size(), 1);
+    Portfolio p(pd.tickers_.size(), 1);
     normalizeNavInplace(p);
     auto res = model(pd, p);
     out(res);
 }
 
-Portfolio randomPortfolio() {
+Portfolio randomPortfolio(const StringVector& tickers) {
     Portfolio result(tickers.size());
     for (auto& x : result) {
         x = rand();
+    }
+    normalizeNavInplace(result);
+    return result;
+}
+
+Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
+    auto df = DataFrame::loadFromCsv(filename);
+    auto colSymbol = df->getColumn("Symbol");
+    auto colValue = df->getColumn("Current Value");
+    unordered_map<string, double> symbol2value;
+    for (size_t i = 0; i < colSymbol->size(); ++i) {
+        symbol2value.emplace(colSymbol->as(i), colValue->as<double>(i));
+    }
+    Portfolio result(pd.tickers_.size(), 0);
+    for (size_t i = 0; i < pd.tickers_.size(); ++i) {
+        const auto toSymbol = symbol2value.find(pd.tickers_[i]);
+        if (toSymbol != symbol2value.end()) {
+            result[i] = toSymbol->second;
+        }
     }
     normalizeNavInplace(result);
     return result;
@@ -216,7 +252,7 @@ ModelResult gradientSearch(const PriceData& pd) {
     Timer tSolve("Gradient search");
 
     ModelResult bestRes;
-    bestRes.originalNav.resize(tickers.size(), 1);
+    bestRes.originalNav.resize(pd.tickers_.size(), 1);
     normalizeNavInplace(bestRes.originalNav);
 
     auto eval = [&](Portfolio& c) {
@@ -231,7 +267,7 @@ ModelResult gradientSearch(const PriceData& pd) {
 
     for (size_t k = 0; k < FLAGS_iterations; ++k) {
         ModelResult bestRes1;
-        bestRes1.originalNav = randomPortfolio();
+        bestRes1.originalNav = randomPortfolio(pd.tickers_);
 
         auto eval1 = [&](Portfolio& c) {
             normalizeNavInplace(c);
@@ -243,7 +279,7 @@ ModelResult gradientSearch(const PriceData& pd) {
 
         for (size_t i = 0; i < 200; ++i) {
             double scale = (i & 1) ? 0.005 : 0.05;
-            for (size_t j = 0; j < tickers.size(); ++j) {
+            for (size_t j = 0; j < pd.tickers_.size(); ++j) {
                 Portfolio c = bestRes1.originalNav;
                 c[j] *= 1.0 - scale;
                 eval1(c);
@@ -257,35 +293,34 @@ ModelResult gradientSearch(const PriceData& pd) {
         eval(bestRes1.originalNav);
     }
 
-    for (size_t j = 0; j < tickers.size(); ++j) {
+    for (size_t j = 0; j < pd.tickers_.size(); ++j) {
         auto c = bestRes.originalNav;
         c[j] = 0;
         eval(c);
     }
 
-    for (size_t i = 0; i < tickers.size(); ++i) {
-        cout << tickers[i] << " " << bestRes.originalNav[i] << " " << bestRes.finalNav[i] << endl;
+    for (size_t i = 0; i < pd.tickers_.size(); ++i) {
+        cout << pd.tickers_[i] << " " << bestRes.originalNav[i] << " " << bestRes.finalNav[i] << endl;
     }
     out(bestRes);
 
     return bestRes;
 }
 
-void dumpPricesToCsv(const PriceData& pd, const ModelResult& model, const StringVector& tickers,
-                     const string& filename) {
+void dumpPricesToCsv(const PriceData& pd, const ModelResult& model, const string& filename) {
     Timer tSolve("Gen CSV");
 
-    DataFrame df(cat(StringVector{"Date", "Optimal"}, tickers));
+    DataFrame df(cat(StringVector{"Date", "Optimal"}, pd.tickers_));
 
-    vector<DoubleVector> prices(pd.dates_.size(), DoubleVector(1 + tickers.size()));
+    vector<DoubleVector> prices(pd.dates_.size(), DoubleVector(1 + pd.tickers_.size()));
     for (size_t i = 0; i < pd.dates_.size(); ++i) {
-        for (size_t j = 0; j < tickers.size(); ++j) {
+        for (size_t j = 0; j < pd.tickers_.size(); ++j) {
             ALWAYS_ASSERT(isfinite(model.originalShares[j]));
             prices[i][0] += model.originalShares[j] * pd.prices_[i][j];
         }
     }
     for (size_t i = 0; i < pd.dates_.size(); ++i) {
-        for (size_t j = 0; j < tickers.size(); ++j) {
+        for (size_t j = 0; j < pd.tickers_.size(); ++j) {
             prices[i][j + 1] = pd.prices_[i][j];
         }
     }
@@ -310,23 +345,53 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model, const String
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
 
-    auto data = loadData();
-    // testModeling(data);
-    auto best = gradientSearch(data);
-    dumpPricesToCsv(data, best, tickers, "optimalAll.csv");
-
-    StringVector nonZeroTickers;
-    SizeTVector nonZeroIndices;
-    auto nonZeroBest = best;
-    size_t index = 0;
-    for (size_t i = 0; i < tickers.size(); ++i) {
-        if (best.originalShares[i]) {
-            nonZeroBest.originalShares[index++] = best.originalShares[i];
-            nonZeroTickers.emplace_back(tickers[i]);
-            nonZeroIndices.emplace_back(i);
+    if (FLAGS_mode == "optimize") {
+        StringVector tickers;
+        if (FLAGS_stocks) {
+            tickers = cat(etfs, stocks);
+        } else {
+            tickers = etfs;
         }
+
+        auto data = loadData(tickers);
+        // testModeling(data);
+        auto best = gradientSearch(data);
+        dumpPricesToCsv(data, best, "optimalAll.csv");
+
+        SizeTVector nonZeroIndices;
+        auto nonZeroBest = best;
+        size_t index = 0;
+        for (size_t i = 0; i < tickers.size(); ++i) {
+            if (best.originalShares[i]) {
+                nonZeroBest.originalShares[index++] = best.originalShares[i];
+                nonZeroIndices.emplace_back(i);
+            }
+        }
+        dumpPricesToCsv(data.subPriceData(nonZeroIndices), nonZeroBest, "optimalNZ.csv");
+    } else if (FLAGS_mode == "optimize1") {
+        const StringVector tickers = cat(etfs, stocks);
+        const auto data = loadData(tickers);
+        const auto p0 = loadPortfolio(data, FLAGS_input);
+        LOG(INFO) << OUT(p0);
+        const auto resP0 = model(data, p0);
+        out(resP0);
+        dumpPricesToCsv(data, resP0, "p0.csv");
+
+        vector<pair<double, string>> results;
+        for (size_t i = 0; i < data.tickers_.size(); ++i) {
+            auto p = p0;
+            p[i] += 0.0001;
+            normalizeNavInplace(p);
+            const auto res = model(data, p);
+            results.emplace_back(make_pair(res.f - resP0.f, data.tickers_[i]));
+        }
+        sort(results);
+        for (const auto& r: results) {
+            cout << r.first << "\t" << r.second << endl;
+        }
+    } else {
+        THROW("Unknown mode '" << FLAGS_mode << "'");
     }
-    dumpPricesToCsv(data.subPriceData(nonZeroIndices), nonZeroBest, nonZeroTickers, "optimalNZ.csv");
 
     return 0;
 }

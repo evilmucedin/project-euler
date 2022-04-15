@@ -42,6 +42,8 @@ class File : NonCopyable {
     void close();
     bool opened() const;
 
+    size_t printf(const char* fmt, ...);
+
    private:
     string filename_;
     string mode_;

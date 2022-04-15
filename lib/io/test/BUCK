@@ -17,10 +17,11 @@ cxx_test(
     "streamTest.cpp",
   ],
   deps=[
-    "//lib:header",
-    "//lib:random",
-    "//lib/io:stream",
     "//glog:glog",
+    "//lib:header",
+    "//lib/io:stream",
+    "//lib:random",
+    "//lib:timer",
   ],
 )
 

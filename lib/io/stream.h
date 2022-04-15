@@ -19,7 +19,9 @@ class OutputStream {
    public:
     virtual ~OutputStream();
 
-    virtual size_t write(const char* buffer, size_t toWrite) = 0;
+    virtual void write(const string& s);
+    virtual void write(char ch);
+    virtual void write(const char* buffer, size_t toWrite) = 0;
     virtual void flush() = 0;
 };
 
@@ -32,19 +34,32 @@ class StdInputStream : public InputStream {
 
 class StdOutputStream : public OutputStream {
    public:
-    size_t write(const char* buffer, size_t toWrite) override;
+    void write(const char* buffer, size_t toWrite) override;
     void flush() override;
+};
+
+class FileInputStream : public InputStream {
+   public:
+    FileInputStream(const string& filename);
+    ~FileInputStream();
+
+    size_t read(char* buffer, size_t toRead) override;
+
+   private:
+    string filename_;
+    int fd_{-1};
 };
 
 class FileOutputStream : public OutputStream {
    public:
     FileOutputStream(const string& filename);
-    size_t write(const char* buffer, size_t toWrite) override;
+    ~FileOutputStream();
+    void write(const char* buffer, size_t toWrite) override;
     void flush() override;
 
    private:
     string filename_;
-    File file_;
+    int fd_{-1};
 };
 
 class BufferedInputStream : public InputStream {
@@ -70,7 +85,7 @@ class BufferedOutputStream : public OutputStream {
     BufferedOutputStream(POutputStream nested, size_t bufferSize = DEFAULT_BUFFER_SIZE);
     ~BufferedOutputStream();
 
-    size_t write(const char* buffer, size_t toWrite) override;
+    void write(const char* buffer, size_t toWrite) override;
     void flush() override;
 
    private:
@@ -79,3 +94,35 @@ class BufferedOutputStream : public OutputStream {
     unique_ptr<char[]> buffer_;
     size_t bufferPos_;
 };
+
+template <typename T>
+OutputStream& operator<<(OutputStream& stream, const T& x) {
+    stream.write(to_string(x));
+    return stream;
+}
+
+#define OUT_INT_TEMPLATE(TYPENAME) \
+ template <> \
+ inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
+    thread_local char buffer[64]; \
+    const size_t len = numToBuffer<TYPENAME, 10>(x, buffer); \
+     stream.write(buffer, len); \
+     return stream; \
+}
+
+OUT_INT_TEMPLATE(i8)
+OUT_INT_TEMPLATE(u8)
+OUT_INT_TEMPLATE(i16)
+OUT_INT_TEMPLATE(u16)
+OUT_INT_TEMPLATE(i32)
+OUT_INT_TEMPLATE(u32)
+OUT_INT_TEMPLATE(i64)
+OUT_INT_TEMPLATE(u64)
+
+#undef OUT_INT_TEMPLATE
+
+template <>
+inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
+    stream.write(s);
+    return stream;
+}

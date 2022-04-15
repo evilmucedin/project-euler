@@ -6,11 +6,10 @@
 
 DataFrame::Column::Column(string name) : name_(std::move(name)) {}
 
-DataFrame::DataFrame() {
-}
+DataFrame::DataFrame() {}
 
 DataFrame::DataFrame(const StringVector& names) {
-    for (const auto& name: names) {
+    for (const auto& name : names) {
         addColumn(make_shared<Column>(name));
     }
 }
@@ -43,8 +42,11 @@ DataFrame::PDataFrame DataFrame::loadFromCsv(const string& filename) {
     }
 
     while (reader.readLine()) {
-        for (size_t i = 0; i < header.size(); ++i) {
-            result->columns_[i]->data_.emplace_back(reader.get(i));
+        if (reader.size()) {
+            for (size_t i = 0; i < header.size(); ++i) {
+                ASSERTLT(i, reader.size());
+                result->columns_[i]->data_.emplace_back(reader.get(i));
+            }
         }
     }
     return result;

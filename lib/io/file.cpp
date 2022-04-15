@@ -14,13 +14,13 @@ File::File(string filename, string mode) : filename_(std::move(filename)), mode_
 File::~File() { close(); }
 
 void File::write(const char* buffer, size_t size) {
-    if (fwrite(buffer, 1, size, f_) != size) {
+    if (fwrite_unlocked(buffer, 1, size, f_) != size) {
         THROW("Write failed");
     }
 }
 
 size_t File::read(char* buffer, size_t size) {
-    size_t read = fread(buffer, 1, size, f_);
+    size_t read = fread_unlocked(buffer, 1, size, f_);
     if (read == 0) {
         if (auto error = ferror(f_)) {
             perror("Read failed: ");
@@ -67,3 +67,11 @@ void File::close() {
 }
 
 bool File::opened() const { return f_ != nullptr; }
+
+size_t File::printf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    const auto res = fprintf(f_, fmt, args);
+    va_end(args);
+    return res;
+}
