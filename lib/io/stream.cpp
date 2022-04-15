@@ -43,6 +43,8 @@ FileInputStream::~FileInputStream() {
 size_t FileInputStream::read(char* buffer, size_t toRead) {
     if (toRead) {
         return ::read(fd_, buffer, toRead);
+    } else {
+        return 0;
     }
 }
 

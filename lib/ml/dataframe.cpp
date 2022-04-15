@@ -31,23 +31,26 @@ DataFrame::PDataFrame DataFrame::subDataFrame(const SizeTVector& indices) {
     return result;
 }
 
-DataFrame::PDataFrame DataFrame::loadFromCsv(const string& filename) {
-    auto result = make_shared<DataFrame>();
-    CsvParser reader(filename);
-    if (!reader.readHeader()) {
-        THROW("Header read failed");
-    }
-    const auto header = reader.header();
-    for (size_t i = 0; i < header.size(); ++i) {
-        result->addColumn(make_shared<Column>(header[i]));
-    }
+DataFrame::PDataFrame DataFrame::loadFromCsv(const string &filename) {
+  auto result = make_shared<DataFrame>();
+  CsvParser reader(filename);
+  if (!reader.readHeader()) {
+    THROW("Header read failed");
+  }
+  const auto header = reader.header();
+  for (size_t i = 0; i < header.size(); ++i) {
+    result->addColumn(make_shared<Column>(header[i]));
+  }
 
-    while (reader.readLine()) {
-        for (size_t i = 0; i < header.size(); ++i) {
-            result->columns_[i]->data_.emplace_back(reader.get(i));
-        }
+  while (reader.readLine()) {
+    if (reader.size()) {
+      for (size_t i = 0; i < header.size(); ++i) {
+        ASSERTLT(i, reader.size());
+        result->columns_[i]->data_.emplace_back(reader.get(i));
+      }
     }
-    return result;
+  }
+  return result;
 }
 
 void DataFrame::saveToCsv(const string& filename) const {

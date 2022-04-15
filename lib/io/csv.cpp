@@ -9,7 +9,12 @@
 CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote)
     : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
 
-CsvParser::CsvParser(const string& filename) : CsvParser(make_shared<IFStream>(filename)) {}
+CsvParser::CsvParser(const string &filenameC)
+    : CsvParser(make_shared<IFStream>(filenameC)) {
+  filename_ = filenameC;
+}
+
+const string &CsvParser::filename() const { return filename_; }
 
 bool CsvParser::readHeader() {
     if (!readLine()) {
@@ -47,7 +52,7 @@ bool CsvParser::readLine() {
         }
         ++p;
     }
-    if (p > begin) {
+    if (p >= begin) {
         line_.emplace_back(begin, p - begin);
     }
     for (auto& s : line_) {
@@ -61,7 +66,7 @@ size_t CsvParser::size() const { return line_.size(); }
 const StringVector& CsvParser::header() const { return header_; }
 
 const string& CsvParser::get(size_t index) const {
-    assert(index < line_.size());
+    ASSERTLT(index, line_.size());
     return line_[index];
 }
 

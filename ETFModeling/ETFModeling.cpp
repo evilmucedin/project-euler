@@ -1,6 +1,8 @@
 #include <set>
 
 #include "gflags/gflags.h"
+#include "glog/logging.h"
+
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/ml/dataframe.h"
@@ -60,13 +62,20 @@ PriceData loadData(const StringVector& tickers) {
     {
         Timer tFileRead("Read files");
         for (const auto& ticker : tickers) {
+            DLOG(INFO) << "Ticker: " << ticker;
             auto df = DataFrame::loadFromCsv(ticker + ".csv");
             auto date = df->getColumn("Date");
             auto price = df->getColumn("Adj Close");
             Date2Price tickerPrices;
             for (size_t i = 0; i < df->numLines(); ++i) {
+                if (i >= date->size()) {
+                    THROW("No date in '" << ticker << "' index: " << i);
+                }
                 const auto iDate = date->as<string>(i);
                 if (FLAGS_first_date.empty() || (iDate >= FLAGS_first_date)) {
+                    if (i >= price->size()) {
+                      THROW("No price in '" << ticker << "' index: " << i);
+                    }
                     tickerPrices[iDate] = price->as<double>(i);
                     dates.emplace(iDate);
                 }
@@ -142,6 +151,7 @@ double sharpe(const ModelResult& res) {
 }
 
 ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
+    ASSERTEQ(pd.tickers_.size(), originalNav.size());
     ModelResult result;
     result.originalNav = originalNav;
     result.originalShares.resize(pd.tickers_.size());
@@ -226,7 +236,7 @@ Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
   auto colValue = df->getColumn("Current Value");
   unordered_map<string, double> symbol2value;
   for (size_t i = 0; i < colSymbol->size(); ++i) {
-    symbol2value[colSymbol->as(i)] = colValue->as<double>(i);
+    symbol2value.emplace(colSymbol->as(i), colValue->as<double>(i));
   }
   Portfolio result(pd.tickers_.size(), 0);
   for (size_t i = 0; i < pd.tickers_.size(); ++i) {
@@ -358,10 +368,12 @@ int main(int argc, char* argv[]) {
                       "optimalNZ.csv");
     } else if (FLAGS_mode == "optimize1") {
       const StringVector tickers = cat(etfs, stocks);
-      auto data = loadData(tickers);
-      auto p0 = loadPortfolio(data, FLAGS_input);
-      auto res = model(data, p0);
-      out(res);
+      const auto data = loadData(tickers);
+      const auto p0 = loadPortfolio(data, FLAGS_input);
+      LOG(INFO) << OUT(p0);
+      const auto resP0 = model(data, p0);
+      out(resP0);
+      dumpPricesToCsv(data, resP0, "p0.csv");
     } else {
       THROW("Unknown mode '" << FLAGS_mode << "'");
     }
