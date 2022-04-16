@@ -9,7 +9,44 @@
 
 #include <lib/exception.h>
 
+namespace {
+
+string strError() {
+    string buff(80, '\0');
+    auto p = strerror_r(errno, const_cast<char*>(buff.data()), buff.size());
+#ifndef __APPLE__
+    return string(p, strlen(p));
+#else
+    return buff;
+#endif
+}
+
+}
+
 InputStream::~InputStream() {}
+
+bool InputStream::readChar(char& ch) { return read(&ch, 1) > 0; }
+
+bool InputStream::readTo(string& s, char to) {
+    char ch;
+
+    if (!read(&ch, 1)) {
+        return false;
+    }
+
+    s.clear();
+    do {
+        if (ch == to) {
+            break;
+        }
+
+        s += ch;
+    } while (read(&ch, 1));
+
+    return true;
+}
+
+bool InputStream::readLine(string& s) { return readTo(s, '\n'); }
 
 void OutputStream::write(const string& s) { write(s.data(), s.size()); }
 
@@ -20,7 +57,7 @@ OutputStream::~OutputStream() {}
 void StdOutputStream::write(const char* buffer, size_t toWrite) {
     const auto res = ::write(1, buffer, toWrite);
     if (res != toWrite) {
-        throw Exception("write to stdout failed");
+        THROW("write to stdout failed '" << strError() << "'");
     }
 }
 
@@ -29,7 +66,7 @@ void StdOutputStream::flush() {}
 FileInputStream::FileInputStream(const string& filename) : filename_(filename), fd_(-1) {
     fd_ = open(filename_.c_str(), O_RDONLY);
     if (-1 == fd_) {
-        throw Exception("failed to open file");
+        THROW("failed to open file '" << strError() << "'");
     }
 }
 

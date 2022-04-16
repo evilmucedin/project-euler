@@ -15,14 +15,14 @@ DEFINE_int32(iterations, 10, "nuimber of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
 DEFINE_string(input, "portfolio input", "");
 DEFINE_bool(stocks, false, "add stocks");
-DEFINE_double(risk_weight, 0.005, "risk weight");
-DEFINE_bool(decay, false, "decay");
+DEFINE_double(risk_weight, 0.05, "risk weight");
+DEFINE_bool(decay, true, "decay");
 
-static const StringVector etfs = {"FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",
-                                  "VOO",   "QQQ",   "BND",   "FBND",  "HDV",   "VEU",   "VWO",  "FDHY", "FDIS", "ONEQ",
-                                  "VV",    "VB",    "HNDL",  "WBII",  "PCEF",  "FDIV",  "CEFS", "YLD",  "INKM", "IYLD",
-                                  "FCEF",  "MLTI",  "YYY",   "MDIV",  "HIPS",  "CVY",   "GYLD", "VTI",  "VEA",  "IEFA",
-                                  "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK", "UNG", "OIH", "XME", "PFIX", "VXX", "EWZ", "ILF", "SCHE"};
+static const StringVector etfs = {
+    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG", "SPY",  "IVV",  "VOO",  "QQQ",  "BND",  "FBND",
+    "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",   "VB",  "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD",
+    "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV",  "HIPS", "CVY", "GYLD", "VTI",  "VEA",  "IEFA", "AGG",  "GLD",
+    "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK",   "UNG",   "OIH",  "XME", "PFIX", "VXX",  "EWZ",  "ILF",  "SCHE"};
 
 static const StringVector stocks = {
     "GOOG", "MSFT", "T", "NCLH", "OGZPY", "AMZN", "FB", "TSLA", "GME",
@@ -241,12 +241,10 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 void out(const ModelResult& res) {
     const auto before = sum(res.originalNav);
     const auto after = sum(res.finalNav);
-    cout << res.returnsStat << ", initial NAV: " << before
-         << ", final NAV: " << after << ", sharpe: " << res.sharpe
-         << ", sortino: " << res.sortino
-         << ", return mean: " << res.dailyReturnsStat.mean()
-         << ", neg return stddev: " << res.dailyNegReturnsStat.stddev()
-         << ", dividends: " << res.dividends << ", f: " << res.f << endl;
+    cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
+         << ", sortino: " << res.sortino << ", return mean: " << res.dailyReturnsStat.mean()
+         << ", neg return stddev: " << res.dailyNegReturnsStat.stddev() << ", dividends: " << res.dividends
+         << ", f: " << res.f << endl;
 }
 
 void testModeling(const PriceData& pd) {
@@ -437,8 +435,9 @@ int main(int argc, char* argv[]) {
             results.emplace_back(make_pair((res.f - resP0.f) / DX, i));
         }
         sort(results);
-        for (const auto& r: results) {
-            cout << r.first << "\t" << data.tickers_[r.second] << "\t" << p0[r.second] << endl;
+        for (const auto& r : results) {
+            const auto& ticker = data.tickers_[r.second];
+            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << endl;
         }
         out(bestRes);
     } else {

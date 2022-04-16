@@ -11,6 +11,10 @@ class InputStream {
     virtual ~InputStream();
 
     virtual size_t read(char* buffer, size_t toRead) = 0;
+
+    virtual bool readChar(char& ch);
+    virtual bool readTo(string& s, char ch);
+    virtual bool readLine(string& s);
 };
 
 using PInputStream = std::shared_ptr<InputStream>;

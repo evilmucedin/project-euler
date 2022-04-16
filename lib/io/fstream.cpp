@@ -1,8 +1,7 @@
 #include "lib/io/fstream.h"
 
-#include <cstring>
-
 #include <array>
+#include <cstring>
 
 namespace {
 
@@ -47,7 +46,8 @@ void checkMode(const string& filename, ios_base::openmode mode) {
 
 void checkOpen(ios* s_p, const string& filename, ios_base::openmode mode) {
     if (s_p->fail()) {
-        throw Exception(string("strict_fstream: open('") + filename + "'," + modeToString(mode) + "): open failed: " + strError());
+        throw Exception(string("strict_fstream: open('") + filename + "'," + modeToString(mode) +
+                        "): open failed: " + strError());
     }
 }
 
@@ -59,11 +59,13 @@ void checkPeek(istream* is_p, const string& filename, ios_base::openmode mode) {
     } catch (const ios_base::failure& e) {
     }
     if (peekFailed) {
-        throw Exception(string("strict_fstream: open('") + filename + "'," + modeToString(mode) + "): peek failed: " + strError());
+        throw Exception(string("strict_fstream: open('") + filename + "'," + modeToString(mode) +
+                        "): peek failed: " + strError());
     }
     is_p->clear();
 }
-}
+
+}  // namespace
 
 IFStream::IFStream(const string& filename, ios_base::openmode mode) { open(filename, mode); }
 
@@ -76,9 +78,7 @@ void IFStream::open(const string& filename, ios_base::openmode mode) {
     checkPeek(this, filename, mode);
 }
 
-bool IFStream::readLine(string& line) {
-    return (bool)std::getline(*this, line);
-}
+bool IFStream::readLine(string& line) { return (bool)std::getline(*this, line); }
 
 string IFStream::readLine() {
     string line;
