@@ -163,3 +163,17 @@ void BufferedOutputStream::flush() {
         bufferPos_ = 0;
     }
 }
+
+InputStringStream::InputStringStream(string s) : s_(std::move(s)), pos_(0) {}
+
+size_t InputStringStream::read(char* buffer, size_t toRead) {
+    const size_t res = std::min(toRead, s_.size() - pos_);
+    memcpy(buffer, s_.c_str() + pos_, res);
+    pos_ += res;
+    return res;
+}
+
+PInputStream openFileBufferedReader(const string& filename, size_t bufferSize) {
+    auto fReader = make_shared<FileInputStream>(filename);
+    return make_shared<BufferedInputStream>(fReader, bufferSize);
+}

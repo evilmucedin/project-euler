@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 
 #include "lib/io/csv.h"
+#include "lib/io/stream.h"
 
 TEST(CsvReaderTest, Simple) {
     static const string kCsv =
 R"csv(A,B,C
 1,test,"str""ing")csv";
-    auto stream = make_shared<istringstream>(kCsv);
+    auto stream = make_shared<InputStringStream>(kCsv);
     CsvParser reader(stream);
     EXPECT_TRUE(reader.readHeader());
     EXPECT_EQ(reader.size(), 3);
@@ -25,7 +26,7 @@ TEST(CsvReaderTest, Empty) {
     static const string kCsv =
 R"csv(A,B,C
 1,,)csv";
-    auto stream = make_shared<istringstream>(kCsv);
+    auto stream = make_shared<InputStringStream>(kCsv);
     CsvParser reader(stream);
     EXPECT_TRUE(reader.readHeader());
     EXPECT_EQ(reader.size(), 3);
@@ -44,7 +45,7 @@ TEST(CsvReaderTest, Empty2) {
     static const string kCsv =
 R"csv(A,B
 ,)csv";
-    auto stream = make_shared<istringstream>(kCsv);
+    auto stream = make_shared<InputStringStream>(kCsv);
     CsvParser reader(stream);
     EXPECT_TRUE(reader.readHeader());
     EXPECT_EQ(reader.size(), 2);

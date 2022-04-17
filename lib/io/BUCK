@@ -42,29 +42,13 @@ cxx_library(
     "csv.cpp",
   ],
   deps=[
-    "//lib:header",
     "//lib:exception",
+    "//lib:header",
+    "//lib/io:stream",
     "//lib:string",
-    "//lib/io:fstream",
   ],
   visibility=[
     "PUBLIC",
-  ],
-)
-
-cxx_library(
-  name="fstream",
-  exported_headers=[
-    "fstream.h",
-  ],
-  srcs=[
-    "fstream.cpp",
-  ],
-  deps=[
-    "//lib:header",
-  ],
-  visibility=[
-    'PUBLIC',
   ],
 )
 

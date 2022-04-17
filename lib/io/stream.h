@@ -99,6 +99,19 @@ class BufferedOutputStream : public OutputStream {
     size_t bufferPos_;
 };
 
+class InputStringStream : public InputStream {
+   public:
+    InputStringStream(string s);
+    size_t read(char* buffer, size_t toRead) override;
+
+   private:
+    string s_;
+    size_t pos_;
+};
+
+static constexpr size_t DEFAULT_BUFFER_SIZE = 1 << 20;
+PInputStream openFileBufferedReader(const string& filename, size_t bufferSize = DEFAULT_BUFFER_SIZE);
+
 template <typename T>
 OutputStream& operator<<(OutputStream& stream, const T& x) {
     stream.write(to_string(x));

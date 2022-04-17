@@ -2,9 +2,11 @@
 
 #include "lib/header.h"
 
+class InputStream;
+
 class CsvParser {
    public:
-    CsvParser(shared_ptr<istream> stream, char delim = ',', char quote = '\"');
+    CsvParser(shared_ptr<InputStream> stream, char delim = ',', char quote = '\"');
     CsvParser(const string& filename);
     const string& filename() const;
 
@@ -31,7 +33,7 @@ class CsvParser {
     void unquote(string& s);
 
     string filename_;
-    shared_ptr<istream> stream_;
+    shared_ptr<InputStream> stream_;
     char delim_;
     char quote_;
     string sLine_;

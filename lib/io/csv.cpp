@@ -3,13 +3,13 @@
 #include <cassert>
 
 #include "lib/exception.h"
-#include "lib/io/fstream.h"
 #include "lib/string.h"
+#include "lib/io/stream.h"
 
-CsvParser::CsvParser(shared_ptr<istream> stream, char delim, char quote)
+CsvParser::CsvParser(shared_ptr<InputStream> stream, char delim, char quote)
     : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
 
-CsvParser::CsvParser(const string& filenameC) : CsvParser(make_shared<IFStream>(filenameC)) { filename_ = filenameC; }
+CsvParser::CsvParser(const string& filenameC) : CsvParser(openFileBufferedReader(filenameC)) { filename_ = filenameC; }
 
 const string& CsvParser::filename() const { return filename_; }
 
@@ -26,7 +26,7 @@ bool CsvParser::readHeader() {
 }
 
 bool CsvParser::readLine() {
-    if (!getline(*stream_, sLine_)) {
+    if (!stream_->readLine(sLine_)) {
         return false;
     }
     ++iLine_;
@@ -116,7 +116,7 @@ std::string CsvParser::line() const { return sLine_; }
 
 bool CsvParser::skipLines(size_t nLines) {
     for (size_t iLine = 0; iLine < nLines; ++iLine) {
-        if (!getline(*stream_, sLine_)) {
+        if (!stream_->readLine(sLine_)) {
             return false;
         }
     }
