@@ -173,6 +173,14 @@ size_t InputStringStream::read(char* buffer, size_t toRead) {
     return res;
 }
 
+OutputStringStream::OutputStringStream() {}
+
+void OutputStringStream::write(const char* buffer, size_t toWrite) { s_.append(buffer, toWrite); }
+
+void OutputStringStream::flush() {}
+
+const string& OutputStringStream::str() const { return s_; }
+
 PInputStream openFileBufferedReader(const string& filename, size_t bufferSize) {
     auto fReader = make_shared<FileInputStream>(filename);
     return make_shared<BufferedInputStream>(fReader, bufferSize);

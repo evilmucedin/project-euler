@@ -23,9 +23,10 @@ class OutputStream {
    public:
     virtual ~OutputStream();
 
+    virtual void write(const char* buffer, size_t toWrite) = 0;
+
     virtual void write(const string& s);
     virtual void write(char ch);
-    virtual void write(const char* buffer, size_t toWrite) = 0;
     virtual void flush() = 0;
 };
 
@@ -107,6 +108,18 @@ class InputStringStream : public InputStream {
    private:
     string s_;
     size_t pos_;
+};
+
+class OutputStringStream : public OutputStream {
+   public:
+    OutputStringStream();
+    void write(const char* buffer, size_t toWrite) override;
+    void flush() override;
+
+    const string& str() const;
+
+   private:
+    string s_;
 };
 
 static constexpr size_t DEFAULT_BUFFER_SIZE = 1 << 20;
