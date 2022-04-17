@@ -17,6 +17,22 @@ cxx_library(
 )
 
 cxx_library(
+  name="fstream",
+  exported_headers=[
+    "fstream.h",
+  ],
+  srcs=[
+     "fstream.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
+cxx_library(
   name="zstream",
   exported_headers=[
     "zstream.h",
