@@ -80,3 +80,9 @@ TEST(Stream, Benchmark) {
     fOut.setvbuf(1 << 16);
     benchmark2(fOut);
 }
+
+TEST(String, String) {
+    OutputStringStream ss;
+    ss << 5;
+    EXPECT_EQ(ss.str(), "5");
+}
