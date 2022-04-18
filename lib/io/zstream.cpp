@@ -1,8 +1,8 @@
-#include "lib/io/zstreamDeprecated.h"
+#include "lib/io/zstream.h"
 
 #include <cassert>
 
-ZException::ZException(int ret) : Exception("zlib: ") {
+ZlibException::ZlibException(int ret) : Exception("zlib: ") {
     switch (ret) {
         case Z_STREAM_ERROR:
             msg_ += "Z_STREAM_ERROR: ";
@@ -25,9 +25,9 @@ ZException::ZException(int ret) : Exception("zlib: ") {
     }
 }
 
-ZException::ZException(string msg) : Exception(msg) {}
+ZlibException::ZlibException(string msg) : Exception(msg) {}
 
-ZStreamWrapper::ZStreamWrapper(bool isInput, int level) : isInput_(isInput) {
+ZlibStreamWrapper::ZlibStreamWrapper(bool isInput, int level) : isInput_(isInput) {
     zalloc = Z_NULL;
     zfree = Z_NULL;
     opaque = Z_NULL;
@@ -44,7 +44,7 @@ ZStreamWrapper::ZStreamWrapper(bool isInput, int level) : isInput_(isInput) {
     }
 }
 
-ZStreamWrapper::~ZStreamWrapper() {
+ZlibStreamWrapper::~ZlibStreamWrapper() {
     if (isInput_) {
         inflateEnd(this);
     } else {
