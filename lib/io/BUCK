@@ -50,6 +50,24 @@ cxx_library(
 )
 
 cxx_library(
+  name="zstream",
+  exported_headers=[
+    "zstream.h",
+  ],
+  srcs=[
+     "zstream.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io:stream",
+    "//zlib:zlib",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
+cxx_library(
   name="csv",
   exported_headers=[
     "csv.h",
