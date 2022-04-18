@@ -1,4 +1,4 @@
-#include "lib/io/zstream.h"
+#include "lib/io/zstreamDeprecated.h"
 
 #include <cassert>
 

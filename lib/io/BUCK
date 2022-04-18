@@ -17,12 +17,12 @@ cxx_library(
 )
 
 cxx_library(
-  name="fstream",
+  name="fstreamDeprecated",
   exported_headers=[
-    "fstream.h",
+    "fstreamDeprecated.h",
   ],
   srcs=[
-     "fstream.cpp",
+     "fstreamDeprecated.cpp",
   ],
   deps=[
     "//lib:header",
@@ -33,12 +33,12 @@ cxx_library(
 )
 
 cxx_library(
-  name="zstream",
+  name="zstreamDeprecated",
   exported_headers=[
-    "zstream.h",
+    "zstreamDeprecated.h",
   ],
   srcs=[
-     "zstream.cpp",
+     "zstreamDeprecated.cpp",
   ],
   deps=[
     "//lib:header",
