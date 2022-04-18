@@ -52,7 +52,7 @@ ZlibStreamWrapper::~ZlibStreamWrapper() {
     }
 }
 
-ZIStreamBuf::ZIStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
+ZlibInputStream::ZlibInputStream(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
     assert(pSBuf_);
     inBuff_.resize(buffSize_);
     inBuffStart_ = inBuff_.data();
@@ -61,7 +61,7 @@ ZIStreamBuf::ZIStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buf
     setg(outBuff_.data(), outBuff_.data(), outBuff_.data());
 }
 
-streambuf::int_type ZIStreamBuf::underflow() {
+streambuf::int_type ZlibInputStream::underflow() {
     if (gptr() == egptr()) {
         char* outBuffFreeStart = outBuff_.data();
         do {
@@ -97,13 +97,7 @@ streambuf::int_type ZIStreamBuf::underflow() {
     return (gptr() == egptr()) ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
 
-ZIStream::ZIStream(shared_ptr<istream> stream) : istream(new ZIStreamBuf(stream->rdbuf())), stream_(stream) {}
-
-ZIStream::~ZIStream() {
-    delete rdbuf();
-}
-
-ZOStreamBuf::ZOStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
+ZlibOutputStream::ZlibOutputStream(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
     assert(pSBuf_);
     inBuff_.resize(buffSize_);
     inBuffStart_ = inBuff_.data();
@@ -112,11 +106,11 @@ ZOStreamBuf::ZOStreamBuf(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buf
     setp(outBuff_.data(), outBuff_.data() + buffSize_);
 }
 
-ZOStreamBuf::~ZOStreamBuf() {
+ZlibOutputStream::~ZlibOutputStream() {
     zflush(true);
 }
 
-int ZOStreamBuf::sync() {
+int ZlibOutputStream::sync() {
     if (pptr() && pptr() > pbase()) {
         int c = overflow(EOF);
         if (c == EOF) {
@@ -127,7 +121,7 @@ int ZOStreamBuf::sync() {
     return 0;
 }
 
-std::streamsize ZOStreamBuf::zflush(bool flush) {
+std::streamsize ZlibOutputStream::zflush(bool flush) {
     cerr << "zflush" << endl;
     std::streamsize totalWritten = 0;
     if (!zStrm_) {
@@ -155,7 +149,7 @@ std::streamsize ZOStreamBuf::zflush(bool flush) {
     return totalWritten;
 }
 
-ZOStreamBuf::int_type ZOStreamBuf::overflow(int_type c) {
+ZlibOutputStream::int_type ZlibOutputStream::overflow(int_type c) {
     if (c != EOF) {
         if (pptr() == outBuff_.data() + buffSize_) {
             zflush(false);
@@ -166,16 +160,5 @@ ZOStreamBuf::int_type ZOStreamBuf::overflow(int_type c) {
         pbump(1);
     }
     return c;
-}
-
-ZOStream::ZOStream(shared_ptr<ostream> stream)
-    : ostream(new ZOStreamBuf(stream->rdbuf())), buf_(reinterpret_cast<ZOStreamBuf*>(rdbuf())), stream_(stream) {}
-
-ZOStream::~ZOStream() { delete buf_; }
-
-std::streamsize ZOStream::flush() {
-    const auto res = buf_->zflush(true);
-    stream_->flush();
-    return res;
 }
 
