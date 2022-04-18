@@ -6,8 +6,8 @@
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
-#include "lib/io/fstream.h"
-#include "lib/io/zstream.h"
+#include "lib/io/fstreamDeprecated.h"
+#include "lib/io/zstreamDeprecated.h"
 #include "lib/progressBar.h"
 #include "lib/timer.h"
 
