@@ -1,4 +1,4 @@
-#include "lib/io/fstream.h"
+#include "lib/io/fstreamDeprecated.h"
 
 #include <array>
 #include <cstring>

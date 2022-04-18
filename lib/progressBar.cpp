@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include "lib/io/fstream.h"
+#include "lib/io/fstreamDeprecated.h"
 
 IProgressable::~IProgressable() = default;
 
