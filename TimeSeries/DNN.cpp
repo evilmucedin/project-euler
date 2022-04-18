@@ -4,7 +4,7 @@
 #include "tiny_dnn/tiny_dnn.h"
 
 #include "lib/random.h"
-#include "lib/io/fstream.h"
+#include "lib/io/fstreamDeprecated.h"
 
 namespace {
 tiny_dnn::vec_t doubleVectorToVector(const DoubleVector& features) {
