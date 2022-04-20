@@ -19,15 +19,15 @@ DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
 
 static const StringVector etfs = {
-    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG", "SPY",  "IVV",  "VOO",  "QQQ",  "BND",  "FBND",
-    "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",   "VB",  "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD",
-    "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV",  "HIPS", "CVY", "GYLD", "VTI",  "VEA",  "IEFA", "AGG",  "GLD",
-    "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK",   "UNG",   "OIH",  "XME", "PFIX", "VXX",  "EWZ",  "ILF",  "SCHE"};
+    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",   "VUG",  "SPY",  "IVV",  "VOO",  "QQQ",  "BND",
+    "FBND",  "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",   "VB",   "HNDL", "WBII", "PCEF", "FDIV",
+    "CEFS",  "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV", "HIPS", "CVY",  "GYLD", "VTI",  "VEA",
+    "IEFA",  "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK",  "UNG",  "OIH",  "XME",  "PFIX", "VXX",
+    "EWZ",   "ILF",   "SCHE",  "FBCG",  "FQAL",  "FLPSX", "FDRR",  "FMAG", "FPRO", "FBCV", "FMIL"};
 
-static const StringVector stocks = {
-    "GOOG", "MSFT", "T",    "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
-    "GME",  "AAPL", "NVDA", "TSM",  "UNH",   "JNJ",  "V",  "WMT",
-    "JPM",  "PG",   "XOM",  "HD",   "CVX",   "PFE"
+static const StringVector stocks = {"GOOG", "MSFT", "T",    "NCLH", "OGZPY", "AMZN", "FB", "TSLA",
+                                    "GME",  "AAPL", "NVDA", "TSM",  "UNH",   "JNJ",  "V",  "WMT",
+                                    "JPM",  "PG",   "XOM",  "HD",   "CVX",   "PFE"
 
 };
 
