@@ -86,7 +86,9 @@ PriceData loadData(const StringVector& tickers) {
                         THROW("No price in '" << ticker << "' index: " << i);
                     }
                     tickerPrices[iDate] = price->as<double>(i);
+                    ASSERTGT(tickerPrices[iDate], 0.0);
                     tickerDividends[iDate] = dividends->as<double>(i);
+                    ASSERTGE(tickerDividends[iDate], 0.0);
                     dates.emplace(iDate);
                 }
             }
@@ -180,6 +182,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
         ALWAYS_ASSERT(isfinite(result.originalShares[i]));
+        ALWAYS_ASSERT(result.originalShares[i] >= 0);
     }
     const double originalNavSum = sum(originalNav);
 
@@ -196,6 +199,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
         for (size_t j = 0; j < pd.tickers_.size(); ++j) {
             nav += pd.prices_[i][j] * result.originalShares[j];
         }
+        ASSERTNE(nav, 0.0);
         result.dailyPrices.emplace_back(nav);
         double ret = (nav - originalNavSum) / originalNavSum;
 

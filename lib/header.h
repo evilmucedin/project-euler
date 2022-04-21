@@ -449,6 +449,9 @@ string homeDir();
 #define ASSERTEQ(x, y) assert((x) == (y))
 #define ASSERTNEQ(x, y) assert((x) != (y))
 #define ASSERTLT(x, y) assert((x) < (y))
+#define ASSERTLE(x, y) assert((x) <= (y))
+#define ASSERTGT(x, y) assert((x) > (y))
+#define ASSERTGE(x, y) assert((x) >= (y))
 #define ASSERTNE(x, y) assert((x) != (y))
 
 #define FOR(i, a, b) for (int i = (a); i < (b); ++i)
