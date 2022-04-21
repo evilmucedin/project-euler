@@ -187,6 +187,8 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
     }
     const double originalNavSum = sum(originalNav);
 
+    static constexpr double DECAY_SPEED = 0.999;
+
     result.dailyPrices.reserve(pd.prices_.size());
     result.dailyReturns.reserve(pd.prices_.size());
     double dividendsSoFar = 0;
@@ -200,13 +202,15 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
         }
         result.dailyPrices.emplace_back(nav);
         double ret = (nav - originalNavSum) / originalNavSum;
+
+        if (FLAGS_decay) {
+            result.returnsStat.decay(DECAY_SPEED);
+        }
         result.returnsStat.add(ret);
     }
 
     for (size_t i = 1; i < result.dailyPrices.size(); ++i) {
         if (FLAGS_decay) {
-            static constexpr double DECAY_SPEED = 0.999;
-            result.returnsStat.decay(DECAY_SPEED);
             result.dailyReturnsStat.decay(DECAY_SPEED);
             result.dailyNegReturnsStat.decay(DECAY_SPEED);
         }
