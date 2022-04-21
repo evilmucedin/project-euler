@@ -443,7 +443,17 @@ int main(int argc, char* argv[]) {
         sort(results);
         for (const auto& r : results) {
             const auto& ticker = data.tickers_[r.second];
-            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << endl;
+
+            double stockF = 0;
+            {
+                Portfolio stockP(data.tickers_.size());
+                stockP[r.second] = 1.0;
+                normalizeNavInplace(stockP);
+                const auto resStock = model(data, stockP);
+                stockF = resStock.f;
+            }
+
+            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF << endl;
         }
         out(bestRes);
     } else {
