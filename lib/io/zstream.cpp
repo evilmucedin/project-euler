@@ -74,7 +74,7 @@ streambuf::int_type ZlibInputStream::underflow() {
                 }
             }
             if (!zStrm_) {
-                zStrm_ = make_unique<ZStreamWrapper>(true);
+                zStrm_ = make_unique<ZlibStreamWrapper>(true);
             }
             zStrm_->next_in = reinterpret_cast<Bytef*>(inBuffStart_);
             zStrm_->avail_in = inBuffEnd_ - inBuffStart_;
@@ -82,7 +82,7 @@ streambuf::int_type ZlibInputStream::underflow() {
             zStrm_->avail_out = (outBuff_.data() + buffSize_) - outBuffFreeStart;
             auto ret = inflate(zStrm_.get(), Z_NO_FLUSH);
             if (ret != Z_OK && ret != Z_STREAM_END) {
-                throw ZException(ret);
+                throw ZlibException(ret);
             }
             inBuffStart_ = reinterpret_cast<char*>(zStrm_->next_in);
             ASSERTEQ(inBuffEnd_, inBuffStart_ + zStrm_->avail_in);
