@@ -4,6 +4,7 @@ import sys
 import os
 
 import argparse
+import subprocess
 
 parser = argparse.ArgumentParser(
     description="Prepare directory structure for Code Jam")
@@ -14,7 +15,7 @@ args = parser.parse_args()
 print(args.dir)
 
 os.makedirs(args.dir)
-for problem in ["a", "b", "c", "d"]:
+for problem in ["a", "b", "c", "d", "e"]:
     problemDir = "%s/%s" % (args.dir, problem)
     os.makedirs(problemDir)
     with open("%s/makefile" % problemDir, "w") as fOut:
@@ -26,7 +27,7 @@ test: {problem}
 	./{problem} <input.txt
 
 submit:
-	gedit {problem}.cpp
+	cat {problem}.cpp | xclip
 
 {problem}.dbg: {problem}.cpp
 	g++ -o {problem}.dbg -O0 -g {problem}.cpp
@@ -35,7 +36,7 @@ submit:
         print("""#include <cstdio>
 #include <cmath>
 
-#include <algorithms>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -55,3 +56,4 @@ int main() {
     return 0;
 }
                """, file=fOut)
+    subprocess.check_call(["git", "add", f"{problemDir}/makefile", f"{problemDir}/{problem}.cpp"])
