@@ -32,6 +32,16 @@ class OutputStream {
 
 using POutputStream = std::shared_ptr<OutputStream>;
 
+typedef void (*StreamManipulator)(OutputStream &);
+
+static inline OutputStream &operator<<(OutputStream &o, StreamManipulator m) {
+  m(o);
+
+  return o;
+}
+
+void Endl(OutputStream &o);
+
 class StdInputStream : public InputStream {
    public:
     size_t read(char* buffer, size_t toRead) override;

@@ -1,6 +1,7 @@
 #include "lib/io/zstream.h"
 
 #include <cassert>
+#include <cstring>
 
 ZlibException::ZlibException(int ret) : Exception("zlib: ") {
     switch (ret) {
@@ -40,7 +41,7 @@ ZlibStreamWrapper::ZlibStreamWrapper(bool isInput, int level) : isInput_(isInput
         ret = deflateInit2(this, level, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY);
     }
     if (ret != Z_OK) {
-        throw ZException(ret);
+        throw ZlibException(ret);
     }
 }
 
@@ -52,6 +53,7 @@ ZlibStreamWrapper::~ZlibStreamWrapper() {
     }
 }
 
+/*
 ZlibInputStream::ZlibInputStream(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
     assert(pSBuf_);
     inBuff_.resize(buffSize_);
@@ -96,39 +98,46 @@ streambuf::int_type ZlibInputStream::underflow() {
     }
     return (gptr() == egptr()) ? traits_type::eof() : traits_type::to_int_type(*gptr());
 }
+*/
 
-ZlibOutputStream::ZlibOutputStream(streambuf* pSBuf, size_t buffSize) : pSBuf_(pSBuf), buffSize_(buffSize) {
-    assert(pSBuf_);
-    inBuff_.resize(buffSize_);
-    inBuffStart_ = inBuff_.data();
-    inBuffEnd_ = inBuff_.data();
-    outBuff_.resize(buffSize_);
-    setp(outBuff_.data(), outBuff_.data() + buffSize_);
+ZlibOutputStream::ZlibOutputStream(POutputStream nested, size_t buffSize)
+    : nested_(nested), buffSize_(buffSize) {
+  assert(nested_.get());
+  inBuff_.resize(buffSize_);
+  inBuffStart_ = inBuff_.data();
+  inBuffEnd_ = inBuff_.data();
+  outBuff_.resize(buffSize_);
+  outBuffStart_ = outBuff_.data();
+  outBuffEnd_ = outBuff_.data() + buffSize_;
 }
 
 ZlibOutputStream::~ZlibOutputStream() {
     zflush(true);
 }
 
-int ZlibOutputStream::sync() {
-    if (pptr() && pptr() > pbase()) {
-        int c = overflow(EOF);
-        if (c == EOF) {
-            return -1;
+void ZlibOutputStream::flush() { zflush(false); }
+
+void ZlibOutputStream::write(const char *buffer, size_t toWrite) {
+    while (toWrite) {
+      const size_t next =
+          std::min<size_t>(toWrite, outBuffEnd_ - outBuffStart_);
+      memcpy(outBuffStart_, buffer, next);
+      outBuffStart_ += next;
+      toWrite -= next;
+      if (outBuffStart_ == outBuffEnd_) {
+        zflush(false);
         }
     }
-
-    return 0;
 }
 
-std::streamsize ZlibOutputStream::zflush(bool flush) {
+void ZlibOutputStream::zflush(bool flush) {
     cerr << "zflush" << endl;
     std::streamsize totalWritten = 0;
     if (!zStrm_) {
-        zStrm_ = make_unique<ZStreamWrapper>(false);
+        zStrm_ = make_unique<ZlibStreamWrapper>(false);
     }
     zStrm_->next_in = reinterpret_cast<Bytef*>(outBuff_.data());
-    zStrm_->avail_in = pptr() - outBuff_.data();
+    zStrm_->avail_in = outBuffStart_ - outBuff_.data();
     zStrm_->next_out = reinterpret_cast<Bytef*>(inBuff_.data());
     zStrm_->avail_out = buffSize_;
 
@@ -138,27 +147,12 @@ std::streamsize ZlibOutputStream::zflush(bool flush) {
         const auto written = buffSize_ - zStrm_->avail_out;
         totalWritten += written;
         if (err == Z_OK || err == Z_STREAM_END) {
-            pSBuf_->sputn(inBuff_.data(), written);
+            nested_->write(inBuff_.data(), written);
         } else {
             throw Exception("compression error");
         }
     } while (zStrm_->avail_in != 0 && err == Z_OK);
     ASSERTEQ(zStrm_->avail_in, 0);
 
-    setp(outBuff_.data(), outBuff_.data() + buffSize_);
-    return totalWritten;
+    outBuffStart_ = outBuff_.data();
 }
-
-ZlibOutputStream::int_type ZlibOutputStream::overflow(int_type c) {
-    if (c != EOF) {
-        if (pptr() == outBuff_.data() + buffSize_) {
-            zflush(false);
-        }
-        ASSERTLT(pptr(), outBuff_.data() + buffSize_);
-
-        *pptr() = c;
-        pbump(1);
-    }
-    return c;
-}
-

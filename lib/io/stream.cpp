@@ -54,6 +54,8 @@ void OutputStream::write(char ch) { write(&ch, 1); }
 
 OutputStream::~OutputStream() {}
 
+void Endl(OutputStream &o) { (o << "\n").flush(); }
+
 void StdOutputStream::write(const char* buffer, size_t toWrite) {
     const auto res = ::write(1, buffer, toWrite);
     if (res != toWrite) {

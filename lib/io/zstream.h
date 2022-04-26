@@ -7,8 +7,8 @@
 
 class ZlibException : public Exception {
    public:
-    ZException(int ret);
-    ZException(string msg);
+    ZlibException(int ret);
+    ZlibException(string msg);
 };
 
 class ZlibStreamWrapper : public z_stream {
@@ -20,6 +20,7 @@ class ZlibStreamWrapper : public z_stream {
     bool isInput_;
 };
 
+/*
 class ZlibInputStream : public InputStream {
    public:
     ZlibInputStream(PInputStream nested, size_t buffSize = kDefaultBuffSize);
@@ -43,6 +44,7 @@ class ZlibInputStream : public InputStream {
 
     static constexpr size_t kDefaultBuffSize = 1 << 20;
 };
+*/
 
 class ZlibOutputStream : public OutputStream {
    public:
@@ -54,17 +56,18 @@ class ZlibOutputStream : public OutputStream {
     virtual ~ZlibOutputStream();
 
     void flush() override;
-
-   protected:
-    int sync();
-    int_type overflow(int_type c);
+    void write(const char* buffer, size_t toWrite) override;
 
    private:
+    void zflush(bool flush);
+
     POutputStream nested_;
     vector<char> inBuff_;
     char* inBuffStart_;
     char* inBuffEnd_;
     vector<char> outBuff_;
+    char* outBuffStart_;
+    char* outBuffEnd_;
     unique_ptr<ZlibStreamWrapper> zStrm_;
     size_t buffSize_;
 
