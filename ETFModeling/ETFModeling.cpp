@@ -287,7 +287,7 @@ Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         const auto toSymbol = symbol2value.find(pd.tickers_[i]);
         if (toSymbol != symbol2value.end()) {
-            result[i] = toSymbol->second;
+            result[i] = toSymbol->second / pd.prices_.back()[i] * pd.prices_.front()[i];
         }
     }
     normalizeNavInplace(result);
