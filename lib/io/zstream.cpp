@@ -100,45 +100,40 @@ streambuf::int_type ZlibInputStream::underflow() {
 }
 */
 
-ZlibOutputStream::ZlibOutputStream(POutputStream nested, size_t buffSize)
-    : nested_(nested), buffSize_(buffSize) {
-  assert(nested_.get());
-  inBuff_.resize(buffSize_);
-  inBuffStart_ = inBuff_.data();
-  inBuffEnd_ = inBuff_.data();
-  outBuff_.resize(buffSize_);
-  outBuffStart_ = outBuff_.data();
-  outBuffEnd_ = outBuff_.data() + buffSize_;
+ZlibOutputStream::ZlibOutputStream(POutputStream nested, size_t buffSize) : nested_(nested), buffSize_(buffSize) {
+    assert(nested_.get());
+    inBuff_.resize(buffSize_);
+    inBuffStart_ = inBuff_.data();
+    inBuffEnd_ = inBuff_.data();
+    outBuff_.resize(buffSize_);
+    outBuffStart_ = outBuff_.data();
+    outBuffEnd_ = outBuff_.data() + buffSize_;
 }
 
-ZlibOutputStream::~ZlibOutputStream() {
-    zflush(true);
-}
+ZlibOutputStream::~ZlibOutputStream() { zflush(true); }
 
 void ZlibOutputStream::flush() { zflush(false); }
 
 void ZlibOutputStream::write(const char *buffer, size_t toWrite) {
     while (toWrite) {
-      const size_t next =
-          std::min<size_t>(toWrite, outBuffEnd_ - outBuffStart_);
-      memcpy(outBuffStart_, buffer, next);
-      outBuffStart_ += next;
-      toWrite -= next;
-      if (outBuffStart_ == outBuffEnd_) {
-        zflush(false);
+        const size_t next = std::min<size_t>(toWrite, outBuffEnd_ - outBuffStart_);
+        memcpy(outBuffStart_, buffer, next);
+        outBuffStart_ += next;
+        toWrite -= next;
+        if (outBuffStart_ == outBuffEnd_) {
+            zflush(false);
         }
     }
 }
 
 void ZlibOutputStream::zflush(bool flush) {
-    cerr << "zflush" << endl;
     std::streamsize totalWritten = 0;
     if (!zStrm_) {
         zStrm_ = make_unique<ZlibStreamWrapper>(false);
     }
-    zStrm_->next_in = reinterpret_cast<Bytef*>(outBuff_.data());
+    zStrm_->next_in = reinterpret_cast<Bytef *>(outBuff_.data());
     zStrm_->avail_in = outBuffStart_ - outBuff_.data();
-    zStrm_->next_out = reinterpret_cast<Bytef*>(inBuff_.data());
+    zStrm_->next_out = reinterpret_cast<Bytef *>(inBuff_.data());
     zStrm_->avail_out = buffSize_;
 
     int err = Z_OK;
