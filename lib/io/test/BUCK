@@ -18,8 +18,9 @@ cxx_test(
   ],
   deps=[
     "//lib:header",
-    "//lib:random",
+    "//lib/io:utils",
     "//lib/io:zstreamDeprecated",
+    "//lib:random",
     "//glog:glog",
   ],
 )
