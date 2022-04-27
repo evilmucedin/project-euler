@@ -194,7 +194,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
         if (recordType == "TRADE") {
             auto ric = reader.get(iRic);
             if (ric == kStock) {
-                fSubset << reader.line() << std::endl;
+                fSubset << reader.line() << Endl;
             }
             auto timestamp = reader.get(iDateTime);
             DateTime dateTime(timestamp);
@@ -203,7 +203,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
                 if (ric == kStock) {
-                    fSubset << reader.line() << std::endl;
+                    fSubset << reader.line() << Endl;
                 }
                 auto fidName = reader.get(iFidName);
                 if (fidName == "TRDPRC_1") {
@@ -217,7 +217,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
         } else if (recordType == "QUOTE") {
             auto ric = reader.get(iRic);
             if (ric == kStock) {
-                fSubset << reader.line() << std::endl;
+                fSubset << reader.line() << Endl;
             }
             auto timestamp = reader.get(iDateTime);
             DateTime dateTime(timestamp);
@@ -225,7 +225,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
                 if (ric == kStock) {
-                    fSubset << reader.line() << std::endl;
+                    fSubset << reader.line() << Endl;
                 }
                 auto fidName = reader.get(iFidName);
                 if (fidName == "BID") {
@@ -295,7 +295,7 @@ constexpr size_t kN = 60*16;
 
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
-    IFStream fIn(kAaplFilename);
+    FileInputStream fIn(kAaplFilename);
     string line;
     constexpr double kTimeMin = 0.60417;
     constexpr double kTimeMax = 0.875004;
@@ -318,7 +318,7 @@ void produceTimeSeries() {
         if (vol[i] != 0) {
             price = dv[i]/vol[i];
         }
-        fOut << i << "\t" << price << "\t" << vol[i] << "\t" << n[i] << endl;
+        fOut << i << "\t" << price << "\t" << vol[i] << "\t" << n[i] << Endl;
     }
 }
 
@@ -541,7 +541,7 @@ struct SGDPredictor {
 };
 
 DoubleVector readTimeSeries(const std::string& filename) {
-    IFStream fIn(kAaplTimeSeries);
+    FileInputStream fIn(kAaplTimeSeries);
     DoubleVector ts(kN);
     for (size_t i = 0; i < kN; ++i) {
         ts[i] = stod(split(fIn.readLine(), '\t')[1]);
@@ -603,7 +603,7 @@ void fftTimeSeries() {
             p = nts[i];
         }
 
-        fOut << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << endl;
+        fOut << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << Endl;
     }
 }
 
@@ -678,12 +678,12 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
     void save(const string& filename) const {
         FileOutputStream ofs(filename);
         for (const auto& p: data_) {
-            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << endl;
+            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << Endl;
         }
     }
 
     void load(const string& filename) {
-        IFStream ifs(filename);
+        FileInputStream ifs(filename);
         while (ifs) {
             string ric;
             ifs >> ric;
@@ -859,12 +859,12 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                 ofs << "\t";
                 saveVector(ofs, p.second[i]);
             }
-            ofs << endl;
+            ofs << Endl;
         }
     }
 
     void load(const string& filename) {
-        IFStream ifs(filename);
+        FileInputStream ifs(filename);
         while (ifs) {
             string ric;
             ifs >> ric;
