@@ -48,6 +48,12 @@ bool InputStream::readTo(string& s, char to) {
 
 bool InputStream::readLine(string& s) { return readTo(s, '\n'); }
 
+string InputStream::readLine() {
+    string result;
+    readLine(result);
+    return result;
+}
+
 void OutputStream::write(const string& s) { write(s.data(), s.size()); }
 
 void OutputStream::write(char ch) { write(&ch, 1); }

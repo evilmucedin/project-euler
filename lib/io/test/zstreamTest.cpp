@@ -20,10 +20,18 @@ TEST(ZInStream, Simple) {
 */
 
 TEST(ZOutStream, Simple) {
-    auto fOut = make_shared<FileOutputStream>("test.gz");
-    auto zOut = make_shared<ZlibOutputStream>(fOut);
-    *zOut << "Test line 1" << Endl;
-    *zOut << "Test line 2" << Endl;
+    {
+        auto fOut = make_shared<FileOutputStream>("test.gz");
+        auto zOut = make_shared<ZlibOutputStream>(fOut);
+        *zOut << "Test line 1" << Endl;
+        *zOut << "Test line 2" << Endl;
+    }
+    {
+        auto fIn = make_shared<FileInputStream>("test.gz");
+        auto zIn = make_shared<ZlibInputStream>(fIn);
+        cerr << zIn->readLine() << endl;
+        cerr << zIn->readLine() << endl;
+    }
 }
 
 /*

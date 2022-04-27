@@ -20,7 +20,6 @@ class ZlibStreamWrapper : public z_stream {
     bool isInput_;
 };
 
-/*
 class ZlibInputStream : public InputStream {
    public:
     ZlibInputStream(PInputStream nested, size_t buffSize = kDefaultBuffSize);
@@ -32,19 +31,21 @@ class ZlibInputStream : public InputStream {
     size_t read(char* buffer, size_t toRead) override;
 
    private:
-    streambuf::int_type underflow() override;
+    size_t readSome(char* buffer, size_t toRead);
 
     PInputStream nested_;
     vector<char> inBuff_;
     char* inBuffStart_;
     char* inBuffEnd_;
     vector<char> outBuff_;
+    char* outBuffFreeStart_;
+    char* outBuffNext_;
     unique_ptr<ZlibStreamWrapper> zStrm_;
     size_t buffSize_;
+    bool zeof_;
 
     static constexpr size_t kDefaultBuffSize = 1 << 20;
 };
-*/
 
 class ZlibOutputStream : public OutputStream {
    public:
