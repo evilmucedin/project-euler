@@ -25,14 +25,14 @@ class ProgressBar {
     std::unique_ptr<std::thread> progressThread_;
 };
 
-class IFStream;
+class FileInputStream;
 
 class IFStreamProgressable : public IProgressable {
    public:
-    IFStreamProgressable(std::weak_ptr<IFStream> stream);
+    IFStreamProgressable(std::weak_ptr<FileInputStream> stream);
     double progress() override;
 
    private:
-    std::weak_ptr<IFStream> stream_;
+    std::weak_ptr<FileInputStream> stream_;
     size_t size_;
 };

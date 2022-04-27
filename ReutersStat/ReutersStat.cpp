@@ -6,8 +6,8 @@
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
-#include "lib/io/fstreamDeprecated.h"
-#include "lib/io/zstreamDeprecated.h"
+#include "lib/io/stream.h"
+#include "lib/io/zstream.h"
 #include "lib/progressBar.h"
 #include "lib/timer.h"
 
@@ -17,10 +17,10 @@ int main(int argc, char* argv[]) {
     standardInit(argc, argv);
     Timer tTotal("Parse Reuters " + FLAGS_in);
 
-    auto fIn = make_shared<IFStream>(FLAGS_in, std::ifstream::binary);
+    auto fIn = make_shared<FileInputStream>(FLAGS_in);
     auto fInProgress = make_shared<IFStreamProgressable>(fIn);
     ProgressBar::getInstance().setProgressable(fInProgress);
-    auto zIn = make_shared<ZIStream>(fIn);
+    auto zIn = make_shared<ZlibInputStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
 

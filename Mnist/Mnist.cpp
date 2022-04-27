@@ -3,8 +3,8 @@
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
-#include "lib/io/fstreamDeprecated.h"
-#include "lib/io/zstreamDeprecated.h"
+#include "lib/io/stream.h"
+#include "lib/io/zstream.h"
 #include "lib/matrix.h"
 #include "lib/thread-pool/threadPool.h"
 #include "lib/timer.h"
@@ -23,8 +23,8 @@ struct Data {
 static constexpr size_t N_FEATURES = 784;
 
 Data readRows(const std::string& filename, bool label) {
-    auto fstream = std::make_shared<IFStream>(filename);
-    auto zfstream = std::make_shared<ZIStream>(fstream);
+    auto fstream = std::make_shared<FileInputStream>(filename);
+    auto zfstream = std::make_shared<ZlibInputStream>(fstream);
     auto csv = std::make_shared<CsvParser>(zfstream);
     ALWAYS_ASSERT(csv->readHeader());
     Rows rows;
@@ -170,8 +170,8 @@ vector<T> train(const Data& data) {
 template <typename T>
 void test(vector<T>& classifiers, const std::string& filename) {
     Timer tTrain(std::string("Test ") + typeid(T).name());
-    OFStream fOut(filename);
-    fOut << "ImageId,Label" << endl;
+    FileOutputStream fOut(filename);
+    fOut << "ImageId,Label" << Endl;
     auto test = readRows("test.gz", false);
     for (size_t i = 0; i < test.rows.size(); ++i) {
         float max = -100.0;
@@ -183,7 +183,7 @@ void test(vector<T>& classifiers, const std::string& filename) {
                 maxIndex = j;
             }
         }
-        fOut << (i + 1) << "," << maxIndex << endl;
+        fOut << (i + 1) << "," << maxIndex << Endl;
     }
 }
 

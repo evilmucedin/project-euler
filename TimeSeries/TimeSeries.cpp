@@ -8,9 +8,9 @@
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
-#include "lib/io/fstreamDeprecated.h"
+#include "lib/io/stream.h"
 #include "lib/io/utils.h"
-#include "lib/io/zstreamDeprecated.h"
+#include "lib/io/zstream.h"
 #include "lib/math.h"
 #include "lib/matrix.h"
 #include "lib/progressBar.h"
@@ -46,7 +46,7 @@ struct Histogramer {
     void add(const string& ric, double volume) { storage_[ric].emplace_back(volume); }
 
     void dump() {
-        OFStream fOut(kHistogram);
+        FileOutputStream fOut(kHistogram);
         for (auto& kv : storage_) {
             auto& values = kv.second;
             sort(values.begin(), values.end());
@@ -141,7 +141,7 @@ struct DumpCallback : public IReutersParserCallback {
                         << std::endl;
     }
 
-    OFStream fPriceLevelsOut;
+    FileOutputStream fPriceLevelsOut;
 };
 
 struct DumpTSCallback : public IReutersParserCallback {
@@ -156,15 +156,15 @@ struct DumpTSCallback : public IReutersParserCallback {
         }
     }
 
-    OFStream fOut;
+    FileOutputStream fOut;
 };
 
 void parseReuters(const std::string& filename, IReutersParserCallback& callback) {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<IFStream>(filename, std::ifstream::binary);
+    auto fIn = make_shared<FileInputStream>(filename, std::ifstream::binary);
     auto fInProgress = make_shared<IFStreamProgressable>(fIn);
     ProgressBar::getInstance().setProgressable(fInProgress);
-    auto zIn = make_shared<ZIStream>(fIn);
+    auto zIn = make_shared<ZlibInputStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
     const auto iFIDNumber = reader.getIndexOrDie("Number of FIDs");
@@ -176,7 +176,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
     const auto iIndex = reader.getIndexOrDie("Key/Msg Sequence Number");
     unordered_map<std::string, BidAsk> bidasks;
 
-    OFStream fSubset("data/subset.csv");
+    FileOutputStream fSubset("data/subset.csv");
     int64_t iMessage = 0;
     while (reader.readLine()) {
         if (iMessage >= FLAGS_limit) {
@@ -312,7 +312,7 @@ void produceTimeSeries() {
         vol[iBucket] += volume;
         ++n[iBucket];
     }
-    OFStream fOut(kAaplTimeSeries);
+    FileOutputStream fOut(kAaplTimeSeries);
     double price = 0;
     for (size_t i = 0; i < kN; ++i) {
         if (vol[i] != 0) {
@@ -592,7 +592,7 @@ void fftTimeSeries() {
         x /= cts.size();
     }
 
-    OFStream fOut(kAaplTimeSeries + ".fft.tsv");
+    FileOutputStream fOut(kAaplTimeSeries + ".fft.tsv");
     for (size_t i = 0; i < extended.size(); ++i) {
         complex<double> r;
         double p = 0;
@@ -676,7 +676,7 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
     StockStats data_;
 
     void save(const string& filename) const {
-        OFStream ofs(filename);
+        FileOutputStream ofs(filename);
         for (const auto& p: data_) {
             ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << endl;
         }
@@ -852,7 +852,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
     }
 
     void save(const string& filename) const {
-        OFStream ofs(filename);
+        FileOutputStream ofs(filename);
         for (const auto& p: features_) {
             ofs << p.first;
             for (size_t i = 0; i < kQuants; ++i) {
