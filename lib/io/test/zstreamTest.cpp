@@ -1,23 +1,24 @@
 #include "lib/io/stream.h"
 #include "lib/io/zstream.h"
 #include "lib/random.h"
+#include "lib/io/utils.h"
 
 #include "gtest/gtest.h"
 #include "glog/logging.h"
 
-/*
 TEST(ZInStream, Simple) {
-    auto fIn = make_shared<ifstream>(
-        "/home/denplusplus/Downloads/Kafka_Kafka-Franc-Romany_1_Propavshiy-bez-vesti.CpUnYQ.405255.fb2.gz");
-    auto zIn = make_shared<ZIStream>(fIn);
+    auto fIn = make_shared<FileInputStream>(repoRoot() + "/lib/io/test/Kafka_Kafka-Franc-Romany_3_Zamok.Sf2l2w.349158.fb2.gz");
+    auto zIn = make_shared<ZlibInputStream>(fIn);
     string line;
     int iLine = 0;
-    while (getline(*zIn, line)) {
-        cout << iLine << "\t" << line << endl;
+    while (zIn->readLine(line)) {
+        // cout << iLine << "\t" << line << endl;
         ++iLine;
+        if (iLine < 10) {
+            cout << line << endl;
+        }
     }
 }
-*/
 
 TEST(ZOutStream, Simple) {
     {

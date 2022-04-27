@@ -67,40 +67,45 @@ ZlibInputStream::ZlibInputStream(PInputStream nested, size_t buffSize)
 
 size_t ZlibInputStream::readSome(char* buffer, size_t toRead) {
     if (outBuffNext_ == outBuffFreeStart_) {
-        if (outBuffFreeStart_ == outBuff_.data() + buffSize_) {
-            outBuffFreeStart_ = outBuff_.data();
-            outBuffNext_ = outBuff_.data();
-        }
+        if (!zeof_) {
+            if (outBuffFreeStart_ == outBuff_.data() + buffSize_) {
+                outBuffFreeStart_ = outBuff_.data();
+                outBuffNext_ = outBuff_.data();
+            }
 
-        do {
-            if (inBuffStart_ == inBuffEnd_) {
-                inBuffStart_ = inBuff_.data();
-                auto sz = nested_->read(inBuff_.data(), buffSize_);
-                inBuffEnd_ = inBuff_.data() + sz;
-                if (inBuffEnd_ == inBuffStart_) {
-                    break;
+            do {
+                if (inBuffStart_ == inBuffEnd_) {
+                    inBuffStart_ = inBuff_.data();
+                    auto sz = nested_->read(inBuff_.data(), buffSize_);
+                    if (sz == 0) {
+                        break;
+                    }
+                    inBuffEnd_ = inBuff_.data() + sz;
+                    if (inBuffEnd_ == inBuffStart_) {
+                        break;
+                    }
                 }
-            }
-            if (!zStrm_) {
-                zStrm_ = make_unique<ZlibStreamWrapper>(true);
-            }
-            zStrm_->next_in = reinterpret_cast<Bytef*>(inBuffStart_);
-            zStrm_->avail_in = inBuffEnd_ - inBuffStart_;
-            zStrm_->next_out = reinterpret_cast<Bytef*>(outBuffFreeStart_);
-            zStrm_->avail_out = (outBuff_.data() + buffSize_) - outBuffFreeStart_;
-            auto ret = inflate(zStrm_.get(), Z_NO_FLUSH);
-            if (ret != Z_OK && ret != Z_STREAM_END) {
-                throw ZlibException(ret);
-            }
-            inBuffStart_ = reinterpret_cast<char*>(zStrm_->next_in);
-            ASSERTEQ(inBuffEnd_, inBuffStart_ + zStrm_->avail_in);
-            outBuffFreeStart_ = reinterpret_cast<char*>(zStrm_->next_out);
-            ASSERTEQ(outBuffFreeStart_ + zStrm_->avail_out, outBuff_.data() + buffSize_);
-            if (ret == Z_STREAM_END) {
-                zStrm_.reset();
-                zeof_ = true;
-            }
-        } while (outBuffFreeStart_ == outBuff_.data());
+                if (!zStrm_) {
+                    zStrm_ = make_unique<ZlibStreamWrapper>(true);
+                }
+                zStrm_->next_in = reinterpret_cast<Bytef*>(inBuffStart_);
+                zStrm_->avail_in = inBuffEnd_ - inBuffStart_;
+                zStrm_->next_out = reinterpret_cast<Bytef*>(outBuffFreeStart_);
+                zStrm_->avail_out = (outBuff_.data() + buffSize_) - outBuffFreeStart_;
+                auto ret = inflate(zStrm_.get(), Z_NO_FLUSH);
+                if (ret != Z_OK && ret != Z_STREAM_END) {
+                    throw ZlibException(ret);
+                }
+                inBuffStart_ = reinterpret_cast<char*>(zStrm_->next_in);
+                ASSERTEQ(inBuffEnd_, inBuffStart_ + zStrm_->avail_in);
+                outBuffFreeStart_ = reinterpret_cast<char*>(zStrm_->next_out);
+                ASSERTEQ(outBuffFreeStart_ + zStrm_->avail_out, outBuff_.data() + buffSize_);
+                if (ret == Z_STREAM_END) {
+                    zStrm_.reset();
+                    zeof_ = true;
+                }
+            } while (outBuffFreeStart_ == outBuff_.data());
+        }
     }
 
     const size_t readNow = std::min<size_t>(toRead, outBuffFreeStart_ - outBuffNext_);
@@ -117,6 +122,8 @@ size_t ZlibInputStream::read(char* buffer, size_t toRead) {
             result += readResult;
             toRead -= readResult;
             buffer += readResult;
+        } else {
+            break;
         }
     }
     return result;

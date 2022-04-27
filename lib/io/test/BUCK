@@ -6,6 +6,7 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib:random",
+    "//lib/io:utils",
     "//lib/io:zstream",
     "//glog:glog",
   ],
