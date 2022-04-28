@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
 
 #include "lib/io/file.h"
 
@@ -15,6 +16,7 @@ class InputStream {
 
     virtual bool readChar(char& ch);
     virtual bool readTo(string& s, char ch);
+    virtual bool readToken(string& s);
     virtual bool readLine(string& s);
     virtual string readLine();
 };
@@ -34,15 +36,15 @@ class OutputStream {
 
 using POutputStream = std::shared_ptr<OutputStream>;
 
-typedef void (*StreamManipulator)(OutputStream &);
+typedef void (*StreamManipulator)(OutputStream&);
 
-static inline OutputStream &operator<<(OutputStream &o, StreamManipulator m) {
-  m(o);
+static inline OutputStream& operator<<(OutputStream& o, StreamManipulator m) {
+    m(o);
 
-  return o;
+    return o;
 }
 
-void Endl(OutputStream &o);
+void Endl(OutputStream& o);
 
 class StdInputStream : public InputStream {
    public:
@@ -149,14 +151,14 @@ OutputStream& operator<<(OutputStream& stream, const T& x) {
     return stream;
 }
 
-#define OUT_INT_TEMPLATE(TYPENAME) \
- template <> \
- inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
-    thread_local char buffer[64]; \
-    const size_t len = numToBuffer<TYPENAME, 10>(x, buffer); \
-     stream.write(buffer, len); \
-     return stream; \
-}
+#define OUT_INT_TEMPLATE(TYPENAME)                                                       \
+    template <>                                                                          \
+    inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
+        thread_local char buffer[64];                                                    \
+        const size_t len = numToBuffer<TYPENAME, 10>(x, buffer);                         \
+        stream.write(buffer, len);                                                       \
+        return stream;                                                                   \
+    }
 
 OUT_INT_TEMPLATE(i8)
 OUT_INT_TEMPLATE(u8)
@@ -173,4 +175,20 @@ template <>
 inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
     stream.write(s);
     return stream;
+}
+
+template <typename T>
+inline InputStream& operator>>(InputStream& is, T& x) {
+    string s;
+    is.readToken(s);
+    std::istringstream ss;
+    ss.str(s);
+    ss >> x;
+    return is;
+}
+
+template <>
+inline InputStream& operator>>(InputStream& is, string& s) {
+    is.readToken(s);
+    return is;
 }

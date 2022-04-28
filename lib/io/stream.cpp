@@ -27,15 +27,38 @@ InputStream::~InputStream() {}
 bool InputStream::readChar(char& ch) { return read(&ch, 1) > 0; }
 
 bool InputStream::readTo(string& s, char to) {
+    s.clear();
+
     char ch;
 
     if (!read(&ch, 1)) {
         return false;
     }
 
-    s.clear();
     do {
         if (ch == to) {
+            break;
+        }
+
+        s += ch;
+    } while (read(&ch, 1));
+
+    return true;
+}
+
+bool InputStream::readToken(string& s) {
+    s.clear();
+
+    char ch;
+    if (!read(&ch, 1)) {
+        return false;
+    }
+
+    while (isspace(ch) && read(&ch, 1)) {
+    }
+
+    do {
+        if (isspace(ch)) {
             break;
         }
 

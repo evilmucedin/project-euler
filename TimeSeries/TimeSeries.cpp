@@ -865,7 +865,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
 
     void load(const string& filename) {
         FileInputStream ifs(filename);
-        while (ifs) {
+        while (!ifs.eof()) {
             string ric;
             ifs >> ric;
             if (ric.empty()) {
