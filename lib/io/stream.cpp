@@ -121,6 +121,12 @@ size_t FileInputStream::read(char* buffer, size_t toRead) {
 
 bool FileInputStream::eof() const { return eof_; }
 
+off_t FileInputStream::seekBegin(off_t offset) { return lseek(fd_, offset, SEEK_SET); }
+
+off_t FileInputStream::seekEnd(off_t offset) { return lseek(fd_, offset, SEEK_END); }
+
+off_t FileInputStream::tell() { return lseek(fd_, 0, SEEK_CUR); }
+
 FileOutputStream::FileOutputStream(const string& filename) : filename_(filename) {
     fd_ = open(filename_.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (-1 == fd_) {

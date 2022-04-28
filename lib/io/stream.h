@@ -65,6 +65,10 @@ class FileInputStream : public InputStream {
     size_t read(char* buffer, size_t toRead) override;
     bool eof() const override;
 
+    off_t seekBegin(off_t offset);
+    off_t seekEnd(off_t offset);
+    off_t tell();
+
    private:
     string filename_;
     int fd_{-1};
