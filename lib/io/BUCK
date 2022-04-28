@@ -98,6 +98,7 @@ cxx_library(
     "//glog:glog",
     "//lib:header",
     "//lib:string",
+    "//lib/io:stream",
   ],
   visibility=[
     'PUBLIC',

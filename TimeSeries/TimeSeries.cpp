@@ -159,7 +159,7 @@ struct DumpTSCallback : public IReutersParserCallback {
 
 void parseReuters(const std::string& filename, IReutersParserCallback& callback) {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<FileInputStream>(filename, std::ifstream::binary);
+    auto fIn = make_shared<FileInputStream>(filename);
     auto fInProgress = make_shared<IFStreamProgressable>(fIn);
     ProgressBar::getInstance().setProgressable(fInProgress);
     auto zIn = make_shared<ZlibInputStream>(fIn);
