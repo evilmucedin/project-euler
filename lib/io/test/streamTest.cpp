@@ -46,12 +46,14 @@ TEST(Stream, File1) {
     sFOut.reset();
     auto sFIn = make_shared<FileInputStream>(FILENAME);
     auto sBIn = make_shared<BufferedInputStream>(sFIn, 1 << 11);
+    EXPECT_FALSE(sBIn->eof());
     size_t read = 0;
     size_t readTotal = 0;
     while ((read = sBIn->read(buffer, 1024))) {
         readTotal += read;
     }
     EXPECT_EQ(readTotal, slen);
+    EXPECT_TRUE(sBIn->eof());
 }
 
 template <typename T>

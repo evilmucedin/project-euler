@@ -129,6 +129,13 @@ size_t ZlibInputStream::read(char* buffer, size_t toRead) {
     return result;
 }
 
+bool ZlibInputStream::eof() const {
+    if (outBuffFreeStart_ == outBuffNext_) {
+        return zeof_;
+    }
+    return false;
+}
+
 ZlibOutputStream::ZlibOutputStream(POutputStream nested, size_t buffSize) : nested_(nested), buffSize_(buffSize) {
     assert(nested_.get());
     inBuff_.resize(buffSize_);

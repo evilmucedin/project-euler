@@ -1,13 +1,12 @@
 #include "stream.h"
 
-#include <cstring>
-
 #include <fcntl.h>
+#include <lib/exception.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <lib/exception.h>
+#include <cstring>
 
 namespace {
 
@@ -21,7 +20,7 @@ string strError() {
 #endif
 }
 
-}
+}  // namespace
 
 InputStream::~InputStream() {}
 
@@ -60,7 +59,7 @@ void OutputStream::write(char ch) { write(&ch, 1); }
 
 OutputStream::~OutputStream() {}
 
-void Endl(OutputStream &o) { (o << "\n").flush(); }
+void Endl(OutputStream& o) { (o << "\n").flush(); }
 
 void StdOutputStream::write(const char* buffer, size_t toWrite) {
     const auto res = ::write(1, buffer, toWrite);
@@ -71,7 +70,7 @@ void StdOutputStream::write(const char* buffer, size_t toWrite) {
 
 void StdOutputStream::flush() {}
 
-FileInputStream::FileInputStream(const string& filename) : filename_(filename), fd_(-1) {
+FileInputStream::FileInputStream(const string& filename) : filename_(filename), fd_(-1), eof_(false) {
     fd_ = open(filename_.c_str(), O_RDONLY);
     if (-1 == fd_) {
         THROW("failed to open file '" << strError() << "'");
@@ -87,11 +86,17 @@ FileInputStream::~FileInputStream() {
 
 size_t FileInputStream::read(char* buffer, size_t toRead) {
     if (toRead) {
-        return ::read(fd_, buffer, toRead);
+        const auto res = ::read(fd_, buffer, toRead);
+        if (res == 0) {
+            eof_ = true;
+        }
+        return res;
     } else {
         return 0;
     }
 }
+
+bool FileInputStream::eof() const { return eof_; }
 
 FileOutputStream::FileOutputStream(const string& filename) : filename_(filename) {
     fd_ = open(filename_.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -141,6 +146,13 @@ size_t BufferedInputStream::read(char* buffer, size_t toRead) {
     return read;
 }
 
+bool BufferedInputStream::eof() const {
+    if (bufferPos_ == bufferEnd_) {
+        return nested_->eof();
+    }
+    return false;
+}
+
 void BufferedInputStream::refill() {
     ASSERTEQ(bufferPos_, bufferEnd_);
     bufferPos_ = 0;
@@ -180,6 +192,8 @@ size_t InputStringStream::read(char* buffer, size_t toRead) {
     pos_ += res;
     return res;
 }
+
+bool InputStringStream::eof() const { return pos_ == s_.size(); }
 
 OutputStringStream::OutputStringStream() {}
 

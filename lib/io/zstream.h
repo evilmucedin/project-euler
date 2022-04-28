@@ -29,6 +29,7 @@ class ZlibInputStream : public InputStream {
     ZlibInputStream& operator=(ZlibInputStream&&) = default;
 
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
 
    private:
     size_t readSome(char* buffer, size_t toRead);

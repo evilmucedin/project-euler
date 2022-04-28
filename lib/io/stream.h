@@ -11,6 +11,7 @@ class InputStream {
     virtual ~InputStream();
 
     virtual size_t read(char* buffer, size_t toRead) = 0;
+    virtual bool eof() const = 0;
 
     virtual bool readChar(char& ch);
     virtual bool readTo(string& s, char ch);
@@ -60,10 +61,12 @@ class FileInputStream : public InputStream {
     ~FileInputStream();
 
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
 
    private:
     string filename_;
     int fd_{-1};
+    bool eof_;
 };
 
 class FileOutputStream : public OutputStream {
@@ -83,7 +86,9 @@ class BufferedInputStream : public InputStream {
     static constexpr size_t DEFAULT_BUFFER_SIZE = 1 << 20;
     BufferedInputStream(PInputStream nested, size_t bufferSize = DEFAULT_BUFFER_SIZE);
     ~BufferedInputStream();
+
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
 
    private:
     void refill();
@@ -114,7 +119,9 @@ class BufferedOutputStream : public OutputStream {
 class InputStringStream : public InputStream {
    public:
     InputStringStream(string s);
+
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
 
    private:
     string s_;
