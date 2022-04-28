@@ -1,8 +1,8 @@
-#include "glog/logging.h"
-#include "gflags/gflags.h"
-#include "eigen/Dense"
+#include "DNN.h"
 #include "armadillo/armadillo"
-
+#include "eigen/Dense"
+#include "gflags/gflags.h"
+#include "glog/logging.h"
 #include "lib/datetime.h"
 #include "lib/fft.h"
 #include "lib/header.h"
@@ -17,8 +17,6 @@
 #include "lib/random.h"
 #include "lib/string.h"
 #include "lib/timer.h"
-
-#include "DNN.h"
 
 DEFINE_bool(generate, false, "parse raw Reuters data");
 DEFINE_bool(fft, false, "fft");
@@ -60,7 +58,7 @@ struct Histogramer {
                                     0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
                 fOut << p(percentile);
             }
-            fOut << endl;
+            fOut << Endl;
         }
     }
 
@@ -138,7 +136,7 @@ struct DumpCallback : public IReutersParserCallback {
         }
         fPriceLevelsOut << ric << "\t" << dt.str() << "\t" << dt.time_.time_ << "\t" << bidask.quoteTime_ << "\t"
                         << bidask.bid_ << "\t" << bidask.ask_ << "\t" << price << "\t" << priceLevel << "\t" << index
-                        << std::endl;
+                        << Endl;
     }
 
     FileOutputStream fPriceLevelsOut;
@@ -151,7 +149,7 @@ struct DumpTSCallback : public IReutersParserCallback {
                  int index) override {
         if (ric == kStock) {
             if (volume > 0) {
-                fOut << dt.time_.time_ << "\t" << price << "\t" << volume << endl;
+                fOut << dt.time_.time_ << "\t" << price << "\t" << volume << Endl;
             }
         }
     }
@@ -291,7 +289,7 @@ void generate() {
     parseReuters(kFilename, callback);
 }
 
-constexpr size_t kN = 60*16;
+constexpr size_t kN = 60 * 16;
 
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
@@ -308,7 +306,7 @@ void produceTimeSeries() {
         double price = stod(tokens[1]);
         double volume = stod(tokens[2]);
         size_t iBucket = (time - kTimeMin) * kN / (kTimeMax - kTimeMin);
-        dv[iBucket] += price*volume;
+        dv[iBucket] += price * volume;
         vol[iBucket] += volume;
         ++n[iBucket];
     }
@@ -316,7 +314,7 @@ void produceTimeSeries() {
     double price = 0;
     for (size_t i = 0; i < kN; ++i) {
         if (vol[i] != 0) {
-            price = dv[i]/vol[i];
+            price = dv[i] / vol[i];
         }
         fOut << i << "\t" << price << "\t" << vol[i] << "\t" << n[i] << Endl;
     }
@@ -469,7 +467,8 @@ struct LinearPredictor {
 
 struct SGDPredictor {
    public:
-    SGDPredictor(size_t nDim, size_t nSteps) : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1), sg_(nDim_ + 1) {
+    SGDPredictor(size_t nDim, size_t nSteps)
+        : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1), sg_(nDim_ + 1) {
         for (auto& x : q_) {
             x = randAB<double>(-1.0, 1.0) / 100;
         }
@@ -588,7 +587,7 @@ void fftTimeSeries() {
             extended[i] += cts[j] * std::exp(complex<double>(0, (2.0 * M_PI * i * j) / cts.size()));
         }
     }
-    for (auto& x: extended) {
+    for (auto& x : extended) {
         x /= cts.size();
     }
 
@@ -677,8 +676,9 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
 
     void save(const string& filename) const {
         FileOutputStream ofs(filename);
-        for (const auto& p: data_) {
-            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << Endl;
+        for (const auto& p : data_) {
+            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_
+                << Endl;
         }
     }
 
@@ -784,7 +784,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             double lastBidSize = 0;
             double lastAskSize = 0;
             size_t index = 0;
-            for (auto& features: stockPair.second) {
+            for (auto& features : stockPair.second) {
                 if (features[FI_TRADES]) {
                     features[FI_PRICE] /= features[FI_TRADES];
                 }
@@ -799,7 +799,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     features[FI_ASK] /= avgPrice;
                 }
                 /*
-                */
+                 */
                 features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
                 features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
                 features[FI_BIDSIZE] = log(1.0 + features[FI_BIDSIZE]);
@@ -843,17 +843,17 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             if (toSd == ss.end()) {
                 continue;
             }
-            for (auto& features: stockPair.second) {
+            for (auto& features : stockPair.second) {
                 features[FI_INTERCEPT] = 1.0;
             }
         }
         /*
-        */
+         */
     }
 
     void save(const string& filename) const {
         FileOutputStream ofs(filename);
-        for (const auto& p: features_) {
+        for (const auto& p : features_) {
             ofs << p.first;
             for (size_t i = 0; i < kQuants; ++i) {
                 ofs << "\t";
@@ -969,9 +969,7 @@ void dnn() {
         return ret;
     };
 
-    auto train = [](const string& stock) {
-        return (hash<string>()(stock) % 5) != 4;
-    };
+    auto train = [](const string& stock) { return (hash<string>()(stock) % 5) != 4; };
 
     auto stocks = keys(features);
     size_t samples = 0;
