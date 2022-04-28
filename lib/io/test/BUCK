@@ -1,12 +1,27 @@
 cxx_test(
+  name="zstreamTest",
+  srcs=[
+    "zstreamTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+    "//lib/io:utils",
+    "//lib/io:zstream",
+    "//glog:glog",
+  ],
+)
+
+cxx_test(
   name="zstreamDeprecatedTest",
   srcs=[
     "zstreamDeprecatedTest.cpp",
   ],
   deps=[
     "//lib:header",
-    "//lib:random",
+    "//lib/io:utils",
     "//lib/io:zstreamDeprecated",
+    "//lib:random",
     "//glog:glog",
   ],
 )

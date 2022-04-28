@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include "lib/io/fstreamDeprecated.h"
+#include "lib/io/stream.h"
 
 IProgressable::~IProgressable() = default;
 
@@ -53,19 +53,19 @@ void ProgressBar::setProgressable(std::shared_ptr<IProgressable> progressable) {
     }
 }
 
-IFStreamProgressable::IFStreamProgressable(std::weak_ptr<IFStream> stream) : stream_(stream) {
+IFStreamProgressable::IFStreamProgressable(std::weak_ptr<FileInputStream> stream) : stream_(stream) {
     if (auto s = stream_.lock()) {
-        auto sizeBefore = s->tellg();
+        auto sizeBefore = s->tell();
         assert(0 == sizeBefore);
-        s->seekg(0, std::ios::end);
-        size_ = s->tellg();
-        s->seekg(0, std::ios::beg);
+        s->seekEnd(0);
+        size_ = s->tell();
+        s->seekBegin(0);
     }
 }
 
 double IFStreamProgressable::progress() {
     if (auto s = stream_.lock()) {
-        auto size = s->tellg();
+        auto size = s->tell();
         return static_cast<double>(size) / size_;
     }
     return 1.1;

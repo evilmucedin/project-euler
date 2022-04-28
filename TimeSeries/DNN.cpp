@@ -4,7 +4,7 @@
 #include "tiny_dnn/tiny_dnn.h"
 
 #include "lib/random.h"
-#include "lib/io/fstreamDeprecated.h"
+#include "lib/io/stream.h"
 
 namespace {
 tiny_dnn::vec_t doubleVectorToVector(const DoubleVector& features) {
@@ -351,7 +351,7 @@ class DNNModel::Impl {
 
     void saveJson(const std::string& filename) {
         auto json = nn_->to_json(tiny_dnn::content_type::weights_and_model);
-        OFStream ofs(filename);
+        FileOutputStream ofs(filename);
         ofs << json;
     }
 

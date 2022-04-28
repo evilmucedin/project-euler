@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
 
 #include "lib/io/file.h"
 
@@ -11,10 +12,13 @@ class InputStream {
     virtual ~InputStream();
 
     virtual size_t read(char* buffer, size_t toRead) = 0;
+    virtual bool eof() const = 0;
 
     virtual bool readChar(char& ch);
     virtual bool readTo(string& s, char ch);
+    virtual bool readToken(string& s);
     virtual bool readLine(string& s);
+    virtual string readLine();
 };
 
 using PInputStream = std::shared_ptr<InputStream>;
@@ -31,6 +35,16 @@ class OutputStream {
 };
 
 using POutputStream = std::shared_ptr<OutputStream>;
+
+typedef void (*StreamManipulator)(OutputStream&);
+
+static inline OutputStream& operator<<(OutputStream& o, StreamManipulator m) {
+    m(o);
+
+    return o;
+}
+
+void Endl(OutputStream& o);
 
 class StdInputStream : public InputStream {
    public:
@@ -49,10 +63,16 @@ class FileInputStream : public InputStream {
     ~FileInputStream();
 
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
+
+    off_t seekBegin(off_t offset);
+    off_t seekEnd(off_t offset);
+    off_t tell();
 
    private:
     string filename_;
     int fd_{-1};
+    bool eof_;
 };
 
 class FileOutputStream : public OutputStream {
@@ -72,7 +92,9 @@ class BufferedInputStream : public InputStream {
     static constexpr size_t DEFAULT_BUFFER_SIZE = 1 << 20;
     BufferedInputStream(PInputStream nested, size_t bufferSize = DEFAULT_BUFFER_SIZE);
     ~BufferedInputStream();
+
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
 
    private:
     void refill();
@@ -103,7 +125,9 @@ class BufferedOutputStream : public OutputStream {
 class InputStringStream : public InputStream {
    public:
     InputStringStream(string s);
+
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
 
    private:
     string s_;
@@ -131,14 +155,14 @@ OutputStream& operator<<(OutputStream& stream, const T& x) {
     return stream;
 }
 
-#define OUT_INT_TEMPLATE(TYPENAME) \
- template <> \
- inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
-    thread_local char buffer[64]; \
-    const size_t len = numToBuffer<TYPENAME, 10>(x, buffer); \
-     stream.write(buffer, len); \
-     return stream; \
-}
+#define OUT_INT_TEMPLATE(TYPENAME)                                                       \
+    template <>                                                                          \
+    inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
+        thread_local char buffer[64];                                                    \
+        const size_t len = numToBuffer<TYPENAME, 10>(x, buffer);                         \
+        stream.write(buffer, len);                                                       \
+        return stream;                                                                   \
+    }
 
 OUT_INT_TEMPLATE(i8)
 OUT_INT_TEMPLATE(u8)
@@ -155,4 +179,20 @@ template <>
 inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
     stream.write(s);
     return stream;
+}
+
+template <typename T>
+inline InputStream& operator>>(InputStream& is, T& x) {
+    string s;
+    is.readToken(s);
+    std::istringstream ss;
+    ss.str(s);
+    ss >> x;
+    return is;
+}
+
+template <>
+inline InputStream& operator>>(InputStream& is, string& s) {
+    is.readToken(s);
+    return is;
 }

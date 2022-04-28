@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <complex>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -89,6 +90,12 @@ struct hash<vector<T>> {
 };
 
 string to_string(const string& s);
+
+template <typename T>
+string to_string(const complex<T>& x) {
+    return "(" + to_string(x.real()) + "," + to_string(x.imag()) + ")";
+}
+
 }  // namespace std
 
 template <typename T, typename A>

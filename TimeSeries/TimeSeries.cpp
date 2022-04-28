@@ -1,24 +1,22 @@
-#include "glog/logging.h"
-#include "gflags/gflags.h"
-#include "eigen/Dense"
+#include "DNN.h"
 #include "armadillo/armadillo"
-
+#include "eigen/Dense"
+#include "gflags/gflags.h"
+#include "glog/logging.h"
 #include "lib/datetime.h"
 #include "lib/fft.h"
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/io/csv.h"
-#include "lib/io/fstreamDeprecated.h"
+#include "lib/io/stream.h"
 #include "lib/io/utils.h"
-#include "lib/io/zstreamDeprecated.h"
+#include "lib/io/zstream.h"
 #include "lib/math.h"
 #include "lib/matrix.h"
 #include "lib/progressBar.h"
 #include "lib/random.h"
 #include "lib/string.h"
 #include "lib/timer.h"
-
-#include "DNN.h"
 
 DEFINE_bool(generate, false, "parse raw Reuters data");
 DEFINE_bool(fft, false, "fft");
@@ -46,7 +44,7 @@ struct Histogramer {
     void add(const string& ric, double volume) { storage_[ric].emplace_back(volume); }
 
     void dump() {
-        OFStream fOut(kHistogram);
+        FileOutputStream fOut(kHistogram);
         for (auto& kv : storage_) {
             auto& values = kv.second;
             sort(values.begin(), values.end());
@@ -60,7 +58,7 @@ struct Histogramer {
                                     0.9996837722339832, 0.9999, 0.9999683772233983, 0.99999, 0.9999968377223398}) {
                 fOut << p(percentile);
             }
-            fOut << endl;
+            fOut << Endl;
         }
     }
 
@@ -138,10 +136,10 @@ struct DumpCallback : public IReutersParserCallback {
         }
         fPriceLevelsOut << ric << "\t" << dt.str() << "\t" << dt.time_.time_ << "\t" << bidask.quoteTime_ << "\t"
                         << bidask.bid_ << "\t" << bidask.ask_ << "\t" << price << "\t" << priceLevel << "\t" << index
-                        << std::endl;
+                        << Endl;
     }
 
-    OFStream fPriceLevelsOut;
+    FileOutputStream fPriceLevelsOut;
 };
 
 struct DumpTSCallback : public IReutersParserCallback {
@@ -151,20 +149,20 @@ struct DumpTSCallback : public IReutersParserCallback {
                  int index) override {
         if (ric == kStock) {
             if (volume > 0) {
-                fOut << dt.time_.time_ << "\t" << price << "\t" << volume << endl;
+                fOut << dt.time_.time_ << "\t" << price << "\t" << volume << Endl;
             }
         }
     }
 
-    OFStream fOut;
+    FileOutputStream fOut;
 };
 
 void parseReuters(const std::string& filename, IReutersParserCallback& callback) {
     Timer tTotal("Parse Reuters");
-    auto fIn = make_shared<IFStream>(filename, std::ifstream::binary);
+    auto fIn = make_shared<FileInputStream>(filename);
     auto fInProgress = make_shared<IFStreamProgressable>(fIn);
     ProgressBar::getInstance().setProgressable(fInProgress);
-    auto zIn = make_shared<ZIStream>(fIn);
+    auto zIn = make_shared<ZlibInputStream>(fIn);
     CsvParser reader(zIn);
     reader.readHeader();
     const auto iFIDNumber = reader.getIndexOrDie("Number of FIDs");
@@ -176,7 +174,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
     const auto iIndex = reader.getIndexOrDie("Key/Msg Sequence Number");
     unordered_map<std::string, BidAsk> bidasks;
 
-    OFStream fSubset("data/subset.csv");
+    FileOutputStream fSubset("data/subset.csv");
     int64_t iMessage = 0;
     while (reader.readLine()) {
         if (iMessage >= FLAGS_limit) {
@@ -194,7 +192,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
         if (recordType == "TRADE") {
             auto ric = reader.get(iRic);
             if (ric == kStock) {
-                fSubset << reader.line() << std::endl;
+                fSubset << reader.line() << Endl;
             }
             auto timestamp = reader.get(iDateTime);
             DateTime dateTime(timestamp);
@@ -203,7 +201,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
                 if (ric == kStock) {
-                    fSubset << reader.line() << std::endl;
+                    fSubset << reader.line() << Endl;
                 }
                 auto fidName = reader.get(iFidName);
                 if (fidName == "TRDPRC_1") {
@@ -217,7 +215,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
         } else if (recordType == "QUOTE") {
             auto ric = reader.get(iRic);
             if (ric == kStock) {
-                fSubset << reader.line() << std::endl;
+                fSubset << reader.line() << Endl;
             }
             auto timestamp = reader.get(iDateTime);
             DateTime dateTime(timestamp);
@@ -225,7 +223,7 @@ void parseReuters(const std::string& filename, IReutersParserCallback& callback)
             for (int iFid = 0; iFid < nFids; ++iFid) {
                 reader.readLine();
                 if (ric == kStock) {
-                    fSubset << reader.line() << std::endl;
+                    fSubset << reader.line() << Endl;
                 }
                 auto fidName = reader.get(iFidName);
                 if (fidName == "BID") {
@@ -291,11 +289,11 @@ void generate() {
     parseReuters(kFilename, callback);
 }
 
-constexpr size_t kN = 60*16;
+constexpr size_t kN = 60 * 16;
 
 void produceTimeSeries() {
     Timer tTotal("Produce TimeSeries");
-    IFStream fIn(kAaplFilename);
+    FileInputStream fIn(kAaplFilename);
     string line;
     constexpr double kTimeMin = 0.60417;
     constexpr double kTimeMax = 0.875004;
@@ -308,17 +306,17 @@ void produceTimeSeries() {
         double price = stod(tokens[1]);
         double volume = stod(tokens[2]);
         size_t iBucket = (time - kTimeMin) * kN / (kTimeMax - kTimeMin);
-        dv[iBucket] += price*volume;
+        dv[iBucket] += price * volume;
         vol[iBucket] += volume;
         ++n[iBucket];
     }
-    OFStream fOut(kAaplTimeSeries);
+    FileOutputStream fOut(kAaplTimeSeries);
     double price = 0;
     for (size_t i = 0; i < kN; ++i) {
         if (vol[i] != 0) {
-            price = dv[i]/vol[i];
+            price = dv[i] / vol[i];
         }
-        fOut << i << "\t" << price << "\t" << vol[i] << "\t" << n[i] << endl;
+        fOut << i << "\t" << price << "\t" << vol[i] << "\t" << n[i] << Endl;
     }
 }
 
@@ -469,7 +467,8 @@ struct LinearPredictor {
 
 struct SGDPredictor {
    public:
-    SGDPredictor(size_t nDim, size_t nSteps) : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1), sg_(nDim_ + 1) {
+    SGDPredictor(size_t nDim, size_t nSteps)
+        : nDim_(nDim), nSteps_(nSteps), nIt_(0), q_(nDim_ + 1), x_(nDim_ + 1), sg_(nDim_ + 1) {
         for (auto& x : q_) {
             x = randAB<double>(-1.0, 1.0) / 100;
         }
@@ -541,7 +540,7 @@ struct SGDPredictor {
 };
 
 DoubleVector readTimeSeries(const std::string& filename) {
-    IFStream fIn(kAaplTimeSeries);
+    FileInputStream fIn(kAaplTimeSeries);
     DoubleVector ts(kN);
     for (size_t i = 0; i < kN; ++i) {
         ts[i] = stod(split(fIn.readLine(), '\t')[1]);
@@ -588,11 +587,11 @@ void fftTimeSeries() {
             extended[i] += cts[j] * std::exp(complex<double>(0, (2.0 * M_PI * i * j) / cts.size()));
         }
     }
-    for (auto& x: extended) {
+    for (auto& x : extended) {
         x /= cts.size();
     }
 
-    OFStream fOut(kAaplTimeSeries + ".fft.tsv");
+    FileOutputStream fOut(kAaplTimeSeries + ".fft.tsv");
     for (size_t i = 0; i < extended.size(); ++i) {
         complex<double> r;
         double p = 0;
@@ -603,7 +602,7 @@ void fftTimeSeries() {
             p = nts[i];
         }
 
-        fOut << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << endl;
+        fOut << i << "\t" << p << "\t" << r << "\t" << extended[i] << "\t" << extended[i].real() << Endl;
     }
 }
 
@@ -676,15 +675,16 @@ struct StockStatReutersParserCallback : public IReutersParserCallback {
     StockStats data_;
 
     void save(const string& filename) const {
-        OFStream ofs(filename);
-        for (const auto& p: data_) {
-            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_ << endl;
+        FileOutputStream ofs(filename);
+        for (const auto& p : data_) {
+            ofs << p.first << "\t" << p.second.sumVolume_ << "\t" << p.second.sumPrice_ << "\t" << p.second.count_
+                << Endl;
         }
     }
 
     void load(const string& filename) {
-        IFStream ifs(filename);
-        while (ifs) {
+        FileInputStream ifs(filename);
+        while (!ifs.eof()) {
             string ric;
             ifs >> ric;
             auto& stat = data_[ric];
@@ -784,7 +784,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             double lastBidSize = 0;
             double lastAskSize = 0;
             size_t index = 0;
-            for (auto& features: stockPair.second) {
+            for (auto& features : stockPair.second) {
                 if (features[FI_TRADES]) {
                     features[FI_PRICE] /= features[FI_TRADES];
                 }
@@ -799,7 +799,7 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
                     features[FI_ASK] /= avgPrice;
                 }
                 /*
-                */
+                 */
                 features[FI_TRADES] = log(1.0 + features[FI_TRADES]);
                 features[FI_ASKSIZE] = log(1.0 + features[FI_ASKSIZE]);
                 features[FI_BIDSIZE] = log(1.0 + features[FI_BIDSIZE]);
@@ -843,29 +843,29 @@ struct StockFeaturizerReutersParserCallback : public IReutersParserCallback {
             if (toSd == ss.end()) {
                 continue;
             }
-            for (auto& features: stockPair.second) {
+            for (auto& features : stockPair.second) {
                 features[FI_INTERCEPT] = 1.0;
             }
         }
         /*
-        */
+         */
     }
 
     void save(const string& filename) const {
-        OFStream ofs(filename);
-        for (const auto& p: features_) {
+        FileOutputStream ofs(filename);
+        for (const auto& p : features_) {
             ofs << p.first;
             for (size_t i = 0; i < kQuants; ++i) {
                 ofs << "\t";
                 saveVector(ofs, p.second[i]);
             }
-            ofs << endl;
+            ofs << Endl;
         }
     }
 
     void load(const string& filename) {
-        IFStream ifs(filename);
-        while (ifs) {
+        FileInputStream ifs(filename);
+        while (!ifs.eof()) {
             string ric;
             ifs >> ric;
             if (ric.empty()) {
@@ -969,9 +969,7 @@ void dnn() {
         return ret;
     };
 
-    auto train = [](const string& stock) {
-        return (hash<string>()(stock) % 5) != 4;
-    };
+    auto train = [](const string& stock) { return (hash<string>()(stock) % 5) != 4; };
 
     auto stocks = keys(features);
     size_t samples = 0;

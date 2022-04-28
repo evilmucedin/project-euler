@@ -1,10 +1,10 @@
+#include <glog/logging.h>
+#include <gtest/gtest.h>
+
+#include "lib/header.h"
 #include "lib/io/stream.h"
 #include "lib/random.h"
-#include "lib/header.h"
 #include "lib/timer.h"
-
-#include <gtest/gtest.h>
-#include <glog/logging.h>
 
 TEST(Stream, Stdout) {
     auto stream = make_shared<StdOutputStream>();
@@ -46,12 +46,14 @@ TEST(Stream, File1) {
     sFOut.reset();
     auto sFIn = make_shared<FileInputStream>(FILENAME);
     auto sBIn = make_shared<BufferedInputStream>(sFIn, 1 << 11);
+    EXPECT_FALSE(sBIn->eof());
     size_t read = 0;
     size_t readTotal = 0;
     while ((read = sBIn->read(buffer, 1024))) {
         readTotal += read;
     }
     EXPECT_EQ(readTotal, slen);
+    EXPECT_TRUE(sBIn->eof());
 }
 
 template <typename T>
@@ -85,4 +87,8 @@ TEST(String, String) {
     OutputStringStream ss;
     ss << 5;
     EXPECT_EQ(ss.str(), "5");
+    InputStringStream is(ss.str());
+    int d;
+    is >> d;
+    EXPECT_EQ(d, 5);
 }
