@@ -58,7 +58,7 @@ IFStreamProgressable::IFStreamProgressable(std::weak_ptr<FileInputStream> stream
         auto sizeBefore = s->tell();
         assert(0 == sizeBefore);
         s->seekEnd(0);
-        size_ = s->tellg();
+        size_ = s->tell();
         s->seekBegin(0);
     }
 }
