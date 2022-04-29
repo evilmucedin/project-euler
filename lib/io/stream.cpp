@@ -96,7 +96,7 @@ void StdOutputStream::flush() {}
 FileInputStream::FileInputStream(const string& filename) : filename_(filename), fd_(-1), eof_(false) {
     fd_ = open(filename_.c_str(), O_RDONLY);
     if (-1 == fd_) {
-        THROW("failed to open file '" << strError() << "'");
+        THROW("failed to open file '" << strError() << "' '" << filename_ << "'");
     }
 }
 
