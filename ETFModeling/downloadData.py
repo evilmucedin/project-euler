@@ -20,11 +20,7 @@ assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
     data = yfinance.download(ticker, '2000-08-01', '2022-04-27', actions=True)
-<<<<<<< HEAD
-    data.to_csv(f"marketData/{ticker}.csv")
-=======
     data.to_csv("marketData/%s.csv" % ticker)
->>>>>>> 72620e223df3ecf5ea43acfc0baaada9c8002013
 
 # Import the plotting library
 # %matplotlib inline
