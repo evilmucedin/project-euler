@@ -10,6 +10,9 @@ R"csv(A,B,C
     auto stream = make_shared<InputStringStream>(kCsv);
     CsvParser reader(stream);
     EXPECT_TRUE(reader.readHeader());
+    EXPECT_EQ(reader.getIndex("A"), 0);
+    EXPECT_EQ(reader.getIndex("B"), 1);
+    EXPECT_EQ(reader.getIndex("C"), 2);
     EXPECT_EQ(reader.size(), 3);
     EXPECT_EQ(reader.get(0), "A");
     EXPECT_EQ(reader.get(1), "B");
