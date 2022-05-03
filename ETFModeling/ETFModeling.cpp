@@ -2,13 +2,14 @@
 
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+
 #include "lib/header.h"
 #include "lib/init.h"
 #include "lib/ml/dataframe.h"
 #include "lib/random.h"
 #include "lib/stat.h"
-#include "lib/timer.h"
 #include "lib/thread-pool/threadPool.h"
+#include "lib/timer.h"
 
 DEFINE_string(first_date, "", "First modeling date");
 DEFINE_bool(additive_sortino, true, "subtract risk");
@@ -20,17 +21,17 @@ DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
 
 static const StringVector etfs = {
-    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",   "VOO",  "QQQ",
-    "BND",   "FBND",  "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS", "ONEQ", "VV",   "VB",    "HNDL", "WBII",
-    "PCEF",  "FDIV",  "CEFS",  "YLD",   "INKM",  "IYLD",  "FCEF", "MLTI", "YYY",  "MDIV",  "HIPS", "CVY",
-    "GYLD",  "VTI",   "VEA",   "IEFA",  "AGG",   "GLD",   "XLF",  "VNQ",  "LQD",  "SWPPX", "MGK",  "UNG",
-    "OIH",   "XME",   "PFIX",  "VXX",   "EWZ",   "ILF",   "SCHE", "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG",
-    "FPRO",  "FBCV",  "FMIL",  "BITO",  "BITW",  "VBB",   "SFY",  "IJR",  "SCHD", "FTLS", "FDHT", "FRNW", "FDRV", "FCLD", "FDIG",
+    "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",   "VUG",  "SPY",  "IVV",  "VOO",  "QQQ",  "BND",
+    "FBND",  "HDV",   "VEU",   "VWO",   "FDHY",  "FDIS",  "ONEQ",  "VV",   "VB",   "HNDL", "WBII", "PCEF", "FDIV",
+    "CEFS",  "YLD",   "INKM",  "IYLD",  "FCEF",  "MLTI",  "YYY",   "MDIV", "HIPS", "CVY",  "GYLD", "VTI",  "VEA",
+    "IEFA",  "AGG",   "GLD",   "XLF",   "VNQ",   "LQD",   "SWPPX", "MGK",  "UNG",  "OIH",  "XME",  "PFIX", "VXX",
+    "EWZ",   "ILF",   "SCHE",  "FBCG",  "FQAL",  "FLPSX", "FDRR",  "FMAG", "FPRO", "FBCV", "FMIL", "BITO", "BITW",
+    "VBB",   "SFY",   "IJR",   "SCHD",  "FTLS",  "FDHT",  "FRNW",  "FDRV", "FCLD", "FDIG",
 };
 
 static const StringVector stocks = {"GOOG", "MSFT", "T",   "NCLH", "OGZPY", "AMZN", "FB",  "TSLA", "GME",
                                     "AAPL", "NVDA", "TSM", "UNH",  "JNJ",   "V",    "WMT", "JPM",  "PG",
-                                    "XOM",  "HD",   "CVX", "PFE",  "COIN",  "SI",   "VOW", "LMT", "YNDX"};
+                                    "XOM",  "HD",   "CVX", "PFE",  "COIN",  "SI",   "VOW", "LMT",  "YNDX"};
 
 // static const StringVector tickers = etfs;
 
@@ -312,43 +313,45 @@ ModelResult gradientSearch(const PriceData& pd) {
             if (res.f > bestRes.f) {
                 bestRes = res;
             }
-	    mtxEval.unlock();
+            mtxEval.unlock();
         }
     };
 
     tp::ThreadPool tp;
     mutex mtxPrint;
-    tp.runN([&](int k) {
-        ModelResult bestRes1;
-        bestRes1.originalNav = randomPortfolio(pd.tickers_);
+    tp.runN(
+        [&](int k) {
+            ModelResult bestRes1;
+            bestRes1.originalNav = randomPortfolio(pd.tickers_);
 
-        auto eval1 = [&](Portfolio& c) {
-            normalizeNavInplace(c);
-            const auto res = model(pd, c);
-            if (res.f > bestRes1.f) {
-                bestRes1 = res;
+            auto eval1 = [&](Portfolio& c) {
+                normalizeNavInplace(c);
+                const auto res = model(pd, c);
+                if (res.f > bestRes1.f) {
+                    bestRes1 = res;
+                }
+            };
+
+            for (size_t i = 0; i < 200; ++i) {
+                double scale = (i & 1) ? 0.005 : 0.05;
+                for (size_t j = 0; j < pd.tickers_.size(); ++j) {
+                    Portfolio c = bestRes1.originalNav;
+                    c[j] *= 1.0 - scale;
+                    eval1(c);
+                    c = bestRes1.originalNav;
+                    c[j] *= 1.0 + scale;
+                    eval1(c);
+                }
+                {
+                    mtxPrint.lock();
+                    cerr << k << " " << i << " " << bestRes1.f << " " << bestRes1.originalNav << endl;
+                    mtxPrint.unlock();
+                }
             }
-        };
 
-        for (size_t i = 0; i < 200; ++i) {
-            double scale = (i & 1) ? 0.005 : 0.05;
-            for (size_t j = 0; j < pd.tickers_.size(); ++j) {
-                Portfolio c = bestRes1.originalNav;
-                c[j] *= 1.0 - scale;
-                eval1(c);
-                c = bestRes1.originalNav;
-                c[j] *= 1.0 + scale;
-                eval1(c);
-            }
-            {
-		mtxPrint.lock();
-	        cerr << k << " " << i << " " << bestRes1.f << " " << bestRes1.originalNav << endl;
-		mtxPrint.unlock();
-	    }
-        }
-
-        eval(bestRes1.originalNav);
-    }, FLAGS_iterations);
+            eval(bestRes1.originalNav);
+        },
+        FLAGS_iterations);
 
     for (size_t j = 0; j < pd.tickers_.size(); ++j) {
         auto c = bestRes.originalNav;
@@ -468,7 +471,8 @@ int main(int argc, char* argv[]) {
                 stockF = resStock.f;
             }
 
-            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF << endl;
+            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
+                 << endl;
         }
         out(bestRes);
     } else {
