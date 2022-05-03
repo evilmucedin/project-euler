@@ -440,6 +440,22 @@ class ThreadPoolImpl {
         }
     }
 
+    template <typename F>
+    void runN(F const& f, size_t n) {
+        std::vector<std::future<void>> futures;
+        futures.reserve(n);
+
+        for (size_t i = 0; i < n; ++i) {
+            std::packaged_task<void()> t([&f, i]() { f(i); });
+            futures.emplace_back(t.get_future());
+            blockingPost(std::move(t));
+        }
+
+        for (auto& f : futures) {
+            f.get();
+        }
+    }
+
     /**
      * @brief post Post job to thread pool.
      * @param handler Handler to be called from thread pool worker. It has

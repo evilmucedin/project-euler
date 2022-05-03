@@ -8,6 +8,7 @@
 #include "lib/random.h"
 #include "lib/stat.h"
 #include "lib/timer.h"
+#include "lib/thread-pool/threadPool.h"
 
 DEFINE_string(first_date, "", "First modeling date");
 DEFINE_bool(additive_sortino, true, "subtract risk");
@@ -302,17 +303,22 @@ ModelResult gradientSearch(const PriceData& pd) {
     bestRes.originalNav.resize(pd.tickers_.size(), 1);
     normalizeNavInplace(bestRes.originalNav);
 
+    mutex mtxEval;
     auto eval = [&](Portfolio& c) {
         if (sum(c) != 0) {
             normalizeNavInplace(c);
             const auto res = model(pd, c);
+            mtxEval.lock();
             if (res.f > bestRes.f) {
                 bestRes = res;
             }
+	    mtxEval.unlock();
         }
     };
 
-    for (size_t k = 0; k < FLAGS_iterations; ++k) {
+    tp::ThreadPool tp;
+    mutex mtxPrint;
+    tp.runN([&](int k) {
         ModelResult bestRes1;
         bestRes1.originalNav = randomPortfolio(pd.tickers_);
 
@@ -334,11 +340,15 @@ ModelResult gradientSearch(const PriceData& pd) {
                 c[j] *= 1.0 + scale;
                 eval1(c);
             }
-            cerr << k << " " << i << " " << bestRes1.f << " " << bestRes1.originalNav << endl;
+            {
+		mtxPrint.lock();
+	        cerr << k << " " << i << " " << bestRes1.f << " " << bestRes1.originalNav << endl;
+		mtxPrint.unlock();
+	    }
         }
 
         eval(bestRes1.originalNav);
-    }
+    }, FLAGS_iterations);
 
     for (size_t j = 0; j < pd.tickers_.size(); ++j) {
         auto c = bestRes.originalNav;

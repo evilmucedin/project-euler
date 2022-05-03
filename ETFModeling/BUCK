@@ -8,6 +8,7 @@ cxx_binary(
     "//glog:glog",
     "//lib:header",
     "//lib:init",
+    "//lib/thread-pool:thread-pool",
     "//lib:matrix",
     "//lib:random",
     "//lib:stat",
