@@ -16,38 +16,38 @@ cxx_library(
   ],
 )
 
-cxx_library(
-  name="fstreamDeprecated",
-  exported_headers=[
-    "fstreamDeprecated.h",
-  ],
-  srcs=[
-     "fstreamDeprecated.cpp",
-  ],
-  deps=[
-    "//lib:header",
-  ],
-  visibility=[
-    "PUBLIC",
-  ],
-)
+# cxx_library(
+#   name="fstreamDeprecated",
+#   exported_headers=[
+#     "fstreamDeprecated.h",
+#   ],
+#   srcs=[
+#      "fstreamDeprecated.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#   ],
+#   visibility=[
+#     "PUBLIC",
+#   ],
+# )
 
-cxx_library(
-  name="zstreamDeprecated",
-  exported_headers=[
-    "zstreamDeprecated.h",
-  ],
-  srcs=[
-     "zstreamDeprecated.cpp",
-  ],
-  deps=[
-    "//lib:header",
-    "//zlib:zlib",
-  ],
-  visibility=[
-    "PUBLIC",
-  ],
-)
+# cxx_library(
+#   name="zstreamDeprecated",
+#   exported_headers=[
+#     "zstreamDeprecated.h",
+#   ],
+#   srcs=[
+#      "zstreamDeprecated.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#     "//zlib:zlib",
+#   ],
+#   visibility=[
+#     "PUBLIC",
+#   ],
+# )
 
 cxx_library(
   name="zstream",
