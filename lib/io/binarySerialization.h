@@ -3,10 +3,14 @@
 #include "lib/io/stream.h"
 
 template<typename T>
-void binarySerialize(OutputStream& s, const T& x);
+bool binarySerialize(OutputStream& s, const T& x);
 
 template<typename T>
-void binaryDeserialize(InputStream& s, T& x);
+bool binaryDeserialize(InputStream& s, T& x);
 
 template<typename T>
-T binaryDeserialize(InputStream& s);
+inline T binaryDeserialize(InputStream& s) {
+    T res;
+    ALWAYS_ASSERT(binaryDeserialize(s, res));
+    return res;
+}

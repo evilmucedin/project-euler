@@ -50,3 +50,14 @@ cxx_test(
     "//lib/io:csv",
   ],
 )
+
+cxx_test(
+  name="binarySerializationTest",
+  srcs=[
+    "binarySerializationTest.cpp",
+  ],
+  deps=[
+    "//lib:random",
+    "//lib/io:binarySerialization",
+  ],
+)
