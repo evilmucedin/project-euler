@@ -1,4 +1,20 @@
 cxx_library(
+  name="binarySerialization",
+  exported_headers=[
+    "binarySerialization.h",
+  ],
+  srcs=[
+    "binarySerialization.cpp",
+  ],
+  deps=[
+    ":stream",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="file",
   exported_headers=[
     "file.h",
