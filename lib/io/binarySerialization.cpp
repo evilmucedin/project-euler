@@ -22,3 +22,23 @@ OUT_INT_TEMPLATE(i64)
 OUT_INT_TEMPLATE(u64)
 
 #undef OUT_INT_TEMPLATE
+
+template <>
+bool binarySerialize<string>(OutputStream& s, const string& x) {
+    bool res = binarySerialize<u64>(s, x.size());
+    if (res) {
+        s.write(x.data(), x.size() + 1);
+        return true;
+    }
+    return false;
+}
+
+template <>
+bool binaryDeserialize<string>(InputStream& s, string& x) {
+    u64 size = 0;
+    if (binaryDeserialize(s, size)) {
+        x.resize(size);
+        return s.read(x.data(), size + 1);
+    }
+    return false;
+}
