@@ -32,7 +32,7 @@ T rand1() {
     return unif(getRandomNumberGenerator());
 }
 
-template<typename T>
+template<typename T = int>
 T dice(T n) {
     return getRandomNumberGenerator()() % n;
 }

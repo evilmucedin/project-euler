@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "lib/header.h"
+#include "lib/random.h"
 #include "lib/io/stream.h"
 #include "lib/io/binarySerialization.h"
 
@@ -19,7 +20,7 @@ TEST(BinarySerialization, Simple) {
 }
 
 TEST(BinarySerialization, String) {
-    static const string FILENAME = "serializationSringTest.bin";
+    static const string FILENAME = "serializationStringTest.bin";
     static const string S = "Hello World!";
     {
         auto s = openFileBufferedWriter(FILENAME);
@@ -30,5 +31,23 @@ TEST(BinarySerialization, String) {
         auto s = openFileBufferedReader(FILENAME);
         const auto str = binaryDeserialize<string>(*s);
         EXPECT_EQ(str, S);
+    }
+}
+
+TEST(BinarySerialization, Vector) {
+    static const string FILENAME = "serializationVectorTest.bin";
+    const size_t n = dice(1000);
+    vector<string> v(n);
+    for (auto& s: v) {
+        s = randString(10);
+    }
+    {
+        auto s = openFileBufferedWriter(FILENAME);
+        binarySerialize(*s, v);
+    }
+    {
+        auto s = openFileBufferedReader(FILENAME);
+        const auto v2 = binaryDeserialize<vector<string>>(*s);
+        EXPECT_EQ(v, v2);
     }
 }
