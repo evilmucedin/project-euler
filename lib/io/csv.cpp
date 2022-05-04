@@ -18,8 +18,9 @@ bool CsvParser::readHeader() {
         return false;
     }
     header_ = line_;
+    fieldToIndex_.clear();
     for (size_t i = 0; i < header_.size(); ++i) {
-        assert(fieldToIndex_.count(header_[i]) == 0);
+        ASSERTEQ(fieldToIndex_.count(header_[i]), 0);
         fieldToIndex_.emplace(header_[i], i);
     }
     return true;
@@ -28,6 +29,12 @@ bool CsvParser::readHeader() {
 bool CsvParser::readLine() {
     if (!stream_->readLine(sLine_)) {
         return false;
+    }
+    if (sLine_.empty()) {
+    	return false;
+    }
+    while (sLine_.size() && (sLine_.back() == '\r' || sLine_.back() == '\n')) {
+    	sLine_.pop_back();
     }
     ++iLine_;
     line_.clear();

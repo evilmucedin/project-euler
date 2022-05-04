@@ -1,4 +1,20 @@
 cxx_library(
+  name="binarySerialization",
+  exported_headers=[
+    "binarySerialization.h",
+  ],
+  srcs=[
+    "binarySerialization.cpp",
+  ],
+  deps=[
+    ":stream",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="file",
   exported_headers=[
     "file.h",
@@ -16,38 +32,38 @@ cxx_library(
   ],
 )
 
-cxx_library(
-  name="fstreamDeprecated",
-  exported_headers=[
-    "fstreamDeprecated.h",
-  ],
-  srcs=[
-     "fstreamDeprecated.cpp",
-  ],
-  deps=[
-    "//lib:header",
-  ],
-  visibility=[
-    "PUBLIC",
-  ],
-)
+# cxx_library(
+#   name="fstreamDeprecated",
+#   exported_headers=[
+#     "fstreamDeprecated.h",
+#   ],
+#   srcs=[
+#      "fstreamDeprecated.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#   ],
+#   visibility=[
+#     "PUBLIC",
+#   ],
+# )
 
-cxx_library(
-  name="zstreamDeprecated",
-  exported_headers=[
-    "zstreamDeprecated.h",
-  ],
-  srcs=[
-     "zstreamDeprecated.cpp",
-  ],
-  deps=[
-    "//lib:header",
-    "//zlib:zlib",
-  ],
-  visibility=[
-    "PUBLIC",
-  ],
-)
+# cxx_library(
+#   name="zstreamDeprecated",
+#   exported_headers=[
+#     "zstreamDeprecated.h",
+#   ],
+#   srcs=[
+#      "zstreamDeprecated.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#     "//zlib:zlib",
+#   ],
+#   visibility=[
+#     "PUBLIC",
+#   ],
+# )
 
 cxx_library(
   name="zstream",

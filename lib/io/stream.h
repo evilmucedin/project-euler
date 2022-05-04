@@ -148,6 +148,7 @@ class OutputStringStream : public OutputStream {
 
 static constexpr size_t DEFAULT_BUFFER_SIZE = 1 << 20;
 PInputStream openFileBufferedReader(const string& filename, size_t bufferSize = DEFAULT_BUFFER_SIZE);
+POutputStream openFileBufferedWriter(const string& filename, size_t bufferSize = DEFAULT_BUFFER_SIZE);
 
 template <typename T>
 OutputStream& operator<<(OutputStream& stream, const T& x) {

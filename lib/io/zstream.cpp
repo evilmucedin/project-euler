@@ -187,3 +187,11 @@ void ZlibOutputStream::zflush(bool flush) {
 
     outBuffStart_ = outBuff_.data();
 }
+
+PInputStream openZlibFileBufferedReader(const string& filename, size_t bufferSize) {
+    return make_shared<ZlibInputStream>(openFileBufferedReader(filename, bufferSize), bufferSize);
+}
+
+POutputStream openZlibFileBufferedWriter(const string& filename, size_t bufferSize) {
+    return make_shared<ZlibOutputStream>(openFileBufferedWriter(filename, bufferSize), bufferSize);
+}

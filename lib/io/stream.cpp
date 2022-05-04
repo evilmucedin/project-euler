@@ -236,3 +236,8 @@ PInputStream openFileBufferedReader(const string& filename, size_t bufferSize) {
     auto fReader = make_shared<FileInputStream>(filename);
     return make_shared<BufferedInputStream>(fReader, bufferSize);
 }
+
+POutputStream openFileBufferedWriter(const string& filename, size_t bufferSize) {
+    auto fWriter = make_shared<FileOutputStream>(filename);
+    return make_shared<BufferedOutputStream>(fWriter, bufferSize);
+}
