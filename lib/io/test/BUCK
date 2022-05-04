@@ -59,5 +59,6 @@ cxx_test(
   deps=[
     "//lib:random",
     "//lib/io:binarySerialization",
+    "//lib/io:zstream",
   ],
 )

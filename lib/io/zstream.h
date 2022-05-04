@@ -75,3 +75,8 @@ class ZlibOutputStream : public OutputStream {
 
     static constexpr size_t kDefaultBuffSize = 1 << 20;
 };
+
+static constexpr size_t ZDEFAULT_BUFFER_SIZE = 1 << 20;
+PInputStream openZlibFileBufferedReader(const string& filename, size_t bufferSize = ZDEFAULT_BUFFER_SIZE);
+POutputStream openZlibFileBufferedWriter(const string& filename, size_t bufferSize = ZDEFAULT_BUFFER_SIZE);
+
