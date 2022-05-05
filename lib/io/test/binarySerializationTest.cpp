@@ -35,13 +35,19 @@ TEST(BinarySerialization, String) {
     }
 }
 
-TEST(BinarySerialization, Vector) {
-    static const string FILENAME = "serializationVectorTest.bin";
-    const size_t n = dice(1000);
+vector<string> randStringVector() {
+    const size_t n = dice(10000);
     vector<string> v(n);
     for (auto& s: v) {
         s = randString(10);
     }
+    return v;
+}
+
+static const auto v = randStringVector();
+
+TEST(BinarySerialization, Vector) {
+    static const string FILENAME = "serializationVectorTest.bin";
     {
         auto s = openFileBufferedWriter(FILENAME);
         binarySerialize(*s, v);
@@ -54,12 +60,7 @@ TEST(BinarySerialization, Vector) {
 }
 
 TEST(BinarySerialization, ZVector) {
-    static const string FILENAME = "serializationVectorTest.bin";
-    const size_t n = dice(1000);
-    vector<string> v(n);
-    for (auto& s: v) {
-        s = randString(10);
-    }
+    static const string FILENAME = "serializationZVectorTest.bin";
     {
         auto s = openZlibFileBufferedWriter(FILENAME);
         binarySerialize(*s, v);

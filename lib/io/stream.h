@@ -19,6 +19,11 @@ class InputStream {
     virtual bool readToken(string& s);
     virtual bool readLine(string& s);
     virtual string readLine();
+
+    template <typename T>
+    bool readT(T& result) {
+        return read(reinterpret_cast<char*>(&result), sizeof(result));
+    }
 };
 
 using PInputStream = std::shared_ptr<InputStream>;
@@ -32,6 +37,11 @@ class OutputStream {
     virtual void write(const string& s);
     virtual void write(char ch);
     virtual void flush() = 0;
+
+    template <typename T>
+    void writeT(const T& value) {
+        ALWAYS_ASSERT(write(reinterpret_cast<const char*>(&value), sizeof(value)));
+    }
 };
 
 using POutputStream = std::shared_ptr<OutputStream>;
