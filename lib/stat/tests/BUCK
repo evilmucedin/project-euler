@@ -10,3 +10,15 @@ cxx_test(
   ],
 )
 
+cxx_test(
+  name="countersTest",
+  srcs=[
+    "countersTest.cpp",
+  ],
+  deps=[
+    "//lib/stat:counters",
+    "//gtest:gtest",
+    "//glog:glog",
+  ],
+)
+

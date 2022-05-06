@@ -1,4 +1,14 @@
 cxx_library(
+    name="counters",
+    exported_headers=[
+        "counters.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
     name="stat",
     exported_headers=[
         "stat.h",
