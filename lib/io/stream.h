@@ -40,7 +40,7 @@ class OutputStream {
 
     template <typename T>
     void writeT(const T& value) {
-        ALWAYS_ASSERT(write(reinterpret_cast<const char*>(&value), sizeof(value)));
+        write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
 };
 

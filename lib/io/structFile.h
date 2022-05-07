@@ -5,12 +5,35 @@
 template <typename T>
 class StructFileReader {
    public:
-    StructFileReader(const string& filename) : f_(openZlibFileBufferedReader(filename)) {}
+    StructFileReader(const string& filename) : f_(openZlibFileBufferedReader(filename)), eof_(false) { readNext(); }
 
-    bool next(T& result) { return f_->readT(result); }
+    bool eof() const { return eof_; }
+
+    const T& get() const { return value_; }
+
+    bool next(T& value) {
+        if (eof_) {
+            value = std::move(value_);
+            readNext();
+            return true;
+        }
+        return false;
+    }
+
+    void next() {
+        readNext();
+    }
 
    private:
+    void readNext() {
+        if (!eof_) {
+            eof_ = !f_->readT(value_);
+        }
+    }
+
     PInputStream f_;
+    bool eof_;
+    T value_;
 };
 
 template <typename T>
