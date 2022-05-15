@@ -1,6 +1,5 @@
-#include "lib/header.h"
-
 #include "glog/logging.h"
+#include "lib/header.h"
 
 static constexpr u64 N = 65;
 static constexpr u64 M = 10000000000000;

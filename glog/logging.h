@@ -392,6 +392,16 @@ DECLARE_bool(stop_logging_if_full_disk);
 // better to have compact code for these operations.
 
 #if GOOGLE_STRIP_LOG == 0
+#define COMPACT_GOOGLE_LOG_OK google::LogMessage( \
+      __FILE__, __LINE__, google::GLOG_OK)
+#define LOG_TO_STRING_OK(message) google::LogMessage( \
+      __FILE__, __LINE__, google::GLOG_OK, message)
+#else
+#define COMPACT_GOOGLE_LOG_OK google::NullStream()
+#define LOG_TO_STRING_OK(message) google::NullStream()
+#endif
+
+#if GOOGLE_STRIP_LOG <= 1
 #define COMPACT_GOOGLE_LOG_INFO google::LogMessage( \
       __FILE__, __LINE__)
 #define LOG_TO_STRING_INFO(message) google::LogMessage( \
@@ -401,7 +411,7 @@ DECLARE_bool(stop_logging_if_full_disk);
 #define LOG_TO_STRING_INFO(message) google::NullStream()
 #endif
 
-#if GOOGLE_STRIP_LOG <= 1
+#if GOOGLE_STRIP_LOG <= 2
 #define COMPACT_GOOGLE_LOG_WARNING google::LogMessage( \
       __FILE__, __LINE__, google::GLOG_WARNING)
 #define LOG_TO_STRING_WARNING(message) google::LogMessage( \
@@ -411,7 +421,7 @@ DECLARE_bool(stop_logging_if_full_disk);
 #define LOG_TO_STRING_WARNING(message) google::NullStream()
 #endif
 
-#if GOOGLE_STRIP_LOG <= 2
+#if GOOGLE_STRIP_LOG <= 3
 #define COMPACT_GOOGLE_LOG_ERROR google::LogMessage( \
       __FILE__, __LINE__, google::GLOG_ERROR)
 #define LOG_TO_STRING_ERROR(message) google::LogMessage( \
@@ -421,7 +431,7 @@ DECLARE_bool(stop_logging_if_full_disk);
 #define LOG_TO_STRING_ERROR(message) google::NullStream()
 #endif
 
-#if GOOGLE_STRIP_LOG <= 3
+#if GOOGLE_STRIP_LOG <= 4
 #define COMPACT_GOOGLE_LOG_FATAL google::LogMessageFatal( \
       __FILE__, __LINE__)
 #define LOG_TO_STRING_FATAL(message) google::LogMessage( \

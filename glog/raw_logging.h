@@ -70,15 +70,18 @@ namespace google {
   do { \
     switch (google::GLOG_ ## severity) {  \
       case 0: \
-        RAW_LOG_INFO(__VA_ARGS__); \
+        RAW_LOG_OK(__VA_ARGS__); \
         break; \
       case 1: \
-        RAW_LOG_WARNING(__VA_ARGS__); \
+        RAW_LOG_INFO(__VA_ARGS__); \
         break; \
       case 2: \
-        RAW_LOG_ERROR(__VA_ARGS__); \
+        RAW_LOG_WARNING(__VA_ARGS__); \
         break; \
       case 3: \
+        RAW_LOG_ERROR(__VA_ARGS__); \
+        break; \
+      case 4: \
         RAW_LOG_FATAL(__VA_ARGS__); \
         break; \
       default: \
@@ -100,27 +103,34 @@ namespace google {
 #endif // STRIP_LOG == 0
 
 #if STRIP_LOG == 0
+#define RAW_LOG_OK(...) google::RawLog__(google::GLOG_OK, \
+                                   __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define RAW_LOG_OK(...) google::RawLogStub__(0, __VA_ARGS__)
+#endif // STRIP_LOG == 0
+
+#if STRIP_LOG <= 1
 #define RAW_LOG_INFO(...) google::RawLog__(google::GLOG_INFO, \
                                    __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_INFO(...) google::RawLogStub__(0, __VA_ARGS__)
-#endif // STRIP_LOG == 0
+#endif // STRIP_LOG <= 1
 
-#if STRIP_LOG <= 1
+#if STRIP_LOG <= 2
 #define RAW_LOG_WARNING(...) google::RawLog__(google::GLOG_WARNING,   \
                                       __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_WARNING(...) google::RawLogStub__(0, __VA_ARGS__)
-#endif // STRIP_LOG <= 1
+#endif // STRIP_LOG <= 2
 
-#if STRIP_LOG <= 2
+#if STRIP_LOG <= 3
 #define RAW_LOG_ERROR(...) google::RawLog__(google::GLOG_ERROR,       \
                                     __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_ERROR(...) google::RawLogStub__(0, __VA_ARGS__)
-#endif // STRIP_LOG <= 2
+#endif // STRIP_LOG <= 3
 
-#if STRIP_LOG <= 3
+#if STRIP_LOG <= 4
 #define RAW_LOG_FATAL(...) google::RawLog__(google::GLOG_FATAL,       \
                                     __FILE__, __LINE__, __VA_ARGS__)
 #else
@@ -129,7 +139,7 @@ namespace google {
     google::RawLogStub__(0, __VA_ARGS__);        \
     exit(1); \
   } while (0)
-#endif // STRIP_LOG <= 3
+#endif // STRIP_LOG <= 4
 
 // Similar to CHECK(condition) << message,
 // but for low-level modules: we use only RAW_LOG that does not allocate memory.

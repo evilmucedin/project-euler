@@ -129,7 +129,7 @@ _END_GOOGLE_NAMESPACE_
 // The default is ERROR instead of FATAL so that users can see problems
 // when they run a program without having to look in another file.
 DEFINE_int32(stderrthreshold,
-             GOOGLE_NAMESPACE::GLOG_INFO,
+             GOOGLE_NAMESPACE::GLOG_OK,
              "log messages at or above this level are copied to stderr in "
              "addition to logfiles.  This flag obsoletes --alsologtostderr.");
 
@@ -140,7 +140,7 @@ GLOG_DEFINE_bool(log_prefix, true,
                  "Prepend the log prefix to the start of each log line");
 GLOG_DEFINE_int32(minloglevel, 0, "Messages logged at a lower level than this don't "
                   "actually get logged anywhere");
-GLOG_DEFINE_int32(logbuflevel, 0,
+GLOG_DEFINE_int32(logbuflevel, 1,
                   "Buffer log messages logged at this level or lower"
                   " (-1 means don't buffer; 0 means buffer INFO only;"
                   " ...)");
@@ -283,6 +283,9 @@ static GLogColor SeverityToColor(LogSeverity severity) {
   assert(severity >= 0 && severity < NUM_SEVERITIES);
   GLogColor color = COLOR_DEFAULT;
   switch (severity) {
+  case GLOG_OK:
+    color = COLOR_GREEN;
+    break;
   case GLOG_INFO:
     color = COLOR_DEFAULT;
     break;
@@ -374,13 +377,13 @@ struct LogMessage::LogMessageData  {
 static Mutex log_mutex;
 
 // Number of messages sent at each severity.  Under log_mutex.
-int64 LogMessage::num_messages_[NUM_SEVERITIES] = {0, 0, 0, 0};
+int64 LogMessage::num_messages_[NUM_SEVERITIES] = {0, 0, 0, 0, 0};
 
 // Globally disable log writing (if disk is full)
 static bool stop_writing = false;
 
 const char*const LogSeverityNames[NUM_SEVERITIES] = {
-  "INFO", "WARNING", "ERROR", "FATAL"
+  "OK", "INFO", "WARNING", "ERROR", "FATAL"
 };
 
 // Has the user called SetExitOnDFatal(true)?
@@ -1548,7 +1551,7 @@ void LogMessage::SendToSyslogAndLog() {
   }
 
   // This array maps Google severity levels to syslog levels
-  const int SEVERITY_TO_LEVEL[] = { LOG_INFO, LOG_WARNING, LOG_ERR, LOG_EMERG };
+  const int SEVERITY_TO_LEVEL[] = { LOG_INFO, LOG_INFO, LOG_WARNING, LOG_ERR, LOG_EMERG };
   syslog(LOG_USER | SEVERITY_TO_LEVEL[static_cast<int>(data_->severity_)], "%.*s",
          int(data_->num_chars_to_syslog_),
          data_->message_text_ + data_->num_prefix_chars_);
