@@ -19,6 +19,7 @@ DEFINE_string(input, "portfolio input", "");
 DEFINE_bool(stocks, false, "add stocks");
 DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
+DEFINE_double(concentration_risk_weight, 0.00, "concentration risk weight");
 
 static const StringVector etfs = {
     "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",   "VUG",  "SPY",  "IVV",  "VOO",  "QQQ",  "BND",
@@ -169,6 +170,7 @@ struct ModelResult {
     Stat<> dailyNegReturnsStat;
     double sortino{};
     double additiveSortino{};
+    double concentration{};
     double f{-1e10};
     double dividends{};
 };
@@ -178,7 +180,7 @@ double sharpe(const ModelResult& res) {
     // return (sum(res.finalNav) - sum(res.originalNav)) / sum(res.originalNav) - 5 * res.returnsStat.stddev();
 }
 
-ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
+ModelResult model(const PriceData& pd, const Portfolio& originalNav, bool useConcentration) {
     ASSERTEQ(pd.tickers_.size(), originalNav.size());
     ModelResult result;
     result.originalNav = originalNav;
@@ -194,7 +196,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
 
     result.dailyPrices.reserve(pd.prices_.size());
     result.dailyReturns.reserve(pd.prices_.size());
-    double dividendsSoFar = 0;
+    double dividendsSoFar = 0.0;
     for (size_t i = 0; i < pd.prices_.size(); ++i) {
         for (size_t j = 1; j < pd.tickers_.size(); ++j) {
             dividendsSoFar += pd.dividends_[i][j] * result.originalShares[j];
@@ -230,8 +232,15 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav) {
         }
     }
 
+    double concentration = 0.0;
+    for (size_t j = 1; j < pd.tickers_.size(); ++j) {
+        concentration += sqr(pd.prices_.back()[j] * result.originalShares[j] / result.dailyPrices.back());
+    }
+
     result.sortino = result.dailyReturnsStat.mean() / result.dailyNegReturnsStat.stddev();
-    result.additiveSortino = result.dailyReturnsStat.mean() - FLAGS_risk_weight * result.dailyNegReturnsStat.stddev();
+    result.concentration = concentration;
+    result.additiveSortino = result.dailyReturnsStat.mean() - FLAGS_risk_weight * result.dailyNegReturnsStat.stddev() -
+                             ((useConcentration) ? FLAGS_concentration_risk_weight * result.concentration : 0.0);
 
     result.finalNav.resize(pd.tickers_.size());
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
@@ -266,7 +275,7 @@ void testModeling(const PriceData& pd) {
     cout << "Final prices: " << pd.prices_.back() << endl;
     Portfolio p(pd.tickers_.size(), 1);
     normalizeNavInplace(p);
-    auto res = model(pd, p);
+    auto res = model(pd, p, true);
     out(res);
 }
 
@@ -309,7 +318,7 @@ ModelResult gradientSearch(const PriceData& pd) {
     auto eval = [&](Portfolio& c) {
         if (sum(c) != 0) {
             normalizeNavInplace(c);
-            const auto res = model(pd, c);
+            const auto res = model(pd, c, true);
             mtxEval.lock();
             if (res.f > bestRes.f) {
                 bestRes = res;
@@ -327,7 +336,7 @@ ModelResult gradientSearch(const PriceData& pd) {
 
             auto eval1 = [&](Portfolio& c) {
                 normalizeNavInplace(c);
-                const auto res = model(pd, c);
+                const auto res = model(pd, c, true);
                 if (res.f > bestRes1.f) {
                     bestRes1 = res;
                 }
@@ -437,7 +446,7 @@ int main(int argc, char* argv[]) {
         const auto data = loadData(tickers);
         const auto p0 = loadPortfolio(data, FLAGS_input);
         LOG(INFO) << OUT(p0);
-        const auto resP0 = model(data, p0);
+        const auto resP0 = model(data, p0, true);
         out(resP0);
         dumpPricesToCsv(data, resP0, "p0.csv");
 
@@ -452,7 +461,7 @@ int main(int argc, char* argv[]) {
             static const double DX = 0.0001;
             p[i] += DX;
             normalizeNavInplace(p);
-            const auto res = model(data, p);
+            const auto res = model(data, p, true);
             if (res.f > bestF) {
                 bestF = res.f;
                 bestRes = res;
@@ -468,7 +477,7 @@ int main(int argc, char* argv[]) {
                 Portfolio stockP(data.tickers_.size());
                 stockP[r.second] = 1.0;
                 normalizeNavInplace(stockP);
-                const auto resStock = model(data, stockP);
+                const auto resStock = model(data, stockP, false);
                 stockF = resStock.f;
             }
 
