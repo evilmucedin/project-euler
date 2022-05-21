@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 
-pdData = pd.read_csv("Portfolio_Positions_May-05-2022.csv")
+pdData = pd.read_csv("Portfolio_Positions_May-21-2022.csv")
 pdData = pdData[pdData['Account Name'].notna()]
 pdData['Current Value'] = pdData['Current Value'].replace('[\$,]', '', regex=True).astype(float)
 total = float(pdData['Current Value'].sum())
