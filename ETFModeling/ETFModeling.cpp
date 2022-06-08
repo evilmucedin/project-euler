@@ -174,6 +174,7 @@ struct ModelResult {
     double concentration{};
     double f{-1e10};
     double dividends{};
+    string lastDate{};
 };
 
 double sharpe(const ModelResult& res) {
@@ -249,6 +250,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav, bool useCon
     }
     result.dividends = dividendsSoFar;
     result.finalNav[0] += dividendsSoFar;
+    result.lastDate = pd.dates_.back();
 
     result.sharpe = sharpe(result);
     result.dailySharpe = result.dailyReturnsStat.mean() / result.dailyReturnsStat.stddev();
@@ -268,7 +270,7 @@ void out(const ModelResult& res) {
     cout << res.returnsStat << ", initial NAV: " << before << ", final NAV: " << after << ", sharpe: " << res.sharpe
          << ", sortino: " << res.sortino << ", return mean: " << res.dailyReturnsStat.mean()
          << ", neg return stddev: " << res.dailyNegReturnsStat.stddev() << ", dividends: " << res.dividends
-         << ", f: " << res.f << endl;
+         << ", f: " << res.f << ", last date: " << res.lastDate << endl;
 }
 
 void testModeling(const PriceData& pd) {
