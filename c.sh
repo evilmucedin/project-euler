@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+pushd `pwd`
+cd "$(dirname "$0")"
+
 . ./cCommon.sh
 
 DIR=$(eulerDir $1)

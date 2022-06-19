@@ -1,0 +1,11 @@
+cxx_binary(
+  name="1071",
+  srcs=[
+    "1071.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//glog:glog",
+  ],
+)
