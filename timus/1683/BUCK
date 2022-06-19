@@ -1,0 +1,9 @@
+cxx_binary(
+  name="1683",
+  srcs=[
+    "1683.cpp",
+  ],
+  deps=[
+  ],
+)
+
