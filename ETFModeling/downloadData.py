@@ -5,6 +5,7 @@
 # Import the yfinance. If you get module not found error the run !pip install yfinance from your Jupyter notebook
 import matplotlib.pyplot as plt
 import yfinance
+from datetime import date, timedelta
 
 # print(help(yfinance))
 
@@ -19,7 +20,7 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", 
 assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
-    data = yfinance.download(ticker, '2000-08-01', '2022-06-18', actions=True)
+    data = yfinance.download(ticker, '2000-08-01', today = str(date.today() - timedelta(days=1)), actions=True)
     data.to_csv("marketData/%s.csv" % ticker)
 
 # Import the plotting library
