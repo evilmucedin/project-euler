@@ -213,13 +213,9 @@ class MPMCBoundedQueue {
      */
     bool pop(T& data);
 
-    std::condition_variable& event() {
-        return event_;
-    }
+    std::condition_variable& event() { return event_; }
 
-    std::unique_lock<std::mutex>& lock() {
-        return lk_;
-    }
+    std::unique_lock<std::mutex>& lock() { return lk_; }
 
    private:
     struct Cell {
@@ -266,7 +262,10 @@ class MPMCBoundedQueue {
  * Due to limitations above it is much faster on creation and copying than
  * std::function.
  */
-template <typename SIGNATURE, size_t STORAGE_SIZE = 128>
+
+static constexpr size_t DEFAULT_FUNCTION_SIZE = 128;
+
+template <typename SIGNATURE, size_t STORAGE_SIZE = DEFAULT_FUNCTION_SIZE>
 class FixedFunction;
 
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
@@ -380,7 +379,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
 
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl;
-using ThreadPool = ThreadPoolImpl<FixedFunction<void(), 128>, MPMCBoundedQueue>;
+using ThreadPool = ThreadPoolImpl<FixedFunction<void(), DEFAULT_FUNCTION_SIZE>, MPMCBoundedQueue>;
 
 /**
  * @brief The ThreadPool class implements thread pool pattern.
@@ -483,7 +482,7 @@ inline size_t* thread_id() {
     static thread_local size_t tss_id = -1u;
     return &tss_id;
 }
-}
+}  // namespace detail
 
 template <typename Task, template <typename> class Queue>
 inline Worker<Task, Queue>::Worker(size_t queue_size) : queue_(queue_size), running_flag_(true) {}
@@ -708,4 +707,4 @@ inline bool MPMCBoundedQueue<T>::pop(T& data) {
 
     return true;
 }
-}
+}  // namespace tp

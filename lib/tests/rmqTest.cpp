@@ -25,7 +25,7 @@ TEST(RMQ, Test1) {
     for (size_t i = 0; i < kN; ++i) {
         v[i] = i;
     }
-    RangeAggQuery<SizeTVector::iterator, MinF<size_t>> rmq(v.begin(), v.end());
+    RangeAggQuery<SizeTVector::const_iterator, MinF<size_t>> rmq(v.begin(), v.end());
     EXPECT_EQ(*rmq.agg(v.begin(), v.end()), 0);
     EXPECT_EQ(*rmq.agg(v.begin(), v.begin() + 1), 0);
 }
@@ -37,7 +37,7 @@ TEST(RMQ, TestRandom) {
     for (size_t i = 0; i < kN; ++i) {
         v[i] = randAB(0, 100000);
     }
-    RangeAggQuery<SizeTVector::iterator, MinF<size_t>> rmq(v.begin(), v.end());
+    RangeAggQuery<SizeTVector::const_iterator, MinF<size_t>> rmq(v.begin(), v.end());
     for (size_t i = 0; i < 1000; ++i) {
         auto begin = dice(v.size());
         auto end = dice(v.size());
