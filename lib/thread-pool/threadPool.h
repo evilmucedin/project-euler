@@ -273,6 +273,50 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     using func_ptr_type = std::function<R(ARGS...)>;
 
    public:
+    FixedFunction() : functionPtr_(nullptr), methodPtr_(nullptr) {}
+
+    /**
+     * @brief FixedFunction Constructor from functional object.
+     * @param object Functor object will be stored in the internal storage
+     * using move constructor. Unmovable objects are prohibited explicitly.
+     */
+    template <typename FUNC>
+    FixedFunction(FUNC&& object) : FixedFunction() {
+        using unref_type = typename std::remove_reference<FUNC>::type;
+
+        static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
+
+        functionPtr_ = std::make_unique<std::function<void()>>(object);
+
+        methodPtr_ = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
+            return static_cast<unref_type*>(functionPtr_.get())->operator()(args...);
+        };
+    }
+
+    /**
+     * @brief FixedFunction Constructor from free function or static member.
+     */
+    template <typename RET, typename... PARAMS>
+    FixedFunction(RET (*func_ptr)(PARAMS...)) : FixedFunction() {
+        function_ptr_ = func_ptr;
+        method_ptr_ = [](void*, func_ptr_type f_ptr, ARGS... args) -> R {
+            return static_cast<RET (*)(PARAMS...)>(f_ptr)(args...);
+        };
+    }
+
+    using TFunctionPtr = std::unique_ptr<std::function<void()>>;
+    TFUnctionPtr functionPtr_;
+    using TMethod = std::function<R(void* object_ptr, func_ptr_type free_func_ptr, ARGS... args)>;
+    TMethod methodPtr_;
+};
+
+#if 1
+#else
+template <typename R, typename... ARGS, size_t STORAGE_SIZE>
+class FixedFunction<R(ARGS...), STORAGE_SIZE> {
+    using func_ptr_type = std::function<R(ARGS...)>;
+
+   public:
     FixedFunction() : function_ptr_(nullptr), method_ptr_(nullptr), alloc_ptr_(nullptr) {}
 
     /**
@@ -376,6 +420,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
         }
     }
 };
+#endif
 
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl;
