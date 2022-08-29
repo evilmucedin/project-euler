@@ -268,6 +268,7 @@ static constexpr size_t DEFAULT_FUNCTION_SIZE = 128;
 template <typename SIGNATURE, size_t STORAGE_SIZE = DEFAULT_FUNCTION_SIZE>
 class FixedFunction;
 
+#if 0
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
 class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     using func_ptr_type = std::function<R(ARGS...)>;
@@ -310,7 +311,6 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     TMethod methodPtr_;
 };
 
-#if 1
 #else
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
 class FixedFunction<R(ARGS...), STORAGE_SIZE> {
