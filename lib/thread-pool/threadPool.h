@@ -1,5 +1,23 @@
 #pragma once
 
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <condition_variable>
+#include <cstring>
+#include <functional>
+#include <future>
+#include <memory>
+#include <stdexcept>
+#include <thread>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+namespace tp {
+
+#ifndef __APPLE__
+
 // Copyright (c) 2010-2011 Dmitry Vyukov. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,21 +54,6 @@
 // should not be interpreted as representing official policies, either expressed
 // or implied, of Dmitry Vyukov.
 
-#include <algorithm>
-#include <array>
-#include <atomic>
-#include <condition_variable>
-#include <cstring>
-#include <functional>
-#include <future>
-#include <memory>
-#include <stdexcept>
-#include <thread>
-#include <type_traits>
-#include <utility>
-#include <vector>
-
-namespace tp {
 /**
  * @brief The Worker class owns task queue and executing thread.
  * In thread it tries to pop task from queue. If queue is empty then it tries
@@ -268,59 +271,9 @@ static constexpr size_t DEFAULT_FUNCTION_SIZE = 128;
 template <typename SIGNATURE, size_t STORAGE_SIZE = DEFAULT_FUNCTION_SIZE>
 class FixedFunction;
 
-#if 0
-
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
 class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     using TFuncPtr = std::packaged_task<R(ARGS...)>;
-
-   public:
-    FixedFunction() : functionPtr_(nullptr), methodPtr_(nullptr) {}
-
-    /**
-     * @brief FixedFunction Constructor from functional object.
-     * @param object Functor object will be stored in the internal storage
-     * using move constructor. Unmovable objects are prohibited explicitly.
-     */
-    template <typename FUNC>
-    FixedFunction(FUNC&& object) : FixedFunction() {
-        using unref_type = typename std::remove_reference<FUNC>::type;
-
-        static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
-
-        functionPtr_ = std::make_unique<TFuncPtr>(object);
-
-        methodPtr_ = [](TFuncPtr f_ptr, ARGS... args) -> R { return static_cast<R (*)(ARGS...)>(f_ptr)(args...); };
-    }
-
-    /**
-     * @brief FixedFunction Constructor from free function or static member.
-     */
-    template <typename RET, typename... PARAMS>
-    FixedFunction(RET (*func_ptr)(PARAMS...)) : FixedFunction() {
-        functionPtr_ = func_ptr;
-        methodPtr_ = [](TFuncPtr f_ptr, ARGS... args) -> R { return static_cast<RET (*)(PARAMS...)>(f_ptr)(args...); };
-    }
-
-    R operator()(ARGS... args) {
-        if (!methodPtr_) {
-            throw std::runtime_error("call of empty functor");
-        }
-        return methodPtr_(functionPtr_, args...);
-    }
-
-   private:
-    using TFunctionPtr = std::unique_ptr<TFuncPtr>;
-    TFunctionPtr functionPtr_;
-    using TMethod = std::packaged_task<R(TFuncPtr free_func_ptr, ARGS... args)>;
-    TMethod methodPtr_;
-};
-
-#else
-
-template <typename R, typename... ARGS, size_t STORAGE_SIZE>
-class FixedFunction<R(ARGS...), STORAGE_SIZE> {
-    using func_ptr_type = std::function<R(ARGS...)>;
 
    public:
     FixedFunction() : function_ptr_(nullptr), method_ptr_(nullptr), alloc_ptr_(nullptr) {}
@@ -426,7 +379,6 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
         }
     }
 };
-#endif
 
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl;
@@ -761,4 +713,87 @@ inline bool MPMCBoundedQueue<T>::pop(T& data) {
 
     return true;
 }
+
+#else
+
+class ThreadPool {
+ public:
+  // the constructor just launches some amount of workers
+  explicit ThreadPool(size_t threads) : stop(false) {
+    for (size_t i = 0; i < threads; ++i)
+      workers.emplace_back([this] {
+        for (;;) {
+          std::function<void()> task;
+
+          {
+            std::unique_lock<std::mutex> lock(this->queue_mutex);
+            this->condition.wait(
+                lock, [this] { return this->stop || !this->tasks.empty(); });
+            if (this->stop && this->tasks.empty()) {
+              return;
+            }
+            task = std::move(this->tasks.front());
+            this->tasks.pop();
+          }
+
+          task();
+        }
+      });
+  }
+
+  // add new work item to the pool
+  template <class F, class... Args>
+  auto enqueue(F&& f, Args&&... args)
+      -> std::future<typename std::result_of<F(Args...)>::type> {
+    using return_type = typename std::result_of<F(Args...)>::type;
+
+    auto task = std::make_shared<std::packaged_task<return_type()>>(
+        std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+    return EnqueueTask(std::move(task));
+  }
+
+  // add new work item to the pool
+  template <class T>
+  auto enqueueTask(std::shared_ptr<std::packaged_task<T()>>&& task)
+      -> std::future<T> {
+    std::future<T> res = task->get_future();
+    {
+      std::unique_lock<std::mutex> lock(queue_mutex);
+
+      // don't allow enqueueing after stopping the pool
+      if (stop) {
+        throw std::runtime_error("Enqueue on stopped ThreadPool");
+      }
+
+      tasks.emplace([task]() { (*task)(); });
+    }
+    condition.notify_one();
+    return res;
+  }
+
+  // the destructor joins all threads
+  ~ThreadPool() {
+    {
+      std::unique_lock<std::mutex> lock(queue_mutex);
+      stop = true;
+    }
+    condition.notify_all();
+    for (std::thread& worker : workers) {
+      worker.join();
+    }
+  }
+
+ private:
+  // need to keep track of threads so we can join them
+  std::vector<std::thread> workers;
+  // the task queue
+  std::queue<std::function<void()>> tasks;
+
+  // synchronization
+  std::mutex queue_mutex;
+  std::condition_variable condition;
+  bool stop;
+};
+
+#endif
 }  // namespace tp
