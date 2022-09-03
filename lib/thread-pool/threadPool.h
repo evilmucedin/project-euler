@@ -268,9 +268,11 @@ static constexpr size_t DEFAULT_FUNCTION_SIZE = 128;
 template <typename SIGNATURE, size_t STORAGE_SIZE = DEFAULT_FUNCTION_SIZE>
 class FixedFunction;
 
+#if 0
+
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
 class FixedFunction<R(ARGS...), STORAGE_SIZE> {
-    using func_ptr_type = std::function<R(ARGS...)>;
+    using TFuncPtr = std::packaged_task<R(ARGS...)>;
 
    public:
     FixedFunction() : functionPtr_(nullptr), methodPtr_(nullptr) {}
@@ -286,11 +288,9 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
 
         static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
 
-        functionPtr_ = std::make_unique<std::function<void()>>(object);
+        functionPtr_ = std::make_unique<TFuncPtr>(object);
 
-        methodPtr_ = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
-            return static_cast<unref_type*>(functionPtr_.get())->operator()(args...);
-        };
+        methodPtr_ = [](TFuncPtr f_ptr, ARGS... args) -> R { return static_cast<R (*)(ARGS...)>(f_ptr)(args...); };
     }
 
     /**
@@ -298,20 +298,26 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
      */
     template <typename RET, typename... PARAMS>
     FixedFunction(RET (*func_ptr)(PARAMS...)) : FixedFunction() {
-        function_ptr_ = func_ptr;
-        method_ptr_ = [](void*, func_ptr_type f_ptr, ARGS... args) -> R {
-            return static_cast<RET (*)(PARAMS...)>(f_ptr)(args...);
-        };
+        functionPtr_ = func_ptr;
+        methodPtr_ = [](TFuncPtr f_ptr, ARGS... args) -> R { return static_cast<RET (*)(PARAMS...)>(f_ptr)(args...); };
     }
 
-    using TFunctionPtr = std::unique_ptr<std::function<void()>>;
-    TFUnctionPtr functionPtr_;
-    using TMethod = std::function<R(void* object_ptr, func_ptr_type free_func_ptr, ARGS... args)>;
+    R operator()(ARGS... args) {
+        if (!methodPtr_) {
+            throw std::runtime_error("call of empty functor");
+        }
+        return methodPtr_(functionPtr_, args...);
+    }
+
+   private:
+    using TFunctionPtr = std::unique_ptr<TFuncPtr>;
+    TFunctionPtr functionPtr_;
+    using TMethod = std::packaged_task<R(TFuncPtr free_func_ptr, ARGS... args)>;
     TMethod methodPtr_;
 };
 
-#if 1
 #else
+
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
 class FixedFunction<R(ARGS...), STORAGE_SIZE> {
     using func_ptr_type = std::function<R(ARGS...)>;
@@ -332,7 +338,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
         static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
 
         method_ptr_ = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
-            return static_cast<unref_type*>(object_ptr)->operator()(args...);
+            return (static_cast<unref_type*>(object_ptr))->operator()(args...);
         };
 
         alloc_ptr_ = [](void* storage_ptr, void* object_ptr) {
@@ -437,6 +443,9 @@ using ThreadPool = ThreadPoolImpl<FixedFunction<void(), DEFAULT_FUNCTION_SIZE>, 
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl {
    public:
+    using TTask = Task;
+    using TQueue = Queue<Task>;
+
     /**
      * @brief ThreadPool Construct and start new thread pool.
      * @param options Creation options.
