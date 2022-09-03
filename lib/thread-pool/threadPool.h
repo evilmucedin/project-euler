@@ -8,6 +8,7 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <queue>
 #include <stdexcept>
 #include <thread>
 #include <type_traits>
@@ -15,6 +16,44 @@
 #include <vector>
 
 namespace tp {
+
+/**
+ * @brief The ThreadPoolOptions class provides creation options for
+ * ThreadPool.
+ */
+class ThreadPoolOptions {
+   public:
+    /**
+     * @brief ThreadPoolOptions Construct default options for thread pool.
+     */
+    ThreadPoolOptions();
+
+    /**
+     * @brief setThreadCount Set thread count.
+     * @param count Number of threads to be created.
+     */
+    void setThreadCount(size_t count);
+
+    /**
+     * @brief setQueueSize Set single worker queue size.
+     * @param count Maximum length of queue of single worker.
+     */
+    void setQueueSize(size_t size);
+
+    /**
+     * @brief threadCount Return thread count.
+     */
+    size_t threadCount() const;
+
+    /**
+     * @brief queueSize Return single worker queue size.
+     */
+    size_t queueSize() const;
+
+   private:
+    size_t thread_count_;
+    size_t queue_size_;
+};
 
 #ifndef __APPLE__
 
@@ -125,44 +164,6 @@ class Worker {
     Queue<Task> queue_;
     std::atomic<bool> running_flag_;
     std::thread thread_;
-};
-
-/**
- * @brief The ThreadPoolOptions class provides creation options for
- * ThreadPool.
- */
-class ThreadPoolOptions {
-   public:
-    /**
-     * @brief ThreadPoolOptions Construct default options for thread pool.
-     */
-    ThreadPoolOptions();
-
-    /**
-     * @brief setThreadCount Set thread count.
-     * @param count Number of threads to be created.
-     */
-    void setThreadCount(size_t count);
-
-    /**
-     * @brief setQueueSize Set single worker queue size.
-     * @param count Maximum length of queue of single worker.
-     */
-    void setQueueSize(size_t size);
-
-    /**
-     * @brief threadCount Return thread count.
-     */
-    size_t threadCount() const;
-
-    /**
-     * @brief queueSize Return single worker queue size.
-     */
-    size_t queueSize() const;
-
-   private:
-    size_t thread_count_;
-    size_t queue_size_;
 };
 
 /**
@@ -717,82 +718,94 @@ inline bool MPMCBoundedQueue<T>::pop(T& data) {
 #else
 
 class ThreadPool {
- public:
-  // the constructor just launches some amount of workers
-  explicit ThreadPool(size_t threads) : stop(false) {
-    for (size_t i = 0; i < threads; ++i)
-      workers.emplace_back([this] {
-        for (;;) {
-          std::function<void()> task;
+   public:
+    // the constructor just launches some amount of workers
+    ThreadPool(const ThreadPoolOptions& options = ThreadPoolOptions()) : options_(options), stop_(false) {
+        for (size_t i = 0; i < options_.threadCount(); ++i)
+            workers_.emplace_back([this] {
+                for (;;) {
+                    std::function<void()> task;
 
-          {
-            std::unique_lock<std::mutex> lock(this->queue_mutex);
-            this->condition.wait(
-                lock, [this] { return this->stop || !this->tasks.empty(); });
-            if (this->stop && this->tasks.empty()) {
-              return;
-            }
-            task = std::move(this->tasks.front());
-            this->tasks.pop();
-          }
+                    {
+                        std::unique_lock<std::mutex> lock(this->queueMutex_);
+                        this->condition_.wait(lock, [this] { return this->stop_ || !this->tasks_.empty(); });
+                        if (this->stop_ && this->tasks_.empty()) {
+                            return;
+                        }
+                        task = std::move(this->tasks_.front());
+                        this->tasks_.pop();
+                    }
 
-          task();
+                    task();
+                }
+            });
+    }
+
+    // add new work item to the pool
+    template <class F, class... Args>
+    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
+        using return_type = typename std::result_of<F(Args...)>::type;
+
+        auto task = std::make_shared<std::packaged_task<return_type()>>(
+            std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        return enqueueTask(std::move(task));
+    }
+
+    template <typename F>
+    void runN(F const& f, size_t n) {
+        std::vector<std::future<void>> futures;
+        futures.reserve(n);
+
+        for (size_t i = 0; i < n; ++i) {
+            futures.emplace_back(enqueue(f, i));
         }
-      });
-  }
 
-  // add new work item to the pool
-  template <class F, class... Args>
-  auto enqueue(F&& f, Args&&... args)
-      -> std::future<typename std::result_of<F(Args...)>::type> {
-    using return_type = typename std::result_of<F(Args...)>::type;
-
-    auto task = std::make_shared<std::packaged_task<return_type()>>(
-        std::bind(std::forward<F>(f), std::forward<Args>(args)...));
-    return EnqueueTask(std::move(task));
-  }
-
-  // add new work item to the pool
-  template <class T>
-  auto enqueueTask(std::shared_ptr<std::packaged_task<T()>>&& task)
-      -> std::future<T> {
-    std::future<T> res = task->get_future();
-    {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-
-      // don't allow enqueueing after stopping the pool
-      if (stop) {
-        throw std::runtime_error("Enqueue on stopped ThreadPool");
-      }
-
-      tasks.emplace([task]() { (*task)(); });
+        for (auto& f : futures) {
+            f.get();
+        }
     }
-    condition.notify_one();
-    return res;
-  }
 
-  // the destructor joins all threads
-  ~ThreadPool() {
-    {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      stop = true;
+    // add new work item to the pool
+    template <class T>
+    auto enqueueTask(std::shared_ptr<std::packaged_task<T()>>&& task) -> std::future<T> {
+        std::future<T> res = task->get_future();
+        {
+            std::unique_lock<std::mutex> lock(queueMutex_);
+
+            // don't allow enqueueing after stopping the pool
+            if (stop_) {
+                throw std::runtime_error("Enqueue on stopped ThreadPool");
+            }
+
+            tasks_.emplace([task]() { (*task)(); });
+        }
+        condition_.notify_one();
+        return res;
     }
-    condition.notify_all();
-    for (std::thread& worker : workers) {
-      worker.join();
+
+    // the destructor joins all threads
+    ~ThreadPool() {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex_);
+            stop_ = true;
+        }
+        condition_.notify_all();
+        for (std::thread& worker : workers_) {
+            worker.join();
+        }
     }
-  }
 
- private:
-  // need to keep track of threads so we can join them
-  std::vector<std::thread> workers;
-  // the task queue
-  std::queue<std::function<void()>> tasks;
+   private:
+    ThreadPoolOptions options_;
+    // need to keep track of threads so we can join them
+    std::vector<std::thread> workers_;
+    // the task queue
+    std::queue<std::function<void()>> tasks_;
 
-  // synchronization
-  std::mutex queue_mutex;
-  std::condition_variable condition;
-  bool stop;
+    // synchronization
+    std::mutex queueMutex_;
+    std::condition_variable condition_;
+    bool stop_;
 };
 
 #endif
