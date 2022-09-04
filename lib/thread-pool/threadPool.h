@@ -274,7 +274,7 @@ class FixedFunction;
 
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
 class FixedFunction<R(ARGS...), STORAGE_SIZE> {
-    using TFuncPtr = std::packaged_task<R(ARGS...)>;
+    using func_ptr_type = std::function<R(ARGS...)>;
 
    public:
     FixedFunction() : function_ptr_(nullptr), method_ptr_(nullptr), alloc_ptr_(nullptr) {}
