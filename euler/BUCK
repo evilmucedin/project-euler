@@ -1,0 +1,8 @@
+cxx_binary(
+  name="",
+  srcs=[
+    ".cpp"
+  ],
+  deps=[
+  ],
+)
