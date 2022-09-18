@@ -64,11 +64,22 @@ class Solution {
     }
 
     static bool isPalindromePart(const string& s, size_t left, size_t right) {
+        const char* l = s.data() + left;
+        const char* r = s.data() + right - 1;
+        while (l < r) {
+            if (*l != *r) {
+                return false;
+            }
+            ++l;
+            --r;
+        }
+        /*
         for (size_t i = 0; left + i + i < right; ++i) {
             if (s[left + i] != s[right - 1 - i]) {
                 return false;
             }
         }
+        */
         return true;
     }
 
@@ -87,21 +98,23 @@ class Solution {
 
         vector<vector<int>> result;
         for (int i = 0; i < words.size(); ++i) {
-            if (isPalindrome(words[i]) && !words[i].empty() && hasEmpty) {
+            const auto& w = words[i];
+
+            if (isPalindrome(w) && !w.empty() && hasEmpty) {
                 result.emplace_back(vector<int>{i, emptyIndex});
                 result.emplace_back(vector<int>{emptyIndex, i});
             }
 
-            for (size_t pos = 0; pos < words[i].size(); ++pos) {
-                if (isPalindromePart(words[i], pos, words[i].size())) {
-                    const auto left = words[i].substr(0, pos);
+            for (size_t pos = 0; pos < w.size(); ++pos) {
+                if (isPalindromePart(w, pos, w.size())) {
+                    const auto left = w.substr(0, pos);
                     auto toRev = revWord2Index.find(left);
                     if (toRev != revWord2Index.end() && i != toRev->second) {
                         result.emplace_back(vector<int>{i, toRev->second});
                     }
                 }
-                if (isPalindromePart(words[i], 0, pos)) {
-                    const auto right = words[i].substr(pos, words[i].size());
+                if (isPalindromePart(w, 0, pos)) {
+                    const auto right = w.substr(pos, w.size());
                     auto toRev = revWord2Index.find(right);
                     if (toRev != revWord2Index.end() && i != toRev->second) {
                         result.emplace_back(vector<int>{toRev->second, i});
@@ -109,6 +122,8 @@ class Solution {
                 }
             }
         }
+
+        sort(result.begin(), result.end());
 
         return result;
     }
