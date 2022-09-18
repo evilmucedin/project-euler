@@ -83,6 +83,33 @@ class Solution {
         return true;
     }
 
+    using Substrings = vector<pair<int, int>>;
+
+    static Substrings findAllPalindromes(const string& s) {
+        Substrings result;
+        auto begin = s.data();
+        auto end = s.data() + s.size() - 1;
+
+        auto addAll = [&](const char* l, const char* r) {
+            while (l >= begin && r <= end) {
+                if (*l == *r) {
+                    result.emplace_back(make_pair(l - begin, r - begin));
+                    --l;
+                    ++r;
+                } else {
+                    return;
+                }
+            }
+        };
+
+        for (int i = 0; i < s.size(); ++i) {
+            addAll(begin + i, begin + i);
+            addAll(begin + i, begin + i + 1);
+        }
+
+        return result;
+    }
+
     vector<vector<int>> palindromePairs(vector<string>& words) {
         unordered_map<string, int> revWord2Index;
         revWord2Index.reserve(words.size());
@@ -105,6 +132,8 @@ class Solution {
                 result.emplace_back(vector<int>{i, emptyIndex});
                 result.emplace_back(vector<int>{emptyIndex, i});
             }
+
+            // const auto wPalindromes = findAllPalindromes(w);
 
             for (size_t pos = 0; pos < w.size(); ++pos) {
                 if (isPalindromePart(w, pos, w.size())) {
