@@ -112,7 +112,7 @@ class Solution {
 
     vector<vector<int>> palindromePairs(vector<string>& words) {
         unordered_map<string, int> revWord2Index;
-        revWord2Index.reserve(words.size());
+        // revWord2Index.reserve(words.size());
         int emptyIndex;
         bool hasEmpty = false;
         for (int i = 0; i < words.size(); ++i) {
@@ -120,7 +120,7 @@ class Solution {
                 hasEmpty = true;
                 emptyIndex = i;
             } else {
-                revWord2Index[reverse(words[i])] = i;
+                revWord2Index.emplace(reverse(words[i]), i);
             }
         }
 
