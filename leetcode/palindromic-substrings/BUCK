@@ -1,0 +1,10 @@
+cxx_binary(
+  name="palindromic-substrings",
+  srcs=[
+    "substrings.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
