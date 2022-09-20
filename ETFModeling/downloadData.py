@@ -14,7 +14,7 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", 
            "AAPL", "NVDA", "TSM", "UNH", "JNJ", "V", "WMT", "JPM", "PG", "XOM", "HD", "CVX", "PFE", "VOW", "KHC", "NKE", "SBUX",
            "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG", "FPRO", "FBCV", "FMIL",
            "COIN", "SI", "LMT", "FDIG", "ARKK",
-           "BITO", "BITW", "VBB", "SFY", "IJR", "SCHD", "FTLS", "FDHT", "FRNW", "FDRV", "FCLD", "ITA", "PPA", "XAR", "USO", "IEO"
+           "BITO", "BITW", "VBB", "SFY", "IJR", "SCHD", "FTLS", "FDHT", "FRNW", "FDRV", "FCLD", "ITA", "PPA", "XAR", "USO", "IEO", "SPGP", "IWY", "SPYG"
            # "59101K877", "09259A395"
            ]
 assert(len(tickers) == len(set(tickers)))
