@@ -7,10 +7,9 @@ class Solution {
         int result = 0;
         for (int i = 0; i <= nums1.size(); ++i) {
             for (int j = 0; j <= nums2.size(); ++j) {
-                if (i == 0 || j == 0)
+                if (i == 0 || j == 0) {
                     lcSuff[i][j] = 0;
-
-                else if (nums1[i - 1] == nums2[j - 1]) {
+                } else if (nums1[i - 1] == nums2[j - 1]) {
                     lcSuff[i][j] = lcSuff[i - 1][j - 1] + 1;
                     result = max(result, lcSuff[i][j]);
                 } else {
