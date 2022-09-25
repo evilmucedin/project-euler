@@ -22,7 +22,7 @@ cxx_binary(
   ],
   deps=[
     "//lib:header",
-    "//lib:init",
+    "//lib:timer",
   ],
 )
 EOF
