@@ -1,0 +1,10 @@
+cxx_binary(
+  name="design-circular-queue",
+  srcs=[
+    "design-circular-queue.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
