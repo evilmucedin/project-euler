@@ -112,6 +112,11 @@ public:
     }
 
     void solveSudoku(Board& board) {
+        Move move;
+        while (findMove(board, &move)) {
+            board[move.x][move.y] = move.ch;
+        }
+
         Cells empty;
         for (int i = 0; i < board.size(); ++i) {
             for (int j = 0; j < board[i].size(); ++j) {
