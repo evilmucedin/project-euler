@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sudoku-solver",
+  srcs=[
+    "sudoku-solver.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
