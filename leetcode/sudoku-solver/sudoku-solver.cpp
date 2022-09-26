@@ -6,6 +6,12 @@ public:
     using Row = vector<char>;
     using Board = vector<Row>;
 
+    struct Cell {
+        int x;
+        int y;
+    };
+    using Cells = vector<Cell>;
+
     bool isGood(Row& r) {
         sort(r.begin(), r.end());
         for (size_t i = 1; i < 9; ++i) {
@@ -62,7 +68,7 @@ public:
             for (int j = 0; j < 9; ++j) {
                 if (board[i][j] == '.') {
                     goodChars.clear();
-                    for (char ch = '0'; ch <= '9'; ++ch) {
+                    for (char ch = '1'; ch <= '9'; ++ch) {
                         board[i][j] = ch;
                         if (isGood(board)) {
                             goodChars.emplace_back(ch);
@@ -81,11 +87,41 @@ public:
         return false;
     }
 
-    void solveSudoku(Board& board) {
+    void solveSudoku_(Board& board) {
         Move move;
         while (findMove(board, &move)) {
             board[move.x][move.y] = move.ch;
         }
+    }
+
+    bool solveSudokuRec(Board& board, const Cells& cells, size_t index) {
+        if (index >= cells.size()) {
+            return isGood(board);
+        }
+        if (!isGood(board)) {
+            return false;
+        }
+        for (char ch = '1'; ch <= '9'; ++ch) {
+            board[cells[index].x][cells[index].y] = ch;
+            if (solveSudokuRec(board, cells, index + 1)) {
+                return true;
+            }
+        }
+        board[cells[index].x][cells[index].y] = '.';
+        return false;
+    }
+
+    void solveSudoku(Board& board) {
+        Cells empty;
+        for (int i = 0; i < board.size(); ++i) {
+            for (int j = 0; j < board[i].size(); ++j) {
+                if (board[i][j] == '.') {
+                    empty.emplace_back(Cell{i, j});
+                }
+            }
+        }
+
+        solveSudokuRec(board, empty, 0);
     }
 };
 
