@@ -1,0 +1,10 @@
+cxx_binary(
+  name="remove-nth-node-from-end-of-list",
+  srcs=[
+    "remove-nth-node-from-end-of-list.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

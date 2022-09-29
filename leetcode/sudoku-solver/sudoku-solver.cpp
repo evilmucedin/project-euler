@@ -12,6 +12,33 @@ public:
     };
     using Cells = vector<Cell>;
 
+    struct Goodness {
+        vector<int> count_;
+
+        Goodness() : count_(9) {}
+
+        bool add(int x) {
+            if (count_[x]) {
+                return false;
+            }
+            ++count_[x];
+            return true;
+        }
+
+        bool add(char ch) {
+            if (ch == '.') {
+                return true;
+            }
+            return add(int(ch - '1'));
+        }
+
+        void reset() {
+            for (int i = 0; i < 9; ++i) {
+                count_[i] = 0;
+            }
+        }
+    };
+
     bool isGood(Row& r) {
         sort(r.begin(), r.end());
         for (size_t i = 1; i < 9; ++i) {
@@ -23,33 +50,32 @@ public:
     }
 
     bool isGood(const Board& b) {
-        Row v(9);
+        Goodness g;
         for (int i = 0; i < 9; ++i) {
+            g.reset();
             for (int j = 0; j < 9; ++j) {
-                v[j] = b[i][j];
-            }
-            if (!isGood(v)) {
-                return false;
+                if (!g.add(b[i][j])) {
+                    return false;
+                }
             }
         }
         for (int i = 0; i < 9; ++i) {
+            g.reset();
             for (int j = 0; j < 9; ++j) {
-                v[j] = b[j][i];
-            }
-            if (!isGood(v)) {
-                return false;
+                if (!g.add(b[j][i])) {
+                    return false;
+                }
             }
         }
         for (int i1 = 0; i1 < 3; ++i1) {
             for (int j1 = 0; j1 < 3; ++j1) {
-                int pos = 0;
+                g.reset();
                 for (int i2 = 0; i2 < 3; ++i2) {
                     for (int j2 = 0; j2 < 3; ++j2) {
-                        v[pos++] = b[3 * i1 + i2][3 * j1 + j2];
+                        if (!g.add(b[3 * i1 + i2][3 * j1 + j2])) {
+                            return false;
+                        }
                     }
-                }
-                if (!isGood(v)) {
-                    return false;
                 }
             }
         }
@@ -101,13 +127,14 @@ public:
         if (!isGood(board)) {
             return false;
         }
+        const Cell& c = cells[index];
         for (char ch = '1'; ch <= '9'; ++ch) {
-            board[cells[index].x][cells[index].y] = ch;
+            board[c.x][c.y] = ch;
             if (solveSudokuRec(board, cells, index + 1)) {
                 return true;
             }
         }
-        board[cells[index].x][cells[index].y] = '.';
+        board[c.x][c.y] = '.';
         return false;
     }
 
