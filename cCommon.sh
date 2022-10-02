@@ -8,6 +8,10 @@ if [ "${unamestr}" = "Darwin" ]; then
     buck_bin=`which buck`
 fi
 
+if [ "${buck_bin}" = "" ]; then
+    buck_bin=`buck`
+fi
+
 eulerDir() {
     prj=$1
     if [[ "${prj}" == *"/"* ]]; then

@@ -30,5 +30,9 @@ exe=$(realpath buck-out/gen/${DIR}/${FNAME})
 
 popd
 if [ 0 -eq ${res} ]; then
-    LSAN_OPTIONS="verbosity=1:log_threads=1" gdb --args ${exe} $args
+    if [[ $OSTYPE == 'darwin'* ]]; then
+        LSAN_OPTIONS="verbosity=1:log_threads=1" lldb ${exe} $args
+    else
+        LSAN_OPTIONS="verbosity=1:log_threads=1" gdb --args ${exe} $args
+    fi
 fi

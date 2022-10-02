@@ -5,4 +5,4 @@ cxx.cflags=-O0 -g -march=native -fsanitize=undefined -fsanitize=address -fno-omi
 --config
 cxx.cxxflags=-O0 -std=c++17 -g -march=native -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer -static-libstdc++ -static-libsan
 --config
-cxx.ldflags=-Wl,--no-undefined -static-libsan -fsanitize=undefined -fsanitize=address
+cxx.ldflags=-static-libsan -fsanitize=undefined -fsanitize=address

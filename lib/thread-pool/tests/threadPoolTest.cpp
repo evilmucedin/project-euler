@@ -1,10 +1,10 @@
+#include <gtest/gtest.h>
+
 #include <chrono>
 #include <functional>
 #include <future>
 #include <memory>
 #include <thread>
-
-#include <gtest/gtest.h>
 
 #include "lib/thread-pool/threadPool.h"
 
@@ -14,6 +14,21 @@ size_t getWorkerIdForCurrentThread() { return *tp::detail::thread_id(); }
 size_t getWorkerIdForCurrentThread2() {
     return tp::Worker<std::function<void()>, tp::MPMCBoundedQueue>::getWorkerIdForCurrentThread();
 }
+}  // namespace TestLinkage
+
+TEST(ThreadPool, fixedFunction) {
+    int res = 0;
+    std::packaged_task<void()> t([&res]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        res = 42;
+    });
+
+    tp::FixedFunction<void(), 128> task(t);
+    task();
+    // t();
+    // t.get_future().get();
+
+    ASSERT_EQ(42, res);
 }
 
 TEST(ThreadPool, postJob) {

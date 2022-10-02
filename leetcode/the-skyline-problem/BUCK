@@ -1,0 +1,10 @@
+cxx_binary(
+  name="the-skyline-problem",
+  srcs=[
+    "the-skyline-problem.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

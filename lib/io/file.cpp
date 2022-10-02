@@ -4,6 +4,11 @@
 
 #include "lib/exception.h"
 
+#ifdef __APPLE__
+#define fread_unlocked fread
+#define fwrite_unlocked fwrite
+#endif
+
 File::File(string filename, string mode) : filename_(std::move(filename)), mode_(std::move(mode)) {
     f_ = fopen(filename_.c_str(), mode_.c_str());
     if (!f_) {

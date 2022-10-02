@@ -1,5 +1,62 @@
 #pragma once
 
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <condition_variable>
+#include <cstring>
+#include <functional>
+#include <future>
+#include <memory>
+#include <queue>
+#include <stdexcept>
+#include <thread>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+namespace tp {
+
+/**
+ * @brief The ThreadPoolOptions class provides creation options for
+ * ThreadPool.
+ */
+class ThreadPoolOptions {
+   public:
+    /**
+     * @brief ThreadPoolOptions Construct default options for thread pool.
+     */
+    ThreadPoolOptions();
+
+    /**
+     * @brief setThreadCount Set thread count.
+     * @param count Number of threads to be created.
+     */
+    void setThreadCount(size_t count);
+
+    /**
+     * @brief setQueueSize Set single worker queue size.
+     * @param count Maximum length of queue of single worker.
+     */
+    void setQueueSize(size_t size);
+
+    /**
+     * @brief threadCount Return thread count.
+     */
+    size_t threadCount() const;
+
+    /**
+     * @brief queueSize Return single worker queue size.
+     */
+    size_t queueSize() const;
+
+   private:
+    size_t thread_count_;
+    size_t queue_size_;
+};
+
+#ifndef __APPLE__
+
 // Copyright (c) 2010-2011 Dmitry Vyukov. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,21 +93,6 @@
 // should not be interpreted as representing official policies, either expressed
 // or implied, of Dmitry Vyukov.
 
-#include <algorithm>
-#include <array>
-#include <atomic>
-#include <condition_variable>
-#include <cstring>
-#include <functional>
-#include <future>
-#include <memory>
-#include <stdexcept>
-#include <thread>
-#include <type_traits>
-#include <utility>
-#include <vector>
-
-namespace tp {
 /**
  * @brief The Worker class owns task queue and executing thread.
  * In thread it tries to pop task from queue. If queue is empty then it tries
@@ -125,44 +167,6 @@ class Worker {
 };
 
 /**
- * @brief The ThreadPoolOptions class provides creation options for
- * ThreadPool.
- */
-class ThreadPoolOptions {
-   public:
-    /**
-     * @brief ThreadPoolOptions Construct default options for thread pool.
-     */
-    ThreadPoolOptions();
-
-    /**
-     * @brief setThreadCount Set thread count.
-     * @param count Number of threads to be created.
-     */
-    void setThreadCount(size_t count);
-
-    /**
-     * @brief setQueueSize Set single worker queue size.
-     * @param count Maximum length of queue of single worker.
-     */
-    void setQueueSize(size_t size);
-
-    /**
-     * @brief threadCount Return thread count.
-     */
-    size_t threadCount() const;
-
-    /**
-     * @brief queueSize Return single worker queue size.
-     */
-    size_t queueSize() const;
-
-   private:
-    size_t thread_count_;
-    size_t queue_size_;
-};
-
-/**
  * @brief The MPMCBoundedQueue class implements bounded
  * multi-producers/multi-consumers lock-free queue.
  * Doesn't accept non-movable types as T.
@@ -213,13 +217,9 @@ class MPMCBoundedQueue {
      */
     bool pop(T& data);
 
-    std::condition_variable& event() {
-        return event_;
-    }
+    std::condition_variable& event() { return event_; }
 
-    std::unique_lock<std::mutex>& lock() {
-        return lk_;
-    }
+    std::unique_lock<std::mutex>& lock() { return lk_; }
 
    private:
     struct Cell {
@@ -266,7 +266,10 @@ class MPMCBoundedQueue {
  * Due to limitations above it is much faster on creation and copying than
  * std::function.
  */
-template <typename SIGNATURE, size_t STORAGE_SIZE = 128>
+
+static constexpr size_t DEFAULT_FUNCTION_SIZE = 128;
+
+template <typename SIGNATURE, size_t STORAGE_SIZE = DEFAULT_FUNCTION_SIZE>
 class FixedFunction;
 
 template <typename R, typename... ARGS, size_t STORAGE_SIZE>
@@ -289,7 +292,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
         static_assert(std::is_move_constructible<unref_type>::value, "Should be of movable type");
 
         method_ptr_ = [](void* object_ptr, func_ptr_type, ARGS... args) -> R {
-            return static_cast<unref_type*>(object_ptr)->operator()(args...);
+            return (static_cast<unref_type*>(object_ptr))->operator()(args...);
         };
 
         alloc_ptr_ = [](void* storage_ptr, void* object_ptr) {
@@ -380,7 +383,7 @@ class FixedFunction<R(ARGS...), STORAGE_SIZE> {
 
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl;
-using ThreadPool = ThreadPoolImpl<FixedFunction<void(), 128>, MPMCBoundedQueue>;
+using ThreadPool = ThreadPoolImpl<FixedFunction<void(), DEFAULT_FUNCTION_SIZE>, MPMCBoundedQueue>;
 
 /**
  * @brief The ThreadPool class implements thread pool pattern.
@@ -393,6 +396,9 @@ using ThreadPool = ThreadPoolImpl<FixedFunction<void(), 128>, MPMCBoundedQueue>;
 template <typename Task, template <typename> class Queue>
 class ThreadPoolImpl {
    public:
+    using TTask = Task;
+    using TQueue = Queue<Task>;
+
     /**
      * @brief ThreadPool Construct and start new thread pool.
      * @param options Creation options.
@@ -483,7 +489,7 @@ inline size_t* thread_id() {
     static thread_local size_t tss_id = -1u;
     return &tss_id;
 }
-}
+}  // namespace detail
 
 template <typename Task, template <typename> class Queue>
 inline Worker<Task, Queue>::Worker(size_t queue_size) : queue_(queue_size), running_flag_(true) {}
@@ -708,4 +714,99 @@ inline bool MPMCBoundedQueue<T>::pop(T& data) {
 
     return true;
 }
-}
+
+#else
+
+class ThreadPool {
+   public:
+    // the constructor just launches some amount of workers
+    ThreadPool(const ThreadPoolOptions& options = ThreadPoolOptions()) : options_(options), stop_(false) {
+        for (size_t i = 0; i < options_.threadCount(); ++i)
+            workers_.emplace_back([this] {
+                for (;;) {
+                    std::function<void()> task;
+
+                    {
+                        std::unique_lock<std::mutex> lock(this->queueMutex_);
+                        this->condition_.wait(lock, [this] { return this->stop_ || !this->tasks_.empty(); });
+                        if (this->stop_ && this->tasks_.empty()) {
+                            return;
+                        }
+                        task = std::move(this->tasks_.front());
+                        this->tasks_.pop();
+                    }
+
+                    task();
+                }
+            });
+    }
+
+    // add new work item to the pool
+    template <class F, class... Args>
+    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
+        using return_type = typename std::result_of<F(Args...)>::type;
+
+        auto task = std::make_shared<std::packaged_task<return_type()>>(
+            std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+        return enqueueTask(std::move(task));
+    }
+
+    template <typename F>
+    void runN(F const& f, size_t n) {
+        std::vector<std::future<void>> futures;
+        futures.reserve(n);
+
+        for (size_t i = 0; i < n; ++i) {
+            futures.emplace_back(enqueue(f, i));
+        }
+
+        for (auto& f : futures) {
+            f.get();
+        }
+    }
+
+    // add new work item to the pool
+    template <class T>
+    auto enqueueTask(std::shared_ptr<std::packaged_task<T()>>&& task) -> std::future<T> {
+        std::future<T> res = task->get_future();
+        {
+            std::unique_lock<std::mutex> lock(queueMutex_);
+
+            // don't allow enqueueing after stopping the pool
+            if (stop_) {
+                throw std::runtime_error("Enqueue on stopped ThreadPool");
+            }
+
+            tasks_.emplace([task]() { (*task)(); });
+        }
+        condition_.notify_one();
+        return res;
+    }
+
+    // the destructor joins all threads
+    ~ThreadPool() {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex_);
+            stop_ = true;
+        }
+        condition_.notify_all();
+        for (std::thread& worker : workers_) {
+            worker.join();
+        }
+    }
+
+   private:
+    ThreadPoolOptions options_;
+    // need to keep track of threads so we can join them
+    std::vector<std::thread> workers_;
+    // the task queue
+    std::queue<std::function<void()>> tasks_;
+
+    // synchronization
+    std::mutex queueMutex_;
+    std::condition_variable condition_;
+    bool stop_;
+};
+
+#endif
+}  // namespace tp
