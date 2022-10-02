@@ -1,0 +1,10 @@
+cxx_binary(
+  name="satisfiability-of-equality-equations",
+  srcs=[
+    "satisfiability-of-equality-equations.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="decode-ways",
+  srcs=[
+    "decode-ways.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

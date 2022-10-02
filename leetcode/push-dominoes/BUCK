@@ -1,0 +1,10 @@
+cxx_binary(
+  name="push-dominoes",
+  srcs=[
+    "push-dominoes.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
