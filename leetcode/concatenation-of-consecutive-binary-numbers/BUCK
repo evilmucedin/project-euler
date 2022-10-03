@@ -1,0 +1,10 @@
+cxx_binary(
+  name="concatenation-of-consecutive-binary-numbers",
+  srcs=[
+    "concatenation.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
