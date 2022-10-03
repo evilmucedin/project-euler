@@ -1,0 +1,10 @@
+cxx_binary(
+  name="longest-valid-parentheses",
+  srcs=[
+    "longest-valid-parentheses.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
