@@ -32,7 +32,7 @@ exe=$(realpath buck-out/gen/${DIR}/${FNAME})
 popd
 if [ 0 -eq ${res} ]; then
     if [[ $OSTYPE == 'darwin'* ]]; then
-        lldb ${exe} ${args}
+        lldb -- ${exe} ${args}
     else
         gdb --args ${exe} ${args}
     fi
