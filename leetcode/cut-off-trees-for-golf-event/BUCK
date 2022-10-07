@@ -1,0 +1,10 @@
+cxx_binary(
+  name="cut-off-trees-for-golf-event",
+  srcs=[
+    "cut-off-trees-for-golf-event.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
