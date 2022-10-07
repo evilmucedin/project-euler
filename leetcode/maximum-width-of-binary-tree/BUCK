@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-width-of-binary-tree",
+  srcs=[
+    "maximum-width-of-binary-tree.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
