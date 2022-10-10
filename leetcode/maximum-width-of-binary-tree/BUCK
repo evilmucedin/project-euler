@@ -4,6 +4,8 @@ cxx_binary(
     "maximum-width-of-binary-tree.cpp"
   ],
   deps=[
+    "//leetcode:tree",
+    "//lib:bigint",
     "//lib:header",
     "//lib:timer",
   ],

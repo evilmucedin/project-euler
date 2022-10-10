@@ -460,3 +460,13 @@ cxx_library(
     ],
 )
 
+cxx_library(
+    name="bigint",
+    exported_headers=[
+        "bigint.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
