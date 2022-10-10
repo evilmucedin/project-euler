@@ -10,18 +10,32 @@ struct UnionFind {
     }
 
     T find(T first) {
-        auto toParent = parent_.find(first);
-        while (toParent != parent_.end() && toParent->second != first) {
-            first = toParent->second;
-            toParent = parent_.find(first);
+        T i = first;
+        auto toParent = parent_.find(i);
+        int count = 0;
+        while (toParent != parent_.end() && toParent->second != i) {
+            i = toParent->second;
+            toParent = parent_.find(i);
+            ++count;
         }
-        return first;
+
+        if (count > 2) {
+            T j = first;
+            toParent = parent_.find(j);
+            while (toParent != parent_.end() && toParent->second != j) {
+                parent_[j] = i;
+                j = toParent->second;
+                toParent = parent_.find(j);
+            }
+        }
+
+        return i;
     }
 
     void unite(T first, T second) {
         auto toSecond = parent_.find(second);
         if (toSecond != parent_.end()) {
-            parent_[find(first)] = toSecond->second;
+            parent_[find(first)] = find(toSecond->second);
         }
     }
 
@@ -34,21 +48,7 @@ struct UnionFind {
     Components components() {
         unordered_map<T, size_t> parentSizes;
         for (const auto& kv : parent_) {
-            T j = kv.first;
-            auto toParent = parent_.find(j);
-            while (toParent != parent_.end() && toParent->second != j) {
-                j = toParent->second;
-                toParent = parent_.find(j);
-            }
-            ++parentSizes[j];
-
-            T k = kv.first;
-            toParent = parent_.find(k);
-            while (toParent != parent_.end() && toParent->second != k) {
-                parent_[k] = j;
-                k = toParent->second;
-                toParent = parent_.find(k);
-            }
+            ++parentSizes[find(kv.first)];
         }
 
         Components result;
