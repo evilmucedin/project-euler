@@ -470,3 +470,13 @@ cxx_library(
     ],
 )
 
+cxx_library(
+    name="unionFind",
+    exported_headers=[
+        "unionFind.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+

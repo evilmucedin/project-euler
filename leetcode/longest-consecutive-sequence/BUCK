@@ -6,5 +6,6 @@ cxx_binary(
   deps=[
     "//lib:header",
     "//lib:timer",
+    "//lib:unionFind",
   ],
 )
