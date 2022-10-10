@@ -1,0 +1,10 @@
+cxx_binary(
+  name="3sum-closest",
+  srcs=[
+    "3sum-closest.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

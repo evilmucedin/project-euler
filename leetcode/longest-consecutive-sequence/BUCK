@@ -1,0 +1,10 @@
+cxx_binary(
+  name="longest-consecutive-sequence",
+  srcs=[
+    "longest-consecutive-sequence.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
