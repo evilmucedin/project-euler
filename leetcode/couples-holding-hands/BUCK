@@ -1,0 +1,11 @@
+cxx_binary(
+  name="couples-holding-hands",
+  srcs=[
+    "couples-holding-hands.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFind",
+  ],
+)
