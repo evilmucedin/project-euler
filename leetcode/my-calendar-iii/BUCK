@@ -1,0 +1,10 @@
+cxx_binary(
+  name="my-calendar-iii",
+  srcs=[
+    "my-calendar-iii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
