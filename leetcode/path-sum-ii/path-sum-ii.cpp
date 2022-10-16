@@ -1,4 +1,5 @@
 #include "../header.h"
+#include "../tree.h"
 
 class Solution {
    public:
@@ -28,7 +29,7 @@ class Solution {
 int main() {
     Solution sol;
     Timer t("Subarray timer");
-    cerr << sol.<< endl;
+    cerr << sol.pathSum(makeTree({1}), 1) << endl;
 
     return 0;
 }

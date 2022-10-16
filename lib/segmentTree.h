@@ -62,3 +62,10 @@ struct Max {
         return max(a, b);
     }
 };
+
+template<typename T>
+struct Min {
+    T operator()(const T& a, const T& b) const {
+        return min(a, b);
+    }
+};

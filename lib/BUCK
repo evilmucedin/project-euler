@@ -480,3 +480,15 @@ cxx_library(
     ],
 )
 
+cxx_library(
+    name="minStack",
+    deps=[
+    ],
+    exported_headers=[
+        "minStack.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
