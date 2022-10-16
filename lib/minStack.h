@@ -4,23 +4,29 @@
 
 using namespace std;
 
+template<typename T>
 class MinStack {
    public:
-    stack<char> st, mn;
+    stack<T> st_;
+    stack<T> mn_;
 
-    void push(char x) {
-        if (st.empty() || x <= mn.top()) mn.push(x);
-        st.push(x);
+    void push(T x) {
+        if (st_.empty() || x <= mn_.top()) {
+            mn_.push(x);
+        }
+        st_.push(x);
     }
 
     void pop() {
-        if (st.top() == mn.top()) mn.pop();
-        st.pop();
+        if (st_.top() == mn_.top()) {
+            mn_.pop();
+        }
+        st_.pop();
     }
 
-    char top() { return st.top(); }
+    T top() const { return st_.top(); }
 
-    char getMin() { return mn.top(); }
+    T getMin() const { return mn_.top(); }
 
-    bool empty() const { return st.empty(); }
+    bool empty() const { return st_.empty(); }
 };
