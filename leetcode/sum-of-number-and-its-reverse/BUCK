@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sum-of-number-and-its-reverse",
+  srcs=[
+    "sum-of-number-and-its-reverse.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
