@@ -30,6 +30,7 @@ int main() {
     Solution sol;
     Timer t("Subarray timer");
     cerr << sol.countAndSay(4) << endl;
+    cerr << sol.countAndSay(30) << endl;
 
     return 0;
 }

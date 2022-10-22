@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-submatrices-with-all-ones",
+  srcs=[
+    "count-submatrices-with-all-ones.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
