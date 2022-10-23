@@ -12,12 +12,11 @@ struct SegmentTree {
         while (size_ < n) {
             size_ <<= 1;
         }
-        storage_.resize(2*size_, identity);
+        storage_.resize(2 * size_, identity);
     }
 
     SegmentTree(const vector<T>& data, const T& identity = T(), Aggr aggr = Aggr())
-        : SegmentTree(data.size(), identity, aggr)
-    {
+        : SegmentTree(data.size(), identity, aggr) {
         for (size_t i = 0; i < data.size(); ++i) {
             set(i, data[i]);
         }
@@ -31,7 +30,11 @@ struct SegmentTree {
         }
     }
 
-    T get(size_t left, size_t right) const {
+    T get(size_t index) const {
+        return storage_[index + size_];
+    }
+
+    T getAggr(size_t left, size_t right) const {
         T result = identity_;
         left += size_;
         right += size_;
@@ -54,6 +57,13 @@ struct SegmentTree {
     vector<T> storage_;
     T identity_;
     Aggr aggr_;
+};
+
+template<typename T>
+struct Sum {
+    T operator()(const T& a, const T& b) const {
+        return a + b;
+    }
 };
 
 template<typename T>
