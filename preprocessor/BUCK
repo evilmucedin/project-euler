@@ -1,0 +1,12 @@
+cxx_binary(
+  name="preprocessor",
+  srcs=[
+    "preprocessor.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//gflags:gflags",
+    "//glog:glog",
+  ],
+)
