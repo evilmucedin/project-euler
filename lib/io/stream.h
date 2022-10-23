@@ -59,6 +59,9 @@ void Endl(OutputStream& o);
 class StdInputStream : public InputStream {
    public:
     size_t read(char* buffer, size_t toRead) override;
+    bool eof() const override;
+   private:
+    bool eof_{};
 };
 
 class StdOutputStream : public OutputStream {
@@ -207,3 +210,6 @@ inline InputStream& operator>>(InputStream& is, string& s) {
     is.readToken(s);
     return is;
 }
+
+PInputStream openInputStream(const string& input);
+POutputStream openOutputStream(const string& output);

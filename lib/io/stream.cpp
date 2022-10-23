@@ -84,6 +84,13 @@ OutputStream::~OutputStream() {}
 
 void Endl(OutputStream& o) { (o << "\n").flush(); }
 
+size_t StdInputStream::read(char* buffer, size_t toRead) {
+    auto result = ::read(STDIN_FILENO, buffer, toRead);
+    eof_ = result < toRead;
+}
+
+bool StdInputStream::eof() const { return eof_; }
+
 void StdOutputStream::write(const char* buffer, size_t toWrite) {
     const auto res = ::write(1, buffer, toWrite);
     if (res != toWrite) {
@@ -240,4 +247,20 @@ PInputStream openFileBufferedReader(const string& filename, size_t bufferSize) {
 POutputStream openFileBufferedWriter(const string& filename, size_t bufferSize) {
     auto fWriter = make_shared<FileOutputStream>(filename);
     return make_shared<BufferedOutputStream>(fWriter, bufferSize);
+}
+
+static const string CONSOLE_FILENAME = "-";
+
+PInputStream openInputStream(const string& input) {
+    if (input == CONSOLE_FILENAME) {
+        return make_shared<StdInputStream>();
+    }
+    return make_shared<FileInputStream>(input);
+}
+
+POutputStream openOutputStream(const string& output) {
+    if (output == CONSOLE_FILENAME) {
+        return make_shared<StdOutputStream>();
+    }
+    return make_shared<FileOutputStream>(output);
 }

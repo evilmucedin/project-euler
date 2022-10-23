@@ -6,6 +6,7 @@ cxx_binary(
   deps=[
     "//lib:header",
     "//lib:init",
+    "//lib/io:stream",
     "//gflags:gflags",
     "//glog:glog",
   ],

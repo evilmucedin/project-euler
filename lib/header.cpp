@@ -45,7 +45,7 @@ ostream& operator<<(ostream& o, u128 v) {
 
 Exception::Exception() {}
 
-Exception::Exception(string msg) : msg_(move(msg)) {}
+Exception::Exception(string msg) : msg_(std::move(msg)) {}
 
 const char* Exception::what() const noexcept { return msg_.c_str(); }
 
