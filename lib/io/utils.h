@@ -46,6 +46,8 @@ vector<T> loadVector(InputStream& s) {
 vector<string> loadAsLines(const string& filename);
 
 string cwd();
+string getAbsolutePath(const string& filename);
+string getDir(const string& filename);
 
 string repoRoot();
 

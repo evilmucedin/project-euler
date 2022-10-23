@@ -54,7 +54,7 @@ bool isSuffix(const string& s, const string& suffix) {
     }
     const size_t offset = s.size() - suffix.size();
     for (size_t i = 0; i < suffix.size(); ++i) {
-        if (s[offset + i] != prefix[i]) {
+        if (s[offset + i] != suffix[i]) {
             return false;
         }
     }

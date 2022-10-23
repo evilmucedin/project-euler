@@ -1,5 +1,6 @@
 #include "lib/io/utils.h"
 
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -29,6 +30,16 @@ string cwd() {
         pBuf[bytes] = '\0';
     }
     return pBuf;
+}
+
+string getAbsolutePath(const string& filename) {
+    char absolutePath[1 << 13];
+    return realpath(filename.c_str(), absolutePath);
+}
+
+string getDir(const string& filename) {
+    const auto parts = split(filename, '/');
+    return join("/", StringVector(parts.begin(), parts.end() - 1));
 }
 
 string repoRoot() {
