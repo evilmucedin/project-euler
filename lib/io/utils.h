@@ -48,3 +48,5 @@ vector<string> loadAsLines(const string& filename);
 string cwd();
 
 string repoRoot();
+
+bool isFile(const string& filename);

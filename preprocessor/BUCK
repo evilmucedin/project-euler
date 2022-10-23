@@ -7,6 +7,7 @@ cxx_binary(
     "//lib:header",
     "//lib:init",
     "//lib/io:stream",
+    "//lib/io:utils",
     "//gflags:gflags",
     "//glog:glog",
   ],

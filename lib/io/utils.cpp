@@ -6,7 +6,6 @@
 #include <cstdio>
 
 #include "glog/logging.h"
-
 #include "lib/string.h"
 
 vector<string> loadAsLines(const string& filename) {
@@ -33,7 +32,7 @@ string cwd() {
 }
 
 string repoRoot() {
-    auto parts = split(cwd(), '/');
+    const auto parts = split(cwd(), '/');
     static const string kRoot = "project-euler";
     size_t i = 0;
     while (i < parts.size() && parts[i] != kRoot) {
@@ -45,3 +44,7 @@ string repoRoot() {
     return join("/", StringVector(parts.begin(), parts.begin() + i + 1));
 }
 
+bool isFile(const string& filename) {
+    struct stat buffer;
+    return (stat(filename.c_str(), &buffer) == 0);
+}

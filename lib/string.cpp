@@ -36,6 +36,31 @@ string join(const string& delim, const StringVector& parts) {
 
 bool hasSubstring(const string& s, const string& substr) { return s.find(substr) != string::npos; }
 
+bool isPrefix(const string& s, const string& prefix) {
+    if (prefix.size() > s.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < prefix.size(); ++i) {
+        if (s[i] != prefix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isSuffix(const string& s, const string& suffix) {
+    if (suffix.size() > s.size()) {
+        return false;
+    }
+    const size_t offset = s.size() - suffix.size();
+    for (size_t i = 0; i < suffix.size(); ++i) {
+        if (s[offset + i] != prefix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 string ltrim(const string& s) {
     string res = s;
     res.erase(res.begin(), std::find_if(res.begin(), res.end(), [](unsigned char ch) { return !std::isspace(ch); }));

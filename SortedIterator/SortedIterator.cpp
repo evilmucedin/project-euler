@@ -176,7 +176,7 @@ struct BinaryTreeMergeIterator final : public IIterator {
                 }
                 next.emplace_back(make_shared<BinaryMergeIterator>(a, b));
             }
-            now = move(next);
+            now = std::move(next);
         }
         root_ = now.front();
     }
@@ -235,7 +235,7 @@ struct BufferedBinaryTreeMergeIterator final : public IIterator {
                 }
                 next.emplace_back(make_shared<BufferedIterator>(make_shared<BinaryMergeIterator>(a, b)));
             }
-            now = move(next);
+            now = std::move(next);
         }
         root_ = now.front();
     }
