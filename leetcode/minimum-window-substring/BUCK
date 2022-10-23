@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimum-window-substring",
+  srcs=[
+    "minimum-window-substring.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
