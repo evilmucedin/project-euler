@@ -42,6 +42,12 @@ class OutputStream {
     void writeT(const T& value) {
         write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
+
+    template <typename T>
+    void writeLine(const T& value) {
+        write(value);
+        write('\n');
+    }
 };
 
 using POutputStream = std::shared_ptr<OutputStream>;
@@ -60,6 +66,7 @@ class StdInputStream : public InputStream {
    public:
     size_t read(char* buffer, size_t toRead) override;
     bool eof() const override;
+
    private:
     bool eof_{};
 };
@@ -169,13 +176,13 @@ OutputStream& operator<<(OutputStream& stream, const T& x) {
     return stream;
 }
 
-#define OUT_INT_TEMPLATE(TYPENAME)                                                       \
-    template <>                                                                          \
-    inline OutputStream& operator<<<TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
-        thread_local char buffer[64];                                                    \
-        const size_t len = numToBuffer<TYPENAME, 10>(x, buffer);                         \
-        stream.write(buffer, len);                                                       \
-        return stream;                                                                   \
+#define OUT_INT_TEMPLATE(TYPENAME)                                                        \
+    template <>                                                                           \
+    inline OutputStream& operator<< <TYPENAME>(OutputStream& stream, const TYPENAME& x) { \
+        thread_local char buffer[64];                                                     \
+        const size_t len = numToBuffer<TYPENAME, 10>(x, buffer);                          \
+        stream.write(buffer, len);                                                        \
+        return stream;                                                                    \
     }
 
 OUT_INT_TEMPLATE(i8)
@@ -190,7 +197,7 @@ OUT_INT_TEMPLATE(u64)
 #undef OUT_INT_TEMPLATE
 
 template <>
-inline OutputStream& operator<<<string>(OutputStream& stream, const string& s) {
+inline OutputStream& operator<< <string>(OutputStream& stream, const string& s) {
     stream.write(s);
     return stream;
 }

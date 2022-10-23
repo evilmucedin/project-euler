@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     POutputStream fOut = openOutputStream(FLAGS_output);
     string line;
     while (fIn->readLine(line)) {
-        fOut->write(line);
+        fOut->writeLine(line);
     }
 
     return 0;

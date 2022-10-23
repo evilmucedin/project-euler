@@ -86,7 +86,11 @@ void Endl(OutputStream& o) { (o << "\n").flush(); }
 
 size_t StdInputStream::read(char* buffer, size_t toRead) {
     auto result = ::read(STDIN_FILENO, buffer, toRead);
-    eof_ = result < toRead;
+    if (result == -1) {
+        throw Exception("stdin read failed");
+    }
+    eof_ = result == 0;
+    return result;
 }
 
 bool StdInputStream::eof() const { return eof_; }
