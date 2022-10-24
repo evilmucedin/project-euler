@@ -1,7 +1,7 @@
 #include "../header.h"
 
 class Solution {
-public:
+   public:
     string countAndSay(int n) {
         string now = "1";
         for (int i = 1; i < n; ++i) {
