@@ -20,8 +20,8 @@ bool processInclude(const string& line, const string& root, const string& fileDi
 
 bool processFile(const string& filename, const string& root, POutputStream fOut) {
     const string fileDir = getDir(getAbsolutePath(filename));
-    LOG(INFO) << OUT(filename) << OUT(getAbsolutePath(filename)) << OUT(getDir(getAbsolutePath(filename)));
-    PInputStream fIn = openInputStream(FLAGS_input);
+    // LOG(INFO) << OUT(filename) << OUT(getAbsolutePath(filename)) << OUT(getDir(getAbsolutePath(filename))) << OUT(root);
+    PInputStream fIn = openInputStream(filename);
     string line;
     while (fIn->readLine(line) && !fIn->eof()) {
         auto normLine = normalizeLine(line);
@@ -29,6 +29,7 @@ bool processFile(const string& filename, const string& root, POutputStream fOut)
             continue;
         }
         if (isPrefix(normLine, "#include")) {
+            // LOG(INFO) << "Found include '" << normLine << "' in " << filename;
             if (processInclude(normLine, root, fileDir, fOut)) {
                 continue;
             }
@@ -63,7 +64,8 @@ bool processInclude(const string& line, const string& root, const string& fileDi
         return false;
     }
     vector<string> cands = {root + "/" + include, include, fileDir + "/" + include};
-    for (const auto& cand: cands) {
+    for (auto& cand: cands) {
+        cand = simplifyPath(cand);
         // LOG(INFO) << "Cand: " << cand;
         if (isFile(cand)) {
             processFile(cand, root, fOut);

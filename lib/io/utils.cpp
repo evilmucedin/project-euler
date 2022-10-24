@@ -32,6 +32,27 @@ string cwd() {
     return pBuf;
 }
 
+string joinPath(const StringVector& parts) {
+    StringVector result;
+    for (const auto& p: parts) {
+        if (p == "..") {
+            if (!result.empty()) {
+                result.pop_back();
+            } else {
+                result.emplace_back(p);
+            }
+        } else if (p == ".") {
+        } else {
+            result.emplace_back(p);
+        }
+    }
+    return join("/", result);
+}
+
+string simplifyPath(const string& path) {
+    return joinPath(split(path, '/'));
+}
+
 string getAbsolutePath(const string& filename) {
     char absolutePath[1 << 13];
     return realpath(filename.c_str(), absolutePath);
@@ -39,7 +60,7 @@ string getAbsolutePath(const string& filename) {
 
 string getDir(const string& filename) {
     const auto parts = split(filename, '/');
-    return join("/", StringVector(parts.begin(), parts.end() - 1));
+    return joinPath(StringVector(parts.begin(), parts.end() - 1));
 }
 
 string repoRoot() {
@@ -52,7 +73,7 @@ string repoRoot() {
     if (i == parts.size()) {
         LOG(FATAL) << kRoot << " not found in the current path";
     }
-    return join("/", StringVector(parts.begin(), parts.begin() + i + 1));
+    return joinPath(StringVector(parts.begin(), parts.begin() + i + 1));
 }
 
 bool isFile(const string& filename) {
