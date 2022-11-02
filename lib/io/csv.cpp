@@ -7,7 +7,7 @@
 #include "lib/io/stream.h"
 
 CsvParser::CsvParser(shared_ptr<InputStream> stream, char delim, char quote)
-    : stream_(move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
+    : stream_(std::move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
 
 CsvParser::CsvParser(const string& filenameC) : CsvParser(openFileBufferedReader(filenameC)) { filename_ = filenameC; }
 
