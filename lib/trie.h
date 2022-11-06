@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 #include <lib/exception.h>
 
@@ -21,9 +22,44 @@ struct Trie {
         Extra extra_;
         Trie* trie_;
 
-        PTrieNode& getNode(T ch) { return subnodes_[ch - trie_->min_]; }
+        bool isWord() const {
+            return word_;
+        }
 
-        const PTrieNode getNode(T ch) const { return subnodes_[ch - trie_->min_]; }
+        PTrieNode& getNode(T ch) {
+            if (ch < trie_->min_ || ch > trie_->max_) {
+                THROW("bad character");
+            }
+            return subnodes_[ch - trie_->min_];
+        }
+
+        const PTrieNode& getNodeConst(T ch) const {
+            if (ch < trie_->min_ || ch > trie_->max_) {
+                THROW("bad character");
+            }
+            return subnodes_[ch - trie_->min_];
+        }
+
+        void print(int indent = 0) const {
+            string s;
+            for (int i = 0; i < indent; ++i) {
+                s += " ";
+            }
+            s += "(";
+            for (T ch = trie_->min_; ch <= trie_->max_; ++ch) {
+                if (subnodes_[ch - trie_->min_]) {
+                    s += ch;
+                }
+            }
+            s += ") w=";
+            s += (word_) ? "+" : "-";
+            cerr << s << endl;
+            for (const auto& p: subnodes_) {
+                if (p) {
+                    p->print(indent + 1);
+                }
+            }
+        }
     };
 
     PTrieNode root_;
@@ -33,6 +69,10 @@ struct Trie {
 
     Trie(T min, T max) : min_(min), max_(max), n_(max_ - min_ + 1) {}
 
+    PTrieNode root() {
+        return root_;
+    }
+
     PTrieNode createNode() {
         auto result = make_shared<TrieNode>();
         result->subnodes_.resize(n_);
@@ -41,7 +81,7 @@ struct Trie {
         return result;
     }
 
-    template <typename C>
+    template <typename C = string>
     void addWord(const C& s, Extra e = Extra()) {
         if (root_ == nullptr) {
             root_ = createNode();
@@ -55,14 +95,14 @@ struct Trie {
                 }
                 curr = pNode;
             } else {
-                THROW("unsupported trie character '" << ch << "'");
+                THROW("unsupported trie character '" << static_cast<int>(ch) << "'");
             }
         }
         curr->word_ = true;
         curr->extra_ = e;
     }
 
-    template <typename C>
+    template <typename C = string>
     PTrieNode findNode(const C& s) {
         PTrieNode curr = root_;
         for (auto ch : s) {
@@ -84,6 +124,12 @@ struct Trie {
             return false;
         }
         return nd->word_;
+    }
+
+    void print() const {
+        if (root_) {
+            root_->print();
+        }
     }
 };
 
