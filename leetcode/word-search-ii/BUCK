@@ -1,0 +1,10 @@
+cxx_binary(
+  name="word-search-ii",
+  srcs=[
+    "word-search-ii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
