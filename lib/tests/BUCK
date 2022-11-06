@@ -9,6 +9,16 @@ cxx_test(
 )
 
 cxx_test(
+  name="trieTest",
+  srcs=[
+    "trieTest.cpp",
+  ],
+  deps=[
+    "//lib:trie",
+  ],
+)
+
+cxx_test(
   name="datetimeTest",
   srcs=[
     "datetimeTest.cpp",

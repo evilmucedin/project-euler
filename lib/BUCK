@@ -495,6 +495,7 @@ cxx_library(
 cxx_library(
     name="trie",
     deps=[
+        ":exception",
     ],
     exported_headers=[
         "trie.h",
