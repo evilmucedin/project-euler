@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimum-number-of-operations-to-sort-a-binary-tree-by-level",
+  srcs=[
+    "minimum-number-of-operations-to-sort-a-binary-tree-by-level.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
