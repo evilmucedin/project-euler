@@ -1,0 +1,11 @@
+cxx_binary(
+  name="most-stones-removed-with-same-row-or-column",
+  srcs=[
+    "most-stones-removed-with-same-row-or-column.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFind"
+  ],
+)
