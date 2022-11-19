@@ -3,8 +3,8 @@
 #include <stack>
 
 template <typename T>
-Point2<T> nextToTop(stack<Point2<T>>& s)
-{
+Point2<T> nextToTop(stack<Point2<T>>& s) {
+    ASSERTGE(s.size(), 2);
     Point2<T> p = s.top();
     s.pop();
     Point2<T> res = s.top();
@@ -106,7 +106,7 @@ vector<Point2<T>> convexHull(vector<Point2<T>> points) {
     {
         // Keep removing top while the angle formed by points next-to-top,
         // top, and points[i] makes a non-left turn
-        while (orientation(nextToTop(s), s.top(), points[i]) != 2) {
+        while (s.size() >= 2 && (orientation(nextToTop(s), s.top(), points[i]) != 2)) {
             s.pop();
         }
         s.push(points[i]);
