@@ -1,0 +1,11 @@
+cxx_binary(
+  name="erect-the-fence",
+  srcs=[
+    "erect-the-fence.cpp"
+  ],
+  deps=[
+    "//lib:convexHull",
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
