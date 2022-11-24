@@ -290,6 +290,19 @@ cxx_library(
 )
 
 cxx_library(
+    name="convexHull",
+    exported_headers=[
+        "convexHull.h",
+    ],
+    deps=[
+        ":geometry",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
     name="exception",
     srcs=[
         "exception.cpp",
@@ -486,6 +499,19 @@ cxx_library(
     ],
     exported_headers=[
         "minStack.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="trie",
+    deps=[
+        ":exception",
+    ],
+    exported_headers=[
+        "trie.h",
     ],
     visibility=[
         "PUBLIC",

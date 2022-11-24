@@ -21,7 +21,7 @@ TEST(SegmentTree, Max) {
                 res = max(res, data[i]);
             }
 
-            EXPECT_EQ(res, st.get(left, right));
+            EXPECT_EQ(res, st.getAggr(left, right));
         }
     }
 }
