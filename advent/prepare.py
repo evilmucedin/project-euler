@@ -6,7 +6,7 @@ import subprocess
 
 import argparse
 
-YEAR = 2021
+YEAR = 2022
 
 parser = argparse.ArgumentParser(
     description="Prepare directory structure for Advent of Code")
