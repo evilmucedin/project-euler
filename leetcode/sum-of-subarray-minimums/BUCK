@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sum-of-subarray-minimums",
+  srcs=[
+    "sum-of-subarray-minimums.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
