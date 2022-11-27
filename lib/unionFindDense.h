@@ -39,6 +39,9 @@ struct UnionFindDense {
     void unite(size_t first, size_t second) {
         auto firstParent = find(first);
         auto secondParent = find(second);
+        if (firstParent == secondParent) {
+            return;
+        }
         if (parentSize_[firstParent] > parentSize_[secondParent]) {
             swap(first, second);
             swap(firstParent, secondParent);
@@ -55,16 +58,23 @@ struct UnionFindDense {
     using Components = vector<Component>;
 
     Components components() {
-        unordered_map<T, size_t> parentSizes;
-        for (const auto& kv : parent_) {
-            ++parentSizes[find(kv.first)];
-        }
-
         Components result;
-        for (const auto& kv: parentSizes) {
-            result.emplace_back(Component{kv.first, kv.second});
+        for (size_t i = 0; i < parentSize_.size(); ++i) {
+            if (parentSize_[i]) {
+                result.emplace_back(Component{i, parentSize_[i]});
+            }
         }
         return result;
+    }
+
+    using ParentToComponent = unordered_map<size_t, vector<size_t>>;
+
+    ParentToComponent parentToComponent() {
+        ParentToComponent p2c;
+        for (size_t i = 0; i < parent_.size(); ++i) {
+            p2c[find(i)].emplace_back(i);
+        }
+        return p2c;
     }
 
    private:

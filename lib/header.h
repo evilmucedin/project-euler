@@ -237,6 +237,12 @@ vector<T> cat(const vector<T>& a, const vector<T>& b) {
 }
 
 template <typename T>
+vector<T>& catInplace(vector<T>& a, const vector<T>& b) {
+    a.insert(a.end(), b.begin(), b.end());
+    return a;
+}
+
+template <typename T>
 T sqr(const T& x) {
     return x * x;
 }
