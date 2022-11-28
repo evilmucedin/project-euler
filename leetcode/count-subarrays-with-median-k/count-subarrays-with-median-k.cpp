@@ -13,8 +13,30 @@ public:
             pos[nums[i]] = i;
         }
 
+        int pk = pos[k];
         int balance = 0;
-        unordered_map<int, int>
+        unordered_map<int, int> balCounts;
+        for (int i = pk; i >= 0; --i) {
+            if (nums[i] > k) {
+                ++balance;
+            } else if (nums[i] < k) {
+                --balance;
+            }
+            ++balCounts[balance];
+        }
+
+        int result = 0;
+        balance = 0;
+        for (int i = pk; i < n; ++i) {
+            if (nums[i] > k) {
+                ++balance;
+            } else if (nums[i] < k) {
+                --balance;
+            }
+            result += balCounts[-balance] + balCounts[-balance + 1];
+        }
+
+        return result;
 
         /*
         vector<int> countLess(n);
