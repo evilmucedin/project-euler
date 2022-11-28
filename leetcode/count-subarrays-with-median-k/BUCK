@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-subarrays-with-median-k",
+  srcs=[
+    "count-subarrays-with-median-k.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
