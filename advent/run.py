@@ -44,8 +44,13 @@ def main():
     def test(testFilename, testNumber, download):
         if download:
             url = f"https://adventofcode.com/{YEAR}/day/{task}/input"
-            with open(testFilename, "wb") as fOut:
-                fOut.write(requests.get(url, allow_redirects=True, cookies=cookies).content)
+            content = requests.get(url, allow_redirects=True, cookies=cookies)
+            print("Rewrite %s: %d" % (testFilename, content.status_code))
+            if content.status_code == 200:
+                with open(testFilename, "wb") as fOut:
+                    fOut.write(content.content)
+            else:
+                print("!!! Error in test fetch")
         prefix = ""
         if args.time:
             prefix = "time "
