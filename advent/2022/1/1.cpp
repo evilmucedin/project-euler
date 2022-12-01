@@ -37,8 +37,7 @@ void second() {
         }
     }
     all.emplace_back(cur);
-    sort(all.begin(), all.end());
-    reverse(all);
+    sortDescending(all);
     cout << all[0] + all[1] + all[2] << endl;
 }
 

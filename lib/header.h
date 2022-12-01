@@ -319,6 +319,12 @@ void sort(T& v) {
 }
 
 template <typename T>
+void sortDescending(T& v) {
+    std::sort(v.begin(), v.end(),
+              [](const typename T::value_type& a, const typename T::value_type& b) { return a > b; });
+}
+
+template <typename T>
 T sorted(const T& x) {
     T copy(x);
     sort(copy);
