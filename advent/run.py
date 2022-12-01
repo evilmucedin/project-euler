@@ -26,7 +26,7 @@ def main():
     task = int(open("TASK").read().strip())
     bn = f"../../../buck-out/gen/advent/{YEAR}/{task}/{task}"
     # print(bn)
-    cookies = {"session": "53616c7465645f5f396f77dccd06e249b33e25731f82cc9c72bc1bb12a51e8462e1dcb216cb73e67f06c9b1e3c770b1a"}
+    cookies = {"session": "53616c7465645f5f5257a9d018977e24575521d6827fc244fb3671034e48da141f5abb3e6e314d78790d2e3a7555ab715d51b2827a68176adb1d674c63063b07"}
 
     if not args.input:
         if not os.path.isfile("input.txt"):
