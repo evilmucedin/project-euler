@@ -61,6 +61,16 @@ bool isSuffix(const string& s, const string& suffix) {
     return true;
 }
 
+bool isPalindrome(const string& s) {
+    const size_t k = s.size() / 2;
+    for (size_t i = 0; i < k; ++i) {
+        if (s[i] != s[s.size() - i - 1]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 string ltrim(const string& s) {
     string res = s;
     res.erase(res.begin(), std::find_if(res.begin(), res.end(), [](unsigned char ch) { return !std::isspace(ch); }));

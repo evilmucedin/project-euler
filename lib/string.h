@@ -45,6 +45,7 @@ string join(const string& delim, const StringVector& parts);
 bool hasSubstring(const string& s, const string& substr);
 bool isPrefix(const string& s, const string& prefix);
 bool isSuffix(const string& s, const string& suffix);
+bool isPalindrome(const string& s);
 
 template <typename U, typename V = string>
 U stringCast(const V& x) {
