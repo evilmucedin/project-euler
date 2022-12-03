@@ -45,6 +45,7 @@ with open("%s/%d.cpp" % (dr, args.task), "w") as fOut:
     print("""#include "advent/lib/aoc.h"
 #include "lib/init.h"
 #include "lib/string.h"
+#include "lib/exception.h"
 
 #include "gflags/gflags.h"
 #include "glog/logging.h"
