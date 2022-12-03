@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sort-characters-by-frequency",
+  srcs=[
+    "sort-characters-by-frequency.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

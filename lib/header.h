@@ -422,6 +422,26 @@ vector<K> keys(const unordered_map<K, V>& map) {
     return result;
 }
 
+template <typename M>
+vector<pair<typename M::key_type, typename M::mapped_type>> map2Tuples(const M& map) {
+    vector<pair<typename M::key_type, typename M::mapped_type>> result(map.size());
+    size_t index = 0;
+    for (const auto& it : map) {
+        result[index++] = it;
+    }
+    return result;
+}
+
+template <typename M>
+vector<pair<typename M::mapped_type, typename M::key_type>> map2TuplesSwap(const M& map) {
+    vector<pair<typename M::mapped_type, typename M::key_type>> result(map.size());
+    size_t index = 0;
+    for (const auto& it : map) {
+        result[index++] = make_pair(it.second, it.first);
+    }
+    return result;
+}
+
 class Exception : public std::exception {
    public:
     Exception();
