@@ -3,7 +3,7 @@
 import math
 import tqdm
 
-LIMIT = 1500
+LIMIT = 3000
 
 s, l = 0, []
 for x1 in tqdm.tqdm(range(-LIMIT, LIMIT)):
