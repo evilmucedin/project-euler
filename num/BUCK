@@ -1,0 +1,13 @@
+cxx_library(
+    name="num",
+    deps=[
+    ],
+    exported_headers=[
+        "num.h",
+        "rat.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
