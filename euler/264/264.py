@@ -2,7 +2,7 @@
 
 import math
 
-LIMIT = 1500
+LIMIT = 3000
 
 s, l = 0, []
 for x1 in range(-LIMIT, LIMIT):
