@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import math
+import tqdm
 
 LIMIT = 3000
 
 s, l = 0, []
-for x1 in range(-LIMIT, LIMIT):
+for x1 in tqdm.tqdm(range(-LIMIT, LIMIT)):
     for x2 in range(-LIMIT, LIMIT):
         for y1 in range(-LIMIT, LIMIT):
             k = x1**2 + y1**2 - x2**2

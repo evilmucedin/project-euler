@@ -1,7 +1,7 @@
 #include "lib/header.h"
 
 int main() {
-    vector<IntVector> kPerm = {
+    static const vector<IntVector> kPerm = {
         {2, 3, 4, 5},
         {1, 3, 6, 8},
         {1, 4, 7, 11},
