@@ -1,0 +1,11 @@
+cxx_binary(
+  name="maximum-students-taking-exam",
+  srcs=[
+    "maximum-students-taking-exam.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib/graph:pushRelabel",
+  ],
+)

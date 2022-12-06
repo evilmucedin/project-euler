@@ -98,6 +98,11 @@ string to_string(const complex<T>& x) {
 
 }  // namespace std
 
+template<typename T>
+int sz(const T& v) {
+    return static_cast<int>(v.size());
+}
+
 template <typename T, typename A>
 ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
     o << "[";

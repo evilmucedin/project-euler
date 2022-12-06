@@ -50,7 +50,7 @@ struct PushRelabel {
         int v = sz(g);
         H[s] = v;
         ec[t] = 1;
-        vi co(2 * v);
+        vector<int> co(2 * v);
         co[0] = v - 1;
         FOR(i, 0, v) { cur[i] = g[i].data(); }
         for (Edge& e : g[s]) {
