@@ -6,5 +6,6 @@ cxx_binary(
   deps=[
     "//lib:header",
     "//glog:glog",
+    "//tqdm:tqdm",
   ],
 )

@@ -1,19 +1,22 @@
 #include <glog/logging.h>
+#include <tqdm/tqdm.h>
+
 #include <lib/header.h>
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
-const int LIMIT = 3000;
+const int LIMIT = 10000;
 
 int main() {
-    int s = 0;
-    std::vector<std::vector<std::pair<int, int>>> l;
+    long double s = 0;
+    std::unordered_set<std::vector<std::pair<int, int>>> l;
 
-    for (int x1 = -LIMIT; x1 < LIMIT; x1++) {
-        LOG_EVERY_MS(INFO, 10000) << OUT(x1);
+    for (int x1 : tqdm::range(-LIMIT, LIMIT)) {
+        LOG_EVERY_MS(INFO, 10000) << OUT(x1) << OUT(l.size());
         for (int x2 = -LIMIT; x2 < LIMIT; x2++) {
             for (int y1 = -LIMIT; y1 < LIMIT; y1++) {
                 int k = x1 * x1 + y1 * y1 - x2 * x2;
@@ -49,16 +52,10 @@ int main() {
                     std::vector<std::pair<int, int>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
                     std::sort(std::begin(tmp), std::end(tmp));
 
-                    bool found = false;
-                    for (const auto& p : l) {
-                        if (p == tmp) {
-                            found = true;
-                            break;
-                        }
-                    }
+                    bool found = l.count(tmp);
 
                     if (!found) {
-                        l.push_back(tmp);
+                        l.emplace(tmp);
                         s += p;
                     }
                 }
@@ -66,7 +63,7 @@ int main() {
         }
     }
 
-    std::cout << s << std::endl;
+    std::cout << std::setprecision(10) << s << std::endl;
 
     return 0;
 }

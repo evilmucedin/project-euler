@@ -89,6 +89,14 @@ struct hash<vector<T>> {
     }
 };
 
+template <typename A, typename B>
+struct hash<pair<A, B>> {
+    size_t operator()(const pair<A, B>& v) const {
+        size_t result = 0;
+        hashCombine(result, v.first, v.second);
+        return result;
+    }
+};
 string to_string(const string& s);
 
 template <typename T>

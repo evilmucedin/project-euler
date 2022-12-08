@@ -54,12 +54,14 @@ DEFINE_int32(test, 1, "test number");
 
 void first() {
     const auto input = readInputLines();
-    cout << endl;
+    int result = 0;
+    cout << result << endl;
 }
 
 void second() {
     const auto input = readInputLines();
-    cout << endl;
+    int result = 0;
+    cout << result << endl;
 }
 
 int main(int argc, char* argv[]) {
