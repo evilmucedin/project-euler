@@ -1,0 +1,11 @@
+cxx_binary(
+  name="parallel-courses-ii",
+  srcs=[
+    "parallel-courses-ii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//glog:glog",
+  ],
+)
