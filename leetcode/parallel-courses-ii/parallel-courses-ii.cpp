@@ -1,17 +1,24 @@
 #include "../header.h"
 #include "glog/logging.h"
 
-class Solution {
+class Solution_ {
    public:
     static int minNumberOfSemesters_(unordered_map<int, vector<int>>& prevs, vector<int>& placed, vector<int>& order,
                                      int placedToday, int placedTotal, int day, int n, int k) {
         if (placedTotal == n) {
-            cerr << order << " " << placed << " " << day << endl;
+            // cerr << order << " " << placed << " " << day << endl;
+            /*
+            cerr << "{";
+            for (int i = 0; i < order.size(); ++i) {
+                cerr << order[i] << "|" << placed[order[i]] << ", ";
+            }
+            cerr << "} " << day << endl;
+            */
             return day;
         }
         int result = 123456789;
-        int remains = n - placedTotal;
-        int minRemains = (remains % k) ? remains / k + 1 + day : remains / k + day;
+        // int remains = n - placedTotal;
+        // int minRemains = (remains % k) ? remains / k + 1 + day : remains / k + day;
         for (int i = 1; i <= n; ++i) {
             if (placed[i]) {
                 continue;
@@ -34,9 +41,11 @@ class Solution {
             }
 
             // LOG_EVERY_MS(INFO, 1000) << result << " " << n << " " << k;
+            /*
             if (result == minRemains) {
                 return result;
             }
+            */
 
             good = true;
             for (auto u : prevs[i]) {
@@ -56,9 +65,11 @@ class Solution {
             }
 
             // LOG_EVERY_MS(INFO, 1000) << result << " " << n << " " << k;
+            /*
             if (result == minRemains) {
                 return result;
             }
+            */
         }
         return result;
     }
@@ -71,6 +82,46 @@ class Solution {
         vector<int> placed(n + 1, false);
         vector<int> order;
         return minNumberOfSemesters_(prevs, placed, order, 0, 0, 1, n, k);
+    }
+};
+
+class Solution {
+public:
+    static int dp(int n, int k, int mask, const vector<int>& deps, vector<int>& dpMem) {
+        if (mask + 1 == 1 << n) {
+            return 0;
+        }
+
+        if (dpMem[mask] != -1) {
+            return dpMem[mask];
+        }
+
+        int possible = 0;
+        for (int i = 0; i < n; ++i) {
+            if ((mask & deps[i]) == deps[i]) {
+                if ((mask & (1 << i)) == 0) {
+                    possible |= 1 << i;
+                }
+            }
+        }
+
+        int best = 123456789;
+        for (int daymask = possible; daymask > 0; daymask = ((daymask - 1) & possible)) {
+            if (__popcount(daymask) <= k) {
+                best = min(best, 1 + dp(n, k, mask | daymask, deps, dpMem));
+            }
+        }
+        dpMem[mask] = best;
+        return best;
+    }
+
+    int minNumberOfSemesters(int n, const vector<vector<int>>& relations, int k) {
+        vector<int> deps(n);
+        for (const auto& v: relations) {
+            deps[v[1] - 1] |= 1 << (v[0] - 1);
+        }
+        vector<int> dpMem(1 << n, -1);
+        return dp(n, k, 0, deps, dpMem);
     }
 };
 
