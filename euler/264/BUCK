@@ -1,0 +1,10 @@
+cxx_binary(
+  name="264",
+  srcs=[
+    "264.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//glog:glog",
+  ],
+)
