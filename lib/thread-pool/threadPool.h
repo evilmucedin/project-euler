@@ -446,6 +446,22 @@ class ThreadPoolImpl {
         }
     }
 
+    template <typename F, typename It>
+    void runRange(F const& f, It begin, It end) {
+        std::vector<std::future<void>> futures;
+        futures.reserve(end - begin);
+
+        for (auto i = begin; i != end; ++i) {
+            std::packaged_task<void()> t([i, &f]() { f(i); });
+            futures.emplace_back(t.get_future());
+            blockingPost(std::move(t));
+        }
+
+        for (auto& f : futures) {
+            f.get();
+        }
+    }
+
     template <typename F>
     void runN(F const& f, size_t n) {
         std::vector<std::future<void>> futures;

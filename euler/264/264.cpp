@@ -2,6 +2,7 @@
 #include <tqdm/tqdm.h>
 
 #include <lib/header.h>
+#include <lib/thread-pool/threadPool.h>
 
 #include <algorithm>
 #include <cmath>
@@ -12,11 +13,14 @@
 const int LIMIT = 10000;
 
 int main() {
+    tp::ThreadPool tp;
+
+    std::mutex mtx;
     long double s = 0;
     std::unordered_set<std::vector<std::pair<int, int>>> l;
 
-    for (int x1 : tqdm::range(-LIMIT, LIMIT)) {
-        LOG_EVERY_MS(INFO, 10000) << OUT(x1) << OUT(l.size());
+    auto f = [&](int x1) {
+        LOG_EVERY_MS(INFO, 10000) << OUT(x1) << OUT(l.size()) << OUT(s);
         for (int x2 = -LIMIT; x2 < LIMIT; x2++) {
             for (int y1 = -LIMIT; y1 < LIMIT; y1++) {
                 int k = x1 * x1 + y1 * y1 - x2 * x2;
@@ -52,16 +56,21 @@ int main() {
                     std::vector<std::pair<int, int>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
                     std::sort(std::begin(tmp), std::end(tmp));
 
-                    bool found = l.count(tmp);
+                    {
+                        std::unique_lock<std::mutex> lck(mtx);
+                        bool found = l.count(tmp);
 
-                    if (!found) {
-                        l.emplace(tmp);
-                        s += p;
+                        if (!found) {
+                            l.emplace(tmp);
+                            s += p;
+                        }
                     }
                 }
             }
         }
-    }
+    };
+
+    tp.runRange(f, -LIMIT, LIMIT);
 
     std::cout << std::setprecision(10) << s << std::endl;
 
