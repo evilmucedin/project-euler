@@ -24,7 +24,7 @@ int main() {
         for (int x2 = -LIMIT; x2 < LIMIT; ++x2) {
             for (int y1 = -LIMIT; y1 < LIMIT; ++y1) {
                 int k = x1 * x1 + y1 * y1 - x2 * x2;
-                if (k < 2 || std::sqrt(k) != int(std::sqrt(k))) {
+                if (k < 0 || std::sqrt(k) != int(std::sqrt(k))) {
                     continue;
                 }
 
