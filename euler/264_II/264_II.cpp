@@ -44,7 +44,14 @@ int main() {
     auto f = [&](int x1) {
         LOG_EVERY_MS(INFO, 10000) << OUT(x1) << OUT(l.size()) << OUT(s);
         for (int x2 = -LIMIT; x2 < LIMIT; ++x2) {
-            for (auto [y1, y2] : produceY1Y2(x1 * x1 - x2 * x2)) {
+            // for (auto [y1, y2] : produceY1Y2(x1 * x1 - x2 * x2)) {
+            for (int y1 = -LIMIT; y1 < LIMIT; ++y1) {
+                int k = x1 * x1 + y1 * y1 - x2 * x2;
+                if (k < 0 || std::sqrt(k) != int(std::sqrt(k))) {
+                    continue;
+                }
+
+                int y2 = std::sqrt(k);
                 int x3 = 5 - x1 - x2;
                 int y3 = -y1 - y2;
 
