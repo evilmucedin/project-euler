@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-number-of-points-from-grid-queries",
+  srcs=[
+    "maximum-number-of-points-from-grid-queries.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

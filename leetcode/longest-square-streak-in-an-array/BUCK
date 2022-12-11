@@ -1,0 +1,10 @@
+cxx_binary(
+  name="longest-square-streak-in-an-array",
+  srcs=[
+    "longest-square-streak-in-an-array.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

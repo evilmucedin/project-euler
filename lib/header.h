@@ -111,6 +111,12 @@ int sz(const T& v) {
     return static_cast<int>(v.size());
 }
 
+template <typename T1, typename T2>
+ostream& operator<<(ostream& o, const std::pair<T1, T2>& p) {
+    o << "(" << p.first << ", " << p.second << ")";
+    return o;
+}
+
 template <typename T, typename A>
 ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
     o << "[";
@@ -123,12 +129,6 @@ ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
         o << n;
     }
     o << "]";
-    return o;
-}
-
-template <typename T1, typename T2>
-ostream& operator<<(ostream& o, const std::pair<T1, T2>& p) {
-    o << "(" << p.first << ", " << p.second << ")";
     return o;
 }
 

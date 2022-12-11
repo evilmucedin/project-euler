@@ -20,7 +20,7 @@ int main() {
     std::unordered_set<std::vector<std::pair<int, int>>> l;
 
     auto f = [&](int x1) {
-        LOG_EVERY_MS(INFO, 10000) << OUT(x1) << OUT(l.size()) << OUT(s);
+        LOG_EVERY_MS(INFO, 10000) << std::setprecision(10) << OUT(x1) << OUT(l.size()) << OUT(s);
         for (int x2 = -LIMIT; x2 < LIMIT; ++x2) {
             for (int y1 = -LIMIT; y1 < LIMIT; ++y1) {
                 int k = x1 * x1 + y1 * y1 - x2 * x2;
