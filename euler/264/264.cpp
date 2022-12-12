@@ -19,6 +19,9 @@ int main() {
     long double s = 0;
     std::unordered_set<std::vector<std::pair<int, int>>> l;
 
+    std::ofstream found;
+    found.open("found.txt", std::ios_base::app);
+
     auto f = [&](int x1) {
         LOG_EVERY_MS(INFO, 10000) << std::setprecision(10) << OUT(x1) << OUT(l.size()) << OUT(s);
         for (int x2 = -LIMIT; x2 < LIMIT; ++x2) {
@@ -55,6 +58,7 @@ int main() {
                 if (a + b > c && a + c > b && b + c > a && o1 == o2 && o1 == o3) {
                     std::vector<std::pair<int, int>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
                     std::sort(std::begin(tmp), std::end(tmp));
+                    found << tmp;
 
                     {
                         std::unique_lock<std::mutex> lck(mtx);
