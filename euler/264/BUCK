@@ -5,6 +5,8 @@ cxx_binary(
   ],
   deps=[
     "//lib:header",
+    "//lib/io:stream",
+    "//lib:string",
     "//lib/thread-pool:thread-pool",
     "//glog:glog",
     "//tqdm:tqdm",
