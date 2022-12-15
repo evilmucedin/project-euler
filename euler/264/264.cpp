@@ -1,6 +1,8 @@
 #include <glog/logging.h>
 #include <tqdm/tqdm.h>
+#include "gflags/gflags.h"
 
+#include <lib/init.h>
 #include <lib/header.h>
 #include <lib/thread-pool/threadPool.h>
 #include <lib/io/stream.h>
@@ -12,9 +14,14 @@
 #include <iostream>
 #include <vector>
 
-const int LIMIT = 50000;
+static const int LIMIT = 50000;
 
-int main() {
+DEFINE_int32(x1min, -LIMIT, "min x1");
+DEFINE_int32(x1max, LIMIT, "max x1");
+
+int main(int argc, char* argv[]) {
+    standardInit(argc, argv);
+
     static const string STORAGE = "found.txt";
 
     using T = long double;
@@ -102,7 +109,7 @@ int main() {
         }
     };
 
-    tp.runRange(f, -LIMIT, LIMIT);
+    tp.runRange(f, FLAGS_x1min, FLAGS_x1max);
 
     std::cout << std::setprecision(10) << s << std::endl;
 
