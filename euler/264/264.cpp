@@ -14,7 +14,7 @@
 #include <iostream>
 #include <vector>
 
-static const int LIMIT = 50000;
+static const int LIMIT = 70000;
 
 DEFINE_int32(x1min, -LIMIT, "min x1");
 DEFINE_int32(x1max, LIMIT, "max x1");

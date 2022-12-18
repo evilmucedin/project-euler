@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-pairs-of-similar-strings",
+  srcs=[
+    "count-pairs-of-similar-strings.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
