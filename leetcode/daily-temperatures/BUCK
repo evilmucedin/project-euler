@@ -1,0 +1,10 @@
+cxx_binary(
+  name="daily-temperatures",
+  srcs=[
+    "daily-temperatures.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

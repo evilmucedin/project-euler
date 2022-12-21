@@ -3,7 +3,8 @@
 import math
 import tqdm
 
-LIMIT = 3000
+LIMIT = 300
+P = 50
 
 s, l = 0, []
 for x1 in tqdm.tqdm(range(-LIMIT, LIMIT)):
@@ -25,7 +26,7 @@ for x1 in tqdm.tqdm(range(-LIMIT, LIMIT)):
             b = math.sqrt(d3 + d4)
             c = math.sqrt(d5 + d6)
             p = a + b + c
-            if p > 100000:
+            if p > P:
                 break
             o1 = (x1**2) + (y1**2)
             o2 = (x2**2) + (y2**2)
