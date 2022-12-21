@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
 
     using T = long double;
     T s = 0;
-    using Point = pair<int, int>;
+    using Point = pair<i64, i64>;
     std::unordered_set<std::vector<Point>> l;
 
     auto points2p = [](i64 x1, i64 y1, i64 x2, i64 y2, i64 x3, i64 y3) -> tuple<T, T, T, T> {
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
                 i64 o3 = x3 * x3 + y3 * y3;
 
                 if (a + b > c && a + c > b && b + c > a && o1 == o2 && o1 == o3) {
-                    std::vector<std::pair<int, int>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
+                    std::vector<std::pair<i64, i64>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
                     std::sort(std::begin(tmp), std::end(tmp));
 
                     {
