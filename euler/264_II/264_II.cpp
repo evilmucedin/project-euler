@@ -23,17 +23,17 @@ static const int P = 100000;
 DEFINE_int32(x1min, -LIMIT, "min x1");
 DEFINE_int32(x1max, LIMIT, "max x1");
 
-vector<pair<int, int>> produceY1Y2(int a) {
-    LOG_EVERY_MS(INFO, 1000) << OUT(a);
+vector<pair<i64, i64>> produceY1Y2(i64 a) {
+    // LOG_EVERY_MS(INFO, 1000) << OUT(a);
     a = abs(a);
-    int top = sqrt(a);
-    vector<pair<int, int>> result;
-    for (int i = 1; i <= top; ++i) {
+    i64 top = sqrt(a);
+    vector<pair<i64, i64>> result;
+    for (i64 i = 1; i <= top; ++i) {
         if ((a % i) == 0) {
-            int d1 = i;
-            int d2 = a / i;
-            int k = (d1 + d2) / 2;
-            int y1 = d2 - k;
+            i64 d1 = i;
+            i64 d2 = a / i;
+            i64 k = (d1 + d2) / 2;
+            i64 y1 = d2 - k;
             result.emplace_back(make_pair(y1, k));
             result.emplace_back(make_pair(-y1, k));
             result.emplace_back(make_pair(y1, -k));
@@ -62,13 +62,13 @@ int main(int argc, char* argv[]) {
     using Point = pair<int, int>;
     std::unordered_set<std::vector<Point>> l;
 
-    auto points2p = [](int x1, int y1, int x2, int y2, int x3, int y3) -> tuple<T, T, T, T> {
-        int d1 = (x1 - x2) * (x1 - x2);
-        int d2 = (y1 - y2) * (y1 - y2);
-        int d3 = (x1 - x3) * (x1 - x3);
-        int d4 = (y1 - y3) * (y1 - y3);
-        int d5 = (x2 - x3) * (x2 - x3);
-        int d6 = (y2 - y3) * (y2 - y3);
+    auto points2p = [](i64 x1, i64 y1, i64 x2, i64 y2, i64 x3, i64 y3) -> tuple<T, T, T, T> {
+        i64 d1 = (x1 - x2) * (x1 - x2);
+        i64 d2 = (y1 - y2) * (y1 - y2);
+        i64 d3 = (x1 - x3) * (x1 - x3);
+        i64 d4 = (y1 - y3) * (y1 - y3);
+        i64 d5 = (x2 - x3) * (x2 - x3);
+        i64 d6 = (y2 - y3) * (y2 - y3);
 
         T a = std::sqrt(d1 + d2);
         T b = std::sqrt(d3 + d4);
@@ -101,28 +101,28 @@ int main(int argc, char* argv[]) {
     std::ofstream fFound;
     fFound.open(STORAGE, std::ios_base::app);
 
-    auto f = [&](int x1) {
+    auto f = [&](i64 x1) {
         LOG_EVERY_MS(INFO, 10000) << std::setprecision(10) << OUT(x1) << OUT(l.size()) << OUT(s);
-        for (int x2 = -LIMIT; x2 < LIMIT; ++x2) {
+        for (i64 x2 = -LIMIT; x2 < LIMIT; ++x2) {
             for (auto [y1, y2] : produceY1Y2(x1 * x1 - x2 * x2)) {
             // for (int y1 = -LIMIT; y1 < LIMIT; ++y1) {
-                int k = x1 * x1 + y1 * y1 - x2 * x2;
+                i64 k = x1 * x1 + y1 * y1 - x2 * x2;
                 if (k < 0 || std::sqrt(k) != int(std::sqrt(k))) {
                     continue;
                 }
 
                 // int y2 = std::sqrt(k);
-                int x3 = 5 - x1 - x2;
-                int y3 = -y1 - y2;
+                i64 x3 = 5 - x1 - x2;
+                i64 y3 = -y1 - y2;
 
                 auto [p, a, b, c] = points2p(x1, y1, x2, y2, x3, y3);
                 if (p > P) {
                     break;
                 }
 
-                int o1 = x1 * x1 + y1 * y1;
-                int o2 = x2 * x2 + y2 * y2;
-                int o3 = x3 * x3 + y3 * y3;
+                i64 o1 = x1 * x1 + y1 * y1;
+                i64 o2 = x2 * x2 + y2 * y2;
+                i64 o3 = x3 * x3 + y3 * y3;
 
                 if (a + b > c && a + c > b && b + c > a && o1 == o2 && o1 == o3) {
                     std::vector<std::pair<int, int>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
