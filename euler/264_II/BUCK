@@ -4,9 +4,13 @@ cxx_binary(
     "264_II.cpp"
   ],
   deps=[
-    "//lib:header",
-    "//lib/thread-pool:thread-pool",
+    "//gflags:gflags",
     "//glog:glog",
+    "//lib:header",
+    "//lib:init",
+    "//lib/io:stream",
+    "//lib:string",
+    "//lib/thread-pool:thread-pool",
     "//tqdm:tqdm",
   ],
 )

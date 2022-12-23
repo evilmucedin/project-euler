@@ -1,0 +1,10 @@
+cxx_binary(
+  name="add-edges-to-make-degrees-of-all-nodes-even",
+  srcs=[
+    "add-edges-to-make-degrees-of-all-nodes-even.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
