@@ -7,6 +7,7 @@
 #include <lib/thread-pool/threadPool.h>
 #include <lib/io/stream.h>
 #include <lib/string.h>
+#include <lib/exception.h>
 
 #include <algorithm>
 #include <cmath>
@@ -27,15 +28,16 @@ int main(int argc, char* argv[]) {
     using T = long double;
     T s = 0;
     using Point = pair<i64, i64>;
+    using Triangle = vector<Point>;
     std::unordered_set<std::vector<Point>> l;
 
-    auto points2p = [](i64 x1, i64 y1, i64 x2, i64 y2, i64 x3, i64 y3) -> tuple<T, T, T, T> {
-        i64 d1 = (x1 - x2) * (x1 - x2);
-        i64 d2 = (y1 - y2) * (y1 - y2);
-        i64 d3 = (x1 - x3) * (x1 - x3);
-        i64 d4 = (y1 - y3) * (y1 - y3);
-        i64 d5 = (x2 - x3) * (x2 - x3);
-        i64 d6 = (y2 - y3) * (y2 - y3);
+    auto points2p = [](const Triangle& t) -> tuple<T, T, T, T> {
+        i64 d1 = sqr(t[0].first - t[1].first);
+        i64 d2 = sqr(t[0].second - t[1].second);
+        i64 d3 = sqr(t[0].first - t[2].first);
+        i64 d4 = sqr(t[0].second - t[2].second);
+        i64 d5 = sqr(t[1].first - t[2].first);
+        i64 d6 = sqr(t[1].second - t[2].second);
 
         T a = std::sqrt(d1 + d2);
         T b = std::sqrt(d3 + d4);
@@ -45,18 +47,30 @@ int main(int argc, char* argv[]) {
         return {p, a, b, c};
     };
 
+    auto isGood = [](const Triangle& t) {
+        i64 o1 = sqr(t[0].first) + sqr(t[0].second);
+        i64 o2 = sqr(t[1].first) + sqr(t[1].second);
+        i64 o3 = sqr(t[2].first) + sqr(t[2].second);
+        return o1 == o2 && o1 == o3;
+    };
+
     {
         string line;
         auto fIn = openFileBufferedReader(STORAGE);
         while (fIn->readLine(line)) {
+            if (line[0] == '#') {
+                continue;
+            }
             const auto parts = parseIntegers(line);
             ASSERTEQ(parts.size(), 6);
-            l.emplace(vector<Point>{make_pair(parts[0], parts[1]),
-                                    make_pair(parts[2], parts[3]), make_pair(parts[4], parts[5])});
+            const Triangle t{make_pair(parts[0], parts[1]), make_pair(parts[2], parts[3]), make_pair(parts[4], parts[5])};
+            l.emplace(t);
+            if (!isGood(t)) {
+                THROW("Bad traingle in file " << t);
+            }
         }
-        for (const auto& parts : l) {
-            const auto [p, a, b, c] = points2p(parts[0].first, parts[0].second, parts[1].first, parts[1].second,
-                                               parts[2].first, parts[2].second);
+        for (const auto& t : l) {
+            const auto [p, a, b, c] = points2p(t);
             s += p;
         }
     }
@@ -81,26 +95,27 @@ int main(int argc, char* argv[]) {
                 i64 x3 = 5 - x1 - x2;
                 i64 y3 = -y1 - y2;
 
-                auto [p, a, b, c] = points2p(x1, y1, x2, y2, x3, y3);
+                Triangle t = {{x1, y1}, {x2, y2}, {x3, y3}};
+
+                auto [p, a, b, c] = points2p(t);
                 if (p > 100000) {
-                    break;
+                    continue;
                 }
 
-                i64 o1 = x1 * x1 + y1 * y1;
-                i64 o2 = x2 * x2 + y2 * y2;
-                i64 o3 = x3 * x3 + y3 * y3;
+                if (a + b <= c && a + c <= b && b + c <= a) {
+                    continue;
+                }
 
-                if (a + b > c && a + c > b && b + c > a && o1 == o2 && o1 == o3) {
-                    std::vector<std::pair<i64, i64>> tmp = {{x1, y1}, {x2, y2}, {x3, y3}};
-                    std::sort(std::begin(tmp), std::end(tmp));
+                if (isGood(t)) {
+                    std::sort(std::begin(t), std::end(t));
 
                     {
                         std::unique_lock<std::mutex> lck(mtx);
-                        bool found = l.count(tmp);
+                        bool found = l.count(t);
 
                         if (!found) {
-                            fFound << tmp << endl;
-                            l.emplace(tmp);
+                            fFound << t << endl;
+                            l.emplace(t);
                             s += p;
                         }
                     }
