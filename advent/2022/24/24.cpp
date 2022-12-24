@@ -1,28 +1,24 @@
-#include <set>
 #include <queue>
+#include <set>
 
 #include "advent/lib/aoc.h"
-#include "lib/init.h"
-#include "lib/string.h"
-#include "lib/exception.h"
-
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+#include "lib/exception.h"
+#include "lib/init.h"
+#include "lib/string.h"
 
 DEFINE_int32(test, 1, "test number");
 
-void first() {
-    const auto input = readInputLines();
+using Field = vector<vector<vector<char>>>;
+
+Field getEmpty(int n, int m) { return Field(n, vector<vector<char>>(m)); }
+
+Field readField(const vector<string>& input) {
     const int n = input.size();
     const int m = input[0].size();
 
-    using Field = vector<vector<vector<char>>>;
-
-    const Field empty(n, vector<vector<char>>(m));
-
-    vector<Field> fields;
-    fields.emplace_back(empty);
-    auto& f = fields[0];
+    auto f = getEmpty(n, m);
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
             f[i][j].emplace_back(input[i][j]);
@@ -30,6 +26,36 @@ void first() {
     }
     f[0][1].clear();
     f[n - 1][m - 2].clear();
+
+    return f;
+}
+
+struct Point {
+    int t;
+    int x;
+    int y;
+
+    bool operator<(const Point& p) const {
+        if (t != p.t) {
+            return t < p.t;
+        }
+        if (x != p.x) {
+            return x < p.x;
+        }
+        if (y != p.y) {
+            return y < p.y;
+        }
+        return false;
+    }
+};
+
+void first() {
+    const auto input = readInputLines();
+    const int n = input.size();
+    const int m = input[0].size();
+
+    vector<Field> fields;
+    fields.emplace_back(readField(input));
 
     auto wrapX = [&](int x) {
         if (x >= 1 && x + 1 < n) {
@@ -62,10 +88,12 @@ void first() {
 
     for (int i = 0; i < 1000; ++i) {
         const Field& now = fields.back();
+        /*
         if (i < 20) {
             cerr << "t=" << i << endl;
             print(now);
         }
+        */
         Field next = now;
         for (int j = 1; j + 1 < n; ++j) {
             for (int k = 1; k + 1 < m; ++k) {
@@ -74,7 +102,7 @@ void first() {
         }
         for (int j = 1; j + 1 < n; ++j) {
             for (int k = 1; k + 1 < m; ++k) {
-                for (char ch: now[j][k]) {
+                for (char ch : now[j][k]) {
                     if (ch == '>') {
                         next[j][wrapY(k + 1)].emplace_back(ch);
                     } else if (ch == '<') {
@@ -90,38 +118,19 @@ void first() {
         fields.emplace_back(next);
     }
 
-    struct Point {
-        int t;
-        int x;
-        int y;
-
-        bool operator<(const Point& p) const {
-            if (t != p.t) {
-                return t < p.t;
-            }
-            if (x != p.x) {
-                return x < p.x;
-            }
-            if (y != p.y) {
-                return y < p.y;
-            }
-            return false;
-        }
-    };
     queue<Point> q;
     set<Point> visited;
     q.emplace(Point{0, 0, 1});
     int result = 0;
-    cerr << "{" << n << ", " << m << "}" << endl;
     while (!q.empty()) {
         const Point now = q.front();
 
-        cerr << now.t << " " << now.x << " " << now.y << endl;
+        // cerr << now.t << " " << now.x << " " << now.y << endl;
 
         q.pop();
 
         if ((now.x + 1 == n) && (now.y + 2 == m)) {
-            cerr << "Found " << now.t << " " << now.x << " " << now.y << " " << n << " " << m << endl;
+            // cerr << "Found " << now.t << " " << now.x << " " << now.y << " " << n << " " << m << endl;
             result = now.t;
             break;
         }
@@ -130,8 +139,8 @@ void first() {
         for (int i = 0; i < 5; ++i) {
             Point next = now;
             ++next.t;
-            next.x = now.x + DIRS[2*i];
-            next.y = now.y + DIRS[2*i + 1];
+            next.x = now.x + DIRS[2 * i];
+            next.y = now.y + DIRS[2 * i + 1];
             if (next.x >= 0 && next.x < n && next.y >= 0 && next.y < m) {
                 if (input[next.x][next.y] == '#') {
                     continue;
@@ -207,10 +216,12 @@ void second() {
 
     for (int i = 0; i < 1000; ++i) {
         const Field& now = fields.back();
+        /*
         if (i < 20) {
             cerr << "t=" << i << endl;
             print(now);
         }
+        */
         Field next = now;
         for (int j = 1; j + 1 < n; ++j) {
             for (int k = 1; k + 1 < m; ++k) {
@@ -219,7 +230,7 @@ void second() {
         }
         for (int j = 1; j + 1 < n; ++j) {
             for (int k = 1; k + 1 < m; ++k) {
-                for (char ch: now[j][k]) {
+                for (char ch : now[j][k]) {
                     if (ch == '>') {
                         next[j][wrapY(k + 1)].emplace_back(ch);
                     } else if (ch == '<') {
@@ -235,39 +246,20 @@ void second() {
         fields.emplace_back(next);
     }
 
-    struct Point {
-        int t;
-        int x;
-        int y;
-
-        bool operator<(const Point& p) const {
-            if (t != p.t) {
-                return t < p.t;
-            }
-            if (x != p.x) {
-                return x < p.x;
-            }
-            if (y != p.y) {
-                return y < p.y;
-            }
-            return false;
-        }
-    };
-
     auto dfs = [&](int startT, int startX, int startY, int destX, int destY) {
         queue<Point> q;
         set<Point> visited;
         q.emplace(Point{startT, startX, startY});
-        cerr << "{" << n << ", " << m << "}" << endl;
+        // cerr << "{" << n << ", " << m << "}" << endl;
         while (!q.empty()) {
             const Point now = q.front();
 
-            cerr << now.t << " " << now.x << " " << now.y << endl;
+            // cerr << now.t << " " << now.x << " " << now.y << endl;
 
             q.pop();
 
             if ((now.x == destX) && (now.y == destY)) {
-                cerr << "Found " << now.t << " " << now.x << " " << now.y << " " << n << " " << m << endl;
+                // cerr << "Found " << now.t << " " << now.x << " " << now.y << " " << n << " " << m << endl;
                 return now.t;
             }
 
