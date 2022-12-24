@@ -1,0 +1,10 @@
+cxx_binary(
+  name="best-time-to-buy-and-sell-stock-with-cooldown",
+  srcs=[
+    "best-time-to-buy-and-sell-stock-with-cooldown.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
