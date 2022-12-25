@@ -1,0 +1,10 @@
+cxx_binary(
+  name="number-of-great-partitions",
+  srcs=[
+    "number-of-great-partitions.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="take-k-of-each-character-from-left-and-right",
+  srcs=[
+    "take-k-of-each-character-from-left-and-right.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
