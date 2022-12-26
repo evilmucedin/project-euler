@@ -10,8 +10,8 @@ DEFINE_int32(test, 1, "test number");
 
 long long snafuToTen(const string& s) {
     long long result = 0;
-    for (auto ch: s) {
-        result = 5*result;
+    for (auto ch : s) {
+        result = 5 * result;
         switch (ch) {
             case '2':
                 result += 2;
