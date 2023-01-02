@@ -1,0 +1,10 @@
+cxx_binary(
+  name="unique-paths-iii",
+  srcs=[
+    "unique-paths-iii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
