@@ -20,7 +20,7 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", 
 assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
-    data = yfinance.download(ticker, '2000-08-01', today = str(date.today() - timedelta(days=1)), actions=True)
+    data = yfinance.download(ticker, start='2000-08-01', end=str(date.today() - timedelta(days=1)), actions=True)
     data.to_csv("marketData/%s.csv" % ticker)
 
 # Import the plotting library
