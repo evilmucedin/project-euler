@@ -528,3 +528,14 @@ cxx_library(
     ],
 )
 
+cxx_library(
+    name="quickSort",
+    deps=[
+    ],
+    exported_headers=[
+        "quickSort.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
