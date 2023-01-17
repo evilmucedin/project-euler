@@ -1,0 +1,11 @@
+cxx_binary(
+  name="lexicographically-smallest-equivalent-string",
+  srcs=[
+    "lexicographically-smallest-equivalent-string.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFindDense",
+  ],
+)

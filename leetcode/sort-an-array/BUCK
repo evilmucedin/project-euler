@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sort-an-array",
+  srcs=[
+    "sort-an-array.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

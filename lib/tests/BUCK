@@ -213,3 +213,14 @@ cxx_test(
     "//lib:timer",
   ],
 )
+
+cxx_test(
+  name="quickSortTest",
+  srcs=[
+    "quickSortTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:quickSort",
+  ],
+)
