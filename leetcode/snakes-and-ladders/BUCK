@@ -1,0 +1,10 @@
+cxx_binary(
+  name="snakes-and-ladders",
+  srcs=[
+    "snakes-and-ladders.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
