@@ -32,8 +32,8 @@ static const StringVector etfs = {
 };
 
 static const StringVector stocks = {
-    "GOOG", "MSFT", "T",   "NCLH", "AMZN", "META", "TSLA", "GME", "AAPL", "NVDA", "TSM",  "UNH", "JNJ", "V",    "WMT",
-    "JPM",  "PG",   "XOM", "HD",   "CVX",  "PFE",  "COIN", "SI",  "VWAGY",  "LMT",  "YNDX", "KHC", "NKE", "SBUX",
+    "GOOG", "MSFT", "T",   "NCLH", "AMZN", "META", "TSLA", "GME", "AAPL",  "NVDA", "TSM",  "UNH", "JNJ", "V",   "WMT",
+    "JPM",  "PG",   "XOM", "HD",   "CVX",  "PFE",  "COIN", "SI",  "VWAGY", "LMT",  "YNDX", "IBM", "KHC", "NKE", "SBUX",
 };
 
 // static const StringVector tickers = etfs;
