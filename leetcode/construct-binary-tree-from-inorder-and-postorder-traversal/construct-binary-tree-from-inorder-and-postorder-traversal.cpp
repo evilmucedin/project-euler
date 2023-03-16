@@ -11,8 +11,9 @@ class Solution {
         }
         auto result = new TreeNode(postorder[postR - 1]);
         int mid = value2pos.find(postorder[postR - 1])->second;
-        result->left = buildTree(inorder, inL, mid, postorder, postL, postL + mid - inL, value2pos);
-        result->right = buildTree(inorder, mid + 1, inR, postorder, postL + mid - inL + 1, postR - 1, value2pos);
+        int leftSize = mid - inL;
+        result->left = buildTree(inorder, inL, mid, postorder, postL, postL + leftSize, value2pos);
+        result->right = buildTree(inorder, mid + 1, inR, postorder, postL + leftSize, postR - 1, value2pos);
         return result;
     }
 
