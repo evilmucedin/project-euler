@@ -1,0 +1,11 @@
+cxx_binary(
+  name="construct-binary-tree-from-inorder-and-postorder-traversal",
+  srcs=[
+    "construct-binary-tree-from-inorder-and-postorder-traversal.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//leetcode:tree",
+  ],
+)
