@@ -1,6 +1,11 @@
 #pragma once
 
+#include <cstdlib>
+
 #include <unordered_map>
+#include <vector>
+
+using namespace std;
 
 struct UnionFindDense {
    public:
