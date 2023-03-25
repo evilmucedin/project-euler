@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-the-number-of-fair-pairs",
+  srcs=[
+    "count-the-number-of-fair-pairs.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
