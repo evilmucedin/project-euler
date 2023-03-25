@@ -3,39 +3,56 @@
 class Solution {
 public:
     int maxEvents(const vector<vector<int>>& events) {
-        auto q = events;
-        sort(q.begin(), q.end(), [](const vector<int>& a, const vector<int>& b) {
-            if (a[1] != b[1]) {
-                return a[1] < b[1];
-            }
-            if (a[0] != b[0]) {
-                return a[0] < b[0];
-            }
-            return false;
-        });
+        if (events.empty()) {
+            return 0;
+        }
 
-        cerr << q << endl;
+        auto evs = events;
+        sort(evs.begin(), evs.end());
 
         int result = 0;
-        int d = 0;
-        for (int i = 0; i < q.size(); ++i) {
-            auto e = q[i];
-            if (d < e[0]) {
-                d = e[0];
+        int d = evs[0][0];
+        int i = 0;
+
+        priority_queue<int> pq;
+        while (true) {
+            while (i < evs.size() && evs[i][0] <= d) {
+                pq.emplace(-evs[i][1]);
+                ++i;
             }
-            if (d >= e[0] && d <= e[1]) {
-                ++result;
+
+            if (i == evs.size() && pq.empty()) {
+                break;
+            }
+
+            // cerr << d << " " << result << endl;
+
+            if (!pq.empty()) {
+                int top = -pq.top();
+                pq.pop();
+                if (d <= top) {
+                    // cerr << "\t" << d << " " << result << " " << top << endl;
+                    ++result;
+                    ++d;
+                }
+            } else {
                 ++d;
             }
+
+            if (pq.empty() && i < evs.size()) {
+                d = max(d, evs[i][0]);
+            }
         }
+
         return result;
     }
 };
 
+
 int main() {
     Solution sol;
     Timer t("Subarray timer");
-    cerr << sol.maxEvents({{1, 2}, {1, 2}, {3, 3}, {1, 5}, {1, 5}}) << endl;
+    cerr << sol.maxEvents({{1, 10}, {2, 2}, {2, 2}, {2, 2}, {2, 2}}) << endl;
 
     return 0;
 }

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="construct-quad-tree",
+  srcs=[
+    "construct-quad-tree.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="best-team-with-no-conflicts",
+  srcs=[
+    "best-team-with-no-conflicts.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
