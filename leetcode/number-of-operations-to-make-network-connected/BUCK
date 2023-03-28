@@ -1,0 +1,11 @@
+cxx_binary(
+  name="number-of-operations-to-make-network-connected",
+  srcs=[
+    "number-of-operations-to-make-network-connected.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFindDense",
+  ],
+)
