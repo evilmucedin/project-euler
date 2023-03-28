@@ -1,0 +1,10 @@
+cxx_binary(
+  name="prime-subtraction-operation",
+  srcs=[
+    "prime-subtraction-operation.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -14,16 +14,16 @@
  */
 #pragma once
 
-pair<int, vi> hungarian(const vector<vi> &a) {
+pair<int, IntVector> hungarian(const vector<IntVector> &a) {
     if (a.empty()) {
         return {0, {}};
     }
     int n = sz(a) + 1, m = sz(a[0]) + 1;
-    vi u(n), v(m), p(m), ans(n - 1);
+    IntVector u(n), v(m), p(m), ans(n - 1);
     FOR(i, 1, n) {
         p[0] = i;
         int j0 = 0;  // add "dummy" worker 0
-        vi dist(m, INT_MAX), pre(m, -1);
+        IntVector dist(m, INT_MAX), pre(m, -1);
         vector<bool> done(m + 1);
         do {  // dijkstra
             done[j0] = true;
