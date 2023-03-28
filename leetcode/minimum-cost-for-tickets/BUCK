@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimum-cost-for-tickets",
+  srcs=[
+    "minimum-cost-for-tickets.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
