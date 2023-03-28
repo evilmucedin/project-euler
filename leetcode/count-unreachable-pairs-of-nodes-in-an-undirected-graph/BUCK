@@ -1,0 +1,11 @@
+cxx_binary(
+  name="count-unreachable-pairs-of-nodes-in-an-undirected-graph",
+  srcs=[
+    "count-unreachable-pairs-of-nodes-in-an-undirected-graph.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFindDense",
+  ],
+)
