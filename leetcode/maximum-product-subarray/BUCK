@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-product-subarray",
+  srcs=[
+    "maximum-product-subarray.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

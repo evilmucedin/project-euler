@@ -1,0 +1,11 @@
+cxx_binary(
+  name="minimize-maximum-of-array",
+  srcs=[
+    "minimize-maximum-of-array.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//glog:glog",
+  ],
+)

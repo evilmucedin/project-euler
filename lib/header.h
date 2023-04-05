@@ -496,6 +496,20 @@ ostream& operator<<(ostream& out, const std::tuple<Tp...>& t) {
     return out;
 }
 
+template<typename T>
+void doMax(T& mx, const T& val) {
+    if (val > mx) {
+        mx = val;
+    }
+}
+
+template<typename T>
+void doMin(T& mx, const T& val) {
+    if (val < mx) {
+        mx = val;
+    }
+}
+
 #define ENFORCE(X)                                                                                    \
     {                                                                                                 \
         if (!(X)) {                                                                                   \
