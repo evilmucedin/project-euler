@@ -8,6 +8,7 @@
 
 DEFINE_string(input, "-", "input file");
 DEFINE_string(output, "-", "output file");
+DEFINE_bool(join_cpp, true, "join with cpp");
 
 namespace {
 
@@ -66,6 +67,7 @@ class Preprocessor {
         vector<string> cands = {root_ + "/" + include, include, fileDir + "/" + include};
         for (auto& cand : cands) {
             if (includes_.count(cand)) {
+                return true;
                 continue;
             }
 
@@ -74,8 +76,16 @@ class Preprocessor {
             if (isFile(cand)) {
                 processFile(cand, fOut);
                 includes_.emplace(cand);
+                if (FLAGS_join_cpp) {
+                    const auto cand2 = replaceAll(cand, ".h", ".cpp");
+                    if (isFile(cand2)) {
+                        processFile(cand2, fOut);
+                        includes_.emplace(cand2);
+                    }
+                }
                 return true;
             }
+
         }
         return false;
     }
