@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-value-of-k-coins-from-piles",
+  srcs=[
+    "maximum-value-of-k-coins-from-piles.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

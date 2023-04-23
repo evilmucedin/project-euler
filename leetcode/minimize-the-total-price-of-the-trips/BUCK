@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimize-the-total-price-of-the-trips",
+  srcs=[
+    "minimize-the-total-price-of-the-trips.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

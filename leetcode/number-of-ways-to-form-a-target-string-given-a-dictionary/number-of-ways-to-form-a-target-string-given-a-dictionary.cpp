@@ -14,8 +14,9 @@ class Solution {
             return 0;
         }
         long long result = 0;
-        for (int i = shift; i < m.size(); ++i) {
-            auto c = m[i][target[now]];
+        const auto& l = m[target[now]];
+        for (int i = shift; i < l.size(); ++i) {
+            auto c = l[i];
             if (c) {
                 result += dp(target, now + 1, i + 1, m) * c;
             }
@@ -40,31 +41,59 @@ class Solution {
 
     int numWays(const vector<string>& words, const string& target) {
         const int n = target.size();
+        const int m = words[0].size();
 
-        vector<vector<long long>> m;
-        m.reserve(n);
+        vector<vector<long long>> mp(128, vector<long long>(m + 2));
         for (const auto& s : words) {
-            while (m.size() < s.size()) {
-                m.emplace_back(vector<long long>(128));
-            }
-            for (int i = 0; i < s.size(); ++i) {
-                ++m[i][s[i]];
+            assert(s.size() == m);
+            for (int i = 0; i < m; ++i) {
+                ++mp[s[i]][i];
             }
         }
 
         cache_.clear();
-        cache_.resize(n + 1);
-        for (int i = 0; i <= n; ++i) {
-            cache_[i].resize(max<size_t>(n + 1, m.size()), -1);
+        cache_.resize(n + 2);
+        for (int i = 0; i < cache_.size(); ++i) {
+            cache_[i].resize(m + 2, 1);
         }
 
-        return dp(target, 0, 0, m);
+        for (int i = 0; i <= n; ++i) {
+            cache_[n][i] = 1;
+        }
+
+        for (int i = n - 1; i >= 0; --i) {
+            const auto& l = mp[target[i]];
+            for (int j = m + 1; j >= 0; --j) {
+                long long result = 0;
+                for (int k = j; k <= m; ++k) {
+                    auto c = l[k];
+                    if (c) {
+                        result += cache_[i + 1][k + 1] * c;
+                    }
+                }
+                cache_[i][j] = result % MOD;
+            }
+        }
+        return cache_[0][0];
+        /*
+        */
+
+        /*
+        cache_.clear();
+        cache_.resize(n + 1);
+        for (int i = 0; i <= n; ++i) {
+            cache_[i].resize(max<size_t>(n + 1, m), -1);
+        }
+
+        return dp(target, 0, 0, mp);
+        */
     }
 };
 
 int main() {
     Solution sol;
     Timer t("Subarray timer");
+    cerr << sol.numWays({"acca", "bbbb", "caca"}, "aba") << endl;
     cerr << sol.numWays(
                 {"baccbaacbaccababbbbcbaaaccbacacbacbaacacaacbbcaabcacbbcbbcbabbcababacacaccbcbcacbbcbbbcacbbcacbaccbac"
                  "bacbacabcababbbbbaaacaacaaabbcabaaccacbacccbcaaaacbcbbcbaaccbbcbacaabcaabbbcabaabccbbaabbaccccccabaaa"
