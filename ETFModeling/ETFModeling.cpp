@@ -418,76 +418,84 @@ void dumpPricesToCsv(const PriceData& pd, const ModelResult& model, const string
     df.saveToCsv(filename);
 }
 
+void optimize() {
+    StringVector tickers;
+    if (FLAGS_stocks) {
+        tickers = cat(etfs, stocks);
+    } else {
+        tickers = etfs;
+    }
+
+    auto data = loadData(tickers);
+    // testModeling(data);
+    auto best = gradientSearch(data);
+    dumpPricesToCsv(data, best, "optimalAll.csv");
+
+    SizeTVector nonZeroIndices;
+    auto nonZeroBest = best;
+    size_t index = 0;
+    for (size_t i = 0; i < data.tickers_.size(); ++i) {
+        if (best.originalShares[i]) {
+            nonZeroBest.originalShares[index++] = best.originalShares[i];
+            nonZeroIndices.emplace_back(i);
+        }
+    }
+    dumpPricesToCsv(data.subPriceData(nonZeroIndices), nonZeroBest, "optimalNZ.csv");
+}
+
+void optimize1() {
+    const StringVector tickers = cat(etfs, stocks);
+    const auto data = loadData(tickers);
+    const auto p0 = loadPortfolio(data, FLAGS_input);
+    LOG(INFO) << OUT(p0);
+    const auto resP0 = model(data, p0, true);
+    out(resP0);
+    dumpPricesToCsv(data, resP0, "p0.csv");
+
+    vector<pair<double, size_t>> results;
+    double bestF = -1.0;
+    ModelResult bestRes;
+    for (size_t i = 0; i < data.tickers_.size(); ++i) {
+        if (!FLAGS_stocks && has(stocks, data.tickers_[i])) {
+            continue;
+        }
+        auto p = p0;
+        static const double DX = 0.0001;
+        p[i] += DX;
+        normalizeNavInplace(p);
+        const auto res = model(data, p, true);
+        if (res.f > bestF) {
+            bestF = res.f;
+            bestRes = res;
+        }
+        results.emplace_back(make_pair((res.f - resP0.f) / DX, i));
+    }
+    sort(results);
+    for (const auto& r : results) {
+        const auto& ticker = data.tickers_[r.second];
+
+        double stockF = 0;
+        {
+            Portfolio stockP(data.tickers_.size());
+            stockP[r.second] = 1.0;
+            normalizeNavInplace(stockP);
+            const auto resStock = model(data, stockP, false);
+            stockF = resStock.f;
+        }
+
+        cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
+             << endl;
+    }
+    out(bestRes);
+}
+
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
 
     if (FLAGS_mode == "optimize") {
-        StringVector tickers;
-        if (FLAGS_stocks) {
-            tickers = cat(etfs, stocks);
-        } else {
-            tickers = etfs;
-        }
-
-        auto data = loadData(tickers);
-        // testModeling(data);
-        auto best = gradientSearch(data);
-        dumpPricesToCsv(data, best, "optimalAll.csv");
-
-        SizeTVector nonZeroIndices;
-        auto nonZeroBest = best;
-        size_t index = 0;
-        for (size_t i = 0; i < data.tickers_.size(); ++i) {
-            if (best.originalShares[i]) {
-                nonZeroBest.originalShares[index++] = best.originalShares[i];
-                nonZeroIndices.emplace_back(i);
-            }
-        }
-        dumpPricesToCsv(data.subPriceData(nonZeroIndices), nonZeroBest, "optimalNZ.csv");
+        optimize();
     } else if (FLAGS_mode == "optimize1") {
-        const StringVector tickers = cat(etfs, stocks);
-        const auto data = loadData(tickers);
-        const auto p0 = loadPortfolio(data, FLAGS_input);
-        LOG(INFO) << OUT(p0);
-        const auto resP0 = model(data, p0, true);
-        out(resP0);
-        dumpPricesToCsv(data, resP0, "p0.csv");
-
-        vector<pair<double, size_t>> results;
-        double bestF = -1.0;
-        ModelResult bestRes;
-        for (size_t i = 0; i < data.tickers_.size(); ++i) {
-            if (!FLAGS_stocks && has(stocks, data.tickers_[i])) {
-                continue;
-            }
-            auto p = p0;
-            static const double DX = 0.0001;
-            p[i] += DX;
-            normalizeNavInplace(p);
-            const auto res = model(data, p, true);
-            if (res.f > bestF) {
-                bestF = res.f;
-                bestRes = res;
-            }
-            results.emplace_back(make_pair((res.f - resP0.f) / DX, i));
-        }
-        sort(results);
-        for (const auto& r : results) {
-            const auto& ticker = data.tickers_[r.second];
-
-            double stockF = 0;
-            {
-                Portfolio stockP(data.tickers_.size());
-                stockP[r.second] = 1.0;
-                normalizeNavInplace(stockP);
-                const auto resStock = model(data, stockP, false);
-                stockF = resStock.f;
-            }
-
-            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
-                 << endl;
-        }
-        out(bestRes);
+        optimize1();
     } else {
         THROW("Unknown mode '" << FLAGS_mode << "'");
     }
