@@ -16,6 +16,7 @@ DEFINE_bool(additive_sortino, true, "subtract risk");
 DEFINE_int32(iterations, 10, "nuimber of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
 DEFINE_string(input, "portfolio input", "");
+DEFINE_string(tickers, "tickers", "");
 DEFINE_bool(stocks, false, "add stocks");
 DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
@@ -489,6 +490,11 @@ void optimize1() {
     out(bestRes);
 }
 
+void testStrategy() {
+    const StringVector tickers = split(FLAGS_tickers, ',');
+    const auto data = loadData(tickers);
+}
+
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
 
@@ -496,6 +502,8 @@ int main(int argc, char* argv[]) {
         optimize();
     } else if (FLAGS_mode == "optimize1") {
         optimize1();
+    } else if (FLAGS_mode == "testStrategy") {
+        testStrategy();
     } else {
         THROW("Unknown mode '" << FLAGS_mode << "'");
     }
