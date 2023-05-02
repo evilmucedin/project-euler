@@ -23,6 +23,12 @@ struct Stat {
         count_ *= alpha;
     }
 
+    void clear() {
+        sum_ = 0.0;
+        sum2_ = 0.0;
+        count_ = 0.0;
+    }
+
    private:
     T sum_{};
     T sum2_{};

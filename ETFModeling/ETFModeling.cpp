@@ -176,6 +176,17 @@ struct ModelResult {
     double f{-1e10};
     double dividends{};
     string lastDate{};
+
+    void calcReturns() {
+        dailyReturns.clear();
+        dailyReturnsStat.clear();
+        for (int i = 1; i < dailyPrices.size(); ++i) {
+            double dailyReturn = log(dailyPrices[i] / dailyPrices[i - 1]);
+            dailyReturns.emplace_back(dailyReturn);
+            dailyReturnsStat.add(dailyReturn);
+        }
+        dailySharpe = dailyReturnsStat.mean() / dailyReturnsStat.stddev();
+    }
 };
 
 double sharpe(const ModelResult& res) {
@@ -493,6 +504,10 @@ void optimize1() {
 void testStrategy() {
     const StringVector tickers = split(FLAGS_tickers, ',');
     const auto data = loadData(tickers);
+    for (size_t i = 0; i < data.tickers_.size(); ++i) {
+        ModelResult res;
+        cout << res.dailySharpe << "\t" << data.tickers_[i] << endl;
+    }
 }
 
 int main(int argc, char* argv[]) {
