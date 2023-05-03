@@ -181,6 +181,7 @@ struct ModelResult {
         dailyReturns.clear();
         dailyReturnsStat.clear();
         for (int i = 1; i < dailyPrices.size(); ++i) {
+            ASSERTNE(dailyPrices[i - 1], 0);
             double dailyReturn = log(dailyPrices[i] / dailyPrices[i - 1]);
             dailyReturns.emplace_back(dailyReturn);
             dailyReturnsStat.add(dailyReturn);
@@ -503,10 +504,14 @@ void optimize1() {
 
 void testStrategy() {
     const StringVector tickers = split(FLAGS_tickers, ',');
-    const auto data = loadData(tickers);
-    for (size_t i = 0; i < data.tickers_.size(); ++i) {
+    const auto pd = loadData(tickers);
+    for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         ModelResult res;
-        cout << res.dailySharpe << "\t" << data.tickers_[i] << endl;
+        for (size_t j = 0; j < pd.prices_.size(); ++j) {
+            res.dailyPrices.emplace_back(pd.prices_[j][i]);
+        }
+        res.calcReturns();
+        cout << res.dailySharpe << "\t" << pd.tickers_[i] << endl;
     }
 }
 
