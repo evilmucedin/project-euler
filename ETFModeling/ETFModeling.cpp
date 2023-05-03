@@ -507,11 +507,46 @@ void testStrategy() {
     const auto pd = loadData(tickers);
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         ModelResult res;
+        ModelResult resMinMax;
+
+        vector<int> mins;
+        vector<int> maxs;
+        for (size_t j = 1; j + 1 < pd.prices_.size(); ++j) {
+            if (pd.prices_[j][i] < pd.prices_[j - 1][i] && pd.prices_[j][i] < pd.prices_[j + 1][i]) {
+                mins.emplace_back(j);
+            }
+            if (pd.prices_[j][i] > pd.prices_[j - 1][i] && pd.prices_[j][i] > pd.prices_[j + 1][i]) {
+                maxs.emplace_back(j);
+            }
+        }
+
+        // LOG(INFO) << OUT(mins);
+        // LOG(INFO) << OUT(maxs);
+
+        double cash = pd.prices_[0][i];
+        double stock = 0;
+        int iMin = 0;
+        int iMax = 0;
         for (size_t j = 0; j < pd.prices_.size(); ++j) {
             res.dailyPrices.emplace_back(pd.prices_[j][i]);
+
+            if (iMin < mins.size() && mins[iMin] == j) {
+                stock += cash / pd.prices_[j][i];
+                cash = 0;
+                ++iMin;
+            }
+
+            if (iMax < maxs.size() && maxs[iMax] == j) {
+                cash += stock * pd.prices_[j][i];
+                stock = 0;
+                ++iMax;
+            }
+
+            resMinMax.dailyPrices.emplace_back(pd.prices_[j][i]*stock + cash);
         }
         res.calcReturns();
-        cout << res.dailySharpe << "\t" << pd.tickers_[i] << endl;
+        resMinMax.calcReturns();
+        cout << res.dailySharpe << "\t" << resMinMax.dailySharpe << "\t" << pd.tickers_[i] << endl;
     }
 }
 
