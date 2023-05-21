@@ -1,0 +1,10 @@
+cxx_binary(
+  name="shortest-bridge",
+  srcs=[
+    "shortest-bridge.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
