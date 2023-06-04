@@ -1,0 +1,10 @@
+cxx_binary(
+  name="substring-with-concatenation-of-all-words",
+  srcs=[
+    "substring-with-concatenation-of-all-words.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
