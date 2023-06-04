@@ -1,0 +1,10 @@
+cxx_binary(
+  name="number-of-provinces",
+  srcs=[
+    "number-of-provinces.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
