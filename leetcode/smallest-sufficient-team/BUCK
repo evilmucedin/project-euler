@@ -1,0 +1,10 @@
+cxx_binary(
+  name="smallest-sufficient-team",
+  srcs=[
+    "smallest-sufficient-team.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
