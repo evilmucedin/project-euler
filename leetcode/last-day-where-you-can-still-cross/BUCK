@@ -1,0 +1,11 @@
+cxx_binary(
+  name="last-day-where-you-can-still-cross",
+  srcs=[
+    "last-day-where-you-can-still-cross.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:unionFindDense",
+    "//lib:timer",
+  ],
+)
