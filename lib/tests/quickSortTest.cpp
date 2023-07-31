@@ -1,4 +1,4 @@
-#include <lib/quickSort.h>
+#include <lib/quicksort.h>
 #include <lib/header.h>
 
 #include <gtest/gtest.h>
