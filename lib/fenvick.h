@@ -50,7 +50,9 @@ class FenwickGeneric {
     void init() {  // time = O(n)
         for (size_type i = 1; i < A.size(); ++i) {
             auto j = i + LSB(i);
-            if (j < A.size()) op(A[j], A[i]);
+            if (j < A.size()) {
+                op(A[j], A[i]);
+            }
         }
     }
 
@@ -59,11 +61,15 @@ class FenwickGeneric {
     // (0 for addition, 1 for multiplication, equal values for min/max)
     // time = no_init ? O(1) : O(n)
     FenwickGeneric(V &&A, Op op = Op{}, bool no_init = false) : A{A}, op{op} {
-        if (!no_init) init();
+        if (!no_init) {
+            init();
+        }
     }
     // time = O(n)
     FenwickGeneric(const V &A, Op op = Op{}, bool no_init = false) : A{A}, op{op} {
-        if (!no_init) init();
+        if (!no_init) {
+            init();
+        }
     }
     // requires `op(current_value, v), current_value == new_value`
     // for op == max v must be equal or greater than current value
@@ -74,13 +80,17 @@ class FenwickGeneric {
             op(A[0], v);
             return;
         }
-        for (; idx < A.size(); idx += LSB(idx)) op(A[idx], v);
+        for (; idx < A.size(); idx += LSB(idx)) {
+            op(A[idx], v);
+        }
     }
     // return op(A[0], op(A[1], op(A[2], ... op(A[idx - 1], A[idx]))))
     // time = O(log idx)
     value_type prefix_sum(size_type idx) const {
         auto v = A[0];
-        for (; idx != 0; idx -= LSB(idx)) op(v, A[idx]);
+        for (; idx != 0; idx -= LSB(idx)) {
+            op(v, A[idx]);
+        }
         return v;
     }
     constexpr size_type size() const { return A.size(); }
