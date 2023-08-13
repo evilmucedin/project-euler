@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <set>
 #include <memory>
 #include <queue>
 #include <string>
@@ -119,6 +120,21 @@ ostream& operator<<(ostream& o, const std::pair<T1, T2>& p) {
 
 template <typename T, typename A>
 ostream& operator<<(ostream& o, const std::vector<T, A>& v) {
+    o << "[";
+    bool first = true;
+    for (auto n : v) {
+        if (!first) {
+            o << ", ";
+        }
+        first = false;
+        o << n;
+    }
+    o << "]";
+    return o;
+}
+
+template <typename T, typename C, typename A>
+ostream& operator<<(ostream& o, const std::multiset<T, C, A>& v) {
     o << "[";
     bool first = true;
     for (auto n : v) {
