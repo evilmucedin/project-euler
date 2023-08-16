@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sliding-window-maximum",
+  srcs=[
+    "sliding-window-maximum.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
