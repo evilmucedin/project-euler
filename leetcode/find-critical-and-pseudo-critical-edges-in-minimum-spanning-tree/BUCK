@@ -1,0 +1,10 @@
+cxx_binary(
+  name="find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree",
+  srcs=[
+    "find-critical-and-pseudo-critical-edges-in-minimum-spanning-tree.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
