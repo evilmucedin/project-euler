@@ -121,6 +121,11 @@ const DataFrame::PColumn DataFrame::getColumn(const string& name) const {
     return columns_[toColumn->second];
 }
 
+bool DataFrame::hasColumn(const string& name) const {
+    auto toColumn = name2index_.find(name);
+    return toColumn != name2index_.end();
+}
+
 void DataFrame::addColumn(PColumn column) {
     columns_.emplace_back(column);
     name2index_[column->name_] = columns_.size() - 1;

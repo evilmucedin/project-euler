@@ -29,6 +29,11 @@ struct MonoStack {
     }
 };
 
+ostream& operator<<(ostream& s, const MonoStack& st) {
+    s << st.data_;
+    return s;
+}
+
 struct MonoQueue {
     MonoStack a_;
     MonoStack b_;
@@ -67,10 +72,12 @@ public:
 
         vector<int> result;
         for (int i = k; i < nums.size(); ++i) {
+            // cerr << q.a_ << " " << q.b_ << endl;
             result.emplace_back(q.max());
             q.pop();
-            q.push(nums[k]);
+            q.push(nums[i]);
         }
+        result.emplace_back(q.max());
 
         return result;
     }

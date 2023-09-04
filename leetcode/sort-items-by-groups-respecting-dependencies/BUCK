@@ -1,0 +1,10 @@
+cxx_binary(
+  name="sort-items-by-groups-respecting-dependencies",
+  srcs=[
+    "sort-items-by-groups-respecting-dependencies.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

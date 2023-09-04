@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-length-of-pair-chain",
+  srcs=[
+    "maximum-length-of-pair-chain.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

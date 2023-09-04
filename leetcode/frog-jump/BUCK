@@ -1,0 +1,10 @@
+cxx_binary(
+  name="frog-jump",
+  srcs=[
+    "frog-jump.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

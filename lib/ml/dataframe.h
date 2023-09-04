@@ -58,6 +58,7 @@ class DataFrame {
     unordered_map<string, size_t> name2index_;
 
     const PColumn getColumn(const string& name) const;
+    bool hasColumn(const string& name) const;
     void addColumn(PColumn column);
     void eraseColumn(const string& name);
     void reindex();

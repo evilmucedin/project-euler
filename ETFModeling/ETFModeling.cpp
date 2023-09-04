@@ -33,8 +33,8 @@ static const StringVector etfs = {
 };
 
 static const StringVector stocks = {
-    "GOOG", "MSFT", "T",   "NCLH", "AMZN", "META", "TSLA", "GME", "AAPL",  "NVDA", "TSM",  "UNH", "JNJ", "V",   "WMT",
-    "JPM",  "PG",   "XOM", "HD",   "CVX",  "PFE",  "COIN", "SI",  "VWAGY", "LMT",  "YNDX", "KHC", "NKE", "SBUX",
+    "GOOG", "MSFT", "T",  "NCLH", "AMZN", "META", "TSLA", "GME",  "AAPL",  "NVDA", "TSM",  "UNH", "JNJ", "V",
+    "WMT",  "JPM",  "PG", "XOM",  "HD",   "CVX",  "PFE",  "COIN", "VWAGY", "LMT",  "YNDX", "KHC", "NKE", "SBUX",
 };
 
 // static const StringVector tickers = etfs;
@@ -80,6 +80,9 @@ PriceData loadData(const StringVector& tickers) {
             auto df = DataFrame::loadFromCsv("marketData/" + ticker + ".csv");
             auto date = df->getColumn("Date");
             auto price = df->getColumn("Adj Close");
+            if (!df->hasColumn("Dividends")) {
+                LOG(ERROR) << "Data file for '" << ticker << "' has no dividends";
+            }
             auto dividends = df->getColumn("Dividends");
             Date2Price tickerPrices;
             Date2Price tickerDividends;
