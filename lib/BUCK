@@ -554,3 +554,18 @@ cxx_library(
         "PUBLIC",
     ],
 )
+
+cxx_library(
+    name="combinatorics",
+    deps=[
+    ],
+    srcs=[
+        "combinatorics.cpp",
+    ],
+    exported_headers=[
+        "combinatorics.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
