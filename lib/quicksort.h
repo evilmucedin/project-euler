@@ -21,7 +21,7 @@ void quickSort(T* arr, size_t n, Cmp cmp = Cmp()) {
         if (left >= right) {
             break;
         }
-	std::swap(arr[left], arr[right]);
+        std::swap(arr[left], arr[right]);
         ++left;
         --right;
     }
