@@ -14,11 +14,12 @@
  */
 #pragma once
 
-pair<int, IntVector> hungarian(const vector<IntVector> &a) {
+pair<int, IntVector> hungarian(const vector<IntVector>& a) {
     if (a.empty()) {
         return {0, {}};
     }
-    int n = sz(a) + 1, m = sz(a[0]) + 1;
+    int n = sz(a) + 1;
+    int m = sz(a[0]) + 1;
     IntVector u(n), v(m), p(m), ans(n - 1);
     FOR(i, 1, n) {
         p[0] = i;
@@ -28,10 +29,18 @@ pair<int, IntVector> hungarian(const vector<IntVector> &a) {
         do {  // dijkstra
             done[j0] = true;
             int i0 = p[j0], j1, delta = INT_MAX;
-            FOR(j, 1, m) if (!done[j]) {
-                auto cur = a[i0 - 1][j - 1] - u[i0] - v[j];
-                if (cur < dist[j]) dist[j] = cur, pre[j] = j0;
-                if (dist[j] < delta) delta = dist[j], j1 = j;
+            FOR(j, 1, m) {
+                if (!done[j]) {
+                    auto cur = a[i0 - 1][j - 1] - u[i0] - v[j];
+                    if (cur < dist[j]) {
+                        dist[j] = cur;
+                        pre[j] = j0;
+                    }
+                    if (dist[j] < delta) {
+                        delta = dist[j];
+                        j1 = j;
+                    }
+                }
             }
             FOR(j, 0, m) {
                 if (done[j])

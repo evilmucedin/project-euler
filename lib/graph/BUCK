@@ -11,3 +11,18 @@ cxx_library(
     ],
 )
 
+cxx_library(
+    name="hungarian",
+    deps=[
+    ],
+    srcs=[
+        "hungarian.cpp",
+    ],
+    exported_headers=[
+        "hungarian.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
