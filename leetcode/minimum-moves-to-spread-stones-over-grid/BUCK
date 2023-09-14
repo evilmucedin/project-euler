@@ -1,0 +1,12 @@
+cxx_binary(
+  name="minimum-moves-to-spread-stones-over-grid",
+  srcs=[
+    "minimum-moves-to-spread-stones-over-grid.cpp"
+  ],
+  deps=[
+    "//lib/graph:hungarian",
+    "//lib:geometry",
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

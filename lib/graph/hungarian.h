@@ -14,6 +14,10 @@
  */
 #pragma once
 
+#include <climits>
+
+#include "lib/header.h"
+
 pair<int, IntVector> hungarian(const vector<IntVector>& a) {
     if (a.empty()) {
         return {0, {}};
