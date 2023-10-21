@@ -1,0 +1,11 @@
+cxx_binary(
+  name="constrained-subsequence-sum",
+  srcs=[
+    "constrained-subsequence-sum.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:segmentTree",
+    "//lib:timer",
+  ],
+)
