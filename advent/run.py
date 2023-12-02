@@ -8,7 +8,7 @@ import re
 import argparse
 
 def main():
-    YEAR = 2022
+    YEAR = 2023
 
     parser = argparse.ArgumentParser(
         description="Run Advent of Code solutions")

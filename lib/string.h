@@ -87,6 +87,15 @@ vector<T> parseIntegers(const string& s) {
     return result;
 }
 
+inline bool isInteger(const string& s) {
+    for (char ch: s) {
+        if (ch != '-' && !isdigit(ch)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 string ltrim(const string& s);
 string rtrim(const string& s);
 string trim(const string& s);
