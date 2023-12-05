@@ -1,6 +1,7 @@
 #include "file.h"
 
 #include <cstdio>
+#include <cstdarg>
 
 #include "lib/exception.h"
 
