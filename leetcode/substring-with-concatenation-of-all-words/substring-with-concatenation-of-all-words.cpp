@@ -1,6 +1,5 @@
 #include "../header.h"
 
-<<<<<<< HEAD
 class CounterDense {
    private:
     vector<int> counters_;
@@ -86,7 +85,7 @@ public:
             if (dp[i] == words.size()) {
                 result.emplace_back(i);
             }
-=======
+
 class WordCounter {
 private:
 public:
@@ -179,7 +178,6 @@ public:
                     result.emplace_back(i + (j - words.size() + 1)*k);
                 }
             }
->>>>>>> 71881938db19085640564e0caabe623ea11cf635
         }
         return result;
     }
