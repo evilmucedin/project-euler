@@ -1,0 +1,38 @@
+cxx_library(
+    name="base",
+    exported_headers=[
+        "base/attributes.h",
+        "base/config.h",
+        "base/options.h",
+        "base/policy_checks.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="functional",
+    exported_headers=[
+        "functional/function_ref.h",
+    ],
+    deps=[
+        ":base",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="hash",
+    exported_headers=[
+        "hash/hash.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+    deps=[
+        ":functional",
+    ],
+)
