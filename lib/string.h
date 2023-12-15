@@ -96,6 +96,22 @@ inline bool isInteger(const string& s) {
     return true;
 }
 
+template <typename T = string>
+vector<T> transpose(const vector<T>& matrix) {
+    const int m = matrix.size();
+    const int n = matrix[0].size();
+    vector<T> result(n);
+    for (auto& s: result) {
+        s.resize(m);
+    }
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            result[j][i] = matrix[i][j];
+        }
+    }
+    return result;
+}
+
 string ltrim(const string& s);
 string rtrim(const string& s);
 string trim(const string& s);
