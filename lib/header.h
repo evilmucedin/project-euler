@@ -105,6 +105,21 @@ string to_string(const complex<T>& x) {
     return "(" + to_string(x.real()) + "," + to_string(x.imag()) + ")";
 }
 
+template <typename T, typename A>
+string to_string(const std::vector<T, A>& v) {
+    std::string s = "[";
+    bool first = true;
+    for (auto n : v) {
+        if (!first) {
+            s += ", ";
+        }
+        first = false;
+        s += to_string(n);
+    }
+    s += "]";
+    return s;
+}
+
 }  // namespace std
 
 template<typename T>

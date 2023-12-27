@@ -1,15 +1,14 @@
 #pragma once
 
 #include <unordered_map>
+#include <vector>
 
 template <typename T>
 struct UnionFind {
    public:
     void add(T first) { parent_.emplace(first, first); }
 
-    bool has(T first) const {
-        return parent_.find(first) != parent_.end();
-    }
+    bool has(T first) const { return parent_.find(first) != parent_.end(); }
 
     T find(T first) {
         T i = first;
@@ -45,7 +44,7 @@ struct UnionFind {
         T first;
         size_t size;
     };
-    using Components = vector<Component>;
+    using Components = std::vector<Component>;
 
     Components components() {
         unordered_map<T, size_t> parentSizes;
@@ -54,12 +53,21 @@ struct UnionFind {
         }
 
         Components result;
-        for (const auto& kv: parentSizes) {
+        for (const auto& kv : parentSizes) {
             result.emplace_back(Component{kv.first, kv.second});
         }
         return result;
     }
 
    private:
-    unordered_map<T, T> parent_;
+    std::unordered_map<T, T> parent_;
 };
+
+namespace std {
+
+template <typename T>
+inline string to_string(const typename UnionFind<T>::Component& c) {
+    return string("{") + to_string(c.first) + ", " + to_string(c.size) + "}";
+}
+
+}  // namespace std
