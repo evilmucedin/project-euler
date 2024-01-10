@@ -1,0 +1,11 @@
+cxx_binary(
+  name="amount-of-time-for-binary-tree-to-be-infected",
+  srcs=[
+    "amount-of-time-for-binary-tree-to-be-infected.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//glog:glog",
+  ],
+)
