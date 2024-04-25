@@ -1,0 +1,10 @@
+cxx_binary(
+  name="find-all-groups-of-farmland",
+  srcs=[
+    "find-all-groups-of-farmland.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)
