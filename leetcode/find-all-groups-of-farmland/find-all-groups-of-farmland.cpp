@@ -5,7 +5,7 @@ public:
     using Point = pair<int, int>;
     using Points = set<Point>;
 
-    void findIsland(const vector<vector<int>>& land, Point& points, int x, int y) {
+    void findIsland(const vector<vector<int>>& land, Points& points, int x, int y) {
         Point p(x, y);
         if (points.count(p) > 0) {
             return;
@@ -25,7 +25,7 @@ public:
         }
     }
 
-    vector<vector<int>> decomposeIntoRects(vector<vector<int>>& land) {
+    vector<vector<int>> decomposeIntoRects(Points& land) {
         vector<vector<int>> rects;
         int n = land.size(), m = land[0].size();
         vector<vector<bool>> visited(n, vector<bool>(m, false));
