@@ -1,0 +1,15 @@
+cc_library(
+    name="easybmp",
+    srcs=[
+        "EasyBMP.cpp",
+    ],
+    exported_headers=[
+        "EasyBMP.h",
+        "EasyBMP_BMP.h",
+        "EasyBMP_DataStructures.h",
+        "EasyBMP_VariousBMPutilities.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
