@@ -3,13 +3,13 @@ cc_library(
     srcs=[
         "EasyBMP.cpp",
     ],
-    exported_headers=[
+    hdrs=[
         "EasyBMP.h",
         "EasyBMP_BMP.h",
         "EasyBMP_DataStructures.h",
         "EasyBMP_VariousBMPutilities.h",
     ],
-    visibility=[
-        "PUBLIC",
-    ],
+    includes=["."],
+    copts=["-stb=C++23"],
+    ### visibility=[ "PUBLIC", ],
 )

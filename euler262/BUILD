@@ -1,3 +1,8 @@
-BUILD
-262.cpp
-WORKSPACE
+cc_binary(
+    name="262",
+    srcs=["262.cpp"],
+    deps=[
+        "//lib:header",
+        "//lib/easybmp:easybmp",
+    ],
+)
