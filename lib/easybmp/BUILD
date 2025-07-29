@@ -10,6 +10,6 @@ cc_library(
         "EasyBMP_VariousBMPutilities.h",
     ],
     includes=["."],
-    copts=["-stb=C++23"],
-    ### visibility=[ "PUBLIC", ],
+    # copts=["-stb=c++23"],
+    visibility = ["//visibility:public"],
 )
