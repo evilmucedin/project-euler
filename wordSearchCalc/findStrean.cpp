@@ -46,6 +46,32 @@ vector<string> readFile2(const string& fileName) {
 	return result;
 }
 
+bool match(const vector<string>& lss, int a, int b, const string& key, int pos) {
+	if (pos >= (int)key.size()) {
+		return true;
+	}
+	if (a < 0 || a >= (int)lss.size()) {
+		return false;
+	}
+	if (b < 0 || b >= (int)lss[a].size()) {
+		return false;
+	}
+	if (lss[a][b] != key[pos]) {
+		return false;
+	}
+	
+	for (int aa = -1; aa <= 1; ++aa) {
+		for (int bb = -1; bb <= 1; ++bb) {
+			if (aa != 0 || bb != 0) {
+				if (match(lss, a + aa, b + bb, key, pos + 1)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 //	char[] f1 = "input.txt";
 int main() {
 	// cout << devtools_build::GetDataDependencyFilepath("findStrean/data/file") << endl;
@@ -72,11 +98,28 @@ int main() {
 		lss.push_back(ss);
 	}
 */
+/*
 	cout << lss.size() << "------------" << endl;
 // inline(in, ss);
 	cout << ss << endl;
-	for (int i = 0; i < lss.size(); ++i) {
+	for (long unsigned int i = 0; i < lss.size(); ++i) {
 		cout << i << lss[i] << " size=" << lss[i].length() << endl;
 	}
+*/
+	const auto questions = readFile2(currentPath + "q.txt");
+	for (long unsigned int iq = 0; iq < questions.size(); ++iq)
+	{
+		const auto q = questions[iq];
+		int found = 0;
+		for (long unsigned int i = 0; i < lss.size(); ++i) {
+			for (long unsigned int j = 0; j < lss[i].size(); ++j) {
+				if (match(lss, i, j, q, 0)) {
+					++found;
+				}
+			}
+		}
+		cout << q << ": " << found << endl;
+	}
+
 	return 0;
 }
