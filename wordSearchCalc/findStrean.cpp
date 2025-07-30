@@ -7,8 +7,14 @@
 #include <array>
 #include <fstream>
 #include <vector>
-#include <maps>
+// #include <maps>
 #include <algorithm>
+
+#include <iostream>
+#include <filesystem> // Include the filesystem header
+
+
+// #include "devtools_build/data_dependency_filepath.h"
 
 using namespace std;
 
@@ -26,7 +32,8 @@ string readFile(char[]& fileName) {
 */
 
 vector<string> readFile2(const string& fileName) {
-	ifstream in(fileName);
+	ifstream in;
+	in.open(fileName);
 	vector<string> result;
 	string ins;
 	while (true) {
@@ -42,21 +49,35 @@ vector<string> readFile2(const string& fileName) {
 
 //	char[] f1 = "input.txt";
 int main() {
- 	ifstream in;
-	in.open("input.txt");
+	// cout << devtools_build::GetDataDependencyFilepath("findStrean/data/file") << endl;
+
+
+    // Get the current path
+    string currentPath = std::filesystem::current_path().string() + "/wordSearchCalc/";
+
+    // Print the current path
+    std::cout << "Current working directory: " << currentPath << std::endl;
+
 //	string s = readFile(f1);
 	string ss;
-	vector<string> lss;
+	vector<string> lss = readFile2(currentPath + "input.txt");
+ 	
+/*
+	lss.clear();	
+	ifstream in;
+	in.open(currentPath + "input.txt");
 	for (int i = 0; i < 22; ++i) {
 		ss.clear();
+		// getdelim(in, ss);
 		in >> ss;
 		lss.push_back(ss);
 	}
+*/
 	cout << lss.size() << "------------";
 // inline(in, ss);
 	cout << ss << endl;
 	for (int i = 0; i < 22; ++i) {
-		cout << "\n" << i << lss[i] << lss[i].size();
+		cout << "\n" << i << lss[i] << " size=" << lss[i].length();
 	}
 	return 0;
 }
