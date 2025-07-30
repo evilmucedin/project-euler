@@ -10,7 +10,6 @@
 // #include <maps>
 #include <algorithm>
 
-#include <iostream>
 #include <filesystem> // Include the filesystem header
 
 
@@ -53,14 +52,14 @@ int main() {
 
 
     // Get the current path
-    string currentPath = std::filesystem::current_path().string() + "/wordSearchCalc/";
+    const string currentPath = filesystem::current_path().string() + "/wordSearchCalc/";
 
     // Print the current path
-    std::cout << "Current working directory: " << currentPath << std::endl;
+    cout << "Current working directory: " << currentPath << endl;
 
 //	string s = readFile(f1);
 	string ss;
-	vector<string> lss = readFile2(currentPath + "input.txt");
+	const vector<string> lss = readFile2(currentPath + "input.txt");
  	
 /*
 	lss.clear();	
@@ -73,11 +72,11 @@ int main() {
 		lss.push_back(ss);
 	}
 */
-	cout << lss.size() << "------------";
+	cout << lss.size() << "------------" << endl;
 // inline(in, ss);
 	cout << ss << endl;
-	for (int i = 0; i < 22; ++i) {
-		cout << "\n" << i << lss[i] << " size=" << lss[i].length();
+	for (int i = 0; i < lss.size(); ++i) {
+		cout << i << lss[i] << " size=" << lss[i].length() << endl;
 	}
 	return 0;
 }
