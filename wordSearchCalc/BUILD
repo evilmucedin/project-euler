@@ -13,3 +13,10 @@ cc_binary(
 #    copts = ["/std:c++17"],
 #     copts = ["-std=c++14"],
 )
+
+cc_binary(
+    name="test",
+    srcs=[
+        "test.cpp",
+    ],
+)
