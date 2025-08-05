@@ -1,3 +1,5 @@
+# load("@bazel_tools//src/conditions:os_conditions.bzl", "OS_CONSTRAINTS")
+
 cc_binary(
     name="findStrean",
     srcs=[
@@ -7,5 +9,6 @@ cc_binary(
          "input.txt",
          "q.txt",
     ],
-#    copts = ["/std:c++17"],
+#    copts = select({"@bazel_tools//src/conditions:windows": "/std:c++17", ""})),
+    copts = ["/std:c++17"],
 )
