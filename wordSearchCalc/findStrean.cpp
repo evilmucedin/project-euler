@@ -81,8 +81,20 @@ int main() {
 
 
     // Get the current path
-	const string path = fs::path();
-	const string currentPath = filesystem::current_path().string() + path + "/wordSearchCalc" + path;
+    const std::string pathL =
+#ifdef _WIN64
+    "\\";
+#else
+#ifdef _WIN32
+    "\\";
+#else
+    "/";
+#endif
+#endif
+    ;
+
+    // cout << "path: (" << pathL << ")" << endl;
+	const std::string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
 
     // Print the current path
     cout << "Current working directory: " << currentPath << endl;
