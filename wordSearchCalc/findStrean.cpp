@@ -81,7 +81,7 @@ int main() {
 
 
     // Get the current path
-    const std::string pathL =
+    static const std::string pathL =
 #ifdef _WIN64
     "\\";
 #else
@@ -94,7 +94,7 @@ int main() {
     ;
 
     // cout << "path: (" << pathL << ")" << endl;
-	const std::string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
+	static const string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
 
     // Print the current path
     cout << "Current working directory: " << currentPath << endl;
