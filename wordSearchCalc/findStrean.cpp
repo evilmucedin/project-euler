@@ -33,6 +33,9 @@ string readFile(char[]& fileName) {
 vector<string> readFile2(const string& fileName) {
 	ifstream in;
 	in.open(fileName);
+	if (!in.opened()) {
+		cerr << "Not founf: " << fileName << endl;
+	}
 	vector<string> result;
 	string ins;
 	while (true) {
