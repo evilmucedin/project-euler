@@ -7,5 +7,5 @@ cc_binary(
          "input.txt",
          "q.txt",
     ],
-    copts = ["/std:c++17"],
+#    copts = ["/std:c++17"],
 )

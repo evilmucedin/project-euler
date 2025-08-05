@@ -3,7 +3,7 @@
 #include <iostream>
 #include <iostream>
 #include <cstring>
-#include <string>  
+#include <string>
 #include <array>
 #include <fstream>
 #include <vector>
@@ -33,7 +33,7 @@ string readFile(char[]& fileName) {
 vector<string> readFile2(const string& fileName) {
 	ifstream in;
 	in.open(fileName);
-	if (!in.opened()) {
+	if (!in.is_open()) {
 		cerr << "Not founf: " << fileName << endl;
 	}
 	vector<string> result;
@@ -62,7 +62,7 @@ bool match(const vector<string>& lss, int a, int b, const string& key, int pos) 
 	if (lss[a][b] != key[pos]) {
 		return false;
 	}
-	
+
 	for (int aa = -1; aa <= 1; ++aa) {
 		for (int bb = -1; bb <= 1; ++bb) {
 			if (aa != 0 || bb != 0) {
@@ -89,9 +89,9 @@ int main() {
 //	string s = readFile(f1);
 	string ss;
 	const vector<string> lss = readFile2(currentPath + "input.txt");
- 	
+
 /*
-	lss.clear();	
+	lss.clear();
 	ifstream in;
 	in.open(currentPath + "input.txt");
 	for (int i = 0; i < 22; ++i) {
