@@ -1,3 +1,5 @@
+// #include "tools/cpp/runfiles/runfiles.h"
+
 #include <string>
 #include <stdio.h>
 #include <iostream>
@@ -9,9 +11,9 @@
 #include <vector>
 // #include <maps>
 #include <algorithm>
+#include <windows.h>
 
 #include <filesystem> // Include the filesystem header
-
 
 // #include "devtools_build/data_dependency_filepath.h"
 
@@ -30,11 +32,16 @@ string readFile(char[]& fileName) {
 }
 */
 
-vector<string> readFile2(const string& fileName) {
+vector<string> readFile2(const string& fileName, const string& fileName2) {
 	ifstream in;
 	in.open(fileName);
 	if (!in.is_open()) {
-		cerr << "Not founf: " << fileName << endl;
+		in.open(fileName2);
+		if (!in.is_open()) {
+			cerr << "Not founf: " << fileName << endl;
+			while (true) {
+			}
+		}
 	}
 	vector<string> result;
 	string ins;
@@ -94,14 +101,16 @@ int main() {
     ;
 
     // cout << "path: (" << pathL << ")" << endl;
+    char buffer[MAX_PATH];
+    DWORD length = GetModuleFileNameA(NULL, buffer, MAX_PATH);
 	static const string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
 
     // Print the current path
-    cout << "Current working directory: " << currentPath << endl;
+    cout << "Current working directory: " << currentPath << " " << buffer << endl;
 
 //	string s = readFile(f1);
 	string ss;
-	const vector<string> lss = readFile2(currentPath + "input.txt");
+	const vector<string> lss = readFile2(currentPath + "input.txt", "input.txt");
 
 /*
 	lss.clear();
@@ -122,7 +131,7 @@ int main() {
 		cout << i << lss[i] << " size=" << lss[i].length() << endl;
 	}
 */
-	const auto questions = readFile2(currentPath + "q.txt");
+	const auto questions = readFile2(currentPath + "q.txt", "q.txt");
 	for (long unsigned int iq = 0; iq < questions.size(); ++iq)
 	{
 		const auto q = questions[iq];
