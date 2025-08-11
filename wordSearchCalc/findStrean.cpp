@@ -11,7 +11,9 @@
 #include <vector>
 // #include <maps>
 #include <algorithm>
+#ifdef _WIN64
 #include <windows.h>
+#endif
 
 #include <filesystem> // Include the filesystem header
 
@@ -101,8 +103,12 @@ int main() {
     ;
 
     // cout << "path: (" << pathL << ")" << endl;
-    char buffer[MAX_PATH];
-    DWORD length = GetModuleFileNameA(NULL, buffer, MAX_PATH);
+#ifdef _WIN
+    	char buffer[MAX_PATH];
+	DWORD length = GetModuleFileNameA(NULL, buffer, MAX_PATH);
+#else
+	char buffer[] = "";
+#endif
 	static const string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
 
     // Print the current path

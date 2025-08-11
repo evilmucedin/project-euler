@@ -14,7 +14,7 @@ cc_binary(
     ],
 
 #    copts = select({"@bazel_tools//src/conditions:windows": "/std:c++17", ""})),
-    copts = ["/std:c++17"],
+#    copts = ["/std:c++17"],
 #     copts = ["-std=c++14"],
 )
 

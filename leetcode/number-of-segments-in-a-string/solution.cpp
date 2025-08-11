@@ -4,7 +4,7 @@ public:
         bool in = false;
         int count = 0;
         for (const char c : s) {
-            if ( ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '\'') || (c == '-')) && (C != ',') ) {
+            if (c!= ' ') { // ( ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '\'') || (c == '-') || (c == '#') || (c == ',')) || (c == '#') ) {
                 if (!in) {
                     in = true;
                     ++count;
@@ -18,3 +18,5 @@ public:
         return count;    
     }
 };
+
+

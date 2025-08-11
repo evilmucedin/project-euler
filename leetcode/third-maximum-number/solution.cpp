@@ -1,6 +1,9 @@
+#include <iostream>
+#include <map>
+#include <string>
 #include <map>
 #include <vector>
-#include <algoritms>
+#include <algorithm>
 
 using namespace std;
 
