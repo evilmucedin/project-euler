@@ -1,4 +1,4 @@
-// #include "tools/cpp/runfiles/runfiles.h"
+#include "tools/cpp/runfiles/runfiles.h"
 
 #include <string>
 #include <stdio.h>
