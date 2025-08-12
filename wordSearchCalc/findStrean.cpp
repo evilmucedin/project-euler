@@ -34,15 +34,18 @@ string readFile(char[]& fileName) {
 }
 */
 
-vector<string> readFile2(const string& fileName, const string& fileName2) {
+vector<string> readFile2(const string& fileName1, const string& fileName2, const string& fileName3) {
 	ifstream in;
-	in.open(fileName);
+	in.open(fileName1);
 	if (!in.is_open()) {
 		in.open(fileName2);
 		if (!in.is_open()) {
-			cerr << "Not founf: " << fileName << endl;
+		in.open(fileName3);
+		if (!in.is_open()) {
+			cerr << "Not founf: " << fileName1 << " 2: " << fileName2 << " 3:" << fileName3 << endl;
 			while (true) {
 			}
+                        }
 		}
 	}
 	vector<string> result;
@@ -103,11 +106,19 @@ int main() {
     ;
 
     // cout << "path: (" << pathL << ")" << endl;
-#ifdef _WIN
+#ifdef _WIN64
     	char buffer[MAX_PATH];
 	DWORD length = GetModuleFileNameA(NULL, buffer, MAX_PATH);
+
+    std::string error;
+    // Create a Runfiles object, providing argv to help locate the manifest.
+    std::unique_ptr<Runfiles> runfiles(Runfiles::Create(argv, &error));
+    const string f2 = runfiles->Rlocation("wordSearchCalc/input.txt");
+    const string q2 = runfiles->Rlocation("wordSearchCalc/q.txt");
 #else
 	char buffer[] = "";
+	string f2 = "input.txt";
+	string q2 = "q.txt";
 #endif
 	static const string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
 
@@ -116,7 +127,7 @@ int main() {
 
 //	string s = readFile(f1);
 	string ss;
-	const vector<string> lss = readFile2(currentPath + "input.txt", "input.txt");
+	const vector<string> lss = readFile2(currentPath + "input.txt", "input.txt", f2);
 
 /*
 	lss.clear();
@@ -137,7 +148,7 @@ int main() {
 		cout << i << lss[i] << " size=" << lss[i].length() << endl;
 	}
 */
-	const auto questions = readFile2(currentPath + "q.txt", "q.txt");
+	const auto questions = readFile2(currentPath + "q.txt", "q.txt", q2);
 	for (long unsigned int iq = 0; iq < questions.size(); ++iq)
 	{
 		const auto q = questions[iq];
