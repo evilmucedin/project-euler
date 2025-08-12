@@ -1,5 +1,3 @@
-#include "tools/cpp/runfiles/runfiles.h"
-
 #include <string>
 #include <stdio.h>
 #include <iostream>
@@ -12,6 +10,8 @@
 // #include <maps>
 #include <algorithm>
 #ifdef _WIN64
+#include "tools/cpp/runfiles/runfiles.h"
+
 #include <windows.h>
 #endif
 
