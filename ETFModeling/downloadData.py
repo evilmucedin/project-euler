@@ -26,7 +26,11 @@ for ticker in tickers:
     data.to_csv(filename)
     with open(filename, "r") as f:
         lines = f.readlines()
-        print(ticker, len(lines), filename)
+        print(ticker, len(lines), filename, lines[2], lines[0])
+        f.close()
+        lines[2] = lines[2] + lines[0]
+        with open(filename, "w") as w:
+            w.writelines(lines)
 
 # Import the plotting library
 # %matplotlib inline

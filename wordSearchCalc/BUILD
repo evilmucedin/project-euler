@@ -11,6 +11,18 @@ cc_binary(
          "input.txt",
          "q.txt",
     ],
+)
+
+cc_binary(
+    name="findStreanWin",
+    srcs=[
+        "findStrean.cpp",
+    ],
+    deps = ["@bazel_tools//tools/cpp/runfiles"],
+    data = [
+         "input.txt",
+         "q.txt",
+    ],
 
 #    copts = select({"@bazel_tools//src/conditions:windows": "/std:c++17", ""})),
     copts = ["/std:c++17"],
@@ -20,7 +32,6 @@ cc_binary(
 #            "//conditions:default": ["-std=c++17"],
 #        }),
 )
-
 cc_binary(
     name="test",
     srcs=[
