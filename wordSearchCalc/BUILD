@@ -18,14 +18,14 @@ cc_binary(
     srcs=[
         "findStrean.cpp",
     ],
-    deps = ["@bazel_tools//tools/cpp/runfiles"],
+###    deps = ["@bazel_tools//tools/cpp/runfiles"],
     data = [
          "input.txt",
          "q.txt",
     ],
 
 #    copts = select({"@bazel_tools//src/conditions:windows": "/std:c++17", ""})),
-#    copts = ["/std:c++17"],
+    copts = ["/std:c++17"],
 #     copts = ["-std=c++14"],
 #        copts = select({
 #            windows_condition: ["/std:c++17"],
