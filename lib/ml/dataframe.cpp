@@ -113,10 +113,10 @@ void DataFrame::resizeLines(size_t lines) {
     }
 }
 
-const DataFrame::PColumn DataFrame::getColumn(const string& name, const string& filename) const {
+const DataFrame::PColumn DataFrame::getColumn(const string& name, const string& filename, const string& file) const {
     auto toColumn = name2index_.find(name);
     if (toColumn == name2index_.end()) {
-        THROW("Column '" << name << "' not found in '" << filename << "'");
+        THROW("Column '" << name << "' not found in '" << filename << "' file: '" << file << "'");
     }
     return columns_[toColumn->second];
 }
