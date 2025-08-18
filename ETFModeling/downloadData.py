@@ -28,8 +28,8 @@ for ticker in tickers:
         lines = f.readlines()
         print(ticker, len(lines), filename, lines[2], lines[0])
         f.close()
-        lines[2] = lines[2] + lines[0]
-        with open(filename, "w") as w:
+        lines[0] = lines[2][:5] + lines[0]
+        with open(filename + "", "w") as w:
             w.writelines(lines)
 
 # Import the plotting library
