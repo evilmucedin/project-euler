@@ -78,12 +78,12 @@ PriceData loadData(const StringVector& tickers) {
         for (const auto& ticker : tickers) {
             DLOG(INFO) << "Ticker: " << ticker;
             auto df = DataFrame::loadFromCsv("marketData/" + ticker + ".csv");
-            auto date = df->getColumn("Date");
-            auto price = df->getColumn("Adj Close");
+            auto date = df->getColumn("Date", ticker);
+            auto price = df->getColumn("Adj Close", ticker);
             if (!df->hasColumn("Dividends")) {
                 LOG(ERROR) << "Data file for '" << ticker << "' has no dividends";
             }
-            auto dividends = df->getColumn("Dividends");
+            auto dividends = df->getColumn("Dividends", ticker);
             Date2Price tickerPrices;
             Date2Price tickerDividends;
             for (size_t i = 0; i < df->numLines(); ++i) {
@@ -309,8 +309,8 @@ Portfolio randomPortfolio(const StringVector& tickers) {
 
 Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
     auto df = DataFrame::loadFromCsv(filename);
-    auto colSymbol = df->getColumn("Symbol");
-    auto colValue = df->getColumn("Current Value");
+    auto colSymbol = df->getColumn("Symbol", filename);
+    auto colValue = df->getColumn("Current Value", filename);
     unordered_map<string, double> symbol2value;
     for (size_t i = 0; i < colSymbol->size(); ++i) {
         symbol2value.emplace(colSymbol->as(i), colValue->as<double>(i));
