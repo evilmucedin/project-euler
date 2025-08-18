@@ -1,12 +1,12 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_library")
+# load("@pybind11_bazel//:build_defs.bzl", "pybind_library")
 
-pybind_library(
+cc_library(
     name = "header",
     hdrs = ["header.h"],
     visibility = ["//visibility:public"],
 )
 
-pybind_library(
+cc_library(
     name = "matrix",
     hdrs = ["matrix.h"],
     srcs = ["matrix.cpp"],
@@ -14,7 +14,7 @@ pybind_library(
     deps = [":header"],
 )
 
-pybind_library(
+cc_library(
     name = "random",
     hdrs = ["random.h"],
     srcs = ["random.cpp"],
@@ -22,7 +22,7 @@ pybind_library(
     deps = [":header"],
 )
 
-pybind_library(
+cc_library(
     name = "timer",
     hdrs = ["timer.h"],
     srcs = ["timer.cpp"],

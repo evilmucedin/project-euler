@@ -3,12 +3,21 @@
 #include <iostream>
 #include <iostream>
 #include <cstring>
-#include <string>  
+#include <string>
 #include <array>
 #include <fstream>
 #include <vector>
-#include <maps>
+// #include <maps>
 #include <algorithm>
+#ifdef _WIN64
+#include "tools/cpp/runfiles/runfiles.h"
+
+#include <windows.h>
+#endif
+
+#include <filesystem> // Include the filesystem header
+
+// #include "devtools_build/data_dependency_filepath.h"
 
 using namespace std;
 
@@ -25,8 +34,20 @@ string readFile(char[]& fileName) {
 }
 */
 
-vector<string> readFile2(const string& fileName) {
-	ifstream in(fileName);
+vector<string> readFile2(const string& fileName1, const string& fileName2, const string& fileName3) {
+	ifstream in;
+	in.open(fileName1);
+	if (!in.is_open()) {
+		in.open(fileName2);
+		if (!in.is_open()) {
+		in.open(fileName3);
+		if (!in.is_open()) {
+			cerr << "Not founf: " << fileName1 << " 2: " << fileName2 << " 3:" << fileName3 << endl;
+			while (true) {
+			}
+                        }
+		}
+	}
 	vector<string> result;
 	string ins;
 	while (true) {
@@ -40,23 +61,107 @@ vector<string> readFile2(const string& fileName) {
 	return result;
 }
 
+bool match(const vector<string>& lss, int a, int b, const string& key, int pos) {
+	if (pos >= (int)key.size()) {
+		return true;
+	}
+	if (a < 0 || a >= (int)lss.size()) {
+		return false;
+	}
+	if (b < 0 || b >= (int)lss[a].size()) {
+		return false;
+	}
+	if (lss[a][b] != key[pos]) {
+		return false;
+	}
+
+	for (int aa = -1; aa <= 1; ++aa) {
+		for (int bb = -1; bb <= 1; ++bb) {
+			if (aa != 0 || bb != 0) {
+				if (match(lss, a + aa, b + bb, key, pos + 1)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 //	char[] f1 = "input.txt";
 int main() {
- 	ifstream in;
-	in.open("input.txt");
+	// cout << devtools_build::GetDataDependencyFilepath("findStrean/data/file") << endl;
+
+
+    // Get the current path
+    static const std::string pathL =
+#ifdef _WIN64
+    "\\";
+#else
+#ifdef _WIN32
+    "\\";
+#else
+    "/";
+#endif
+#endif
+    ;
+
+    // cout << "path: (" << pathL << ")" << endl;
+#ifdef _WIN64
+    	char buffer[MAX_PATH];
+	DWORD length = GetModuleFileNameA(NULL, buffer, MAX_PATH);
+
+    std::string error;
+    // Create a Runfiles object, providing argv to help locate the manifest.
+    std::unique_ptr<Runfiles> runfiles(Runfiles::Create(argv, &error));
+    const string f2 = runfiles->Rlocation("wordSearchCalc/input.txt");
+    const string q2 = runfiles->Rlocation("wordSearchCalc/q.txt");
+#else
+	char buffer[] = "";
+	string f2 = "input.txt";
+	string q2 = "q.txt";
+#endif
+	static const string currentPath = filesystem::current_path().string() + pathL + "wordSearchCalc" + pathL;
+
+    // Print the current path
+    cout << "Current working directory: " << currentPath << " " << buffer << endl;
+
 //	string s = readFile(f1);
 	string ss;
-	vector<string> lss;
+	const vector<string> lss = readFile2(currentPath + "input.txt", "input.txt", f2);
+
+/*
+	lss.clear();
+	ifstream in;
+	in.open(currentPath + "input.txt");
 	for (int i = 0; i < 22; ++i) {
 		ss.clear();
+		// getdelim(in, ss);
 		in >> ss;
 		lss.push_back(ss);
 	}
-	cout << lss.size() << "------------";
+*/
+/*
+	cout << lss.size() << "------------" << endl;
 // inline(in, ss);
 	cout << ss << endl;
-	for (int i = 0; i < 22; ++i) {
-		cout << "\n" << i << lss[i] << lss[i].size();
+	for (long unsigned int i = 0; i < lss.size(); ++i) {
+		cout << i << lss[i] << " size=" << lss[i].length() << endl;
 	}
+*/
+	const auto questions = readFile2(currentPath + "q.txt", "q.txt", q2);
+	for (long unsigned int iq = 0; iq < questions.size(); ++iq)
+	{
+		const auto q = questions[iq];
+		int found = 0;
+		for (long unsigned int i = 0; i < lss.size(); ++i) {
+			for (long unsigned int j = 0; j < lss[i].size(); ++j) {
+				if (match(lss, i, j, q, 0)) {
+					++found;
+				}
+			}
+		}
+		cout << q << ": " << found << endl;
+	}
+
 	return 0;
 }
