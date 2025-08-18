@@ -15,6 +15,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <cstdint>
+
 using namespace std;
 
 using u8 = uint8_t;
