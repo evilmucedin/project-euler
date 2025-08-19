@@ -21,7 +21,7 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "GOOG", "IWM", 
 assert(len(tickers) == len(set(tickers)))
 
 for ticker in tickers:
-    data = yfinance.download(ticker, start='2000-08-01', end=str(date.today() - timedelta(days=1)), actions=True)
+    data = yfinance.download(ticker, start='2000-08-01', end=str(date.today() - timedelta(days=1)), actions=True, auto_adjust=False)
     filename = "marketData/%s.csv" % ticker
     data.to_csv(filename)
     with open(filename, "r") as f:
