@@ -1,3 +1,4 @@
-cc_pinary(
-
+cc_binary(
+    name="solution",
+    srcs=["solution.cpp",],
 )
