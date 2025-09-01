@@ -5,6 +5,14 @@ using namespace std;
 
 class Solution {
 public:
+    int s2(const vector<int>& v) {
+        int res = 0;
+        for (int i: v)
+            if (i)
+                ++res;
+        return res;
+    }
+
     int projectionArea(const vector<vector<int>>& grid) {
 	vector<int> a;
 	vector<int> b;
@@ -20,7 +28,7 @@ public:
 		}
 
 	for (int i = 0; i < grid.size(); ++i) {
-		c.push_back(grid[i].size());
+		c.push_back(s2(grid[i]));
 	}
     	
 	int result = 0;
