@@ -19,7 +19,13 @@ cc_library(
         "//gflags:gflags",
         "//glog:glog",
     ],
+<<<<<<< HEAD
     visibility = ["//visibility:public"],
+=======
+    visibility=[
+	    "//visibility:public",
+    ],
+>>>>>>> 7ef7ed38 (continue BAZEL support)
 )
 
 
