@@ -20,7 +20,7 @@ cc_library(
         "//glog:glog",
     ],
     visibility=[
-        "PUBLIC",
+	    "//visibility:public",
     ],
 )
 

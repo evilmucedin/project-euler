@@ -1,0 +1,6 @@
+git_repository(
+    name = "com_github_gflags_gflags",
+    commit = "<INSERT COMMIT SHA HERE>",
+    remote = "https://github.com/gflags/gflags.git",
+)
+
