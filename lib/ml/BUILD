@@ -1,0 +1,89 @@
+cc_library(
+  name="regressor",
+  exported_headers=[
+    "regressor.h",
+  ],
+  srcs=[
+    "regressor.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cc_library(
+  name="metrics",
+  exported_headers=[
+    "metrics.h",
+  ],
+  srcs=[
+    "metrics.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cc_library(
+  name="gbdt",
+  exported_headers=[
+    "gbdt.h",
+  ],
+  srcs=[
+    "gbdt.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:exception",
+    "//lib:noncopyable",
+    "//lib:string",
+    ":regressor",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cc_library(
+  name="ols",
+  exported_headers=[
+    "ols.h",
+  ],
+  srcs=[
+    "ols.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    ":regressor",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cc_library(
+  name="dataframe",
+  exported_headers=[
+    "dataframe.h",
+  ],
+  srcs=[
+    "dataframe.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:string",
+    "//lib/io:csv",
+    "//lib:file",
+    "//lib:exception",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+

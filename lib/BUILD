@@ -7,6 +7,25 @@ cc_library(
 )
 
 cc_library(
+    name="init",
+    exported_headers=[
+        "init.h",
+    ],
+    srcs=[
+        "init.cpp",
+    ],
+    deps=[
+        ":header",
+        "//gflags:gflags",
+        "//glog:glog",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+
+cc_library(
     name = "matrix",
     hdrs = ["matrix.h"],
     srcs = ["matrix.cpp"],
