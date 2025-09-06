@@ -19,9 +19,7 @@ cc_library(
         "//gflags:gflags",
         "//glog:glog",
     ],
-    visibility=[
-        "PUBLIC",
-    ],
+    visibility = ["//visibility:public"],
 )
 
 
