@@ -31,7 +31,5 @@ cc_library(
     "./vlog_is_on.cc",
     "./port.cc",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
+  visibility = ["//visibility:public"],
 )
