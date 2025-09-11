@@ -37,4 +37,5 @@ cc_library(
     "port.cc",
   ],
   visibility = ["//visibility:public"],
+  copts = ["-fPIC"],
 )
