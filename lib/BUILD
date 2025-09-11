@@ -1,3 +1,8 @@
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+
+package(default_visibility = ["//lib"])
+
+
 # load("@pybind11_bazel//:build_defs.bzl", "pybind_library")
 
 cc_library(
