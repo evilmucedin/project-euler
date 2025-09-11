@@ -1,6 +1,6 @@
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-package(default_visibility = ["//glog"])
+# package(default_visibility = ["//glog"])
 
 
 cc_library(

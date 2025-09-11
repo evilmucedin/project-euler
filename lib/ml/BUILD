@@ -15,9 +15,6 @@ cc_library(
   deps=[
     "//lib:header",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
 )
 
 cc_library(
@@ -30,9 +27,6 @@ cc_library(
   ],
   deps=[
     "//lib:header",
-  ],
-  visibility=[
-    'PUBLIC',
   ],
 )
 
@@ -51,9 +45,6 @@ cc_library(
     "//lib:string",
     ":regressor",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
 )
 
 cc_library(
@@ -67,9 +58,6 @@ cc_library(
   deps=[
     "//lib:header",
     ":regressor",
-  ],
-  visibility=[
-    'PUBLIC',
   ],
 )
 
@@ -87,9 +75,6 @@ cc_library(
     "//lib/io:csv",
     "//lib:file",
     "//lib:exception",
-  ],
-  visibility=[
-    'PUBLIC',
   ],
 )
 

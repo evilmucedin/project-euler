@@ -17,7 +17,7 @@ cc_library(
     deps=[
         ":header",
         "//gflags:gflags",
-        "//glog:glog",
+        "//glog:glog2",
     ],
     visibility=[
 	    "//visibility:public",
@@ -47,5 +47,19 @@ cc_library(
     srcs = ["timer.cpp"],
     visibility = ["//visibility:public"],
     deps = [":header"],
+)
+
+cc_library(
+    name="exception",
+    srcs=[
+        "exception.cpp",
+    ],
+    hdrs=[
+        "exception.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility = ["//visibility:public"],
 )
 
