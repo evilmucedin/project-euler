@@ -1,5 +1,5 @@
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+# load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+# load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 # package(default_visibility = ["//ETFModeling"])
 
