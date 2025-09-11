@@ -4,7 +4,7 @@ package(default_visibility = ["//glog"])
 
 
 cc_library(
-  name="glog",
+  name="glog2",
   hdrs=[
     "base/commandlineflags.h",
     "base/googleinit.h",
