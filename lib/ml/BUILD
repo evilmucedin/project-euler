@@ -1,9 +1,10 @@
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+# load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 # package(default_visibility = ["//lib/ml"])
 
 cc_library(
     name="ml",
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -17,6 +18,7 @@ cc_library(
   deps=[
     "//lib:header",
   ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -30,6 +32,7 @@ cc_library(
   deps=[
     "//lib:header",
   ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -47,6 +50,7 @@ cc_library(
     "//lib:string",
     ":regressor",
   ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -61,6 +65,7 @@ cc_library(
     "//lib:header",
     ":regressor",
   ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -78,5 +83,6 @@ cc_library(
     "//lib:file",
     "//lib:exception",
   ],
+    visibility = ["//visibility:public"],
 )
 

@@ -1,10 +1,31 @@
-load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
+# load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+# load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-package(default_visibility = ["//lib"])
+# package(default_visibility = ["//lib"])
 
 
 # load("@pybind11_bazel//:build_defs.bzl", "pybind_library")
+
+cc_library(
+    name="lib",
+    deps=[
+        ":header",
+        ":exception",
+        ":string",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name="noncopyable",
+    srcs=[
+        "noncopyable.cpp",
+    ],
+    hdrs=[
+        "noncopyable.h",
+    ],
+    visibility = ["//visibility:public"],
+)
 
 cc_library(
     name = "header",
@@ -24,6 +45,41 @@ cc_library(
         ":header",
         "//gflags:gflags",
         "//glog:glog2",
+    ],
+    visibility=[
+	    "//visibility:public",
+    ],
+)
+
+
+cc_library(
+    name="file",
+    hdrs=[
+        "file.h",
+    ],
+    srcs=[
+        "file.cpp",
+    ],
+    deps=[
+        ":header",
+        ":string",
+    ],
+    visibility=[
+	    "//visibility:public",
+    ],
+)
+
+cc_library(
+    name="string",
+    hdrs=[
+        "string.h",
+    ],
+    srcs=[
+        "string.cpp",
+    ],
+    deps=[
+        ":header",
+        ":exception",
     ],
     visibility=[
 	    "//visibility:public",

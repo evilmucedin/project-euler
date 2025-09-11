@@ -9,9 +9,7 @@ cc_library(
   deps=[
     ":stream",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -27,9 +25,7 @@ cc_library(
     "//lib:exception",
     "//lib:noncopyable",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
+    visibility = ["//visibility:public"],
 )
 
 # cxx_library(
@@ -78,9 +74,7 @@ cc_library(
     "//lib/io:stream",
     "//zlib:zlib",
   ],
-  visibility=[
-    "PUBLIC",
-  ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -97,9 +91,7 @@ cc_library(
     "//lib/io:stream",
     "//lib:string",
   ],
-  visibility=[
-    "PUBLIC",
-  ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -116,9 +108,7 @@ cc_library(
     "//lib:string",
     "//lib/io:stream",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -132,9 +122,7 @@ cc_library(
   deps=[
     "//lib/io:file",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -145,9 +133,7 @@ cc_library(
   deps=[
     "//lib/io:file",
   ],
-  visibility=[
-    'PUBLIC',
-  ],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -162,7 +148,5 @@ cc_library(
     ":file",
     "//lib:exception",
   ],
-  visibility=[
-    "PUBLIC",
-  ],
+    visibility = ["//visibility:public"],
 )
