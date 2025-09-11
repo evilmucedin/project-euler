@@ -1,12 +1,10 @@
 cc_library(
     name="gflags",
 
-  exported_headers=[
+  hdrs=[
     "gflags_declare.h",
     "gflags_gflags.h",
     "gflags.h",
-  ],
-  headers=[
     "gflags_completions.h",
   ],
   srcs=[

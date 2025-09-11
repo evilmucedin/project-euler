@@ -1,3 +1,9 @@
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+
+package(default_visibility = ["//lib/ml"])
+
+
+
 cc_library(
   name="regressor",
   exported_headers=[
