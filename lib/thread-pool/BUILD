@@ -1,9 +1,9 @@
 cc_library(
-    name="thread-pool",
+    name="thread-pool2",
     hdrs = ["threadPool.h"],
     srcs = ["threadPool.cpp"],
     visibility = ["//visibility:public"],
-    deps = [":threadPool"],
+    deps = [":threadPool2"],
 )
 
 
