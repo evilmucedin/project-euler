@@ -6,7 +6,7 @@ package(default_visibility = ["//lib/ml"])
 
 cc_library(
   name="regressor",
-  exported_headers=[
+  hdrs=[
     "regressor.h",
   ],
   srcs=[
@@ -22,7 +22,7 @@ cc_library(
 
 cc_library(
   name="metrics",
-  exported_headers=[
+  hdrs=[
     "metrics.h",
   ],
   srcs=[
@@ -38,7 +38,7 @@ cc_library(
 
 cc_library(
   name="gbdt",
-  exported_headers=[
+  hdrs=[
     "gbdt.h",
   ],
   srcs=[
@@ -58,7 +58,7 @@ cc_library(
 
 cc_library(
   name="ols",
-  exported_headers=[
+  hdrs=[
     "ols.h",
   ],
   srcs=[
@@ -75,7 +75,7 @@ cc_library(
 
 cc_library(
   name="dataframe",
-  exported_headers=[
+  hdrs=[
     "dataframe.h",
   ],
   srcs=[

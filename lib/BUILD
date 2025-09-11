@@ -8,7 +8,7 @@ cc_library(
 
 cc_library(
     name="init",
-    exported_headers=[
+    hdrs=[
         "init.h",
     ],
     srcs=[
