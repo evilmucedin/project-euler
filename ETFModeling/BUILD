@@ -1,3 +1,7 @@
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
+
+package(default_visibility = ["//ETFModeling"])
+
 cc_binary(
   name="ETFModeling",
   srcs=[
