@@ -3,10 +3,10 @@
 #include "lib/header.h"
 #include "lib/noncopyable.h"
 
-class File : NonCopyable {
+class FileIo : NonCopyable {
    public:
-    File(string filename, string mode);
-    ~File();
+    FileIo(string filename, string mode);
+    ~FileIo();
 
     void write(const char* buffer, size_t size);
     size_t read(char* buffer, size_t size);

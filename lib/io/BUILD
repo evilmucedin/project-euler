@@ -13,12 +13,12 @@ cc_library(
 )
 
 cc_library(
-  name="file",
+  name="fileIo",
   hdrs=[
-    "file.h",
+    "fileIo.h",
   ],
   srcs=[
-    "file.cpp",
+    "fileIo.cpp",
   ],
   deps=[
     "//lib:header",
