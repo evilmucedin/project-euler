@@ -1,7 +1,7 @@
 #include "stream.h"
 
 #include <fcntl.h>
-#include <lib/exception.h>
+#include "lib/exception.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
