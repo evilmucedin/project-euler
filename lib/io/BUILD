@@ -71,7 +71,7 @@ cc_library(
   ],
   deps=[
     "//lib:header",
-    "//lib/io:stream",
+    ":stream",
     "//zlib:zlib",
   ],
     visibility = ["//visibility:public"],
@@ -88,7 +88,7 @@ cc_library(
   deps=[
     "//lib:exception",
     "//lib:header",
-    "//lib/io:stream",
+    ":stream",
     "//lib:string",
   ],
     visibility = ["//visibility:public"],
@@ -97,16 +97,16 @@ cc_library(
 cc_library(
   name="utils",
   hdrs=[
-    "utils.h"
+    "utils.h",
   ],
   srcs=[
     "utils.cpp",
   ],
   deps=[
-    "//glog:glog",
+    "//glog:glog2",
     "//lib:header",
     "//lib:string",
-    "//lib/io:stream",
+    ":stream",
   ],
     visibility = ["//visibility:public"],
 )
@@ -120,7 +120,7 @@ cc_library(
     "varlen.cpp",
   ],
   deps=[
-    "//lib/io:file",
+    ":file",
   ],
     visibility = ["//visibility:public"],
 )
