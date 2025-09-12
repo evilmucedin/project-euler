@@ -1,11 +1,15 @@
 cc_library(
-    name="gflags",
+    name="gflags2",
 
   hdrs=[
     "gflags_declare.h",
     "gflags_gflags.h",
     "gflags.h",
     "gflags_completions.h",
+    "config.h",
+    "defines.h",
+    "util.h",
+    "mutex.h",
   ],
   srcs=[
     "gflags.cc",
@@ -15,12 +19,12 @@ cc_library(
   visibility = ["//visibility:public"],
 )
 
-cc_binary(
-    name = "foo",
-    srcs = ["main.cc"],
-    deps = [
-        "@com_github_gflags_gflags//:gflags", # If using git_repository
-        # Or if using Bzlmod:
-        # "@gflags//:gflags",
-    ],
-)
+#cc_binary(
+#    name = "foo",
+#    srcs = ["main.cc"],
+#    deps = [
+#        # "@com_github_gflags_gflags//:gflags", # If using git_repository
+#        # Or if using Bzlmod:
+#        "@gflags//:gflags2",
+#    ],
+#)

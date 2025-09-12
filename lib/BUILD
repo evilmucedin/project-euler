@@ -43,7 +43,7 @@ cc_library(
     ],
     deps=[
         ":header",
-        "//gflags:gflags",
+        "//gflags:gflags2",
         "//glog:glog2",
     ],
     visibility=[

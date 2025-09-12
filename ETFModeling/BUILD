@@ -21,7 +21,7 @@ cc_binary(
     "ETFModeling.cpp"
   ],
   deps=[
-    "//gflags",
+    "//gflags:gflags2",
     "//glog:glog2",
     "//lib:header",
     "//lib:init",

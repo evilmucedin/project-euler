@@ -4,7 +4,8 @@ cc_binary(
         "CovMatrix.cpp",
     ],
     deps = [
-        "@com_github_google_glog//:glog",
+        #"@com_github_google_glog//:glog",
+        "//glog:glog2",
         "//lib:header",
         "//lib:matrix",
         "//lib:random",
