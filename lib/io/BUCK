@@ -15,12 +15,12 @@ cxx_library(
 )
 
 cxx_library(
-  name="file",
+  name="fileIo",
   exported_headers=[
-    "file.h",
+    "fileIo.h",
   ],
   srcs=[
-    "file.cpp",
+    "fileIo.cpp",
   ],
   deps=[
     "//lib:header",
@@ -130,7 +130,7 @@ cxx_library(
     "varlen.cpp",
   ],
   deps=[
-    "//lib/io:file",
+    ":fileIo",
   ],
   visibility=[
     'PUBLIC',
@@ -143,7 +143,7 @@ cxx_library(
     "structFile.h",
   ],
   deps=[
-    "//lib/io:file",
+    ":fileIo",
   ],
   visibility=[
     'PUBLIC',
@@ -159,7 +159,7 @@ cxx_library(
     "stream.cpp",
   ],
   deps=[
-    ":file",
+    ":fileIo",
     "//lib:exception",
   ],
   visibility=[

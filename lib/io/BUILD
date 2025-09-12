@@ -120,7 +120,7 @@ cc_library(
     "varlen.cpp",
   ],
   deps=[
-    ":file",
+    ":fileIo",
   ],
     visibility = ["//visibility:public"],
 )
@@ -131,7 +131,7 @@ cc_library(
     "structFile.h",
   ],
   deps=[
-    "//lib/io:file",
+    "//lib/io:fileIo",
   ],
     visibility = ["//visibility:public"],
 )
@@ -145,7 +145,7 @@ cc_library(
     "stream.cpp",
   ],
   deps=[
-    ":file",
+    ":fileIo",
     "//lib:exception",
   ],
     visibility = ["//visibility:public"],
