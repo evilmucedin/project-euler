@@ -114,3 +114,6 @@ http_archive(
 )
 load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python")
+
+
+register_toolchains("//toolchain:cc_toolchain")
