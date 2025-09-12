@@ -18,7 +18,7 @@ cc_library(
   deps=[
     "//lib:header",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -32,7 +32,7 @@ cc_library(
   deps=[
     "//lib:header",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -65,7 +65,7 @@ cc_library(
     "//lib:header",
     ":regressor",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
 )
 
 cc_library(
@@ -83,6 +83,6 @@ cc_library(
     "//lib:file",
     "//lib:exception",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
 )
 
