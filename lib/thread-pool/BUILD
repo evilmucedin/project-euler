@@ -3,7 +3,7 @@ cc_library(
     hdrs = ["threadPool.h"],
     srcs = ["threadPool.cpp"],
     visibility = ["//visibility:public"],
-    deps = [":threadPool2"],
+    deps = [":thread-pool2"],
 )
 
 
