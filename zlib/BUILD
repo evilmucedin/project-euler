@@ -3,6 +3,15 @@ cc_library(
   hdrs=[
     "zconf.h",
     "zlib.h",
+    "zutil.h",
+    "deflate.h",
+    "gzguts.h",
+    "crc32.h",
+    "inftrees.h",
+    "trees.h",
+    "inflate.h",
+    "inffast.h",
+    "inffixed.h",
   ],
   srcs=[
     "adler32.c",
