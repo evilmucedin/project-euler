@@ -7,7 +7,7 @@ cc_library(
 )
 
 cc_library(
-    name="stat",
+    name="stat2",
     hdrs=[
         "stat.h",
     ],

@@ -1,5 +1,5 @@
 cc_library(
-  name="zlib",
+  name="zlib2",
   hdrs=[
     "zconf.h",
     "zlib.h",
