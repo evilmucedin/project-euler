@@ -65,9 +65,24 @@ cc_library(
         ":string",
     ],
     visibility=[
-	    "//visibility:public",
+        "//visibility:public",
     ],
 )
+
+
+cc_library(
+    name="stat",
+    hdrs=[
+        "stat.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "//visibility:public",
+    ],
+)
+
 
 cc_library(
     name="string",
