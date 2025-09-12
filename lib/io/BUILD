@@ -54,7 +54,7 @@ cc_library(
 #   ],
 #   deps=[
 #     "//lib:header",
-#     "//zlib:zlib",
+#     "//zlib2:zlib",
 #   ],
 #   visibility=[
 #     "PUBLIC",
@@ -72,7 +72,7 @@ cc_library(
   deps=[
     "//lib:header",
     ":stream",
-    "//zlib:zlib",
+    "//zlib2:zlib",
   ],
     visibility = ["//visibility:public"],
 )
