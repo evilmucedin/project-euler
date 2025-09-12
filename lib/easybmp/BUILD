@@ -1,5 +1,5 @@
 cc_library(
-    name="easybmp",
+    name="easybmp2",
     srcs=[
         "EasyBMP.cpp",
     ],

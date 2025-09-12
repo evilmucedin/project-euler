@@ -6,6 +6,6 @@ cc_binary(
     srcs = ["262.cpp"],
     deps = [
         "//lib:header",
-        "//lib/easybmp",
+        "//lib/easybmp:easybmp2",
     ],
 )
