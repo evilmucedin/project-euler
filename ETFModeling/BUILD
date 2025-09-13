@@ -22,7 +22,8 @@ cc_binary(
     "//lib:stat",
     "//lib/ml:dataframe",
   ],
-  copts = ["-std=c++17"],
+#  copts = ["-std=c++17"],
+  features = ["-lto"],
 )
 
 
@@ -45,6 +46,7 @@ cc_binary(
     "//lib:stat",
     "//lib/ml:dataframe",
   ],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  features = ["-lto"],
 #  visibility = ["//ETFModeling:ETFModeling2"],
 )

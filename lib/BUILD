@@ -14,6 +14,7 @@ cc_library(
         ":string",
     ],
     visibility = ["//visibility:public"],
+    features = ["-lto"],
 )
 
 cc_library(
@@ -25,12 +26,14 @@ cc_library(
         "noncopyable.h",
     ],
     visibility = ["//visibility:public"],
+    features = ["-lto"],
 )
 
 cc_library(
     name = "header",
     hdrs = ["header.h"],
     visibility = ["//visibility:public"],
+    features = ["-lto"],
 )
 
 cc_library(
@@ -49,6 +52,7 @@ cc_library(
     visibility=[
 	    "//visibility:public",
     ],
+    features = ["-lto"],
 )
 
 
@@ -67,7 +71,8 @@ cc_library(
     visibility=[
         "//visibility:public",
     ],
-#    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    features = ["-lto"],
+    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 #    alwayslink = 1,
 )
 
@@ -87,6 +92,7 @@ cc_library(
 	    "//visibility:public",
     ],
     copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    features = ["-lto"],
 #    alwayslink = 1,
 )
 
@@ -99,6 +105,7 @@ cc_library(
     deps = [":header"],
 #    alwayslink = 1,
     copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    features = ["-lto"],
 )
 
 cc_library(
@@ -109,6 +116,7 @@ cc_library(
     deps = [":header"],
 #    alwayslink = 1,
     copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    features = ["-lto"],
 )
 
 cc_library(
@@ -118,6 +126,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [":header"],
     copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    features = ["-lto"],
 #    alwayslink = 1,
 )
 
@@ -134,6 +143,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    features = ["-lto"],
 #    alwayslink = 1,
 )
 
@@ -146,6 +156,7 @@ cc_library(
         ":header",
     ],
     visibility = ["//visibility:public"],
-    alwayslink = 1,
+#    alwayslink = 1,
+    features = ["-lto"],
 )
 
