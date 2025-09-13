@@ -28,15 +28,11 @@ cc_binary(
     "//lib/thread-pool:thread-pool2",
 #    "//lib:matrix",
     "//lib:random",
-<<<<<<< HEAD
-#    "//lib/stat",
-=======
     "//lib/stat:stat2",
-    "//lib:stat",
->>>>>>> 006bc5650f04ededcaf4bedb6d29ca7a4e17a1d4
     "//lib:timer",
     "//lib:stat",
     "//lib/ml:dataframe",
   ],
+  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 #  visibility = ["//ETFModeling:ETFModeling2"],
 )

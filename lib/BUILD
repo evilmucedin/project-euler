@@ -67,22 +67,9 @@ cc_library(
     visibility=[
         "//visibility:public",
     ],
+    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+    alwayslink = 1,
 )
-
-
-cc_library(
-    name="stat",
-    hdrs=[
-        "stat.h",
-    ],
-    deps=[
-        ":header",
-    ],
-    visibility=[
-        "//visibility:public",
-    ],
-)
-
 
 cc_library(
     name="string",
@@ -99,6 +86,7 @@ cc_library(
     visibility=[
 	    "//visibility:public",
     ],
+    alwayslink = 1,
 )
 
 
@@ -108,6 +96,7 @@ cc_library(
     srcs = ["matrix.cpp"],
     visibility = ["//visibility:public"],
     deps = [":header"],
+    alwayslink = 1,
 )
 
 cc_library(
@@ -116,6 +105,7 @@ cc_library(
     srcs = ["random.cpp"],
     visibility = ["//visibility:public"],
     deps = [":header"],
+    alwayslink = 1,
 )
 
 cc_library(
@@ -124,6 +114,8 @@ cc_library(
     srcs = ["timer.cpp"],
     visibility = ["//visibility:public"],
     deps = [":header"],
+    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+    alwayslink = 1,
 )
 
 cc_library(
@@ -138,6 +130,8 @@ cc_library(
         ":header",
     ],
     visibility = ["//visibility:public"],
+    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+    alwayslink = 1,
 )
 
 cc_library(
@@ -149,5 +143,6 @@ cc_library(
         ":header",
     ],
     visibility = ["//visibility:public"],
+    alwayslink = 1,
 )
 

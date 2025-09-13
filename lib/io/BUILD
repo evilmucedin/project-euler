@@ -25,7 +25,8 @@ cc_library(
     "//lib:exception",
     "//lib:noncopyable",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 )
 
 # cxx_library(
@@ -91,7 +92,8 @@ cc_library(
     ":stream",
     "//lib:string",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 )
 
 cc_library(
