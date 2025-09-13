@@ -44,6 +44,7 @@ cc_binary(
     "//lib/stat:stat2",
     "//lib:timer",
     "//lib:stat",
+    "//lib:exception",
     "//lib/ml:dataframe",
   ],
   # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
