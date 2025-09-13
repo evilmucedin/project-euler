@@ -9,6 +9,20 @@ cc_binary(
     srcs = [
         "ETFModelingTest.cpp",
     ],
+  deps=[
+#    "//gflags:gflags2",
+    "//glog:glog2",
+    "//lib:header",
+    "//lib:init",
+    "//lib/thread-pool:thread-pool2",
+#    "//lib:matrix",
+    "//lib:random",
+    "//lib/stat:stat2",
+    "//lib:timer",
+    "//lib:stat",
+    "//lib/ml:dataframe",
+  ],
+  copts = ["-std=c++17"],
 )
 
 
