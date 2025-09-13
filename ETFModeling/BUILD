@@ -15,7 +15,7 @@ cc_binary(
     "//lib:header",
     "//lib:init",
     "//lib/thread-pool:thread-pool2",
-#    "//lib:matrix",
+    "//lib:matrix",
     "//lib:random",
     "//lib/stat:stat2",
     "//lib:timer",
