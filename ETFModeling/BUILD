@@ -4,12 +4,10 @@
 # package(default_visibility = ["//ETFModeling"])
 
 
-package_group(
-    name = "ETFModeling3",
-    packages = [
-    ],
-    includes = [
-        "//ETFModeling:ETFModeling2",
+cc_binary(
+    name = "ETFModelingTest",
+    srcs = [
+        "ETFModelingTest.cpp",
     ],
 )
 
