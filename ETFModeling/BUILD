@@ -49,5 +49,6 @@ cc_binary(
   ],
   # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
   features = ["-lto"],
+  linkopts = ["-lstdc++"],
 #  visibility = ["//ETFModeling:ETFModeling2"],
 )
