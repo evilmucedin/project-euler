@@ -1,4 +1,4 @@
-// Copyright (c) 2008, Google Inc.
+// Copyright (c) 2024, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,36 @@
 //
 // Implementation of InstallFailureSignalHandler().
 
-#include "utilities.h"
+#include <algorithm>
+#include <csignal>
+#include <cstring>
+#include <ctime>
+#include <mutex>
+#include <sstream>
+#include <thread>
+
+#include "config.h"
+#include "glog/logging.h"
+#include "glog/platform.h"
 #include "stacktrace.h"
 #include "symbolize.h"
-#include "logging.h"
+#include "utilities.h"
 
-#include <signal.h>
-#include <time.h>
 #ifdef HAVE_UCONTEXT_H
-# include <ucontext.h>
+#  include <ucontext.h>
 #endif
 #ifdef HAVE_SYS_UCONTEXT_H
-# include <sys/ucontext.h>
+#  include <sys/ucontext.h>
 #endif
-#include <algorithm>
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+#if defined(HAVE_SYS_SYSCALL_H) && defined(HAVE_SYS_TYPES_H)
+#  include <sys/syscall.h>
+#  include <sys/types.h>
+#endif
 
-_START_GOOGLE_NAMESPACE_
-
-// TOOD(hamaji): Use signal instead of sigaction?
-#ifdef HAVE_SIGACTION
+namespace google {
 
 namespace {
 
@@ -60,43 +71,49 @@ namespace {
 // The list should be synced with the comment in signalhandler.h.
 const struct {
   int number;
-  const char *name;
+  const char* name;
 } kFailureSignals[] = {
-  { SIGSEGV, "SIGSEGV" },
-  { SIGILL, "SIGILL" },
-  { SIGFPE, "SIGFPE" },
-  { SIGABRT, "SIGABRT" },
-  { SIGBUS, "SIGBUS" },
-  { SIGTERM, "SIGTERM" },
+    {SIGSEGV, "SIGSEGV"}, {SIGILL, "SIGILL"},
+    {SIGFPE, "SIGFPE"},   {SIGABRT, "SIGABRT"},
+#if !defined(GLOG_OS_WINDOWS)
+    {SIGBUS, "SIGBUS"},
+#endif
+    {SIGTERM, "SIGTERM"},
 };
 
-// Returns the program counter from signal context, NULL if unknown.
+static bool kFailureSignalHandlerInstalled = false;
+
+#if !defined(GLOG_OS_WINDOWS)
+// Returns the program counter from signal context, nullptr if unknown.
 void* GetPC(void* ucontext_in_void) {
-#if (defined(HAVE_UCONTEXT_H) || defined(HAVE_SYS_UCONTEXT_H)) && defined(PC_FROM_UCONTEXT)
-  if (ucontext_in_void != NULL) {
-    ucontext_t *context = reinterpret_cast<ucontext_t *>(ucontext_in_void);
+#  if (defined(HAVE_UCONTEXT_H) || defined(HAVE_SYS_UCONTEXT_H)) && \
+      defined(PC_FROM_UCONTEXT)
+  if (ucontext_in_void != nullptr) {
+    ucontext_t* context = reinterpret_cast<ucontext_t*>(ucontext_in_void);
     return (void*)context->PC_FROM_UCONTEXT;
   }
-#endif
-  return NULL;
+#  else
+  (void)ucontext_in_void;
+#  endif
+  return nullptr;
 }
+#endif
 
 // The class is used for formatting error messages.  We don't use printf()
 // as it's not async signal safe.
 class MinimalFormatter {
  public:
-  MinimalFormatter(char *buffer, int size)
-      : buffer_(buffer),
-        cursor_(buffer),
-        end_(buffer + size) {
-  }
+  MinimalFormatter(char* buffer, size_t size)
+      : buffer_(buffer), cursor_(buffer), end_(buffer + size) {}
 
   // Returns the number of bytes written in the buffer.
-  int num_bytes_written() const { return cursor_ - buffer_; }
+  std::size_t num_bytes_written() const {
+    return static_cast<std::size_t>(cursor_ - buffer_);
+  }
 
   // Appends string from "str" and updates the internal cursor.
   void AppendString(const char* str) {
-    int i = 0;
+    ptrdiff_t i = 0;
     while (str[i] != '\0' && cursor_ + i < end_) {
       cursor_[i] = str[i];
       ++i;
@@ -106,12 +123,12 @@ class MinimalFormatter {
 
   // Formats "number" in "radix" and updates the internal cursor.
   // Lowercase letters are used for 'a' - 'z'.
-  void AppendUint64(uint64 number, int radix) {
-    int i = 0;
+  void AppendUint64(uint64 number, unsigned radix) {
+    unsigned i = 0;
     while (cursor_ + i < end_) {
-      const int tmp = number % radix;
+      const uint64 tmp = number % radix;
       number /= radix;
-      cursor_[i] = (tmp < 10 ? '0' + tmp : 'a' + tmp - 10);
+      cursor_[i] = static_cast<char>(tmp < 10 ? '0' + tmp : 'a' + tmp - 10);
       ++i;
       if (number == 0) {
         break;
@@ -138,43 +155,46 @@ class MinimalFormatter {
   }
 
  private:
-  char *buffer_;
-  char *cursor_;
-  const char * const end_;
+  char* buffer_;
+  char* cursor_;
+  const char* const end_;
 };
 
 // Writes the given data with the size to the standard error.
-void WriteToStderr(const char* data, int size) {
-  if (write(STDERR_FILENO, data, size) < 0) {
+void WriteToStderr(const char* data, size_t size) {
+  if (write(fileno(stderr), data, size) < 0) {
     // Ignore errors.
   }
 }
 
 // The writer function can be changed by InstallFailureWriter().
-void (*g_failure_writer)(const char* data, int size) = WriteToStderr;
+void (*g_failure_writer)(const char* data, size_t size) = WriteToStderr;
 
 // Dumps time information.  We don't dump human-readable time information
 // as localtime() is not guaranteed to be async signal safe.
 void DumpTimeInfo() {
-  time_t time_in_sec = time(NULL);
+  time_t time_in_sec = time(nullptr);
   char buf[256];  // Big enough for time info.
   MinimalFormatter formatter(buf, sizeof(buf));
   formatter.AppendString("*** Aborted at ");
-  formatter.AppendUint64(time_in_sec, 10);
+  formatter.AppendUint64(static_cast<uint64>(time_in_sec), 10);
   formatter.AppendString(" (unix time)");
   formatter.AppendString(" try \"date -d @");
-  formatter.AppendUint64(time_in_sec, 10);
+  formatter.AppendUint64(static_cast<uint64>(time_in_sec), 10);
   formatter.AppendString("\" if you are using GNU date ***\n");
   g_failure_writer(buf, formatter.num_bytes_written());
 }
 
+// TODO(hamaji): Use signal instead of sigaction?
+#if defined(HAVE_STACKTRACE) && defined(HAVE_SIGACTION)
+
 // Dumps information about the signal to STDERR.
-void DumpSignalInfo(int signal_number, siginfo_t *siginfo) {
+void DumpSignalInfo(int signal_number, siginfo_t* siginfo) {
   // Get the signal name.
-  const char* signal_name = NULL;
-  for (size_t i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
-    if (signal_number == kFailureSignals[i].number) {
-      signal_name = kFailureSignals[i].name;
+  const char* signal_name = nullptr;
+  for (auto kFailureSignal : kFailureSignals) {
+    if (signal_number == kFailureSignal.number) {
+      signal_name = kFailureSignal.name;
     }
   }
 
@@ -188,42 +208,54 @@ void DumpSignalInfo(int signal_number, siginfo_t *siginfo) {
     // Use the signal number if the name is unknown.  The signal name
     // should be known, but just in case.
     formatter.AppendString("Signal ");
-    formatter.AppendUint64(signal_number, 10);
+    formatter.AppendUint64(static_cast<uint64>(signal_number), 10);
   }
   formatter.AppendString(" (@0x");
   formatter.AppendUint64(reinterpret_cast<uintptr_t>(siginfo->si_addr), 16);
   formatter.AppendString(")");
   formatter.AppendString(" received by PID ");
-  formatter.AppendUint64(getpid(), 10);
-  formatter.AppendString(" (TID 0x");
-  // We assume pthread_t is an integral number or a pointer, rather
-  // than a complex struct.  In some environments, pthread_self()
-  // returns an uint64 but in some other environments pthread_self()
-  // returns a pointer.  Hence we use C-style cast here, rather than
-  // reinterpret/static_cast, to support both types of environments.
-  formatter.AppendUint64((uintptr_t)pthread_self(), 16);
+  formatter.AppendUint64(static_cast<uint64>(getpid()), 10);
+  formatter.AppendString(" (TID ");
+
+  std::ostringstream oss;
+  oss << std::showbase << std::hex << std::this_thread::get_id();
+  formatter.AppendString(oss.str().c_str());
+#  if defined(GLOG_OS_LINUX) && defined(HAVE_SYS_SYSCALL_H) && \
+      defined(HAVE_SYS_TYPES_H)
+  pid_t tid = syscall(SYS_gettid);
+  formatter.AppendString(" LWP ");
+  formatter.AppendUint64(static_cast<uint64>(tid), 10);
+#  endif
   formatter.AppendString(") ");
+
   // Only linux has the PID of the signal sender in si_pid.
-#ifdef OS_LINUX
+#  ifdef GLOG_OS_LINUX
   formatter.AppendString("from PID ");
-  formatter.AppendUint64(siginfo->si_pid, 10);
+  formatter.AppendUint64(static_cast<uint64>(siginfo->si_pid), 10);
   formatter.AppendString("; ");
-#endif
+#  endif
   formatter.AppendString("stack trace: ***\n");
   g_failure_writer(buf, formatter.num_bytes_written());
 }
 
+#endif  // HAVE_SIGACTION
+
 // Dumps information about the stack frame to STDERR.
 void DumpStackFrameInfo(const char* prefix, void* pc) {
   // Get the symbol name.
-  const char *symbol = "(unknown)";
+  const char* symbol = "(unknown)";
+#if defined(HAVE_SYMBOLIZE)
   char symbolized[1024];  // Big enough for a sane symbol.
   // Symbolizes the previous address of pc because pc may be in the
   // next function.
-  if (Symbolize(reinterpret_cast<char *>(pc) - 1,
-                symbolized, sizeof(symbolized))) {
+  if (Symbolize(reinterpret_cast<char*>(pc) - 1, symbolized,
+                sizeof(symbolized))) {
     symbol = symbolized;
   }
+#else
+#  pragma message( \
+          "Symbolize functionality is not available for target platform: stack dump will contain empty frames.")
+#endif  // defined(HAVE_SYMBOLIZE)
 
   char buf[1024];  // Big enough for stack frame info.
   MinimalFormatter formatter(buf, sizeof(buf));
@@ -240,56 +272,32 @@ void DumpStackFrameInfo(const char* prefix, void* pc) {
 
 // Invoke the default signal handler.
 void InvokeDefaultSignalHandler(int signal_number) {
+#ifdef HAVE_SIGACTION
   struct sigaction sig_action;
   memset(&sig_action, 0, sizeof(sig_action));
   sigemptyset(&sig_action.sa_mask);
   sig_action.sa_handler = SIG_DFL;
-  sigaction(signal_number, &sig_action, NULL);
+  sigaction(signal_number, &sig_action, nullptr);
   kill(getpid(), signal_number);
+#elif defined(GLOG_OS_WINDOWS)
+  signal(signal_number, SIG_DFL);
+  raise(signal_number);
+#endif
 }
 
-// This variable is used for protecting FailureSignalHandler() from
-// dumping stuff while another thread is doing it.  Our policy is to let
-// the first thread dump stuff and let other threads wait.
+// This variable is used for protecting FailureSignalHandler() from dumping
+// stuff while another thread is doing it.  Our policy is to let the first
+// thread dump stuff and let other threads do nothing.
 // See also comments in FailureSignalHandler().
-static pthread_t* g_entered_thread_id_pointer = NULL;
+static std::once_flag signaled;
 
-// Dumps signal and stack frame information, and invokes the default
-// signal handler once our job is done.
-void FailureSignalHandler(int signal_number,
-                          siginfo_t *signal_info,
-                          void *ucontext) {
-  // First check if we've already entered the function.  We use an atomic
-  // compare and swap operation for platforms that support it.  For other
-  // platforms, we use a naive method that could lead to a subtle race.
+static void HandleSignal(int signal_number
+#if !defined(GLOG_OS_WINDOWS)
+                         ,
+                         siginfo_t* signal_info, void* ucontext
+#endif
+) {
 
-  // We assume pthread_self() is async signal safe, though it's not
-  // officially guaranteed.
-  pthread_t my_thread_id = pthread_self();
-  // NOTE: We could simply use pthread_t rather than pthread_t* for this,
-  // if pthread_self() is guaranteed to return non-zero value for thread
-  // ids, but there is no such guarantee.  We need to distinguish if the
-  // old value (value returned from __sync_val_compare_and_swap) is
-  // different from the original value (in this case NULL).
-  pthread_t* old_thread_id_pointer =
-      glog_internal_namespace_::sync_val_compare_and_swap(
-          &g_entered_thread_id_pointer,
-          static_cast<pthread_t*>(NULL),
-          &my_thread_id);
-  if (old_thread_id_pointer != NULL) {
-    // We've already entered the signal handler.  What should we do?
-    if (pthread_equal(my_thread_id, *g_entered_thread_id_pointer)) {
-      // It looks the current thread is reentering the signal handler.
-      // Something must be going wrong (maybe we are reentering by another
-      // type of signal?).  Kill ourself by the default signal handler.
-      InvokeDefaultSignalHandler(signal_number);
-    }
-    // Another thread is dumping stuff.  Let's wait until that thread
-    // finishes the job and kills the process.
-    while (true) {
-      sleep(1);
-    }
-  }
   // This is the first time we enter the signal handler.  We are going to
   // do some interesting stuff from here.
   // TODO(satorux): We might want to set timeout here using alarm(), but
@@ -298,20 +306,28 @@ void FailureSignalHandler(int signal_number,
   // First dump time info.
   DumpTimeInfo();
 
+#if !defined(GLOG_OS_WINDOWS)
   // Get the program counter from ucontext.
-  void *pc = GetPC(ucontext);
+  void* pc = GetPC(ucontext);
   DumpStackFrameInfo("PC: ", pc);
+#endif
 
 #ifdef HAVE_STACKTRACE
   // Get the stack traces.
-  void *stack[32];
+  void* stack[32];
   // +1 to exclude this function.
   const int depth = GetStackTrace(stack, ARRAYSIZE(stack), 1);
+#  ifdef HAVE_SIGACTION
   DumpSignalInfo(signal_number, signal_info);
+#  elif !defined(GLOG_OS_WINDOWS)
+  (void)signal_info;
+#  endif
   // Dump the stack traces.
   for (int i = 0; i < depth; ++i) {
     DumpStackFrameInfo("    ", stack[i]);
   }
+#elif !defined(GLOG_OS_WINDOWS)
+  (void)signal_info;
 #endif
 
   // *** TRANSITION ***
@@ -325,31 +341,46 @@ void FailureSignalHandler(int signal_number,
 
   // Flush the logs before we do anything in case 'anything'
   // causes problems.
-  FlushLogFilesUnsafe(0);
+  FlushLogFilesUnsafe(GLOG_INFO);
 
   // Kill ourself by the default signal handler.
   InvokeDefaultSignalHandler(signal_number);
 }
 
+// Dumps signal and stack frame information, and invokes the default
+// signal handler once our job is done.
+#if defined(GLOG_OS_WINDOWS)
+void FailureSignalHandler(int signal_number)
+#else
+void FailureSignalHandler(int signal_number, siginfo_t* signal_info,
+                          void* ucontext)
+#endif
+{
+  std::call_once(signaled, &HandleSignal, signal_number
+#if !defined(GLOG_OS_WINDOWS)
+                 ,
+                 signal_info, ucontext
+#endif
+  );
+}
+
 }  // namespace
-
-#endif  // HAVE_SIGACTION
-
-namespace glog_internal_namespace_ {
 
 bool IsFailureSignalHandlerInstalled() {
 #ifdef HAVE_SIGACTION
+  // TODO(andschwa): Return kFailureSignalHandlerInstalled?
   struct sigaction sig_action;
   memset(&sig_action, 0, sizeof(sig_action));
   sigemptyset(&sig_action.sa_mask);
-  sigaction(SIGABRT, NULL, &sig_action);
-  if (sig_action.sa_sigaction == &FailureSignalHandler)
+  sigaction(SIGABRT, nullptr, &sig_action);
+  if (sig_action.sa_sigaction == &FailureSignalHandler) {
     return true;
+  }
+#elif defined(GLOG_OS_WINDOWS)
+  return kFailureSignalHandlerInstalled;
 #endif  // HAVE_SIGACTION
   return false;
 }
-
-}  // namespace glog_internal_namespace_
 
 void InstallFailureSignalHandler() {
 #ifdef HAVE_SIGACTION
@@ -360,16 +391,22 @@ void InstallFailureSignalHandler() {
   sig_action.sa_flags |= SA_SIGINFO;
   sig_action.sa_sigaction = &FailureSignalHandler;
 
-  for (size_t i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
-    CHECK_ERR(sigaction(kFailureSignals[i].number, &sig_action, NULL));
+  for (auto kFailureSignal : kFailureSignals) {
+    CHECK_ERR(sigaction(kFailureSignal.number, &sig_action, nullptr));
   }
+  kFailureSignalHandlerInstalled = true;
+#elif defined(GLOG_OS_WINDOWS)
+  for (size_t i = 0; i < ARRAYSIZE(kFailureSignals); ++i) {
+    CHECK_NE(signal(kFailureSignals[i].number, &FailureSignalHandler), SIG_ERR);
+  }
+  kFailureSignalHandlerInstalled = true;
 #endif  // HAVE_SIGACTION
 }
 
-void InstallFailureWriter(void (*writer)(const char* data, int size)) {
-#ifdef HAVE_SIGACTION
+void InstallFailureWriter(void (*writer)(const char* data, size_t size)) {
+#if defined(HAVE_SIGACTION) || defined(GLOG_OS_WINDOWS)
   g_failure_writer = writer;
 #endif  // HAVE_SIGACTION
 }
 
-_END_GOOGLE_NAMESPACE_
+}  // namespace google

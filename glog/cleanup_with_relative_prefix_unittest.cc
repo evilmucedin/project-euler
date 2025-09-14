@@ -1,4 +1,4 @@
-// Copyright (c) 2008, Google Inc.
+// Copyright (c) 2024, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,10 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: Shinichiro Hamaji
-#include "utilities.h"
 
+#include "base/commandlineflags.h"
 #include "glog/logging.h"
+#include "glog/raw_logging.h"
 #include "googletest.h"
 
 #ifdef GLOG_USE_GFLAGS
@@ -38,15 +37,61 @@
 using namespace GFLAGS_NAMESPACE;
 #endif
 
+#ifdef HAVE_LIB_GMOCK
+#  include <gmock/gmock.h>
+
+#  include "mock-log.h"
+// Introduce several symbols from gmock.
+using google::glog_testing::ScopedMockLog;
+using testing::_;
+using testing::AllOf;
+using testing::AnyNumber;
+using testing::HasSubstr;
+using testing::InitGoogleMock;
+using testing::StrictMock;
+using testing::StrNe;
+#endif
+
 using namespace google;
 
-TEST(utilities, InitGoogleLoggingDeathTest) {
-  ASSERT_DEATH(InitGoogleLogging("foobar"), "");
+TEST(CleanImmediatelyWithRelativePrefix, logging) {
+  using namespace std::chrono_literals;
+  google::EnableLogCleaner(0h);
+  google::SetLogFilenameExtension(".relativefoo");
+  google::SetLogDestination(GLOG_INFO, "test_subdir/test_cleanup_");
+
+  for (unsigned i = 0; i < 1000; ++i) {
+    LOG(INFO) << "cleanup test";
+  }
+
+  google::DisableLogCleaner();
 }
 
 int main(int argc, char** argv) {
-  InitGoogleLogging(argv[0]);
-  InitGoogleTest(&argc, argv);
+  FLAGS_colorlogtostderr = false;
+  FLAGS_timestamp_in_logfile_name = true;
+#ifdef GLOG_USE_GFLAGS
+  ParseCommandLineFlags(&argc, &argv, true);
+#endif
+  // Make sure stderr is not buffered as stderr seems to be buffered
+  // on recent windows.
+  setbuf(stderr, nullptr);
 
+  // Test some basics before InitGoogleLogging:
+  CaptureTestStderr();
+  const string early_stderr = GetCapturedTestStderr();
+
+  EXPECT_FALSE(IsGoogleLoggingInitialized());
+
+  InitGoogleLogging(argv[0]);
+
+  EXPECT_TRUE(IsGoogleLoggingInitialized());
+
+  InitGoogleTest(&argc, argv);
+#ifdef HAVE_LIB_GMOCK
+  InitGoogleMock(&argc, argv);
+#endif
+
+  // so that death tests run before we use threads
   CHECK_EQ(RUN_ALL_TESTS(), 0);
 }

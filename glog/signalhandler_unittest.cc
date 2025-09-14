@@ -1,4 +1,4 @@
-// Copyright (c) 2008, Google Inc.
+// Copyright (c) 2024, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,48 +32,52 @@
 // This is a helper binary for testing signalhandler.cc.  The actual test
 // is done in signalhandler_unittest.sh.
 
-#include "utilities.h"
-
-#include <pthread.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <sstream>
 #include <string>
-#include "glog/logging.h"
+#include <thread>
 
-#ifdef HAVE_LIB_GFLAGS
-#include <gflags/gflags.h>
+#include "config.h"
+#include "glog/logging.h"
+#include "stacktrace.h"
+#include "symbolize.h"
+
+#if defined(HAVE_UNISTD_H)
+#  include <unistd.h>
+#endif
+#ifdef GLOG_USE_GFLAGS
+#  include <gflags/gflags.h>
 using namespace GFLAGS_NAMESPACE;
 #endif
+#if defined(_MSC_VER)
+#  include <io.h>  // write
+#endif
 
-using namespace GOOGLE_NAMESPACE;
+using namespace google;
 
-void* DieInThread(void*) {
-  // We assume pthread_t is an integral number or a pointer, rather
-  // than a complex struct.  In some environments, pthread_self()
-  // returns an uint64 but in some other environments pthread_self()
-  // returns a pointer.  Hence we use C-style cast here, rather than
-  // reinterpret/static_cast, to support both types of environments.
-  fprintf(stderr, "0x%lx is dying\n", (long)pthread_self());
-  // Use volatile to prevent from these to be optimized away.
-  volatile int a = 0;
-  volatile int b = 1 / a;
+static void DieInThread(int* a) {
+  std::ostringstream oss;
+  oss << std::showbase << std::hex << std::this_thread::get_id();
+
+  fprintf(stderr, "%s is dying\n", oss.str().c_str());
+  int b = 1 / *a;
   fprintf(stderr, "We should have died: b=%d\n", b);
-  return NULL;
 }
 
-void WriteToStdout(const char* data, int size) {
-  if (write(STDOUT_FILENO, data, size) < 0) {
+static void WriteToStdout(const char* data, size_t size) {
+  if (write(fileno(stdout), data, size) < 0) {
     // Ignore errors.
   }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 #if defined(HAVE_STACKTRACE) && defined(HAVE_SYMBOLIZE)
   InitGoogleLogging(argv[0]);
-#ifdef HAVE_LIB_GFLAGS
+#  ifdef GLOG_USE_GFLAGS
   ParseCommandLineFlags(&argc, &argv, true);
-#endif
+#  endif
   InstallFailureSignalHandler();
   const std::string command = argc > 1 ? argv[1] : "none";
   if (command == "segv") {
@@ -81,18 +85,21 @@ int main(int argc, char **argv) {
     LOG(INFO) << "create the log file";
     LOG(INFO) << "a message before segv";
     // We assume 0xDEAD is not writable.
-    int *a = (int*)0xDEAD;
+    int* a = (int*)0xDEAD;
     *a = 0;
   } else if (command == "loop") {
     fprintf(stderr, "looping\n");
-    while (true);
+    while (true)
+      ;
   } else if (command == "die_in_thread") {
-    pthread_t thread;
-    pthread_create(&thread, NULL, &DieInThread, NULL);
-    pthread_join(thread, NULL);
+    std::thread t{&DieInThread, nullptr};
+    t.join();
   } else if (command == "dump_to_stdout") {
     InstallFailureWriter(WriteToStdout);
     abort();
+  } else if (command == "installed") {
+    fprintf(stderr, "signal handler installed: %s\n",
+            IsFailureSignalHandlerInstalled() ? "true" : "false");
   } else {
     // Tell the shell script
     puts("OK");

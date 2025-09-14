@@ -1,4 +1,4 @@
-// Copyright (c) 2008, Google Inc.
+// Copyright (c) 2024, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: Shinichiro Hamaji
-#include "utilities.h"
+// Routines to extract the current stack trace.  These functions are
+// thread-safe.
 
-#include "glog/logging.h"
-#include "googletest.h"
+#include "stacktrace.h"
 
-#ifdef GLOG_USE_GFLAGS
-#  include <gflags/gflags.h>
-using namespace GFLAGS_NAMESPACE;
+// Make an implementation of stacktrace compiled.
+#if defined(STACKTRACE_H)
+#  include STACKTRACE_H
 #endif
-
-using namespace google;
-
-TEST(utilities, InitGoogleLoggingDeathTest) {
-  ASSERT_DEATH(InitGoogleLogging("foobar"), "");
-}
-
-int main(int argc, char** argv) {
-  InitGoogleLogging(argv[0]);
-  InitGoogleTest(&argc, argv);
-
-  CHECK_EQ(RUN_ALL_TESTS(), 0);
-}

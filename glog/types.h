@@ -1,4 +1,5 @@
-// Copyright (c) 2008, Google Inc.
+
+// Copyright (c) 2024, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,26 +28,54 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: Shinichiro Hamaji
-#include "utilities.h"
 
-#include "glog/logging.h"
-#include "googletest.h"
+#ifndef GLOG_TYPES_H
+#define GLOG_TYPES_H
 
-#ifdef GLOG_USE_GFLAGS
-#  include <gflags/gflags.h>
-using namespace GFLAGS_NAMESPACE;
+#include <cstddef>
+#include <cstdint>
+
+namespace google {
+
+using int32 = std::int32_t;
+using uint32 = std::uint32_t;
+using int64 = std::int64_t;
+using uint64 = std::uint64_t;
+
+}  // namespace google
+
+#if defined(__has_feature)
+#  if __has_feature(thread_sanitizer)
+#    define GLOG_SANITIZE_THREAD 1
+#  endif
 #endif
 
-using namespace google;
+#if !defined(GLOG_SANITIZE_THREAD) && defined(__SANITIZE_THREAD__) && \
+    __SANITIZE_THREAD__
+#  define GLOG_SANITIZE_THREAD 1
+#endif
 
-TEST(utilities, InitGoogleLoggingDeathTest) {
-  ASSERT_DEATH(InitGoogleLogging("foobar"), "");
-}
+#if defined(GLOG_SANITIZE_THREAD)
+#  define GLOG_IFDEF_THREAD_SANITIZER(X) X
+#else
+#  define GLOG_IFDEF_THREAD_SANITIZER(X)
+#endif
 
-int main(int argc, char** argv) {
-  InitGoogleLogging(argv[0]);
-  InitGoogleTest(&argc, argv);
+#if defined(_MSC_VER)
+#  define GLOG_MSVC_PUSH_DISABLE_WARNING(n) \
+    __pragma(warning(push)) __pragma(warning(disable : n))
+#  define GLOG_MSVC_POP_WARNING() __pragma(warning(pop))
+#else
+#  define GLOG_MSVC_PUSH_DISABLE_WARNING(n)
+#  define GLOG_MSVC_POP_WARNING()
+#endif
 
-  CHECK_EQ(RUN_ALL_TESTS(), 0);
-}
+#if defined(GLOG_SANITIZE_THREAD)
+// We need to identify the static variables as "benign" races
+// to avoid noisy reports from TSAN.
+extern "C" void AnnotateBenignRaceSized(const char* file, int line,
+                                        const volatile void* mem, size_t size,
+                                        const char* description);
+#endif  // defined(GLOG_SANITIZE_THREAD)
+
+#endif  // GLOG_TYPES_H

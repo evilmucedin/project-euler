@@ -1,4 +1,4 @@
-// Copyright (c) 2006, Google Inc.
+// Copyright (c) 2024, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,111 +31,149 @@
 //
 // logging_unittest.cc covers the functionality herein
 
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <iomanip>
+#include <mutex>
+#include <ostream>
+#include <streambuf>
+#include <thread>
+
+#include "config.h"
+
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>  // for close() and write()
+#endif
+#if defined(HAVE_SYSCALL_H)
+#  include <syscall.h>  // for syscall()
+#elif defined(HAVE_SYS_SYSCALL_H)
+#  include <sys/syscall.h>  // for syscall()
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+#include <fcntl.h>  // for open()
+
+#include "glog/logging.h"
+#include "glog/raw_logging.h"
+#include "stacktrace.h"
 #include "utilities.h"
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <errno.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>               // for close() and write()
-#endif
-#include <fcntl.h>                 // for open()
-#include <time.h>
-#include "config.h"
-#include "logging.h"          // To pick up flag settings etc.
-#include "raw_logging.h"
-#include "base/commandlineflags.h"
-
-#ifdef HAVE_STACKTRACE
-# include "stacktrace.h"
-#endif
-
-#if defined(HAVE_SYSCALL_H)
-#include <syscall.h>                 // for syscall()
-#elif defined(HAVE_SYS_SYSCALL_H)
-#include <sys/syscall.h>                 // for syscall()
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-
-#if defined(HAVE_SYSCALL_H) || defined(HAVE_SYS_SYSCALL_H)
-# define safe_write(fd, s, len)  syscall(SYS_write, fd, s, len)
+#if (defined(HAVE_SYSCALL_H) || defined(HAVE_SYS_SYSCALL_H)) &&    \
+    (!(defined(GLOG_OS_MACOSX)) && !(defined(GLOG_OS_OPENBSD))) && \
+    !defined(GLOG_OS_EMSCRIPTEN)
+#  define safe_write(fd, s, len) syscall(SYS_write, fd, s, len)
 #else
-  // Not so safe, but what can you do?
-# define safe_write(fd, s, len)  write(fd, s, len)
+// Not so safe, but what can you do?
+#  define safe_write(fd, s, len) write(fd, s, len)
 #endif
 
-_START_GOOGLE_NAMESPACE_
+namespace google {
 
-// Data for RawLog__ below. We simply pick up the latest
-// time data created by a normal log message to avoid calling
-// localtime_r which can allocate memory.
-static struct ::tm last_tm_time_for_raw_log;
-static int last_usecs_for_raw_log;
+#if defined(__GNUC__)
+#  define GLOG_ATTRIBUTE_FORMAT(archetype, stringIndex, firstToCheck) \
+    __attribute__((format(archetype, stringIndex, firstToCheck)))
+#  define GLOG_ATTRIBUTE_FORMAT_ARG(stringIndex) \
+    __attribute__((format_arg(stringIndex)))
+#else
+#  define GLOG_ATTRIBUTE_FORMAT(archetype, stringIndex, firstToCheck)
+#  define GLOG_ATTRIBUTE_FORMAT_ARG(stringIndex)
+#endif
 
-void RawLog__SetLastTime(const struct ::tm& t, int usecs) {
-  memcpy(&last_tm_time_for_raw_log, &t, sizeof(last_tm_time_for_raw_log));
-  last_usecs_for_raw_log = usecs;
-}
-
-// CAVEAT: vsnprintf called from *DoRawLog below has some (exotic) code paths
-// that invoke malloc() and getenv() that might acquire some locks.
-// If this becomes a problem we should reimplement a subset of vsnprintf
-// that does not need locks and malloc.
+// CAVEAT: std::vsnprintf called from *DoRawLog below has some (exotic) code
+// paths that invoke malloc() and getenv() that might acquire some locks. If
+// this becomes a problem we should reimplement a subset of std::vsnprintf that
+// does not need locks and malloc.
 
 // Helper for RawLog__ below.
 // *DoRawLog writes to *buf of *size and move them past the written portion.
 // It returns true iff there was no overflow or error.
-static bool DoRawLog(char** buf, int* size, const char* format, ...) {
+GLOG_ATTRIBUTE_FORMAT(printf, 3, 4)
+static bool DoRawLog(char** buf, size_t* size, const char* format, ...) {
   va_list ap;
   va_start(ap, format);
-  int n = vsnprintf(*buf, *size, format, ap);
+  int n = std::vsnprintf(*buf, *size, format, ap);
   va_end(ap);
-  if (n < 0 || n > *size) return false;
-  *size -= n;
+  if (n < 0 || static_cast<size_t>(n) > *size) return false;
+  *size -= static_cast<size_t>(n);
   *buf += n;
   return true;
 }
 
 // Helper for RawLog__ below.
-inline static bool VADoRawLog(char** buf, int* size,
-                              const char* format, va_list ap) {
-  int n = vsnprintf(*buf, *size, format, ap);
-  if (n < 0 || n > *size) return false;
-  *size -= n;
+inline static bool VADoRawLog(char** buf, size_t* size, const char* format,
+                              va_list ap) {
+#if defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+  int n = std::vsnprintf(*buf, *size, format, ap);
+#if defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#endif
+  if (n < 0 || static_cast<size_t>(n) > *size) return false;
+  *size -= static_cast<size_t>(n);
   *buf += n;
   return true;
 }
 
 static const int kLogBufSize = 3000;
-static bool crashed = false;
-static CrashReason crash_reason;
-static char crash_buf[kLogBufSize + 1] = { 0 };  // Will end in '\0'
+static std::once_flag crashed;
+static logging::internal::CrashReason crash_reason;
+static char crash_buf[kLogBufSize + 1] = {0};  // Will end in '\0'
 
+namespace {
+template <std::size_t N>
+class StaticStringBuf : public std::streambuf {
+ public:
+  StaticStringBuf() {
+    setp(std::begin(data_), std::end(data_));
+    setg(std::begin(data_), std::begin(data_), std::end(data_));
+  }
+  const char* data() noexcept {
+    if (pptr() != pbase() && pptr() != epptr() && *(pptr() - 1) != '\0') {
+      sputc('\0');
+    }
+    return data_;
+  }
+
+ private:
+  char data_[N];
+};
+}  // namespace
+
+GLOG_ATTRIBUTE_FORMAT(printf, 4, 5)
 void RawLog__(LogSeverity severity, const char* file, int line,
               const char* format, ...) {
-  if (!(FLAGS_logtostderr || severity >= FLAGS_stderrthreshold ||
-        FLAGS_alsologtostderr || !IsGoogleLoggingInitialized())) {
+  if (!(FLAGS_logtostdout || FLAGS_logtostderr ||
+        severity >= FLAGS_stderrthreshold || FLAGS_alsologtostderr ||
+        !IsGoogleLoggingInitialized())) {
     return;  // this stderr log message is suppressed
   }
+
+  // We do not have any any option other that string streams to obtain the
+  // thread identifier as the corresponding value is not convertible to an
+  // integer. Use a statically allocated buffer to avoid dynamic memory
+  // allocations.
+  StaticStringBuf<kLogBufSize> sbuf;
+  std::ostream oss(&sbuf);
+
+  oss << std::setw(5) << std::this_thread::get_id();
+
   // can't call localtime_r here: it can allocate
-  struct ::tm& t = last_tm_time_for_raw_log;
   char buffer[kLogBufSize];
   char* buf = buffer;
-  int size = sizeof(buffer);
+  size_t size = sizeof(buffer);
 
   // NOTE: this format should match the specification in base/logging.h
-  DoRawLog(&buf, &size, "%c%02d%02d %02d:%02d:%02d.%06d %5u %s:%d] RAW: ",
-           LogSeverityNames[severity][0],
-           1 + t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,
-           last_usecs_for_raw_log,
-           static_cast<unsigned int>(GetTID()),
-           const_basename(const_cast<char *>(file)), line);
+  DoRawLog(&buf, &size, "%c00000000 00:00:00.000000 %s %s:%d] RAW: ",
+           GetLogSeverityName(severity)[0], sbuf.data(),
+           const_basename(const_cast<char*>(file)), line);
 
   // Record the position and size of the buffer after the prefix
   const char* msg_start = buf;
-  const int msg_size = size;
+  const size_t msg_size = size;
 
   va_list ap;
   va_start(ap, format);
@@ -150,9 +188,9 @@ void RawLog__(LogSeverity severity, const char* file, int line,
   // avoiding FILE buffering (to avoid invoking malloc()), and bypassing
   // libc (to side-step any libc interception).
   // We write just once to avoid races with other invocations of RawLog__.
-  safe_write(STDERR_FILENO, buffer, strlen(buffer));
-  if (severity == GLOG_FATAL)  {
-    if (!sync_val_compare_and_swap(&crashed, false, true)) {
+  safe_write(fileno(stderr), buffer, strlen(buffer));
+  if (severity == GLOG_FATAL) {
+    std::call_once(crashed, [file, line, msg_start, msg_size] {
       crash_reason.filename = file;
       crash_reason.line_number = line;
       memcpy(crash_buf, msg_start, msg_size);  // Don't include prefix
@@ -164,9 +202,9 @@ void RawLog__(LogSeverity severity, const char* file, int line,
       crash_reason.depth = 0;
 #endif
       SetCrashReason(&crash_reason);
-    }
+    });
     LogMessage::Fail();  // abort()
   }
 }
 
-_END_GOOGLE_NAMESPACE_
+}  // namespace google
