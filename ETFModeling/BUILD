@@ -11,7 +11,7 @@ cc_binary(
     ],
   deps=[
 #    "//gflags:gflags2",
-    "//glog:glog2",
+    "//glog2:glog",
     "//lib:header",
     "//lib:init",
     "//lib/thread-pool:thread-pool2",
@@ -34,8 +34,8 @@ cc_binary(
     "ETFModeling.cpp"
   ],
   deps=[
-#    "//gflags:gflags2",
-    "//glog:glog2",
+    "//gflags:gflags2",
+    "//glog2:glog",
     "//lib:header",
     "//lib:init",
     "//lib/thread-pool:thread-pool2",
