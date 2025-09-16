@@ -39,7 +39,7 @@
 #include <sstream>
 #include <thread>
 
-#include "config.h"
+// #include "config.h"
 #include "glog/logging.h"
 #include "glog/platform.h"
 #include "stacktrace.h"
