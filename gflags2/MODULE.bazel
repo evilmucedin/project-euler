@@ -1,0 +1,4 @@
+module(
+    name = "gflags2",
+    compatibility_level = 1,
+)
