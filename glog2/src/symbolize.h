@@ -58,7 +58,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "config.h"
+// #include "config.h"
 #include "glog/platform.h"
 
 #if defined(HAVE_LINK_H)

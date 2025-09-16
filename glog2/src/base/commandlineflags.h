@@ -52,7 +52,7 @@
 #include <cstring>  // for memchr
 #include <string>
 
-#include "config.h"
+// #include "config.h"
 
 #ifdef GLOG_USE_GFLAGS
 

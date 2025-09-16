@@ -43,7 +43,7 @@
 #  error "stacktrace.h" was not included correctly.
 #endif
 
-#include "config.h"
+// #include "config.h"
 #if defined(HAVE_LIBUNWIND)
 #  define STACKTRACE_H "stacktrace_libunwind-inl.h"
 #elif defined(HAVE_UNWIND)

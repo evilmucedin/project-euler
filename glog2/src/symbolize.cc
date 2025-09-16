@@ -127,7 +127,7 @@ void InstallSymbolizeOpenObjectFileCallback(
 #    include <cstdlib>
 #    include <cstring>
 
-#    include "config.h"
+// #    include "config.h"
 #    include "glog/raw_logging.h"
 #    include "symbolize.h"
 

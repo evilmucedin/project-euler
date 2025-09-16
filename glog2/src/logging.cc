@@ -47,7 +47,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "config.h"
+// #include "config.h"
 #include "glog/platform.h"
 #include "glog/raw_logging.h"
 #include "stacktrace.h"

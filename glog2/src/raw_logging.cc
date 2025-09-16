@@ -40,7 +40,7 @@
 #include <streambuf>
 #include <thread>
 
-#include "config.h"
+// #include "config.h"
 
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>  // for close() and write()

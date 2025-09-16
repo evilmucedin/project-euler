@@ -60,7 +60,7 @@
 #define PRIXS __PRIS_PREFIX "X"
 #define PRIoS __PRIS_PREFIX "o"
 
-#include "config.h"
+// #include "config.h"
 #include "glog/platform.h"
 #if defined(GLOG_USE_WINDOWS_PORT)
 #  include "port.h"
