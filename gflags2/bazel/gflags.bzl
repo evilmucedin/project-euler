@@ -18,7 +18,7 @@ def gflags_sources(namespace = ["google", "gflags"]):
         gflags_ns_h_file = "gflags_{}.h".format(ns)
         expanded_template(
             name = gflags_ns_h_file.replace(".", "_"),
-            template = "src/gflags_ns.h.in",
+            template = "gflags2/src/gflags_ns.h.in",
             out = gflags_ns_h_file,
             substitutions = {
                 "@ns@": ns,
@@ -28,7 +28,7 @@ def gflags_sources(namespace = ["google", "gflags"]):
         gflags_ns_h_files.append(gflags_ns_h_file)
     expanded_template(
         name = "gflags_h",
-        template = "src/gflags.h.in",
+        template = "gflags2/src/gflags.h.in",
         out = "gflags.h",
         substitutions = {
             "@GFLAGS_ATTRIBUTE_UNUSED@": "",
@@ -37,7 +37,7 @@ def gflags_sources(namespace = ["google", "gflags"]):
     )
     expanded_template(
         name = "gflags_completions_h",
-        template = "src/gflags_completions.h.in",
+        template = "gflags2/src/gflags_completions.h.in",
         out = "gflags_completions.h",
         substitutions = {
             "@GFLAGS_NAMESPACE@": namespace[0],
@@ -46,12 +46,12 @@ def gflags_sources(namespace = ["google", "gflags"]):
     hdrs = [":gflags_h", ":gflags_declare_h", ":gflags_completions_h"]
     hdrs.extend([":" + hdr.replace(".", "_") for hdr in gflags_ns_h_files])
     srcs = [
-        "src/config.h",
-        "src/gflags.cc",
-        "src/gflags_completions.cc",
-        "src/gflags_reporting.cc",
-        "src/mutex.h",
-        "src/util.h",
+        "//gflags2/src/config.h",
+        "//gflags2/src/gflags.cc",
+        "//gflags2/src/gflags_completions.cc",
+        "//gflags2/src/gflags_reporting.cc",
+        "//gflags2/src/mutex.h",
+        "//gflags2/src/util.h",
     ] + select({
         "//:x64_windows": [
             "src/windows_port.cc",

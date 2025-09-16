@@ -117,5 +117,17 @@ http_archive(
 load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python")
 
+workspace(name="com_github_gflags_gflags")
 
 register_toolchains("//toolchain:cc_toolchain")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "com_github_gflags_gflags",
+    sha256 = "c0850c9502b4d95221087e59b7754f91b7d56636733a1e06a31c5195e26b1c09",
+    strip_prefix = "gflags-2.2.2",
+    urls = ["https://github.com/gflags/gflags/archive/v2.2.2.tar.gz"],
+)
+
+

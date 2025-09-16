@@ -73,7 +73,7 @@ cc_library(
   deps=[
     "//lib:header",
     ":stream",
-    "//zlib2:zlib",
+    "//zlib:zlib2",
   ],
     visibility = ["//visibility:public"],
 )

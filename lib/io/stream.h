@@ -3,7 +3,7 @@
 #include <memory>
 #include <sstream>
 
-#include "lib/io/fileIo.h"
+#include "fileIo.h"
 
 using namespace std;
 

@@ -1,10 +1,12 @@
-#include "lib/io/csv.h"
+// #include "lib/io/csv.h"
+
+#include "csv.h"
 
 #include <cassert>
 
 #include "lib/exception.h"
 #include "lib/string.h"
-#include "lib/io/stream.h"
+#include "stream.h"
 
 CsvParser::CsvParser(shared_ptr<InputStream> stream, char delim, char quote)
     : stream_(std::move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
