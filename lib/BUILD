@@ -47,7 +47,7 @@ cc_library(
     deps=[
         ":header",
         "//gflags:gflags2",
-        "//glog:glog2",
+        "//glog2:glog",
     ],
     visibility=[
 	    "//visibility:public",

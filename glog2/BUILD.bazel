@@ -4,7 +4,7 @@ exports_files(["COPYING"])
 
 load(":bazel/glog.bzl", "glog_library")
 
-glog_library()
+glog_library(with_gflags=0)
 
 # platform() to build with clang-cl on Bazel CI. This is enabled with
 # the flags in .bazelci/presubmit.yml:

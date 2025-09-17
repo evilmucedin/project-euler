@@ -5,7 +5,7 @@ cc_binary(
     ],
     deps = [
         #"@com_github_google_glog//:glog",
-        "//glog:glog2",
+        "//glog2:glog",
         "//lib:header",
         "//lib:matrix",
         "//lib:random",
