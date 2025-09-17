@@ -31,7 +31,7 @@ cc_binary(
 cc_binary(
   name="ETFModeling2",
   srcs=[
-    "ETFModeling.cpp"
+    "ETFModeling.cpp",
   ],
   deps=[
     "//gflags:gflags2",
@@ -48,8 +48,8 @@ cc_binary(
     "//lib/ml:dataframe",
   ],
   # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
-  features = ["-lto"],
-  linkopts = ["-lstdc++"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+#  features = ["-lto"],
+#  linkopts = ["-lstdc++"],
+#  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 #  visibility = ["//ETFModeling:ETFModeling2"],
 )
