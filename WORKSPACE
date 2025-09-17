@@ -1,5 +1,3 @@
-exit(0)
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Rule repository, note that it's recommended to use a pinned commit to a released version of the rules
@@ -117,7 +115,7 @@ http_archive(
 load("@pybind11_bazel//:python_configure.bzl", "python_configure")
 python_configure(name = "local_config_python")
 
-workspace(name="com_github_gflags_gflags")
+# workspace(name="com_github_gflags_gflags")
 
 register_toolchains("//toolchain:cc_toolchain")
 
