@@ -46,6 +46,7 @@ cc_binary(
     "//lib:stat",
     "//lib:exception",
     "//lib/ml:dataframe",
+    "//lib/io:csv",
   ],
   # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 #  features = ["-lto"],
