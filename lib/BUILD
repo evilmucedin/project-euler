@@ -32,6 +32,7 @@ cc_library(
 cc_library(
     name = "header",
     hdrs = ["header.h"],
+    srcs = ["header.cpp"],
     visibility = ["//visibility:public"],
     features = ["-lto"],
 )
@@ -63,6 +64,7 @@ cc_library(
     ],
     srcs=[
         "file.cpp",
+        "header.cpp",
     ],
     deps=[
         ":header",
