@@ -64,7 +64,6 @@ cc_library(
     ],
     srcs=[
         "file.cpp",
-        "header.cpp",
     ],
     deps=[
         ":header",

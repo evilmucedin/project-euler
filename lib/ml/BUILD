@@ -19,6 +19,7 @@ cc_library(
     "//lib:header",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -33,6 +34,7 @@ cc_library(
     "//lib:header",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -50,7 +52,8 @@ cc_library(
     "//lib:string",
     ":regressor",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -66,6 +69,7 @@ cc_library(
     ":regressor",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -84,5 +88,6 @@ cc_library(
     "//lib:exception",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
