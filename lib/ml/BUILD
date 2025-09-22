@@ -89,5 +89,6 @@ cc_library(
   ],
   visibility = ["//visibility:public"],
   features = ["-lto"],
+  alwayslink=1,
 )
 

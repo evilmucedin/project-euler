@@ -72,6 +72,7 @@ cc_library(
     visibility=[
         "//visibility:public",
     ],
+    alwayslink=1,
     features = ["-lto"],
     copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 #    alwayslink = 1,
