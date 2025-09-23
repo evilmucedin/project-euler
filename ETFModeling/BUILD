@@ -16,30 +16,6 @@ load(
 
 
 cc_binary(
-    name = "ETFModelingTest",
-    srcs = [
-        "ETFModelingTest.cpp",
-    ],
-  deps=[
-    # "//gflags2:gflags",
-    "//glog2:glog",
-    "//lib:header",
-    "//lib:init",
-    "//lib/thread-pool:thread-pool2",
-    "//lib:matrix",
-    "//lib:random",
-    "//lib/stat:stat2",
-    "//lib:timer",
-    "//lib:stat",
-    "//lib/ml:dataframe",
-  ],
-#  copts = ["-std=c++17"],
-  features = ["-lto"],
-)
-
-
-
-cc_binary(
   name="ETFModeling2",
   srcs=[
     "ETFModeling.cpp",
