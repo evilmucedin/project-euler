@@ -60,7 +60,7 @@ cc_binary(
     "//lib/io:csv",
     "//lib:file",
   ],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
   features = ["-lto"],
 #  linkopts = ["-lstdc++"],
 #  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],

@@ -17,7 +17,7 @@ cc_library(
     "gflags_reporting.cc",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
   features = ["-lto"],
 )
 

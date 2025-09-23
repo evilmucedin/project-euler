@@ -10,7 +10,7 @@ cc_library(
     ":stream",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -28,7 +28,7 @@ cc_library(
   ],
   visibility = ["//visibility:public"],
   features = ["-lto"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 )
 
 # cxx_library(
@@ -78,7 +78,7 @@ cc_library(
     "//zlib:zlib2",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -97,7 +97,7 @@ cc_library(
   ],
   visibility = ["//visibility:public"],
   features = ["-lto"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 )
 
 cc_library(
@@ -115,7 +115,7 @@ cc_library(
     ":stream",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -131,7 +131,7 @@ cc_library(
   ],
   features = ["-lto"],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -143,7 +143,7 @@ cc_library(
     "//lib/io:fileIo",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -160,5 +160,5 @@ cc_library(
   ],
   features = ["-lto"],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
