@@ -558,6 +558,16 @@ void testStrategy() {
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
 
+    {
+        string sArgs;
+        for (int i = 0; i < argc; ++i) {
+            if (sArgs.size() > 0)
+                sArgs += " ";
+            sArgs += argv[i];
+        }
+        cout << "Args: " << sArgs << endl;
+    }
+
     if (FLAGS_mode == "optimize") {
         optimize();
     } else if (FLAGS_mode == "optimize1") {
