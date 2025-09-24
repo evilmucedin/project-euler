@@ -23,4 +23,5 @@ void standardInit(int argc, char* argv[]) {
     ios::sync_with_stdio(false);
     LoggingInitializer::get();
     gflags::ParseCommandLineFlags(&argc, &argv, true);
+    google::InitGoogleLogging(argv[0]);
 }
