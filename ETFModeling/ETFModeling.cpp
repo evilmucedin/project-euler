@@ -21,6 +21,7 @@ DEFINE_bool(stocks, false, "add stocks");
 DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
 DEFINE_double(concentration_risk_weight, 0.00, "concentration risk weight");
+DEFINE_string(dataFolder, "", "");
 
 static const StringVector etfs = {
     "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",   "VOO",  "QQQ",
@@ -77,7 +78,7 @@ PriceData loadData(const StringVector& tickers) {
         Timer tFileRead("Read files");
         for (const auto& ticker : tickers) {
             DLOG(INFO) << "Ticker: " << ticker;
-            const string fileName = "marketData/" + ticker + ".csv";
+            const string fileName = FLAGS_dataFolder + "marketData/" + ticker + ".csv";
             auto df = DataFrame::loadFromCsv(fileName);
             auto date = df->getColumn("Date", ticker, fileName);
             auto price = df->getColumn("Adj Close", ticker, fileName);
