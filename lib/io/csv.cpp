@@ -121,7 +121,7 @@ void CsvParser::unquote(string& s) {
 
 size_t CsvParser::lineIndex() const { return iLine_; }
 
-std::string CsvParser::line() const { return sLine_; }
+const std::string& CsvParser::line() const { return sLine_; }
 
 bool CsvParser::skipLines(size_t nLines) {
     for (size_t iLine = 0; iLine < nLines; ++iLine) {

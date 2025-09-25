@@ -27,7 +27,7 @@ class CsvParser {
     size_t getIndexOrDie(const string& column) const;
     size_t lineIndex() const;
     bool skipLines(size_t nLines);
-    std::string line() const;
+    const std::string& line() const;
 
    private:
     void unquote(string& s);
@@ -36,7 +36,7 @@ class CsvParser {
     shared_ptr<InputStream> stream_;
     char delim_;
     char quote_;
-    string sLine_;
+    std::string sLine_;
     StringVector header_;
     unordered_map<string, int> fieldToIndex_;
     StringVector line_;
