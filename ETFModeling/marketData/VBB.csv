@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,VBB,VBB,VBB,VBB,VBB,VBB,VBB,VBB,VBB
 Date,,,,,,,,,
 2021-12-13,25.0,0.0,25.0,0.0,25.0,25.0,25.0,0.0,0

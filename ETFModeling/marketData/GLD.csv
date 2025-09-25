@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,GLD,GLD,GLD,GLD,GLD,GLD,GLD,GLD,GLD
 Date,,,,,,,,,
 2004-11-18,44.380001068115234,0.0,44.380001068115234,0.0,44.4900016784668,44.06999969482422,44.43000030517578,0.0,5992000

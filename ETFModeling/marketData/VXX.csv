@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,VXX,VXX,VXX,VXX,VXX,VXX,VXX,VXX,VXX
 Date,,,,,,,,,
 2018-01-25,1770.239990234375,0.0,1770.239990234375,0.0,1770.239990234375,1770.239990234375,1770.239990234375,0.0,0

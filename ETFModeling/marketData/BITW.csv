@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Capital Gains,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,BITW,BITW,BITW,BITW,BITW,BITW,BITW,BITW,BITW
 Date,,,,,,,,,
 2020-12-10,36.400001525878906,0.0,36.400001525878906,0.0,49.0,31.049999237060547,32.0,0.0,878400

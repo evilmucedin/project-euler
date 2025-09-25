@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,COIN,COIN,COIN,COIN,COIN,COIN,COIN,COIN
 Date,,,,,,,,
 2021-04-14,328.2799987792969,328.2799987792969,0.0,429.5400085449219,310.0,381.0,0.0,81065700

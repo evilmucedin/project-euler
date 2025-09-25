@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,AMZN,AMZN,AMZN,AMZN,AMZN,AMZN,AMZN,AMZN
 Date,,,,,,,,
 2000-08-01,1.5125000476837158,1.5125000476837158,0.0,1.6124999523162842,1.5125000476837158,1.53125,0.0,163128000

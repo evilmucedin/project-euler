@@ -1,4 +1,4 @@
-Date,Price,Adj Close,Close,Dividends,High,Low,Open,Stock Splits,Volume
+Price,Adj Close,Close,Dividends,High,Low,Open,Stock Splits,Volume
 Ticker,TSLA,TSLA,TSLA,TSLA,TSLA,TSLA,TSLA,TSLA
 Date,,,,,,,,
 2010-06-29,1.5926669836044312,1.5926669836044312,0.0,1.6666669845581055,1.1693329811096191,1.2666670083999634,0.0,281494500
