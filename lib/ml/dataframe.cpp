@@ -44,6 +44,8 @@ DataFrame::PDataFrame DataFrame::loadFromCsv(const string& filename) {
     while (reader.readLine()) {
         if (reader.size()) {
             for (size_t i = 0; i < header.size(); ++i) {
+                if (i >= reader.size())
+                    cerr << "ASSERT: " << filename << " " << i << " " << reader.size() << endl;
                 ASSERTLT(i, reader.size());
                 result->columns_[i]->data_.emplace_back(reader.get(i));
             }

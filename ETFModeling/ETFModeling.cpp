@@ -21,7 +21,7 @@ DEFINE_bool(stocks, false, "add stocks");
 DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
 DEFINE_double(concentration_risk_weight, 0.00, "concentration risk weight");
-DEFINE_string(dataFolder, "", "");
+DEFINE_string(dataFolder, "", "Directory for input data");
 
 static const StringVector etfs = {
     "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",   "VOO",  "QQQ",
