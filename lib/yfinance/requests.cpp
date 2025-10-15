@@ -1,13 +1,13 @@
-#include "../hpp/requests.h"
-#include "../hpp/structures.h"
+#include "requests.h"
+#include "structures.h"
 
 
 namespace Requests {
 
 	static size_t WriteCallback(
-		void* contents, 
-		size_t size, 
-		size_t nmemb, 
+		void* contents,
+		size_t size,
+		size_t nmemb,
 		void* userp
 	)
 	{
@@ -38,7 +38,7 @@ namespace Requests {
 		};
 
 		return Structures::Response(
-			std::move(responseBuffer), 
+			std::move(responseBuffer),
 			std::move(response_code)
 		);
 	}

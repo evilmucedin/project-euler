@@ -1,6 +1,6 @@
-#include "../hpp/base.h"
-#include "../hpp/utils.h"
-#include "../hpp/methods.h"
+#include "base.h"
+#include "utils.h"
+#include "methods.h"
 
 
 namespace yfinance {
@@ -109,7 +109,7 @@ namespace yfinance {
 
 				if (!rjson["optionChain"]["result"][0]
 					["options"][0].contains(kind)) continue;
-				
+
 				auto& raw = rjson["optionChain"]["result"][0]
 					["options"][0][kind];
 
@@ -117,7 +117,7 @@ namespace yfinance {
 				for (int i = 0; i < size; i++) {
 					Structures::Option option;
 					for (auto& [key, val] : raw[i].items()) {
-						// As the response from YFINANCE API may be 
+						// As the response from YFINANCE API may be
 						// partial, Option() is default initialized
 						// and items are added one at time;
 
@@ -201,7 +201,7 @@ namespace yfinance {
 				"Request failed with status code: " + r.status_code;
 			throw std::runtime_error(error_message);
 		}
-		
+
 	};
 
 	nlohmann::json Symbol::get_summary(
@@ -210,7 +210,7 @@ namespace yfinance {
 		cpr::Response r = cpr::Get(cpr::Url{
 			Utils::Statics::Summary::v11 + m_symbol },
 			cpr::Parameters{ {"modules", module} });
-		
+
 		if ((r.status_code == 200) && (!r.text.empty())) {
 			nlohmann::json quoteSummary = nlohmann::json::parse(r.text);
 			return quoteSummary["quoteSummary"]
@@ -245,7 +245,7 @@ namespace yfinance {
 				std::for_each(t_relatedTickers.begin(), t_relatedTickers.end(),
 					[&](std::string& s) { s = std::regex_replace(
 						s, std::regex("[^\\w\\d\\.]+"), ""); });
-				nv.emplace_back(Structures::News(n["title"], 
+				nv.emplace_back(Structures::News(n["title"],
 					n["publisher"], n["link"], (time_t)std::stol(
 					n["providerPublishTime"].dump()),
 					t_relatedTickers));
