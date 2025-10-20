@@ -7,10 +7,17 @@ using namespace std;
 
 class Solution {
 public:
-    int smallestRangeI(vector<int>& nums, int k) {
-        sort(nums.begin(), nums.end());
-        int x = nums[nums.size() - 1];
-        x -= nums[0];
+    int smallestRangeI(const vector<int>& nums, int k) {
+        int a = nums[0];
+        int b = nums[0];
+        for (int i = 1; i < nums.size(); ++i) {
+            const int n = nums[i];
+            if (n > a)
+                a = n;
+            if (n < b)
+                b = n;
+        }
+        int x = a - b;
         x -= k;
         x -= k;
         if (x <= 0)
