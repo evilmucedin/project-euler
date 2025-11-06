@@ -3,7 +3,9 @@
 
 import inflect
 
-n = 2+2
+a = int(input("a: "))
+b = int(input("b: "))
+n = a + b
 print(n)
 
 p = inflect.engine()
