@@ -1,11 +1,11 @@
 cxx_library(
   name="glog",
   exported_headers=[
-    "./base/commandlineflags.h",
-    "./base/googleinit.h",
-    "./base/mutex.h",
-    "./config.h",
-    "./demangle.h",
+#    "./base/commandlineflags.h",
+#    "./base/googleinit.h",
+#    "./base/mutex.h",
+#    "./config.h",
+#    "./demangle.h",
     "./logging.h",
     "./log_severity.h",
     "./raw_logging.h",
