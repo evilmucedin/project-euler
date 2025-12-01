@@ -18,7 +18,7 @@ int main() {
     left.clear();
     right.clear();
     for (const auto& s: lines) {
-        auto ints = parseIntegers(s);
+        const auto ints = parseIntegers(s);
         if (ints.size() == 1) {
             left.emplace_back(ints[0]);
         } else if (ints.size() == 2) {
