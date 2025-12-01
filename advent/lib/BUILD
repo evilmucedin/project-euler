@@ -1,5 +1,5 @@
 cc_library(
-    name="advent",
+    name="aoc",
     hdrs=[
         "aoc.h",
     ],

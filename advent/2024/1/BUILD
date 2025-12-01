@@ -8,9 +8,9 @@ cc_binary(
     "//lib:header",
     "//lib:init",
     "//lib:string",
-    "//gflags:gflags",
+    "//gflags:gflags2",
     "//advent/lib:aoc",
-    "//glog:glog",
+    "//glog2:glog",
   ],
 )
 
