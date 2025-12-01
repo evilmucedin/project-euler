@@ -1,0 +1,16 @@
+
+cc_binary(
+  name="1",
+  srcs=[
+    "1.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//lib:string",
+    "//gflags:gflags",
+    "//advent/lib:aoc",
+    "//glog:glog",
+  ],
+)
+
