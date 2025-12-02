@@ -24,7 +24,7 @@ int main() {
             if (line[z] >= '0' && line[z] <= '9')
                 i = 10*i + (line[z] - '0');
             else
-                raise 2;
+                throw 2;
         }
 
         // cerr << i << endl;
