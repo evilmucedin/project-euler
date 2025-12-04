@@ -1,7 +1,7 @@
 cc_binary(
-  name="3",
+  name="4",
   srcs=[
-    "3.cpp",
+    "4.cpp",
   ],
   deps=[
     "//lib:header",
