@@ -12,6 +12,6 @@ cc_binary(
     "//glog2:glog",
 #    "@bazel_tools//tools/cpp:gmpxx", # For C++ GMP wrappers
   ],
-  linkopts = ["-lgmp"],
+#  linkopts = ["-lgmp"],
 )
 

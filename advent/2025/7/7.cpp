@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include <gmp.h>
-
 #include "lib/header.h"
 #include "lib/string.h"
 

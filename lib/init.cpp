@@ -1,5 +1,3 @@
-#include <log4cplus/initializer.h>
-
 #include "glog2/src/glog/logging.h"
 #include "gflags/gflags.h"
 
@@ -19,9 +17,14 @@ LoggingInitializer& LoggingInitializer::get() {
 
 */
 
+#ifdef __APPLE__
+#else
+#include <log4cplus/initializer.h>
+
 void standardInit(int argc, char* argv[]) {
     ios::sync_with_stdio(false);
     LoggingInitializer::get();
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     google::InitGoogleLogging(argv[0]);
 }
+#endif
