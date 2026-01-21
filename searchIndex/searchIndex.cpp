@@ -14,6 +14,18 @@ bool readFromFile(std::ifstream& file, string& s) {
     return true;
 }
 
+bool isChar(char ch) {
+    return ch >= 'a' && ch <= 'z';
+}
+
+void toLower(string& s) {
+    const auto n = s.length();
+    for (int i = 0; i < n; ++i)
+        s[i] = tolower(s[i]);
+    while (s.size() && !isChar(s[s.size() - 1]))
+        s.pop_back();
+}
+
 int main() {
     cerr << filesystem::current_path() << endl;
 
@@ -25,7 +37,10 @@ int main() {
         cerr << "!" << istr.is_open() << endl;
         string s;
         while (readFromFile(istr, s)) {
-            cerr << "  " << s << endl;
+            toLower(s);
+            if (s.size() > 0) {
+                cerr << "  " << s << endl;
+            }
         }
     }
     return 0;
