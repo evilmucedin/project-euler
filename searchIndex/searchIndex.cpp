@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <map>
 
 using namespace std;
 
@@ -26,8 +27,29 @@ void toLower(string& s) {
         s.pop_back();
 }
 
+class Index {
+private:
+    using TIndex = map<string, vector<int>>;
+
+public:
+    void add(const string& key, int value) {
+        auto toKey = index_.find(key);
+        if (toKey == index_.end()) {
+            index_.insert(std::make_pair(key, std::vector<int>{}));
+        }
+        toKey = index_.find(key);
+        if (toKey->second.empty() || toKey->second.back() != value)
+            toKey->second.push_back(value);
+    }
+
+private:
+     TIndex index_;
+};
+
 int main() {
     cerr << filesystem::current_path() << endl;
+
+    Index index;
 
     for (int file = 1; file < 10; ++file) {
         const string filename = string("searchIndex/") + to_string(file) + ".txt";
@@ -39,6 +61,7 @@ int main() {
         while (readFromFile(istr, s)) {
             toLower(s);
             if (s.size() > 0) {
+                index.add(s, file);
                 cerr << "  " << s << endl;
             }
         }
