@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <map>
+#include <vector>
 
 using namespace std;
 
@@ -20,7 +21,7 @@ bool isChar(char ch) {
 }
 
 void toLower(string& s) {
-    const auto n = s.length();
+    const int n = s.length();
     for (int i = 0; i < n; ++i)
         s[i] = tolower(s[i]);
     while (s.size() && !isChar(s[s.size() - 1]))
