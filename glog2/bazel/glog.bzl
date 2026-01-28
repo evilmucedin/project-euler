@@ -1,5 +1,6 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
 # Implement a macro glog_library() that the BUILD.bazel file can load.
 
@@ -170,7 +171,7 @@ def glog_library(with_gflags = 1, **kwargs):
         ]
     )
 
-    native.cc_library(
+    cc_library(
         name = "glog",
         visibility = ["//visibility:public"],
         srcs = [
@@ -251,7 +252,7 @@ def glog_library(with_gflags = 1, **kwargs):
     ]
 
     for test_name in test_list:
-        native.cc_test(
+        cc_test(
             name = test_name + "_test",
             visibility = ["//visibility:public"],
             srcs = [
@@ -271,7 +272,7 @@ def glog_library(with_gflags = 1, **kwargs):
 
     # Workaround https://github.com/bazelbuild/bazel/issues/6337 by declaring
     # the dependencies without strip_include_prefix.
-    native.cc_library(
+    cc_library(
         name = "strip_include_prefix_hack",
         hdrs = [
             "src/glog/flags.h",
