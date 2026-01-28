@@ -1,3 +1,6 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # Implement a macro glog_library() that the BUILD.bazel file can load.
 
 # By default, glog is built with gflags support.  You can change this behavior

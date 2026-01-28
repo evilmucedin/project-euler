@@ -1,3 +1,6 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 # load("@rules_cc//cc:cc_library.bzl", "cc_library")
 

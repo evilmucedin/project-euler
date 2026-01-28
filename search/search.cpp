@@ -56,13 +56,13 @@ void searchFile(const string& filename, const string& searchQuery) {
 }
 
 int main() {
-    string filename = "data.txt";
-    string searchQuery;
+    const string filename = "data.txt";
 
     // 1. Create the file with initial data
     createAndWriteFile(filename);
     cout << "----------------------------------------" << endl;
 
+    string searchQuery;
     // 2. Get the search request from the user
     cout << "Enter a string to search for (e.g., 'Student' or '102'): ";
     // Use getline to safely read a line of text containing spaces
