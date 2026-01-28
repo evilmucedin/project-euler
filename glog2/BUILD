@@ -5,7 +5,7 @@ licenses(["notice"])
 
 exports_files(["COPYING"])
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+# load("@rules_cc//cc:defs.bzl", "cc_binary")
 load(":bazel/glog.bzl", "glog_library")
 
 glog_library(with_gflags=0)
