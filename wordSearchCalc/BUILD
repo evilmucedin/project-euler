@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
 # load("@bazel_tools//src/conditions:os_conditions.bzl", "OS_CONSTRAINTS")
 # load("@bazel_tools//src/conditions:windows.bzl", "windows_condition")
 
