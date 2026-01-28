@@ -32,7 +32,7 @@ class CsvParser {
    private:
     void unquote(string& s);
 
-    string filename_;
+    std::string filename_;
     shared_ptr<InputStream> stream_;
     char delim_;
     char quote_;
