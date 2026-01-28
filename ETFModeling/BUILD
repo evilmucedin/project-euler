@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
 # //toolchain:clang12_cc_toolchain_config.bzl
 # load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
 # load(
