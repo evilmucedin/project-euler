@@ -19,6 +19,7 @@ cc_library(
   ],
   deps=[
     "//lib:header",
+    "//lib/cpr:cpr",
   ],
   visibility = ["//visibility:public"],
   features = ["-lto"],
