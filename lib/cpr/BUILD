@@ -2,20 +2,11 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-  name="yfinanace",
+  name="cpr",
   hdrs=[
-    "base.h",
-    "benchmark.h",
-    "methods.h",
-    "requests.h",
-    "structures.h",
-    "utils.h",
+    "cpr.h",
   ],
   srcs=[
-    "base.cpp",
-    "methods.cpp",
-    "requests.cpp",
-    "utils.cpp",
   ],
   deps=[
     "//lib:header",
@@ -23,3 +14,4 @@ cc_library(
   visibility = ["//visibility:public"],
   features = ["-lto"],
 )
+

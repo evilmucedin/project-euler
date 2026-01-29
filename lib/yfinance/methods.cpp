@@ -1,5 +1,6 @@
 #include "methods.h"
 
+#include <algorithm>
 
 namespace Methods {
     std::string substring(
