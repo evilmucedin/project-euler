@@ -1,4 +1,5 @@
 #pragma once
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -14,14 +15,14 @@ namespace Structures {
 
     struct Quotes {
 
-        std::vector<float> 
-            m_open, 
-            m_high, 
-            m_low, 
+        std::vector<float>
+            m_open,
+            m_high,
+            m_low,
             m_close;
-        std::vector<long int> 
+        std::vector<long int>
             m_volume;
-        std::vector<time_t> 
+        std::vector<time_t>
             m_unix;
 
         Quotes(
@@ -42,7 +43,7 @@ namespace Structures {
 
         friend std::ostream& operator<<(
             std::ostream& stream,
-            const Structures::Quotes& q) 
+            const Structures::Quotes& q)
         {
             const unsigned int size = q.m_close.size();
             stream << "=======================================================================\n";
@@ -60,60 +61,60 @@ namespace Structures {
 
     struct Option {
 
-        std::optional<bool> 
+        std::optional<bool>
             m_inTheMoney;
-        std::optional<std::string> 
+        std::optional<std::string>
             m_contractSymbol,
-            m_currency, 
+            m_currency,
             m_contractSize;
-        std::optional<float> 
-            m_strike, 
-            m_lastPrice, 
-            m_change, 
-            m_volume, 
-            m_bid, 
-            m_ask, 
-            m_percentChange, 
-            m_openInterest, 
+        std::optional<float>
+            m_strike,
+            m_lastPrice,
+            m_change,
+            m_volume,
+            m_bid,
+            m_ask,
+            m_percentChange,
+            m_openInterest,
             m_impliedVolatility;
-        std::optional<time_t> 
-            m_expiration, 
+        std::optional<time_t>
+            m_expiration,
             m_lastTradeDate;
 
         Option() = default;
 
         Option(
-            bool inTheMoney, 
+            bool inTheMoney,
             std::string contractSymbol,
-            std::string currency, 
+            std::string currency,
             std::string contractSize,
-            float strike, 
-            float lastPrice, 
+            float strike,
+            float lastPrice,
             float change,
-            float percentChange, 
-            float openInterest, 
+            float percentChange,
+            float openInterest,
             float bid,
-            float ask, 
-            float impliedVolatility, 
+            float ask,
+            float impliedVolatility,
             float volume,
-            time_t expiration, 
+            time_t expiration,
             time_t lastTradeDate
-        ): 
-            m_inTheMoney(inTheMoney), 
+        ):
+            m_inTheMoney(inTheMoney),
             m_contractSymbol(contractSymbol),
-            m_currency(currency), 
+            m_currency(currency),
             m_contractSize(contractSize),
-            m_strike(strike), 
-            m_lastPrice(lastPrice), 
+            m_strike(strike),
+            m_lastPrice(lastPrice),
             m_change(change),
-            m_bid(bid), 
-            m_ask(ask), 
+            m_bid(bid),
+            m_ask(ask),
             m_percentChange(percentChange),
-            m_openInterest(openInterest), 
+            m_openInterest(openInterest),
             m_impliedVolatility(impliedVolatility),
-            m_volume(volume), 
+            m_volume(volume),
             m_expiration(expiration),
-            m_lastTradeDate(lastTradeDate) 
+            m_lastTradeDate(lastTradeDate)
         {};
 
         friend std::ostream& operator<<(
@@ -137,18 +138,18 @@ namespace Structures {
 
     struct Profile {
         std::optional<std::string>
-            m_address, 
-            m_city, 
-            m_state, 
+            m_address,
+            m_city,
+            m_state,
             m_zip,
-            m_country, 
-            m_phone, 
-            m_website, 
+            m_country,
+            m_phone,
+            m_website,
             m_industry,
-            m_sector, 
+            m_sector,
             m_longBusinessSummary;
-        std::optional<unsigned int> 
-            m_fullTimeEmployees, 
+        std::optional<unsigned int>
+            m_fullTimeEmployees,
             m_overallRisk;
         std::optional<nlohmann::json>
             m_companyOfficers;
@@ -213,19 +214,19 @@ namespace Structures {
             std::size_t iters,
             milliseconds min,
             milliseconds max,
-            milliseconds avg, 
+            milliseconds avg,
             milliseconds sum
-        ): 
-            m_iters(iters), 
+        ):
+            m_iters(iters),
             m_min(min),
-            m_max(max), 
-            m_avg(avg), 
-            m_sum(sum) 
+            m_max(max),
+            m_avg(avg),
+            m_sum(sum)
         {};
 
         friend std::ostream& operator<<(
             std::ostream& stream,
-            const Structures::TimeitResult& t) 
+            const Structures::TimeitResult& t)
         {
             stream << "=======================================================================\n";
             stream << "=========================== SHOW TIMEIT RESULTS =======================\n";
@@ -245,11 +246,11 @@ namespace Structures {
         long m_status_code;
 
         Response(
-            std::string text, 
+            std::string text,
             long status_code
-        ): 
-            m_text(text), 
-            m_status_code(status_code) 
+        ):
+            m_text(text),
+            m_status_code(status_code)
         {};
 
         friend std::ostream& operator<<(
@@ -286,7 +287,7 @@ namespace Structures {
         friend std::ostream& operator<<(
             std::ostream& stream,
             const News& n) {
-            
+
             stream << "=============================================================================================\n";
             stream << "======================================= SHOW NEWS RESULTS ===================================\n";
             stream << "=============================================================================================\n\n";

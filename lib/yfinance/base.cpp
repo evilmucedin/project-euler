@@ -114,7 +114,7 @@ namespace yfinance {
 					["options"][0][kind];
 
 				unsigned int size = raw.size();
-				for (int i = 0; i < size; i++) {
+				for (unsigned int i = 0; i < size; ++i) {
 					Structures::Option option;
 					for (auto& [key, val] : raw[i].items()) {
 						// As the response from YFINANCE API may be

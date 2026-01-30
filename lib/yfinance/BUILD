@@ -23,5 +23,5 @@ cc_library(
   ],
   visibility = ["//visibility:public"],
   features = ["-lto"],
-  copts = ["-std=c++20"],
+  copts = ["-std=c++23"],
 )
