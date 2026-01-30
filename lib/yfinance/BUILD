@@ -2,7 +2,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-  name="yfinanace",
+  name="yfinanace2",
   hdrs=[
     "base.h",
     "benchmark.h",

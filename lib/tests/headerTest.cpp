@@ -1,6 +1,6 @@
 #include "lib/header.h"
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 TEST(Header, numToString) {
     auto s = numToString<int>(123);

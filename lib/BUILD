@@ -164,4 +164,3 @@ cc_library(
 #    alwayslink = 1,
     features = ["-lto"],
 )
-
