@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <string>
 #include <regex>
-#include "cpr/cpr.h"
-#include "../hpp/structures.h"
-#include "../hpp/utils.h"
+#include <cpr/cpr.h>
+#include "structures.h"
+#include "utils.h"
 using json = nlohmann::json;
 
 
