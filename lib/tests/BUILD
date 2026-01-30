@@ -234,10 +234,13 @@ cc_test(
 cc_test(
   name="yfinanceTest",
   srcs=[
-    "yfinancTest.cpp",
+    "yfinanceTest.cpp",
   ],
   deps=[
     "//lib:header",
-    "//lib/yfinance:yfinance2",
+    "//lib:yfinance2",
+    "//gtest:gtest",
   ],
+  copts = ["-std=c++23"],
+  linkopts = ["-lcurl", "-lcpr"],
 )

@@ -2,7 +2,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-  name="yfinanace2",
+  name="yfinance2",
   hdrs=[
     "base.h",
     "benchmark.h",
@@ -20,6 +20,7 @@ cc_library(
   deps=[
     "//lib:header",
 #    "//lib/cpr:cpr2",
+#    "@curl:curl",
   ],
   visibility = ["//visibility:public"],
   features = ["-lto"],

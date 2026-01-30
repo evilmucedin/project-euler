@@ -164,3 +164,14 @@ cc_library(
 #    alwayslink = 1,
     features = ["-lto"],
 )
+
+cc_library(
+    name="yfinance2",
+    deps=[
+        "//lib/yfinance:yfinance2",
+    ],
+    visibility = ["//visibility:public"],
+    features = ["-lto"],
+    copts = ["-std=c++23"],
+)
+
