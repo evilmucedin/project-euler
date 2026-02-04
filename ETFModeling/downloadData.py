@@ -24,13 +24,15 @@ for ticker in tickers:
     data = yfinance.download(ticker, start='2000-08-01', end=str(date.today() - timedelta(days=1)), actions=True, auto_adjust=False)
     filename = "marketData/%s.csv" % ticker
     data.to_csv(filename)
-    if False:
+    if True:
         with open(filename, "r") as f:
-            if False:
+            if True:
                 lines = f.readlines()
                 print(ticker, len(lines), filename, lines[2], lines[0])
                 f.close()
-                lines[0] = lines[2][:5] + lines[0]
+                lines[0] = lines[2][:5] + lines[0][6:]
+                lines.pop(1)
+                lines.pop(1)
                 with open(filename + "", "w") as w:
                     w.writelines(lines)
 

@@ -120,7 +120,7 @@ void DataFrame::resizeLines(size_t lines) {
 const DataFrame::PColumn DataFrame::getColumn(const string& name, const string& filename, const string& file) const {
     auto toColumn = name2index_.find(name);
     if (toColumn == name2index_.end()) {
-        THROW("Column '" << name << "' not found in '" << filename << "' file: '" << file << "'");
+        THROW("Column '" << name << "' not found in '" << filename << "' file: '" << file << "' names: '" << name2index_ << "'");
     }
     return columns_[toColumn->second];
 }
