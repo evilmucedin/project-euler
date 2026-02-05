@@ -11,7 +11,8 @@ total = float(pdData['Current Value'].sum())
 print(total)
 pdData['Current Value'] = pdData['Current Value'].div(total)
 print(pdData)
-pdExport = pdData[['Symbol', 'Current Value']]
+# pdExport = pdData[['Symbol', 'Current Value']]
+pdExport = pdData[['Account Name', 'Current Value']]
 print(pdExport)
 # pdExport = pdExport[pdExport['Symbol'] != 'CORE**']
 pdExport.to_csv('portfolio.csv', index=False)
