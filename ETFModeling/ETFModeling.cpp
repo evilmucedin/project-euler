@@ -187,7 +187,7 @@ struct ModelResult {
     void calcReturns() {
         dailyReturns.clear();
         dailyReturnsStat.clear();
-        for (int i = 1; i < dailyPrices.size(); ++i) {
+        for (unsigned int i = 1; i < dailyPrices.size(); ++i) {
             ASSERTNE(dailyPrices[i - 1], 0);
             double dailyReturn = log(dailyPrices[i] / dailyPrices[i - 1]);
             dailyReturns.emplace_back(dailyReturn);
@@ -516,8 +516,8 @@ void testStrategy() {
         ModelResult res;
         ModelResult resMinMax;
 
-        vector<int> mins;
-        vector<int> maxs;
+        vector<size_t> mins;
+        vector<size_t> maxs;
         for (size_t j = 1; j + 1 < pd.prices_.size(); ++j) {
             if (pd.prices_[j][i] < pd.prices_[j - 1][i] && pd.prices_[j][i] < pd.prices_[j + 1][i]) {
                 mins.emplace_back(j);
@@ -532,8 +532,8 @@ void testStrategy() {
 
         double cash = pd.prices_[0][i];
         double stock = 0;
-        int iMin = 0;
-        int iMax = 0;
+        long unsigned int iMin = 0;
+        long unsigned int iMax = 0;
         for (size_t j = 0; j < pd.prices_.size(); ++j) {
             res.dailyPrices.emplace_back(pd.prices_[j][i]);
 
