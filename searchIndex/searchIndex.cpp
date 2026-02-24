@@ -93,9 +93,15 @@ int main() {
             toLower(s);
             if (s.size() > 0) {
                 index.add(s, file);
-                cerr << "  " << s << endl;
+                // cerr << "  " << s << endl;
             }
         }
     }
+
+    index.saveToFile("index.dat");
+
+    Index index2;
+    index2.loadFromFile("index,dat");
+
     return 0;
 }
