@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <filesystem>
 #include <map>
 #include <vector>
@@ -41,6 +42,35 @@ public:
         toKey = index_.find(key);
         if (toKey->second.empty() || toKey->second.back() != value)
             toKey->second.push_back(value);
+    }
+
+    void saveToFile(const string& path) const {
+        std::ofstream out(path);
+        for (const auto& entry : index_) {
+            out << entry.first;
+            for (int v : entry.second)
+                out << '\t' << v;
+            out << '\n';
+        }
+    }
+
+    void loadFromFile(const string& path) {
+        index_.clear();
+        std::ifstream in(path);
+        string line;
+        while (std::getline(in, line)) {
+            if (line.empty())
+                continue;
+            std::istringstream ss(line);
+            string key;
+            if (!std::getline(ss, key, '\t'))
+                continue;
+            vector<int> values;
+            string token;
+            while (std::getline(ss, token, '\t'))
+                values.push_back(std::stoi(token));
+            index_[key] = std::move(values);
+        }
     }
 
 private:
