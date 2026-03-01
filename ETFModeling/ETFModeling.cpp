@@ -13,8 +13,9 @@
 
 DEFINE_string(first_date, "", "First modeling date");
 DEFINE_bool(additive_sortino, true, "subtract risk");
-DEFINE_int32(iterations, 10, "nuimber of iterations");
+DEFINE_int32(iterations, 10, "number of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
+DEFINE_bool(portfolio_print, false, "portfolio print");
 DEFINE_string(input, "portfolio input", "");
 DEFINE_string(tickers, "tickers", "");
 DEFINE_bool(stocks, false, "add stocks");
@@ -503,8 +504,9 @@ void optimize1() {
             stockF = resStock.f;
         }
 
-        cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
-             << endl;
+        if (!FLAGS_portfolio_print || p0[r.second] > 0)
+            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
+                << endl;
     }
     out(bestRes);
 }
