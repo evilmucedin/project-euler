@@ -211,6 +211,8 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav, bool useCon
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
         ALWAYS_ASSERT(isfinite(result.originalShares[i]));
+        if (result.originalShares[i] < 0)
+            cerr << "Err empty: " << i << "\t" << result.originalShares[i] << "\t" << result.originalNav[i] <<  endl;
         ALWAYS_ASSERT(result.originalShares[i] >= 0);
     }
     const double originalNavSum = sum(originalNav);
