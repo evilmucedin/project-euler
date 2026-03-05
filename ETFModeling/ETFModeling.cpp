@@ -121,7 +121,7 @@ PriceData loadData(const StringVector& tickers) {
         col.resize(result.tickers_.size());
     }
     for (auto& col : result.dividends_) {
-        col.resize(result.dividends_.size());
+        col.resize(result.tickers_.size());
     }
     size_t iDate = 0;
     for (const auto& date : dates) {
