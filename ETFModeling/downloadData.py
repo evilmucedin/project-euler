@@ -5,6 +5,7 @@
 # Import the yfinance. If you get module not found error the run !pip install yfinance from your Jupyter notebook
 import matplotlib.pyplot as plt
 import yfinance
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 
 def downloadTicker(ticker):
@@ -22,6 +23,7 @@ def downloadTicker(ticker):
                 lines.pop(1)
                 with open(filename + "", "w") as w:
                     w.writelines(lines)
+    return data
 
 #   print(help(yfinance))
 
@@ -36,12 +38,13 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "SHOP", "GOOG",
            ]
 assert(len(tickers) == len(set(tickers)))
 
-for ticker in tickers:
-    downloadTicker(ticker)
+with ThreadPoolExecutor(max_workers=3) as executor:
+    executor.map(downloadTicker, tickers)
 
 # Import the plotting library
 # %matplotlib inline
 
-# Plot the close price of the AAPL (uncomment and pass data if needed)
-# data['Adj Close'].plot()
-# plt.show()
+# Plot the close price of the AAPL
+data = downloadTicker("qqq")
+data['Adj Close'].plot()
+plt.show()
