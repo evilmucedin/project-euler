@@ -22,6 +22,8 @@ bool CsvParser::readHeader() {
     header_ = line_;
     fieldToIndex_.clear();
     for (size_t i = 0; i < header_.size(); ++i) {
+        if (fieldToIndex_.count(header_[i]) != 0)
+            cerr << "Error: " << filename_ << " " << header_[i] << endl;
         ASSERTEQ(fieldToIndex_.count(header_[i]), 0);
         fieldToIndex_.emplace(header_[i], i);
     }

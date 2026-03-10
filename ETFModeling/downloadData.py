@@ -38,8 +38,9 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "SHOP", "GOOG",
            ]
 assert(len(tickers) == len(set(tickers)))
 
-with ThreadPoolExecutor(max_workers=3) as executor:
+with ThreadPoolExecutor(max_workers=1) as executor:
     executor.map(downloadTicker, tickers)
+    executor.shutdown(wait=True)
 
 # Import the plotting library
 # %matplotlib inline
