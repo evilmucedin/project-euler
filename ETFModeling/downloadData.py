@@ -10,19 +10,20 @@ from datetime import date, timedelta
 
 def downloadTicker(ticker):
     data = yfinance.download(ticker, start='2000-08-01', end=str(date.today() - timedelta(days=1)), actions=True, auto_adjust=False)
+    if data is None or data.empty:
+        raise ValueError(f"Download returned no data for ticker {ticker!r}")
     filename = "marketData/%s.csv" % ticker
     data.to_csv(filename)
-    if True:
-        with open(filename, "r") as f:
-            if True:
-                lines = f.readlines()
-                print(ticker, len(lines), filename, lines[2], lines[0])
-                f.close()
-                lines[0] = lines[2][:5] + lines[0][6:]
-                lines.pop(1)
-                lines.pop(1)
-                with open(filename + "", "w") as w:
-                    w.writelines(lines)
+    with open(filename, "r") as f:
+        lines = f.readlines()
+        if len(lines) < 3:
+            raise ValueError(f"CSV for {ticker!r} has too few lines: {filename}")
+        print(ticker, len(lines), filename, lines[2], lines[0])
+        lines[0] = lines[2][:5] + lines[0][6:]
+        lines.pop(1)
+        lines.pop(1)
+        with open(filename, "w") as w:
+            w.writelines(lines)
     return data
 
 #   print(help(yfinance))
@@ -38,8 +39,8 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "SHOP", "GOOG",
            ]
 assert(len(tickers) == len(set(tickers)))
 
-with ThreadPoolExecutor(max_workers=1) as executor:
-    executor.map(downloadTicker, tickers)
+with ThreadPoolExecutor(max_workers=3) as executor:
+    list(executor.map(downloadTicker, tickers))
     executor.shutdown(wait=True)
 
 # Import the plotting library
