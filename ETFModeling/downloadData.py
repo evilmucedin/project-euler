@@ -11,11 +11,14 @@ from datetime import date, timedelta
 
 def downloadTicker(ticker):
     filename = "marketData/%s.csv" % ticker
-    os.remove(filename)
+    if os.path.exists(filename):
+        os.remove(filename)
+    filenameTemp = filename + ".temp"
+    if os.path.exists(filenameTemp):
+        os.remove(filenameTemp)
     data = yfinance.download(ticker, start='2000-08-01', end=str(date.today() - timedelta(days=1)), actions=True, auto_adjust=False)
     if data is None or data.empty:
         raise ValueError(f"Download returned no data for ticker {ticker!r}")
-    filenameTemp = filename + ".temp"
     data.to_csv(filenameTemp)
     with open(filenameTemp, "r") as f:
         lines = f.readlines()
