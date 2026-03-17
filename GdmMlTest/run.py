@@ -10,10 +10,11 @@ INJECTED_REPO = "/home/denplusplus/Programming/LightGBM"
 DATA_FILE = os.path.join("GdmMlTest", "data.data")
 CATBOOST_REPO = "/home/denplusplus/Programming/catboost"
 
-import build
+import buildBazel
 
-ld_path = build.main()
-env["LD_LIBRARY_PATH"] = ld_path
+(env, cmd_run, ld_path) = buildBazel.doBazel("build")
+
+buildBazel.doBazel("run")
 
 res = subprocess.run(cmd_run, cwd=BASE, env=env)
 if res.returncode != 0:

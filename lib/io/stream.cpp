@@ -156,7 +156,7 @@ FileOutputStream::~FileOutputStream() {
 void FileOutputStream::write(const char* buffer, size_t toWrite) {
     if (toWrite) {
         const auto written = ::write(fd_, buffer, toWrite);
-        if (toWrite != written) {
+        if (toWrite != (size_t)written) {
             THROW("write failed " << written << " " << toWrite << " " << errno);
         }
     }
