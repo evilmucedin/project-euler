@@ -51,13 +51,23 @@ catboost_script = os.path.join(GDM_ML_DIR, "catboost_run.py")
 if os.path.exists(catboost_script):
     print("Running CatBoost evaluator...")
     env_cb = env.copy()
-    # Prepend local CatBoost repo to PYTHONPATH so the runner can import it
-    env_cb["PYTHONPATH"] = ":".join([CATBOOST_REPO, env_cb.get("PYTHONPATH", "")])
-    # pass the absolute data file path to the script
-    data_abs = os.path.join(GDM_ML_DIR, "data.data")
-    res_cb = subprocess.run([sys.executable, catboost_script, data_abs], cwd=GDM_ML_DIR, env=env_cb)
-    if res_cb.returncode != 0:
-        print("WARNING: CatBoost evaluation failed (exit code {} )".format(res_cb.returncode), file=sys.stderr)
+    # Export CATBOOST_REPO and prepend likely python-package path to PYTHONPATH
+    env_cb["CATBOOST_REPO"] = CATBOOST_REPO
+    cb_python_pkg = os.path.join(CATBOOST_REPO, "python-package")
+    env_cb["PYTHONPATH"] = ":".join([cb_python_pkg, CATBOOST_REPO, env_cb.get("PYTHONPATH", "")])
+    # Verify we can import catboost with this environment before running the evaluator
+    check_cmd = [sys.executable, "-c", "import importlib; importlib.import_module('catboost')"]
+    check_res = subprocess.run(check_cmd, cwd=GDM_ML_DIR, env=env_cb, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if check_res.returncode != 0:
+        print("CatBoost not importable with current PYTHONPATH; skipping CatBoost step.")
+        print("Import error output:\n", check_res.stderr.decode().strip())
+        print("If you want CatBoost evaluation, build/install the Python package or set CATBOOST_REPO to a repo with a 'python-package' folder.")
+    else:
+        # pass the absolute data file path to the script
+        data_abs = os.path.join(GDM_ML_DIR, "data.data")
+        res_cb = subprocess.run([sys.executable, catboost_script, data_abs], cwd=GDM_ML_DIR, env=env_cb)
+        if res_cb.returncode != 0:
+            print("WARNING: CatBoost evaluation failed (exit code {} )".format(res_cb.returncode), file=sys.stderr)
 else:
     print("CatBoost evaluator not found; skipping CatBoost step.")
 
