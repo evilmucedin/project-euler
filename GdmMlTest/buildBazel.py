@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 
-def main():
+def doBazel(cmd):
     GDM_ML_DIR = os.path.dirname(os.path.abspath(__file__))
     BASE = os.path.abspath(os.path.join(GDM_ML_DIR, ".."))
     TARGET = "//GdmMlTest:GdmMlTest"
@@ -46,7 +46,9 @@ def main():
     if res.returncode != 0:
         print("ERROR: bazel run failed", file=sys.stderr)
         sys.exit(res.returncode)
-    return ld_path
+    # env["CMD_RUN"] = cmd_run
+    # env["LD_LIBRARY_PATH"] = ld_path
+    return (env, cmd_run, ld_path)
 
 # Run CatBoost evaluation using local CatBoost repo if available
     catboost_script = os.path.join(GDM_ML_DIR, "catboost_run.py")
@@ -64,4 +66,4 @@ def main():
     print("=== Completed. ML model quality printed above ===")
 
 if __name__ == "__main__":
-    main()
+    doBazel("build")
