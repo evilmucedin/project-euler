@@ -124,6 +124,11 @@ local_repository(
     path = "/home/denplusplus/Programming/LightGBM",
 )
 
+local_repository(
+    name = "catboost_local",
+    path = "/home/denplusplus/Programming/catboost",
+)
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(

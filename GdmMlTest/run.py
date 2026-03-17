@@ -10,11 +10,36 @@ INJECTED_REPO = "/home/denplusplus/Programming/LightGBM"
 DATA_FILE = os.path.join("GdmMlTest", "data.data")
 CATBOOST_REPO = "/home/denplusplus/Programming/catboost"
 
-import buildBazel
+print("=== Bazel GdmMlTest with LightGBM from build_gpp ===")
+print(f"Workspace base: {BASE}")
 
-(env, cmd_run, ld_path) = buildBazel.doBazel("build")
+# Ensure data.data exists with 100+ features for learning and testing
+gen = os.path.join(GDM_ML_DIR, "generate_data.py")
+print("Generating/updating data.data...")
+subprocess.run([sys.executable, gen], cwd=GDM_ML_DIR, check=True)
 
-buildBazel.doBazel("run")
+cmd_clean = ["bazel", "clean", "--expunge"]
+print("Running:", " ".join(cmd_clean))
+subprocess.run(cmd_clean, cwd=BASE, check=True)
+
+cmd_run = [
+    "bazel",
+    "run",
+    "--verbose_failures",
+    f"--inject_repository=lightgbm_local={INJECTED_REPO}",
+    TARGET,
+    "--",
+    DATA_FILE,
+]
+print("Running:", " ".join(cmd_run))
+
+env = os.environ.copy()
+ld_path = ":".join([
+    os.path.join(INJECTED_REPO, "build_gpp"),
+    INJECTED_REPO,
+    env.get("LD_LIBRARY_PATH", ""),
+])
+env["LD_LIBRARY_PATH"] = ld_path
 
 res = subprocess.run(cmd_run, cwd=BASE, env=env)
 if res.returncode != 0:
@@ -28,7 +53,9 @@ if os.path.exists(catboost_script):
     env_cb = env.copy()
     # Prepend local CatBoost repo to PYTHONPATH so the runner can import it
     env_cb["PYTHONPATH"] = ":".join([CATBOOST_REPO, env_cb.get("PYTHONPATH", "")])
-    res_cb = subprocess.run([sys.executable, catboost_script], cwd=GDM_ML_DIR, env=env_cb)
+    # pass the absolute data file path to the script
+    data_abs = os.path.join(GDM_ML_DIR, "data.data")
+    res_cb = subprocess.run([sys.executable, catboost_script, data_abs], cwd=GDM_ML_DIR, env=env_cb)
     if res_cb.returncode != 0:
         print("WARNING: CatBoost evaluation failed (exit code {} )".format(res_cb.returncode), file=sys.stderr)
 else:
