@@ -56,13 +56,18 @@ int main() {
     std::vector<double> predictions(num_data);
     int64_t out_len = 0;
     check(LGBM_BoosterPredictForMat(
-              data.data(), C_API_DTYPE_FLOAT32,
-              num_data, num_feature,
+              booster,
+              data.data(),
+              C_API_DTYPE_FLOAT32,
+              num_data,
+              num_feature,
               1,  // row major
               C_API_PREDICT_NORMAL,
-              -1,  // use all trees
-              "", booster,
-              predictions.data(), &out_len),
+              0,  // start iteration
+              -1, // num_iteration (all)
+              "",
+              &out_len,
+              predictions.data()),
           "BoosterPredictForMat");
 
     if (out_len != num_data) {

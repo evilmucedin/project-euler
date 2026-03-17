@@ -119,6 +119,11 @@ python_configure(name = "local_config_python")
 
 register_toolchains("//toolchain:cc_toolchain")
 
+local_repository(
+    name = "lightgbm_local",
+    path = "/home/denplusplus/Programming/LightGBM",
+)
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(

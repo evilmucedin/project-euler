@@ -1,11 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-cc_import(
-    name = "lightgbm",
-    shared_library = "/home/denplusplus/Programming/LightGBM/lib_lightgbm.so",
-    visibility = ["//visibility:public"],
-)
-
 cc_binary(
    name="GdmMlTest",
    srcs=[
@@ -26,11 +20,12 @@ cc_binary(
     "//lib/ml:dataframe",
 #    "//lib/io:csv",
 #    "//lib:file",
-    ":lightgbm",
+    "@lightgbm_local//:lightgbm",
   ],
-  copts = ["-I/home/denplusplus/Programming/LightGBM/include", "-std=c++17"],
+  copts = ["-std=c++17"],
   features = ["-lto"],
-  linkopts = ["-lstdc++"],
-#  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  linkopts = [
+    "-lstdc++",
+  ],
 #  visibility = ["//ETFModeling:ETFModeling2"],
 )
