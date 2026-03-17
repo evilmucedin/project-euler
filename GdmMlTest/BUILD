@@ -18,6 +18,7 @@ cc_binary(
         "//lib:stat",
         "//lib/ml:dataframe",
         "@lightgbm_local//:lightgbm",
+        "@catboost_local//:catboost",
     ],
     data = ["data.data"],
     copts = ["-std=c++17"],
