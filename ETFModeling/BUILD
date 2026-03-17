@@ -18,7 +18,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 
 cc_binary(
-    name="ETFModeling2",
+   name="ETFModeling2",
    srcs=[
      "ETFModeling.cpp",
    ],

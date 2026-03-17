@@ -1,26 +1,15 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-# //toolchain:clang12_cc_toolchain_config.bzl
-# load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
-# load(
-#     "@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl",
-#     "feature",
-#     "flag_group",
-#     "flag_set",
-#     "tool_path",
-# )
-
-
-# load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-# load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
-
-# package(default_visibility = ["//ETFModeling"])
-
+cc_import(
+    name = "lightgbm",
+    shared_library = "/home/denplusplus/Programming/LightGBM/lib_lightgbm.so",
+    visibility = ["//visibility:public"],
+)
 
 cc_binary(
-    name="ETFModeling2",
+   name="GdmMlTest",
    srcs=[
-     "ETFModeling.cpp",
+     "gdmMlTest.cpp",
    ],
    deps=[
     "//gflags:gflags2",
@@ -37,8 +26,9 @@ cc_binary(
     "//lib/ml:dataframe",
 #    "//lib/io:csv",
 #    "//lib:file",
+    ":lightgbm",
   ],
-#  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  copts = ["-I/home/denplusplus/Programming/LightGBM/include", "-std=c++17"],
   features = ["-lto"],
   linkopts = ["-lstdc++"],
 #  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
