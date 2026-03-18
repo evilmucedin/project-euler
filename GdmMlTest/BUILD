@@ -15,12 +15,13 @@ cc_binary(
         "//lib/thread-pool:thread-pool2",
         "//lib:random",
         "//lib:timer",
-        "//lib:stat",
-        "//lib/ml:dataframe",
+#        "//lib:stat",
+#        "//lib/ml:dataframe",
         "@lightgbm_local//:lightgbm",
     ],
     data = ["data.data"],
     copts = ["-std=c++17"],
     features = ["-lto"],
-    linkopts = ["-lstdc++"],
+    # Link against the CatBoost model interface shared library (relative path)
+    linkopts = ["-lstdc++", "../catboost/libs/model_interface/libcatboostmodel.so"],
 )

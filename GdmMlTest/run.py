@@ -26,6 +26,7 @@ cmd_run = [
     "bazel",
     "run",
     "--verbose_failures",
+    "--sandbox_debug",
     f"--inject_repository=lightgbm_local={INJECTED_REPO}",
     TARGET,
     "--",
