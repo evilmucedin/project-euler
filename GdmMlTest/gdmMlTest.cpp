@@ -266,7 +266,8 @@ int main(int argc, char** argv) {
 
   testLGBM(path, loaded_data, loaded_label, nrows, ncols);
 
-  std::string catBoostModelPath = "/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface/model.bin";
+  // std::string catBoostModelPath = "/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface/model.bin";
+  std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
 
   try {
