@@ -1,4 +1,3 @@
-#include <LightGBM/c_api.h>
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -9,6 +8,9 @@
 #include <string>
 #include <vector>
 #include <cstdio>
+
+#include <LightGBM/c_api.h>
+#include <catboost/libs/model_interface/model_calcer_wrapper.h>
 
 static const int MIN_FEATURES = 100;
 
@@ -168,26 +170,28 @@ int main(int argc, char** argv) {
 
   // Attempt to run CatBoost evaluator Python script using local CatBoost repo
   // This mirrors the LightGBM evaluation by invoking the existing Python runner.
-  try {
-    std::string catboost_repo = "/home/denplusplus/Programming/catboost";
-    std::string script = "GdmMlTest/catboost_run.py";
-    std::string cmd = "PYTHONPATH=" + catboost_repo + " python3 " + script + " " + path;
-    std::cout << "Running CatBoost evaluator: " << cmd << "\n";
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) {
-      std::cerr << "Failed to start CatBoost evaluator\n";
-    } else {
-      char buffer[256];
-      while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        std::cout << buffer;
+  if (false) {
+      try {
+        std::string catboost_repo = "/home/denplusplus/Programming/catboost";
+        std::string script = "GdmMlTest/catboost_run.py";
+        std::string cmd = "PYTHONPATH=" + catboost_repo + " python3 " + script + " " + path;
+        std::cout << "Running CatBoost evaluator: " << cmd << "\n";
+        FILE* pipe = popen(cmd.c_str(), "r");
+        if (!pipe) {
+          std::cerr << "Failed to start CatBoost evaluator\n";
+        } else {
+          char buffer[256];
+          while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            std::cout << buffer;
+          }
+          int rc = pclose(pipe);
+          if (rc != 0) {
+            std::cerr << "CatBoost evaluator exited with code " << rc << "\n";
+          }
+        }
+      } catch (const std::exception& e) {
+        std::cerr << "Exception while running CatBoost evaluator: " << e.what() << "\n";
       }
-      int rc = pclose(pipe);
-      if (rc != 0) {
-        std::cerr << "CatBoost evaluator exited with code " << rc << "\n";
-      }
-    }
-  } catch (const std::exception& e) {
-    std::cerr << "Exception while running CatBoost evaluator: " << e.what() << "\n";
   }
 
   return 0;

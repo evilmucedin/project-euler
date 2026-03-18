@@ -3,14 +3,23 @@ set -euo pipefail
 
 g++ -std=c++17 -O2 \
   -I../../LightGBM/include \
+  -I/home/denplusplus/Programming/catboost \
+  -I/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
   gdmMlTest.cpp \
   -L../../LightGBM/build_gpp \
-  -l_lightgbm -lstdc++ \
+  -L/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
+  -L/home/denplusplus/Programming/catboost \
+  -l_lightgbm \
+  -lcatboostmodel \
+  -lstdc++ \
   -o gdmMlTest
 
-# g++ ... -L../catboost/libs/model_interface -lcatboostmodel
+export LD_LIBRARY_PATH="../../LightGBM/build_gpp:/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface:$LD_LIBRARY_PATH"
+
+./gdmMlTest data.data
 
 # bazel build --sandbox_debug --verbose_failures //GdmMlTest:GdmMlTest --inject_repository=lightgbm_local=/home/denplusplus/Programming/LightGBM
 
+# ./gdmMlTest data.data
+# python3 ./run.py
 
-LD_LIBRARY_PATH=../../LightGBM/build_gpp:$LD_LIBRARY_PATH ./gdmMlTest data.data ./gdmMlTest
