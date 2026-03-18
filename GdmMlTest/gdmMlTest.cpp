@@ -69,24 +69,13 @@ void loadDataset(const std::string& path,
   }
 }
 
-int main(int argc, char** argv) {
-  std::string path = "data.data";
-  if (argc >= 2) {
-    path = argv[1];
-  }
-
-  std::vector<float> loaded_data;
-  std::vector<float> loaded_label;
-  int nrows = 0;
-  int ncols = 0;
-  loadDataset(path, loaded_data, loaded_label, nrows, ncols);
-
+void testLGBM(const std::string& path, const std::vector<float>& loaded_data, const std::vector<float>& loaded_label, const int& nrows, const int& ncols) {
   std::vector<int> indices(nrows);
   std::iota(indices.begin(), indices.end(), 0);
   std::mt19937 rng(42);
   std::shuffle(indices.begin(), indices.end(), rng);
 
-  int train_rows = static_cast<int>(nrows * 0.8);
+  const int train_rows = static_cast<int>(nrows * 0.8);
   int test_rows = nrows - train_rows;
 
   std::vector<float> train_data;
@@ -193,6 +182,21 @@ int main(int argc, char** argv) {
         std::cerr << "Exception while running CatBoost evaluator: " << e.what() << "\n";
       }
   }
+}
+
+int main(int argc, char** argv) {
+  std::string path = "data.data";
+  if (argc >= 2) {
+    path = argv[1];
+  }
+
+  std::vector<float> loaded_data;
+  std::vector<float> loaded_label;
+  int nrows = 0;
+  int ncols = 0;
+  loadDataset(path, loaded_data, loaded_label, nrows, ncols);
+
+  testLGBM(path, loaded_data, loaded_label, nrows, ncols);
 
   return 0;
 }
