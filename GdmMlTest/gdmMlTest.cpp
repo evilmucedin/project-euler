@@ -22,6 +22,12 @@ static void check(int status, const std::string& msg) {
   }
 }
 
+static void printModelQuality(const std::string& name, double train_acc, double test_acc) {
+  std::cout << "=== " << name << " model quality ===\n";
+  std::cout << "Train accuracy: " << train_acc << "\n";
+  std::cout << "Test accuracy:  " << test_acc << "\n";
+}
+
 void loadDataset(const std::string& path,
                  std::vector<float>& data,
                  std::vector<float>& label,
@@ -151,9 +157,7 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
   double train_acc = computeAccuracy(train_data, train_label, train_rows);
   double test_acc = computeAccuracy(test_data, test_label, test_rows);
 
-  std::cout << "=== ML model quality ===\n";
-  std::cout << "Train accuracy: " << train_acc << "\n";
-  std::cout << "Test accuracy:  " << test_acc << "\n";
+  printModelQuality("ML", train_acc, test_acc);
 
   check(LGBM_BoosterFree(booster), "BoosterFree");
   check(LGBM_DatasetFree(train_dataset), "DatasetFree");
@@ -303,9 +307,7 @@ void testCatBoost(const std::string& model_path,
   double train_acc = evaluate(train_data, train_label, train_rows);
   double test_acc = evaluate(test_data, test_label, test_rows);
 
-  std::cout << "=== CatBoost model quality ===\n";
-  std::cout << "Train accuracy: " << train_acc << "\n";
-  std::cout << "Test accuracy: " << test_acc << "\n";
+  printModelQuality("CatBoost", train_acc, test_acc);
 
   ModelCalcerDelete(calcer);
 }
