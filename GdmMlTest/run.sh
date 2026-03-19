@@ -6,6 +6,7 @@ g++ -std=c++17 -O3 \
   -I../../LightGBM/include \
   -I/home/denplusplus/Programming/catboost \
   -I/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
+  -I/home/denplusplus/Programming/onnxruntime/input \
   gdmMlTest.cpp \
   -L../../LightGBM/build_gpp \
   -L/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
