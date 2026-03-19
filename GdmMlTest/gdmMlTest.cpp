@@ -159,14 +159,72 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
   check(LGBM_DatasetFree(train_dataset), "DatasetFree");
 }
 
+bool trainCatBoostModel(const std::string& data_path, const std::string& model_path) {
+  if (std::filesystem::exists(model_path)) {
+    return true;
+  }
+
+  std::string catboost_repo = "/home/denplusplus/Programming/catboost";
+  std::string command =
+      "PYTHONPATH=" + catboost_repo + " python3 - <<'PY'\n"
+      "import os, random, csv, sys\n"
+      "from catboost import CatBoostClassifier\n"
+      "data_path = r'" + data_path + "'\n"
+      "model_path = r'" + model_path + "'\n"
+      "data = []\n"
+      "labels = []\n"
+      "with open(data_path, 'r') as f:\n"
+      "    reader = csv.reader(f)\n"
+      "    for row in reader:\n"
+      "        if not row: continue\n"
+      "        floats = [float(x) for x in row if x != '']\n"
+      "        if not floats: continue\n"
+      "        data.append(floats[:-1])\n"
+      "        labels.append(int(floats[-1]))\n"
+      "n = len(data)\n"
+      "if n == 0:\n"
+      "    sys.exit(1)\n"
+      "indices = list(range(n))\n"
+      "random.seed(42)\n"
+      "random.shuffle(indices)\n"
+      "train_n = int(n*0.8)\n"
+      "X_train = [data[i] for i in indices[:train_n]]\n"
+      "y_train = [labels[i] for i in indices[:train_n]]\n"
+      "X_test = [data[i] for i in indices[train_n:]]\n"
+      "y_test = [labels[i] for i in indices[train_n:]]\n"
+      "model = CatBoostClassifier(iterations=500, learning_rate=0.1, depth=6, verbose=False)\n"
+      "model.fit(X_train, y_train)\n"
+      "model.save_model(model_path)\n"
+      "pred_train = model.predict(X_train)\n"
+      "pred_test = model.predict(X_test)\n"
+      "acc = lambda p, t: sum(int(x)==int(y) for x,y in zip(p,t))/len(t)\n"
+      "print('=== CatBoost model quality (from C++) ===')\n"
+      "print('Train accuracy:', acc(pred_train, y_train))\n"
+      "print('Test accuracy:', acc(pred_test, y_test))\n"
+      "PY";
+
+  std::cout << "Running CatBoost training via Python script from C++...\n";
+  int rc = std::system(command.c_str());
+  if (rc != 0) {
+    std::cerr << "CatBoost training failed (exit code " << rc << ")\n";
+    return false;
+  }
+  return std::filesystem::exists(model_path);
+}
+
 void testCatBoost(const std::string& model_path,
                   const std::vector<float>& loaded_data,
                   const std::vector<float>& loaded_label,
                   const int& nrows,
                   const int& ncols) {
   if (!std::filesystem::exists(model_path)) {
-    std::cerr << "CatBoost model file not found: " << model_path << ". Skipping CatBoost test.\n";
-    return;
+    std::cerr << "CatBoost model file not found: " << model_path << ". Will attempt to train from data.\n";
+    // model path not found; attempt training from data splits in C++ via Python
+    // (this is the same logic as old catboost_run.py, but launched from C++)
+    if (!trainCatBoostModel("data.data", model_path)) {
+      std::cerr << "CatBoost training and model creation failed. Skipping CatBoost test.\n";
+      return;
+    }
   }
 
   std::vector<int> indices(nrows);
@@ -266,31 +324,8 @@ int main(int argc, char** argv) {
 
   testLGBM(path, loaded_data, loaded_label, nrows, ncols);
 
-  // std::string catBoostModelPath = "/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface/model.bin";
   std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
-
-  try {
-    std::string catboost_repo = "/home/denplusplus/Programming/catboost";
-    std::string script = "catboost_run.py";
-    std::string cmd = "PYTHONPATH=" + catboost_repo + " python3 " + script + " " + path;
-    std::cout << "Running CatBoost evaluator: " << cmd << "\n";
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) {
-      std::cerr << "Failed to start CatBoost evaluator\n";
-    } else {
-      char buffer[256];
-      while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        std::cout << buffer;
-      }
-      int rc = pclose(pipe);
-      if (rc != 0) {
-        std::cerr << "CatBoost evaluator exited with code " << rc << "\n";
-      }
-    }
-  } catch (const std::exception& e) {
-    std::cerr << "Exception while running CatBoost evaluator: " << e.what() << "\n";
-  }
 
   return 0;
 }
