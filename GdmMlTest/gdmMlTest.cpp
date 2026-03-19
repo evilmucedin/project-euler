@@ -199,8 +199,8 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
     return true;
   }
 
-  std::string catboost_repo = "/home/denplusplus/Programming/catboost";
-  std::string command =
+  const std::string catboost_repo = "/home/denplusplus/Programming/catboost";
+  const std::string command =
       "PYTHONPATH=" + catboost_repo + " python3 - <<'PY'\n"
       "import os, random, csv, sys\n"
       "from catboost import CatBoostClassifier\n"
@@ -227,7 +227,7 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
       "y_train = [labels[i] for i in indices[:train_n]]\n"
       "X_test = [data[i] for i in indices[train_n:]]\n"
       "y_test = [labels[i] for i in indices[train_n:]]\n"
-      "model = CatBoostClassifier(iterations=500, learning_rate=0.1, depth=6, verbose=False)\n"
+      "model = CatBoostClassifier(iterations=50, learning_rate=0.1, depth=3, verbose=False)\n"
       "model.fit(X_train, y_train)\n"
       "model.save_model(model_path)\n"
       "pred_train = model.predict(X_train)\n"
@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
 
   testLGBM(path, loaded_data, loaded_label, nrows, ncols);
 
-  std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
+  const std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
 
   return 0;
