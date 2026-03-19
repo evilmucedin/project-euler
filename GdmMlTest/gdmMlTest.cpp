@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -14,6 +15,7 @@
 #include <filesystem>
 
 static const int MIN_FEATURES = 100;
+static const int N_IT = 5;
 
 static void check(int status, const std::string& msg) {
   if (status != 0) {
@@ -171,10 +173,17 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
                              const std::vector<float>& labels, int rows) {
     std::vector<double> preds(rows);
     int64_t out_len = 0;
-    check(LGBM_BoosterPredictForMat(booster, dataset.data(), C_API_DTYPE_FLOAT32,
-                                    rows, ncols, 1, C_API_PREDICT_NORMAL, 0, -1,
-                                    "", &out_len, preds.data()),
-          "BoosterPredictForMat");
+
+    for (int it = 0; it < N_IT; ++it) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        check(LGBM_BoosterPredictForMat(booster, dataset.data(), C_API_DTYPE_FLOAT32,
+                                        rows, ncols, 1, C_API_PREDICT_NORMAL, 0, -1,
+                                        "", &out_len, preds.data()),
+              "BoosterPredictForMat");
+        auto t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
+        std::cout << "LGBM_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", nrows: " << nrows << "\n";
+    }
 
     if (out_len != static_cast<int64_t>(rows)) {
       std::cerr << "Unexpected prediction length: " << out_len << " expected "
@@ -289,10 +298,19 @@ void testCatBoost(const std::string& model_path,
     }
 
     std::vector<double> preds(rows);
-    bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
-    if (!ok) {
-      std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << "\n";
-      return 0.0;
+
+
+    for (int it = 0; it < N_IT; ++it) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
+        std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, rows: " << rows << "\n";
+
+        if (!ok) {
+          std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << " rows: " << rows << "\n";
+          return 0.0;
+        }
     }
 
     return binaryAccuracy(preds, label);
