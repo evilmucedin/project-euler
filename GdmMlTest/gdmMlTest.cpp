@@ -264,6 +264,42 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
   return std::filesystem::exists(model_path);
 }
 
+void testCatBoostCalcer(
+    ModelCalcerHandle* calcer,
+    const int& nrows,
+    const int& ncols,
+    const DatasetSplit& split) {
+  auto evaluate = [&](const std::vector<float>& data, const std::vector<float>& label, int rows) {
+    std::vector<const float*> features(rows);
+    for (int i = 0; i < rows; ++i) {
+      features[i] = &data[i * ncols];
+    }
+
+    std::vector<double> preds(rows);
+
+
+    for (int it = 0; it < N_IT; ++it) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
+        std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, rows: " << rows << "\n";
+
+        if (!ok) {
+          std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << " rows: " << rows << "\n";
+          return 0.0;
+        }
+    }
+
+    return binaryAccuracy(preds, label);
+  };
+
+  double train_acc = evaluate(split.train_data, split.train_label, split.train_rows);
+  double test_acc = evaluate(split.test_data, split.test_label, split.test_rows);
+
+  printModelQuality("CatBoost", train_acc, test_acc);
+}
+
 void testCatBoost(const std::string& model_path,
                   const std::vector<float>& loaded_data,
                   const std::vector<float>& loaded_label,
@@ -299,35 +335,49 @@ void testCatBoost(const std::string& model_path,
     return;
   }
 
-  auto evaluate = [&](const std::vector<float>& data, const std::vector<float>& label, int rows) {
-    std::vector<const float*> features(rows);
-    for (int i = 0; i < rows; ++i) {
-      features[i] = &data[i * ncols];
+  testCatBoostCalcer(calcer, nrows, ncols, split);
+
+  ModelCalcerDelete(calcer);
+}
+
+#include <onnxruntime/core/session/onnxruntime_cxx_api.h>
+
+void testCatBoostLGBM(const std::string& model_path,
+                  const std::vector<float>& loaded_data,
+                  const std::vector<float>& loaded_label,
+                  const int& nrows,
+                  const int& ncols) {
+  if (!std::filesystem::exists(model_path)) {
+    std::cerr << "CatBoost model file not found: " << model_path << ". Will attempt to train from data.\n";
+    // model path not found; attempt training from data splits in C++ via Python
+    // (this is the same logic as old catboost_run.py, but launched from C++)
+    if (!trainCatBoostModel("data.data", model_path)) {
+      std::cerr << "CatBoost training and model creation failed. Skipping CatBoost test.\n";
+      return;
     }
+  }
 
-    std::vector<double> preds(rows);
+  DatasetSplit split = splitDataset(loaded_data, loaded_label, nrows, ncols, 42);
 
+  ModelCalcerHandle* calcer = ModelCalcerCreate();
+  if (!calcer) {
+    std::cerr << "CatBoost ModelCalcerCreate() failed\n";
+    return;
+  }
 
-    for (int it = 0; it < N_IT; ++it) {
-        auto t0 = std::chrono::high_resolution_clock::now();
-        bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
-        auto t1 = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
-        std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, rows: " << rows << "\n";
+  if (!LoadFullModelFromFile(calcer, model_path.c_str())) {
+    std::cerr << "CatBoost LoadFullModelFromFile failed: " << GetErrorString() << "\n";
+    ModelCalcerDelete(calcer);
+    return;
+  }
 
-        if (!ok) {
-          std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << " rows: " << rows << "\n";
-          return 0.0;
-        }
-    }
+  if (!SetPredictionType(calcer, APT_PROBABILITY)) {
+    std::cerr << "CatBoost SetPredictionType failed: " << GetErrorString() << "\n";
+    ModelCalcerDelete(calcer);
+    return;
+  }
 
-    return binaryAccuracy(preds, label);
-  };
-
-  double train_acc = evaluate(split.train_data, split.train_label, split.train_rows);
-  double test_acc = evaluate(split.test_data, split.test_label, split.test_rows);
-
-  printModelQuality("CatBoost", train_acc, test_acc);
+  testCatBoostCalcer(calcer, nrows, ncols, split);
 
   ModelCalcerDelete(calcer);
 }
@@ -348,6 +398,9 @@ int main(int argc, char** argv) {
 
   const std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
+
+  const std::string catBoostModelLGBMPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/lightgbm_model.onnx";
+  testCatBoostLGBM(catBoostModelLGBMPath, loaded_data, loaded_label, nrows, ncols);
 
   return 0;
 }
