@@ -4,7 +4,7 @@ import os
 import random
 
 NUM_FEATURES = 100
-NUM_ROWS = 800
+NUM_ROWS = 80000
 SEED = 42
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.data")
 
@@ -19,8 +19,12 @@ def main():
                 x = (i / NUM_ROWS) * (1 + 0.1 * (j % 10)) + 0.1 * random.random()
                 row.append(round(x, 6))
                 if j < 20:
-                    s += x
+                    s += x*(j + 1)
+            ds = 50.5*(0.5 - float(random.random()))
+            # print(ds)
+            s += ds
             label = 1 if s > 10.0 else 0
+            # label = s
             f.write(",".join(str(v) for v in row) + f",{label}\n")
     print(f"Wrote {DATA_PATH}: {NUM_ROWS} rows, {NUM_FEATURES} features")
 
