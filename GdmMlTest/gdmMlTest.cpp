@@ -162,12 +162,20 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
       "verbosity=1";
   check(LGBM_BoosterCreate(train_dataset, params, &booster), "BoosterCreate");
 
+  int actual_iters = 0;
   for (int iter = 0; iter < 500; ++iter) {
     int is_finished = 0;
     check(LGBM_BoosterUpdateOneIter(booster, &is_finished),
           "BoosterUpdateOneIter");
+    actual_iters = iter + 1;
     if (is_finished) break;
   }
+
+  const char* lgbm_model_file = "lightgbm_model.txt";
+  // LightGBM C API signature: (BoosterHandle, num_iteration, start_iteration, format, filename)
+  // format 0 = text (txt), 1 = binary (bin)
+  check(LGBM_BoosterSaveModel(booster, actual_iters, 0, 0, lgbm_model_file), "BoosterSaveModel");
+  std::cout << "Saved LightGBM model to " << lgbm_model_file << "\n";
 
   auto computeAccuracy = [&](const std::vector<float>& dataset,
                              const std::vector<float>& labels, int rows) {
