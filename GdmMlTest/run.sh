@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-g++ -std=c++17 -O2 \
+g++ -std=c++17 -O3 \
+  -DNDEBUG -s \
   -I../../LightGBM/include \
   -I/home/denplusplus/Programming/catboost \
   -I/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
