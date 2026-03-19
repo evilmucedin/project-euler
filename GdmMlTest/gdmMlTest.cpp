@@ -28,6 +28,72 @@ static void printModelQuality(const std::string& name, double train_acc, double 
   std::cout << "Test accuracy:  " << test_acc << "\n";
 }
 
+struct DatasetSplit {
+  std::vector<float> train_data;
+  std::vector<float> train_label;
+  std::vector<float> test_data;
+  std::vector<float> test_label;
+  int train_rows = 0;
+  int test_rows = 0;
+};
+
+static DatasetSplit splitDataset(const std::vector<float>& loaded_data,
+                                 const std::vector<float>& loaded_label,
+                                 int nrows,
+                                 int ncols,
+                                 unsigned seed = 42) {
+  std::vector<int> indices(nrows);
+  std::iota(indices.begin(), indices.end(), 0);
+  std::mt19937 rng(seed);
+  std::shuffle(indices.begin(), indices.end(), rng);
+
+  int train_rows = static_cast<int>(nrows * 0.8);
+  int test_rows = nrows - train_rows;
+
+  DatasetSplit split;
+  split.train_rows = train_rows;
+  split.test_rows = test_rows;
+
+  split.train_data.reserve(train_rows * ncols);
+  split.test_data.reserve(test_rows * ncols);
+  split.train_label.reserve(train_rows);
+  split.test_label.reserve(test_rows);
+
+  for (int i = 0; i < train_rows; ++i) {
+    int idx = indices[i];
+    for (int j = 0; j < ncols; ++j) {
+      split.train_data.push_back(loaded_data[idx * ncols + j]);
+    }
+    split.train_label.push_back(loaded_label[idx]);
+  }
+  for (int i = train_rows; i < nrows; ++i) {
+    int idx = indices[i];
+    for (int j = 0; j < ncols; ++j) {
+      split.test_data.push_back(loaded_data[idx * ncols + j]);
+    }
+    split.test_label.push_back(loaded_label[idx]);
+  }
+
+  return split;
+}
+
+static double binaryAccuracy(const std::vector<double>& preds,
+                             const std::vector<float>& labels) {
+  int n = static_cast<int>(preds.size());
+  if (static_cast<int>(labels.size()) != n) {
+    std::cerr << "binaryAccuracy: label/prediction size mismatch\n";
+    std::exit(1);
+  }
+  int correct = 0;
+  for (int i = 0; i < n; ++i) {
+    int pred = (preds[i] > 0.5) ? 1 : 0;
+    if (pred == static_cast<int>(labels[i])) {
+      ++correct;
+    }
+  }
+  return n > 0 ? static_cast<double>(correct) / n : 0.0;
+}
+
 void loadDataset(const std::string& path,
                  std::vector<float>& data,
                  std::vector<float>& label,
@@ -77,45 +143,15 @@ void loadDataset(const std::string& path,
 }
 
 void testLGBM(const std::string& path, const std::vector<float>& loaded_data, const std::vector<float>& loaded_label, const int& nrows, const int& ncols) {
-  std::vector<int> indices(nrows);
-  std::iota(indices.begin(), indices.end(), 0);
-  std::mt19937 rng(42);
-  std::shuffle(indices.begin(), indices.end(), rng);
-
-  const int train_rows = static_cast<int>(nrows * 0.8);
-  int test_rows = nrows - train_rows;
-
-  std::vector<float> train_data;
-  train_data.reserve(train_rows * ncols);
-  std::vector<float> train_label;
-  train_label.reserve(train_rows);
-  std::vector<float> test_data;
-  test_data.reserve(test_rows * ncols);
-  std::vector<float> test_label;
-  test_label.reserve(test_rows);
-
-  for (int i = 0; i < train_rows; ++i) {
-    int idx = indices[i];
-    for (int j = 0; j < ncols; ++j) {
-      train_data.push_back(loaded_data[idx * ncols + j]);
-    }
-    train_label.push_back(loaded_label[idx]);
-  }
-  for (int i = train_rows; i < nrows; ++i) {
-    int idx = indices[i];
-    for (int j = 0; j < ncols; ++j) {
-      test_data.push_back(loaded_data[idx * ncols + j]);
-    }
-    test_label.push_back(loaded_label[idx]);
-  }
+  DatasetSplit split = splitDataset(loaded_data, loaded_label, nrows, ncols, 42);
 
   DatasetHandle train_dataset = nullptr;
-  check(LGBM_DatasetCreateFromMat(train_data.data(), C_API_DTYPE_FLOAT32,
-                                  train_rows, ncols, 1, "", nullptr,
+  check(LGBM_DatasetCreateFromMat(split.train_data.data(), C_API_DTYPE_FLOAT32,
+                                  split.train_rows, ncols, 1, "", nullptr,
                                   &train_dataset),
         "DatasetCreateFromMat");
-  check(LGBM_DatasetSetField(train_dataset, "label", train_label.data(),
-                             train_rows, C_API_DTYPE_FLOAT32),
+  check(LGBM_DatasetSetField(train_dataset, "label", split.train_label.data(),
+                             split.train_rows, C_API_DTYPE_FLOAT32),
         "DatasetSetField(label)");
 
   BoosterHandle booster = nullptr;
@@ -146,16 +182,11 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
       std::exit(1);
     }
 
-    int correct = 0;
-    for (int i = 0; i < rows; ++i) {
-      int pr = (preds[i] > 0.5) ? 1 : 0;
-      if (pr == static_cast<int>(labels[i])) ++correct;
-    }
-    return static_cast<double>(correct) / rows;
+    return binaryAccuracy(preds, labels);
   };
 
-  double train_acc = computeAccuracy(train_data, train_label, train_rows);
-  double test_acc = computeAccuracy(test_data, test_label, test_rows);
+  double train_acc = computeAccuracy(split.train_data, split.train_label, split.train_rows);
+  double test_acc = computeAccuracy(split.test_data, split.test_label, split.test_rows);
 
   printModelQuality("ML", train_acc, test_acc);
 
@@ -231,37 +262,7 @@ void testCatBoost(const std::string& model_path,
     }
   }
 
-  std::vector<int> indices(nrows);
-  std::iota(indices.begin(), indices.end(), 0);
-  std::mt19937 rng(42);
-  std::shuffle(indices.begin(), indices.end(), rng);
-
-  const int train_rows = static_cast<int>(nrows * 0.8);
-  int test_rows = nrows - train_rows;
-
-  std::vector<float> train_data;
-  train_data.reserve(train_rows * ncols);
-  std::vector<float> train_label;
-  train_label.reserve(train_rows);
-  std::vector<float> test_data;
-  test_data.reserve(test_rows * ncols);
-  std::vector<float> test_label;
-  test_label.reserve(test_rows);
-
-  for (int i = 0; i < train_rows; ++i) {
-    int idx = indices[i];
-    for (int j = 0; j < ncols; ++j) {
-      train_data.push_back(loaded_data[idx * ncols + j]);
-    }
-    train_label.push_back(loaded_label[idx]);
-  }
-  for (int i = train_rows; i < nrows; ++i) {
-    int idx = indices[i];
-    for (int j = 0; j < ncols; ++j) {
-      test_data.push_back(loaded_data[idx * ncols + j]);
-    }
-    test_label.push_back(loaded_label[idx]);
-  }
+  DatasetSplit split = splitDataset(loaded_data, loaded_label, nrows, ncols, 42);
 
   ModelCalcerHandle* calcer = ModelCalcerCreate();
   if (!calcer) {
@@ -294,18 +295,11 @@ void testCatBoost(const std::string& model_path,
       return 0.0;
     }
 
-    int correct = 0;
-    for (int i = 0; i < rows; ++i) {
-      int pred = (preds[i] > 0.5) ? 1 : 0;
-      if (pred == static_cast<int>(label[i])) {
-        correct++;
-      }
-    }
-    return static_cast<double>(correct) / rows;
+    return binaryAccuracy(preds, label);
   };
 
-  double train_acc = evaluate(train_data, train_label, train_rows);
-  double test_acc = evaluate(test_data, test_label, test_rows);
+  double train_acc = evaluate(split.train_data, split.train_label, split.train_rows);
+  double test_acc = evaluate(split.test_data, split.test_label, split.test_rows);
 
   printModelQuality("CatBoost", train_acc, test_acc);
 
