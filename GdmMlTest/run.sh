@@ -6,17 +6,19 @@ g++ -std=c++17 -O3 \
   -I../../LightGBM/include \
   -I/home/denplusplus/Programming/catboost \
   -I/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
-  -I/home/denplusplus/Programming/onnxruntime/input \
+  -I/home/denplusplus/Programming/onnxruntime/include \
   gdmMlTest.cpp \
   -L../../LightGBM/build_gpp \
   -L/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface \
   -L/home/denplusplus/Programming/catboost \
+  -L/home/denplusplus/Programming/onnxruntime/build/Linux/Release \
   -l_lightgbm \
   -lcatboostmodel \
+  -lonnxruntime \
   -lstdc++ \
   -o gdmMlTest
 
-export LD_LIBRARY_PATH="../../LightGBM/build_gpp:/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="../../LightGBM/build_gpp:/home/denplusplus/Programming/catboost/build_applier/catboost/libs/model_interface:/home/denplusplus/Programming/onnxruntime/build/Linux/Release:$LD_LIBRARY_PATH"
 
 ./gdmMlTest data.data
 
