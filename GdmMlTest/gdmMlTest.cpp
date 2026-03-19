@@ -172,9 +172,9 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
   }
 
   const char* lgbm_model_file = "lightgbm_model.txt";
-  // LightGBM C API signature: (BoosterHandle, num_iteration, start_iteration, format, filename)
-  // format 0 = text (txt), 1 = binary (bin)
-  check(LGBM_BoosterSaveModel(booster, actual_iters, 0, 0, lgbm_model_file), "BoosterSaveModel");
+  // LightGBM C API signature: (BoosterHandle, start_iteration, num_iteration, feature_importance_type, filename)
+  // to save all built trees, use start_iteration=0, num_iteration=actual_iters
+  check(LGBM_BoosterSaveModel(booster, 0, actual_iters, 0, lgbm_model_file), "BoosterSaveModel");
   std::cout << "Saved LightGBM model to " << lgbm_model_file << "\n";
 
   auto computeAccuracy = [&](const std::vector<float>& dataset,
