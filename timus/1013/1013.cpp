@@ -12,7 +12,7 @@ Matrix mul(Matrix A, Matrix B, ll mod) {
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 2; j++)
             for (int k = 0; k < 2; k++)
-                C.a[i][j] = (C.a[i][j] + A.a[i][k] * B.a[k][j]) % mod;
+                C.a[i][j] = (C.a[i][j] + (__int128)A.a[i][k] * B.a[k][j]) % mod;
     return C;
 }
 
@@ -52,7 +52,7 @@ int main() {
 
     Matrix Tn = mpow(T, n - 2, m);
     ll pn1 = (Tn.a[0][0] * (k % m) + Tn.a[0][1]) % m;
-    cout << (k - 1) % m * pn1 % m << endl;
+    cout << (ll)((__int128)((k - 1) % m) * pn1 % m) << endl;
 
     return 0;
 }
