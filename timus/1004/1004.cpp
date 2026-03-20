@@ -1,108 +1,102 @@
+#include <stdlib.h>
 #include <iostream>
-#include <vector>
+#include <cstring>
 
 using namespace std;
 
-static const int INF = 1000000000;
+int n, m;
+int mas[100][100];
+bool used[100][100];
+int was[100];
+int path[100];
+int outpath[100];
+int maxpath;
+int maxlength;
+int outpathlength;
+
+void solve();
 
 int main()
 {
 	while (true)
 	{
-		int n;
 		cin >> n;
 		if (n == -1)
 			return 0;
-		int m;
 		cin >> m;
-
-		vector<vector<int>> g(n, vector<int>(n, INF));
-		for (int i = 0; i < n; i++)
-			g[i][i] = 0;
-
-		for (int e = 0; e < m; e++)
+		memset(mas,0 ,sizeof(mas));
+		for(int i=0; i<m; i++)
 		{
 			int a, b, c;
 			cin >> a >> b >> c;
-			--a;
-			--b;
-			if (c < g[a][b])
-				g[a][b] = g[b][a] = c;
-		}
-
-		vector<vector<int>> dist(n, vector<int>(n));
-		vector<vector<int>> nxt(n, vector<int>(n, -1));
-		for (int i = 0; i < n; i++)
-		{
-			for (int j = 0; j < n; j++)
+			if ((mas[a-1][b-1] == 0) || (mas[a-1][b-1] > c))
 			{
-				dist[i][j] = g[i][j];
-				if (i != j && g[i][j] < INF)
-					nxt[i][j] = j;
+				mas[a-1][b-1] = c;
+				mas[b-1][a-1] = c;
 			}
 		}
+		memset(was, 0, sizeof(was));
+		solve();
 
-		int best = INF;
-		int bi = -1, bj = -1, bk = -1;
-		vector<vector<int>> best_nxt;
+	}
+	return 0;
+}
 
-		for (int k = 0; k < n; k++)
+int go(int node, int start, int step, int curlength)
+{
+	int retval=23323;
+	was[node] = 1;
+	int next = -1;
+	path[step] = node;
+	if ((mas[node][start] != 0) && (!used[node][start]))
+	{
+		retval = mas[node][start];
+		next = start;
+		if ((curlength + mas[node][start]) < maxlength)
 		{
-			for (int i = 0; i < k; i++)
-			{
-				for (int j = i + 1; j < k; j++)
-				{
-					if (g[i][k] == INF || g[j][k] == INF || dist[i][j] == INF)
-						continue;
-					int total = dist[i][j] + g[i][k] + g[j][k];
-					if (total < best)
-					{
-						best = total;
-						bi = i;
-						bj = j;
-						bk = k;
-						// Paths must use only vertices < k; final Floyd nxt may route through k+.
-						best_nxt = nxt;
-					}
-				}
-			}
-			for (int i = 0; i < n; i++)
-			{
-				for (int j = 0; j < n; j++)
-				{
-					if (dist[i][k] + dist[k][j] < dist[i][j])
-					{
-						dist[i][j] = dist[i][k] + dist[k][j];
-						nxt[i][j] = nxt[i][k];
-					}
-				}
-			}
-		}
-
-		if (best >= INF)
-		{
-			cout << "No solution.\n";
-		}
-		else
-		{
-			vector<int> out;
-			int u = bi;
-			while (u != bj)
-			{
-				out.push_back(u);
-				u = best_nxt[u][bj];
-			}
-			out.push_back(bj);
-			out.push_back(bk);
-			for (size_t t = 0; t < out.size(); t++)
-			{
-				if (t)
-					cout << ' ';
-				cout << out[t] + 1;
-			}
-			cout << '\n';
+			maxlength = curlength + mas[node][start];
+			memcpy(outpath, path, sizeof(path));
+			outpathlength = step;
 		}
 	}
+	for (int i=0; i<n; i++)
+	{
+		if ((mas[node][i] == 0) || (was[i] != 0) || (used[node][i]) ||
+			((mas[node][i] + curlength) >= maxlength))
+			continue;
 
-    return 0;
+		used[node][i] = true;
+		used[i][node] = true;
+		int a = go(i, start, step+1, curlength + mas[node][i]);
+		used[node][i] = false;
+		used[i][node] = false;
+		if ((a != 0) && ((a + mas[node][i]) < retval))
+		{
+			retval = a + mas[node][i];
+			next = i;
+		}
+	}
+	was[node] = 0;
+
+	return retval;
+}
+
+void solve()
+{
+	memset(outpath, 0, sizeof(outpath));
+	maxlength = 1000000000;
+	outpathlength = 0;
+	for (int i=0; i<n; i++)
+	{
+		maxpath = 0;
+		memset(was, 0, sizeof(was));
+		memset(path,0, sizeof(path));
+		go(i, i, 0, 0);
+	}
+	if (maxlength < 1000000000)
+		for (int i=0; i<= outpathlength; i++)
+			cout << outpath[i]+1 << ' ';
+	else
+		cout << "No solution.";
+	cout << '\n';
 }
