@@ -1,58 +1,63 @@
 #include <iostream>
+
 using namespace std;
-typedef long long ll;
+
+typedef unsigned __int128 uint128; // Using __int128 to handle intermediate multiplication overflow
+
+unsigned long long mul_mod(unsigned long long a, unsigned long long b, unsigned long long m) {
+    return (unsigned long long)((uint128)a * b % m);
+}
 
 struct Matrix {
-    ll a[2][2];
-    Matrix() { a[0][0] = a[0][1] = a[1][0] = a[1][1] = 0; }
+    unsigned long long mat[2][2];
+    Matrix() {
+        mat[0][0] = mat[0][1] = mat[1][0] = mat[1][1] = 0;
+    }
 };
 
-Matrix mul(Matrix A, Matrix B, ll mod) {
+Matrix multiply(Matrix A, Matrix B, unsigned long long m) {
     Matrix C;
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 2; j++)
             for (int k = 0; k < 2; k++)
-                C.a[i][j] = (C.a[i][j] + (__int128)A.a[i][k] * B.a[k][j]) % mod;
+                C.mat[i][j] = (C.mat[i][j] + mul_mod(A.mat[i][k], B.mat[k][j], m)) % m;
     return C;
 }
 
-Matrix mpow(Matrix A, ll p, ll mod) {
-    Matrix R;
-    R.a[0][0] = R.a[1][1] = 1;
+Matrix power(Matrix A, unsigned long long p, unsigned long long m) {
+    Matrix res;
+    res.mat[0][0] = 1; res.mat[1][1] = 1;
     while (p > 0) {
-        if (p & 1) R = mul(R, A, mod);
-        A = mul(A, A, mod);
+        if (p & 1) res = multiply(res, A, m);
+        A = multiply(A, A, m);
         p >>= 1;
     }
-    return R;
+    return res;
 }
 
 int main() {
-    ll n, k, m;
-    cin >> n >> k >> m;
+    unsigned long long n, k, m;
+    if (!(cin >> n >> k >> m)) return 0;
 
-    // Count N-digit base-K numbers (first digit 1..K-1) with no two consecutive zeros.
-    // Let p(j) = valid j-length sequences (digits 0..K-1) with no two consecutive zeros.
-    // p(0)=1, p(1)=K, p(j)=(K-1)*p(j-1)+(K-1)*p(j-2)
-    // Answer = (K-1)*p(N-1) % M
-
-    if (n == 1) {
-        cout << (k - 1) % m << endl;
-        return 0;
-    }
-
-    // Matrix form: [p(j), p(j-1)]^T = T * [p(j-1), p(j-2)]^T
-    // T = [(K-1), (K-1); 1, 0]
-    // Apply T^(N-2) to [p(1), p(0)] = [K, 1] to get [p(N-1), ...]
+    // Transition matrix:
+    // [ K-1  K-1 ]
+    // [  1    0  ]
     Matrix T;
-    T.a[0][0] = (k - 1) % m;
-    T.a[0][1] = (k - 1) % m;
-    T.a[1][0] = 1;
-    T.a[1][1] = 0;
+    T.mat[0][0] = (k - 1) % m;
+    T.mat[0][1] = (k - 1) % m;
+    T.mat[1][0] = 1 % m;
+    T.mat[1][1] = 0;
 
-    Matrix Tn = mpow(T, n - 2, m);
-    ll pn1 = (Tn.a[0][0] * (k % m) + Tn.a[0][1]) % m;
-    cout << (ll)((__int128)((k - 1) % m) * pn1 % m) << endl;
+    // We need the result for n digits. 
+    // Initial state for 1 digit (ignoring leading zero): A1 = K-1, B1 = 0
+    // Result for N digits is T^(n-1) * [K-1, 0]^T
+    Matrix Tn = power(T, n - 1, m);
+    
+    unsigned long long An = mul_mod(Tn.mat[0][0], (k - 1) % m, m);
+    unsigned long long Bn = mul_mod(Tn.mat[1][0], (k - 1) % m, m);
+    
+    cout << (An + Bn) % m << endl;
 
     return 0;
 }
+
