@@ -41,7 +41,15 @@ if n_features is None or n_features <= 0:
 
 # Define ONNX input shape
 initial_types = [("input", FloatTensorType([None, n_features]))]
+onnx_model_path = "lightgbm_model.onnx"
 onnx_model = convert_lightgbm(model_lgb, initial_types=initial_types)
-save_onnx_model(onnx_model, 'lightgbm_model.onnx')
+save_onnx_model(onnx_model, onnx_model_path)
 print(f"Converted {lgb_model_file} to lightgbm_model.onnx with {n_features} features")
 
+import catboost
+
+onnx_model_path = "lightgbm_model.onnx"
+catboostModel = catboost.CatBoost()
+catboostModel.load_model(onnx_model_path, format='onnx')
+output_path = "lightgbm_model.cbm"
+catboostModel.save_model(output_path)

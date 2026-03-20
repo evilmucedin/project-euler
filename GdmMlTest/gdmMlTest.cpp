@@ -265,6 +265,7 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
 }
 
 void testCatBoostCalcer(
+    const std::string& file_path,
     ModelCalcerHandle* calcer,
     const int& nrows,
     const int& ncols,
@@ -283,7 +284,7 @@ void testCatBoostCalcer(
         bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
         auto t1 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t1 - t0;
-        std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, rows: " << rows << "\n";
+        std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, path: " << file_path <<   "  rows: " << rows << "\n";
 
         if (!ok) {
           std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << " rows: " << rows << "\n";
@@ -335,7 +336,7 @@ void testCatBoost(const std::string& model_path,
     return;
   }
 
-  testCatBoostCalcer(calcer, nrows, ncols, split);
+  testCatBoostCalcer(model_path, calcer, nrows, ncols, split);
 
   ModelCalcerDelete(calcer);
 }
@@ -377,7 +378,7 @@ void testCatBoostLGBM(const std::string& model_path,
     return;
   }
 
-  testCatBoostCalcer(calcer, nrows, ncols, split);
+  testCatBoostCalcer(model_path, calcer, nrows, ncols, split);
 
   ModelCalcerDelete(calcer);
 }
@@ -399,7 +400,7 @@ int main(int argc, char** argv) {
   const std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
 
-  const std::string catBoostModelLGBMPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/lightgbm_model.onnx";
+  const std::string catBoostModelLGBMPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/lightgbm_model.cbm";
   testCatBoostLGBM(catBoostModelLGBMPath, loaded_data, loaded_label, nrows, ncols);
 
   return 0;
