@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <cstring>
 
 using namespace std;
 
@@ -45,6 +44,7 @@ int main()
 
 		int best = INF;
 		int bi = -1, bj = -1, bk = -1;
+		vector<vector<int>> best_nxt;
 
 		for (int k = 0; k < n; k++)
 		{
@@ -61,6 +61,8 @@ int main()
 						bi = i;
 						bj = j;
 						bk = k;
+						// Paths must use only vertices < k; final Floyd nxt may route through k+.
+						best_nxt = nxt;
 					}
 				}
 			}
@@ -88,7 +90,7 @@ int main()
 			while (u != bj)
 			{
 				out.push_back(u);
-				u = nxt[u][bj];
+				u = best_nxt[u][bj];
 			}
 			out.push_back(bj);
 			out.push_back(bk);
