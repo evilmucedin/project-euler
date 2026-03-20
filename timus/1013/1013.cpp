@@ -1,49 +1,58 @@
 #include <iostream>
-#include <vector>
-
 using namespace std;
-
 typedef long long ll;
-typedef __int128_t int128; // Use __int128 for intermediate products
 
 struct Matrix {
-    int128 mat[2][2];
-    Matrix() {
-        mat[0][0] = mat[0][1] = mat[1][0] = mat[1][1] = 0;
-    }
+    ll a[2][2];
+    Matrix() { a[0][0] = a[0][1] = a[1][0] = a[1][1] = 0; }
 };
 
-Matrix multiply(Matrix a, Matrix b, ll mod) {
-    Matrix c;
-    for (int i = 0; i  0) {
-        if (p & 1) res = multiply(res, a, mod);
-        a = multiply(a, a, mod);
+Matrix mul(Matrix A, Matrix B, ll mod) {
+    Matrix C;
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 2; j++)
+            for (int k = 0; k < 2; k++)
+                C.a[i][j] = (C.a[i][j] + A.a[i][k] * B.a[k][j]) % mod;
+    return C;
+}
+
+Matrix mpow(Matrix A, ll p, ll mod) {
+    Matrix R;
+    R.a[0][0] = R.a[1][1] = 1;
+    while (p > 0) {
+        if (p & 1) R = mul(R, A, mod);
+        A = mul(A, A, mod);
         p >>= 1;
     }
-    return res;
+    return R;
 }
 
 int main() {
     ll n, k, m;
-    if (!(cin >> n >> k >> m)) return 0;
+    cin >> n >> k >> m;
+
+    // Count N-digit base-K numbers (first digit 1..K-1) with no two consecutive zeros.
+    // Let p(j) = valid j-length sequences (digits 0..K-1) with no two consecutive zeros.
+    // p(0)=1, p(1)=K, p(j)=(K-1)*p(j-1)+(K-1)*p(j-2)
+    // Answer = (K-1)*p(N-1) % M
 
     if (n == 1) {
         cout << (k - 1) % m << endl;
         return 0;
     }
 
+    // Matrix form: [p(j), p(j-1)]^T = T * [p(j-1), p(j-2)]^T
+    // T = [(K-1), (K-1); 1, 0]
+    // Apply T^(N-2) to [p(1), p(0)] = [K, 1] to get [p(N-1), ...]
     Matrix T;
-    T.mat[0][0] = 0; T.mat[0][1] = 1;
-    T.mat[1][0] = k - 1; T.mat[1][1] = k - 1;
+    T.a[0][0] = (k - 1) % m;
+    T.a[0][1] = (k - 1) % m;
+    T.a[1][0] = 1;
+    T.a[1][1] = 0;
 
-    T = power(T, n - 1, m);
-
-    // Initial vector [dp[1][0], dp[1][1]] = [0, k-1]
-    // Final result is (0 * T[0][0] + (k-1) * T[0][1]) + (0 * T[1][0] + (k-1) * T[1][1])
-    // Simplified: (k-1) * T[0][1] + (k-1) * T[1][1]
-    ll ans = ((int128)(k - 1) * T.mat[0][1] + (int128)(k - 1) * T.mat[1][1]) % m;
-    cout << ans << endl;
+    Matrix Tn = mpow(T, n - 2, m);
+    ll pn1 = (Tn.a[0][0] * (k % m) + Tn.a[0][1]) % m;
+    cout << (k - 1) % m * pn1 % m << endl;
 
     return 0;
 }
-
