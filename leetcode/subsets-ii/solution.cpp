@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include <set>
 
 using namespace std;
@@ -16,7 +17,8 @@ class Solution {
             }
         }
 
-        vector<vector<int>> subsetsWithDup(const vector<int>& nums) {
+        vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+            sort(nums.begin(), nums.end());
             set<vector<int>> s;
             const int n = nums.size();
             vector<int> m;
