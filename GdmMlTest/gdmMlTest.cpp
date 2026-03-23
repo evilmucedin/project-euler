@@ -264,12 +264,20 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
   return std::filesystem::exists(model_path);
 }
 
+#include <cstdlib>
+#include <iostream>
+// #include <catboost/libs/model/model.h>
+
 void testCatBoostCalcer(
     const std::string& file_path,
     ModelCalcerHandle* calcer,
     const int& nrows,
     const int& ncols,
     const DatasetSplit& split) {
+
+
+  // TFullModel& fullModel = *calcer->FullModel;
+
   auto evaluate = [&](const std::vector<float>& data, const std::vector<float>& label, int rows) {
     std::vector<const float*> features(rows);
     for (int i = 0; i < rows; ++i) {
