@@ -19,21 +19,21 @@ if not os.path.exists(input_data_file):
     raise FileNotFoundError(f"Input data file not found: {input_data_file}")
 
 # Infer number of features from first non-empty line in data.data
-n_features = None
-with open(input_data_file, 'r') as f:
-    for line in f:
-        line = line.strip()
-        if not line:
-            continue
-        parts = [x for x in line.split(',') if x != '']
-        if not parts:
-            continue
-        # last column is label
-        n_features = len(parts) - 1
-        break
-
-if n_features is None or n_features <= 0:
-    raise ValueError(f"Unable to determine number of features from {input_data_file}")
+# n_features = None
+# with open(input_data_file, 'r') as f:
+#     for line in f:
+#         line = line.strip()
+#         if not line:
+#             continue
+#         parts = [x for x in line.split(',') if x != '']
+#         if not parts:
+#             continue
+#         # last column is label
+#         n_features = len(parts) - 1
+#         break
+# 
+# if n_features is None or n_features <= 0:
+#     raise ValueError(f"Unable to determine number of features from {input_data_file}")
 
 # Load LightGBM model object
 model_lgb = lgb.Booster(model_file=lgb_model_file)
@@ -49,6 +49,8 @@ model = treelite.frontend.from_lightgbm(model_lgb)
 # 3. Generate C code or Export a Shared Library using TL2cgen
 # Exporting as a shared library (.so or .dll)
 tl2cgen.export_lib(model, toolchain="gcc", libpath="./predictor.so")
+
+tl2cgen.generate_c_code(model, dirpath="./", params={})
 
 # 2. Export the model as a native shared library
 # You can choose "gcc", "clang", or "msvc" as the toolchain
