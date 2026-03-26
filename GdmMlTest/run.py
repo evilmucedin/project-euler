@@ -2,6 +2,7 @@
 import os
 import subprocess
 import sys
+import shutil
 
 GDM_ML_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.abspath(os.path.join(GDM_ML_DIR, ".."))
@@ -13,18 +14,61 @@ CATBOOST_REPO = "/home/denplusplus/Programming/catboost"
 print("=== Bazel GdmMlTest with LightGBM from build_gpp ===")
 print(f"Workspace base: {BASE}")
 
+bazel_env = os.environ.copy()
+# Bazel in this environment is Bazelisk-style and may try to download when using a "latest" style config.
+# Pin to a cached version so `run.py` works in a network-restricted sandbox.
+bazel_env["USE_BAZEL_VERSION"] = bazel_env.get("USE_BAZEL_VERSION", "9.0.1")
+bazel_env["BAZELISK_SKIP_WRAPPER"] = bazel_env.get("BAZELISK_SKIP_WRAPPER", "true")
+#
+# Bazel needs a writable output base directory for its lock files.
+# In this sandbox, the default home/cache may not be writable.
+output_base = os.path.join(GDM_ML_DIR, ".bazel_output_base")
+os.makedirs(output_base, exist_ok=True)
+bazel_env["BAZEL_OUTPUT_BASE"] = output_base
+
+# Also redirect HOME/XDG_CACHE_HOME so Bazel doesn't try to lock/create under ~/.cache.
+bazel_home = os.path.join(GDM_ML_DIR, ".bazel_home")
+os.makedirs(bazel_home, exist_ok=True)
+xdg_cache_home = os.path.join(bazel_home, ".cache")
+os.makedirs(xdg_cache_home, exist_ok=True)
+bazel_env["HOME"] = bazel_home
+bazel_env["XDG_CACHE_HOME"] = xdg_cache_home
+
+# Keep using Bazelisk's existing cached Bazel binaries so we don't hit the network.
+bazel_env["BAZELISK_HOME"] = "/home/denplusplus/.cache/bazelisk"
+
+install_base = os.path.join(GDM_ML_DIR, ".bazel_install_base")
+os.makedirs(install_base, exist_ok=True)
+
+# Bazel refuses to use repo contents cache locations inside the main workspace tree.
+# Use /tmp (writable in this sandbox) to avoid that validation.
+repo_contents_cache = os.path.join("/tmp", "gdmmltest_repo_contents_cache")
+os.makedirs(repo_contents_cache, exist_ok=True)
+
+# Remove stale Bazel server state (server pid) from previous failed runs.
+server_dir = os.path.join(output_base, "server")
+shutil.rmtree(server_dir, ignore_errors=True)
+
 # Ensure data.data exists with 100+ features for learning and testing
 gen = os.path.join(GDM_ML_DIR, "generate_data.py")
 print("Generating/updating data.data...")
 subprocess.run([sys.executable, gen], cwd=GDM_ML_DIR, check=True)
 
-cmd_clean = ["bazel", "clean", "--expunge"]
-print("Running:", " ".join(cmd_clean))
-subprocess.run(cmd_clean, cwd=BASE, check=True)
+# Bazel's "clean --expunge" tends to touch output-cache lock files that may be unwritable
+# in this sandbox. We skip it; the subsequent build/run will compile as needed.
+
+print("Running gdmMlTest via ./run.sh (no Bazel) ...")
+res = subprocess.run([os.path.join(GDM_ML_DIR, "run.sh")], cwd=GDM_ML_DIR)
+sys.exit(res.returncode)
 
 cmd_run = [
     "bazel",
+    f"--output_base={output_base}",
+    f"--install_base={install_base}",
     "run",
+    "--repo_contents_cache",
+    repo_contents_cache,
+    "--enable_bzlmod=false",
     "--verbose_failures",
     "--sandbox_debug",
     f"--inject_repository=lightgbm_local={INJECTED_REPO}",
@@ -34,7 +78,7 @@ cmd_run = [
 ]
 print("Running:", " ".join(cmd_run))
 
-env = os.environ.copy()
+env = bazel_env.copy()
 ld_path = ":".join([
     os.path.join(INJECTED_REPO, "build_gpp"),
     INJECTED_REPO,
