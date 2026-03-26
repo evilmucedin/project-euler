@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include <cstdio>
+#include <cstdlib>
+#include <cstdint>
 
 #include <LightGBM/c_api.h>
 #include <catboost/libs/model_interface/model_calcer_wrapper.h>
@@ -214,7 +216,6 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
 #include <iostream>
 #include <vector>
 #include <dlfcn.h>
-#include <tl2cgen/detail/predictor/shared_library.h> // Included in generated files
 
 void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data, const std::vector<float>& loaded_label, const int& nrows, const int& ncols) {
   DatasetSplit split = splitDataset(loaded_data, loaded_label, nrows, ncols, 42);
@@ -243,44 +244,233 @@ void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data,
     if (is_finished) break;
   }
 
-  const char* lgbm_model_file = "lightgbm_model.txt";
+  std::filesystem::path gdm_dir = std::filesystem::path(path).parent_path();
+  const std::string lgbm_model_file = (gdm_dir / "lightgbm_model.txt").string();
+  const std::string tl2cgen_predictor_so = (gdm_dir / "tl2cgen_predictor.so").string();
+
   // LightGBM C API signature: (BoosterHandle, start_iteration, num_iteration, feature_importance_type, filename)
   // to save all built trees, use start_iteration=0, num_iteration=actual_iters
-  check(LGBM_BoosterSaveModel(booster, 0, actual_iters, 0, lgbm_model_file), "BoosterSaveModel");
+  check(LGBM_BoosterSaveModel(booster, 0, actual_iters, 0, lgbm_model_file.c_str()),
+        "BoosterSaveModel");
   std::cout << "Saved LightGBM model to " << lgbm_model_file << "\n";
 
-  auto computeAccuracy = [&](const std::vector<float>& dataset,
-                             const std::vector<float>& labels, int rows) {
-    std::vector<double> preds(rows);
-    int64_t out_len = 0;
+  // Convert the saved LightGBM model to a TL2cgen shared library.
+  // This avoids needing to link the full tl2cgen C++ runtime into this Bazel target.
+  {
+    std::ostringstream py;
+    py << "python3 - <<'PY'\n"
+          "import treelite, tl2cgen\n"
+          "import lightgbm as lgb\n"
+          "lgbm_model_file = r'" << lgbm_model_file << "'\n"
+          "out_lib = r'" << tl2cgen_predictor_so << "'\n"
+          "model_lgb = lgb.Booster(model_file=lgbm_model_file)\n"
+          "model = treelite.frontend.from_lightgbm(model_lgb)\n"
+          "tl2cgen.export_lib(model, toolchain='gcc', libpath=out_lib)\n"
+          "PY";
 
-    for (int it = 0; it < N_IT; ++it) {
-        auto t0 = std::chrono::high_resolution_clock::now();
-        check(LGBM_BoosterPredictForMat(booster, dataset.data(), C_API_DTYPE_FLOAT32,
-                                        rows, ncols, 1, C_API_PREDICT_NORMAL, 0, -1,
-                                        "", &out_len, preds.data()),
-              "BoosterPredictForMat");
-        auto t1 = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
-        std::cout << "Tl2cgen_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", nrows: " << nrows << "\n";
-    }
-
-    if (out_len != static_cast<int64_t>(rows)) {
-      std::cerr << "Unexpected prediction length: " << out_len << " expected "
-                << rows << "\n";
+    std::cout << "Exporting TL2cgen predictor to: " << tl2cgen_predictor_so << "\n";
+    int rc = std::system(py.str().c_str());
+    if (rc != 0) {
+      std::cerr << "TL2cgen export failed (exit code " << rc << ")\n";
       std::exit(1);
     }
+    if (!std::filesystem::exists(tl2cgen_predictor_so)) {
+      std::cerr << "TL2cgen export did not create predictor library: "
+                << tl2cgen_predictor_so << "\n";
+      std::exit(1);
+    }
+  }
 
-    return binaryAccuracy(preds, labels);
+  void* predictor_handle = dlopen(tl2cgen_predictor_so.c_str(), RTLD_LAZY | RTLD_LOCAL);
+  if (!predictor_handle) {
+    std::cerr << "dlopen failed for '" << tl2cgen_predictor_so << "': " << dlerror() << "\n";
+    std::exit(1);
+  }
+
+  auto get_num_target = reinterpret_cast<int (*)()>(dlsym(predictor_handle, "get_num_target"));
+  auto get_num_feature = reinterpret_cast<int (*)()>(dlsym(predictor_handle, "get_num_feature"));
+  auto get_threshold_type =
+      reinterpret_cast<const char* (*)()>(dlsym(predictor_handle, "get_threshold_type"));
+  auto get_leaf_output_type =
+      reinterpret_cast<const char* (*)()>(dlsym(predictor_handle, "get_leaf_output_type"));
+  auto get_num_class =
+      reinterpret_cast<void (*)(std::int32_t*)>(dlsym(predictor_handle, "get_num_class"));
+  auto predict_raw = dlsym(predictor_handle, "predict");
+
+  if (!get_num_target || !get_num_feature || !get_threshold_type || !get_leaf_output_type ||
+      !get_num_class || !predict_raw) {
+    std::cerr << "Failed to resolve required predictor symbols via dlsym\n";
+    std::exit(1);
+  }
+
+  const int num_target = get_num_target();
+  const int num_feature = get_num_feature();
+  const std::string threshold_type = get_threshold_type();
+  const std::string leaf_output_type = get_leaf_output_type();
+
+  std::vector<std::int32_t> num_class(num_target, 0);
+  get_num_class(num_class.data());
+  const int max_num_class = *std::max_element(num_class.begin(), num_class.end());
+
+  if (num_target != 1) {
+    std::cerr << "Expected single target for this binary classifier, got: " << num_target << "\n";
+    std::exit(1);
+  }
+
+  if (threshold_type != leaf_output_type) {
+    std::cerr << "Unexpected predictor type mismatch: threshold=" << threshold_type
+              << " leaf_output=" << leaf_output_type << "\n";
+    std::exit(1);
+  }
+
+  auto computeAccuracyTl2cgen = [&](const std::vector<float>& dataset,
+                                    const std::vector<float>& labels, int rows) -> double {
+    if (threshold_type == "float32") {
+      using ThreshT = float;
+      using LeafT = float;
+      using MissingT = int;
+
+      union Entry {
+        MissingT missing;
+        ThreshT fvalue;
+      };
+
+      using PredictFunc = void (*)(Entry*, int, LeafT*);
+      auto predict = reinterpret_cast<PredictFunc>(predict_raw);
+
+      const std::size_t inst_size = static_cast<std::size_t>(std::max(ncols, num_feature));
+      std::vector<Entry> inst(inst_size);
+
+      std::vector<LeafT> preds(static_cast<std::size_t>(rows) * num_target * max_num_class);
+
+      for (int rid = 0; rid < rows; ++rid) {
+        // Initialize feature slots as missing; then overwrite the first ncols features.
+        for (std::size_t j = 0; j < inst_size; ++j) inst[j].missing = -1;
+        const float* row = dataset.data() + static_cast<std::size_t>(rid) * ncols;
+        for (int j = 0; j < ncols; ++j) {
+          inst[static_cast<std::size_t>(j)].fvalue = row[j];
+        }
+
+        LeafT* out_row = preds.data() +
+                          static_cast<std::size_t>(rid) * num_target * max_num_class;
+        predict(inst.data(), /*pred_margin=*/0, out_row);
+      }
+
+      int correct = 0;
+      for (int rid = 0; rid < rows; ++rid) {
+        const float y = labels[rid];
+        int pred_label = 0;
+
+        const LeafT* row_pred = preds.data() +
+                                 static_cast<std::size_t>(rid) * num_target * max_num_class;
+
+        if (max_num_class <= 1) {
+          // TL2cgen binary models are typically exported as a single probability.
+          pred_label = (row_pred[0] > static_cast<LeafT>(0.5)) ? 1 : 0;
+        } else {
+          // For 2-class exports, pick the most likely class.
+          int best_class = 0;
+          LeafT best = row_pred[0];
+          for (int c = 1; c < max_num_class; ++c) {
+            if (row_pred[c] > best) {
+              best = row_pred[c];
+              best_class = c;
+            }
+          }
+          pred_label = best_class;
+        }
+
+        if (pred_label == static_cast<int>(y)) ++correct;
+      }
+      return static_cast<double>(correct) / static_cast<double>(rows);
+    }
+
+    if (threshold_type == "float64") {
+      using ThreshT = double;
+      using LeafT = double;
+      using MissingT = long;
+
+      union Entry {
+        MissingT missing;
+        ThreshT fvalue;
+      };
+
+      using PredictFunc = void (*)(Entry*, int, LeafT*);
+      auto predict = reinterpret_cast<PredictFunc>(predict_raw);
+
+      const std::size_t inst_size = static_cast<std::size_t>(std::max(ncols, num_feature));
+      std::vector<Entry> inst(inst_size);
+
+      std::vector<LeafT> preds(static_cast<std::size_t>(rows) * num_target * max_num_class);
+
+      for (int rid = 0; rid < rows; ++rid) {
+        for (std::size_t j = 0; j < inst_size; ++j) inst[j].missing = -1;
+        const float* row = dataset.data() + static_cast<std::size_t>(rid) * ncols;
+        for (int j = 0; j < ncols; ++j) {
+          inst[static_cast<std::size_t>(j)].fvalue = static_cast<ThreshT>(row[j]);
+        }
+
+        LeafT* out_row = preds.data() +
+                          static_cast<std::size_t>(rid) * num_target * max_num_class;
+        predict(inst.data(), /*pred_margin=*/0, out_row);
+      }
+
+      int correct = 0;
+      for (int rid = 0; rid < rows; ++rid) {
+        const float y = labels[rid];
+        int pred_label = 0;
+
+        const LeafT* row_pred = preds.data() +
+                                 static_cast<std::size_t>(rid) * num_target * max_num_class;
+
+        if (max_num_class <= 1) {
+          pred_label = (row_pred[0] > static_cast<LeafT>(0.5)) ? 1 : 0;
+        } else {
+          int best_class = 0;
+          LeafT best = row_pred[0];
+          for (int c = 1; c < max_num_class; ++c) {
+            if (row_pred[c] > best) {
+              best = row_pred[c];
+              best_class = c;
+            }
+          }
+          pred_label = best_class;
+        }
+
+        if (pred_label == static_cast<int>(y)) ++correct;
+      }
+      return static_cast<double>(correct) / static_cast<double>(rows);
+    }
+
+    std::cerr << "Unsupported predictor threshold/leaf output type: " << threshold_type << "\n";
+    std::exit(1);
   };
 
-  double train_acc = computeAccuracy(split.train_data, split.train_label, split.train_rows);
-  double test_acc = computeAccuracy(split.test_data, split.test_label, split.test_rows);
+  const int N_IT_TL2CGEN = 1;
+  double train_acc = 0.0;
+  double test_acc = 0.0;
+  for (int it = 0; it < N_IT_TL2CGEN; ++it) {
+    auto t0 = std::chrono::high_resolution_clock::now();
+    train_acc = computeAccuracyTl2cgen(split.train_data, split.train_label, split.train_rows);
+    auto t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed_train = t1 - t0;
+    std::cout << "Tl2cgen_predict time (train): " << elapsed_train.count() << " ms "
+              << tl2cgen_predictor_so << ", nrows: " << split.train_rows << "\n";
 
-  printModelQuality("ML", train_acc, test_acc);
+    t0 = std::chrono::high_resolution_clock::now();
+    test_acc = computeAccuracyTl2cgen(split.test_data, split.test_label, split.test_rows);
+    t1 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed_test = t1 - t0;
+    std::cout << "Tl2cgen_predict time (test): " << elapsed_test.count() << " ms "
+              << tl2cgen_predictor_so << ", nrows: " << split.test_rows << "\n";
+  }
+
+  printModelQuality("TL2cgen", train_acc, test_acc);
 
   check(LGBM_BoosterFree(booster), "BoosterFree");
   check(LGBM_DatasetFree(train_dataset), "DatasetFree");
+
+  dlclose(predictor_handle);
 }
 
 bool trainCatBoostModel(const std::string& data_path, const std::string& model_path) {
