@@ -8,6 +8,7 @@ cd "$SCRIPT_DIR"
 LIGHTGBM_DIR="${LIGHTGBM_DIR:-/home/denplusplus/Programming/LightGBM}"
 CATBOOST_DIR="${CATBOOST_DIR:-/home/denplusplus/Programming/catboost}"
 ONNXRUNTIME_DIR="${ONNXRUNTIME_DIR:-/home/denplusplus/Programming/onnxruntime}"
+TL2CGEN_INCLUDE="${TL2CGEN_INCLUDE:-/home/denplusplus/Programming/tl2cgen/include}"
 
 LIGHTGBM_INCLUDE="$LIGHTGBM_DIR/include"
 LIGHTGBM_LIB="$LIGHTGBM_DIR/build_gpp"
@@ -15,6 +16,7 @@ CATBOOST_INCLUDE="$CATBOOST_DIR"
 CATBOOST_MODEL_INTERFACE_LIB="$CATBOOST_DIR/build_applier/catboost/libs/model_interface"
 ONNX_INCLUDE="$ONNXRUNTIME_DIR/include"
 ONNX_LIB="$ONNXRUNTIME_DIR/build/Linux/Release"
+TL2CGEN_LIB="$ONNXRUNTIME_DIR/build/Linux/Release"
 
 missing=()
 [[ -d "$LIGHTGBM_INCLUDE" ]] || missing+=("LightGBM include dir: $LIGHTGBM_INCLUDE")
@@ -23,6 +25,7 @@ missing=()
 [[ -d "$CATBOOST_MODEL_INTERFACE_LIB" ]] || missing+=("CatBoost model_interface lib dir: $CATBOOST_MODEL_INTERFACE_LIB")
 [[ -d "$ONNX_INCLUDE" ]] || missing+=("ONNX Runtime include dir: $ONNX_INCLUDE")
 [[ -d "$ONNX_LIB" ]] || missing+=("ONNX Runtime lib dir: $ONNX_LIB")
+[[ -d "$TL2CGEN_INCLUDE" ]] || missing+=("tl2cgen include dir: $TL2CGEN_INCLUDE")
 
 if (( ${#missing[@]} > 0 )); then
   printf 'Missing dependencies for gdmMlTest build:\n' >&2
@@ -46,11 +49,13 @@ g++ -std=c++17 -O3 \
   -I"$CATBOOST_INCLUDE" \
   -I"$CATBOOST_MODEL_INTERFACE_LIB" \
   -I"$ONNX_INCLUDE" \
+  -I"$TL2CGEN_INCLUDE" \
   gdmMlTest.cpp \
   -L"$LIGHTGBM_LIB" \
   -L"$CATBOOST_MODEL_INTERFACE_LIB" \
   -L"$CATBOOST_DIR" \
   -L"$ONNX_LIB" \
+  -L"$TL2CGEN_LIB" \
   -l_lightgbm \
   -lcatboostmodel \
   -lonnxruntime \

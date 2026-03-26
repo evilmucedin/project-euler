@@ -211,6 +211,78 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
   check(LGBM_DatasetFree(train_dataset), "DatasetFree");
 }
 
+#include <iostream>
+#include <vector>
+#include <dlfcn.h>
+#include <tl2cgen/detail/predictor/shared_library.h> // Included in generated files
+
+void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data, const std::vector<float>& loaded_label, const int& nrows, const int& ncols) {
+  DatasetSplit split = splitDataset(loaded_data, loaded_label, nrows, ncols, 42);
+
+  DatasetHandle train_dataset = nullptr;
+  check(LGBM_DatasetCreateFromMat(split.train_data.data(), C_API_DTYPE_FLOAT32,
+                                  split.train_rows, ncols, 1, "", nullptr,
+                                  &train_dataset),
+        "DatasetCreateFromMat");
+  check(LGBM_DatasetSetField(train_dataset, "label", split.train_label.data(),
+                             split.train_rows, C_API_DTYPE_FLOAT32),
+        "DatasetSetField(label)");
+
+  BoosterHandle booster = nullptr;
+  const char* params =
+      "objective=binary learning_rate=0.1 num_leaves=31 metric=binary_logloss "
+      "verbosity=1";
+  check(LGBM_BoosterCreate(train_dataset, params, &booster), "BoosterCreate");
+
+  int actual_iters = 0;
+  for (int iter = 0; iter < 500; ++iter) {
+    int is_finished = 0;
+    check(LGBM_BoosterUpdateOneIter(booster, &is_finished),
+          "BoosterUpdateOneIter");
+    actual_iters = iter + 1;
+    if (is_finished) break;
+  }
+
+  const char* lgbm_model_file = "lightgbm_model.txt";
+  // LightGBM C API signature: (BoosterHandle, start_iteration, num_iteration, feature_importance_type, filename)
+  // to save all built trees, use start_iteration=0, num_iteration=actual_iters
+  check(LGBM_BoosterSaveModel(booster, 0, actual_iters, 0, lgbm_model_file), "BoosterSaveModel");
+  std::cout << "Saved LightGBM model to " << lgbm_model_file << "\n";
+
+  auto computeAccuracy = [&](const std::vector<float>& dataset,
+                             const std::vector<float>& labels, int rows) {
+    std::vector<double> preds(rows);
+    int64_t out_len = 0;
+
+    for (int it = 0; it < N_IT; ++it) {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        check(LGBM_BoosterPredictForMat(booster, dataset.data(), C_API_DTYPE_FLOAT32,
+                                        rows, ncols, 1, C_API_PREDICT_NORMAL, 0, -1,
+                                        "", &out_len, preds.data()),
+              "BoosterPredictForMat");
+        auto t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
+        std::cout << "Tl2cgen_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", nrows: " << nrows << "\n";
+    }
+
+    if (out_len != static_cast<int64_t>(rows)) {
+      std::cerr << "Unexpected prediction length: " << out_len << " expected "
+                << rows << "\n";
+      std::exit(1);
+    }
+
+    return binaryAccuracy(preds, labels);
+  };
+
+  double train_acc = computeAccuracy(split.train_data, split.train_label, split.train_rows);
+  double test_acc = computeAccuracy(split.test_data, split.test_label, split.test_rows);
+
+  printModelQuality("ML", train_acc, test_acc);
+
+  check(LGBM_BoosterFree(booster), "BoosterFree");
+  check(LGBM_DatasetFree(train_dataset), "DatasetFree");
+}
+
 bool trainCatBoostModel(const std::string& data_path, const std::string& model_path) {
   if (std::filesystem::exists(model_path)) {
     return true;
@@ -404,6 +476,7 @@ int main(int argc, char** argv) {
   loadDataset(path, loaded_data, loaded_label, nrows, ncols);
 
   testLGBM(path, loaded_data, loaded_label, nrows, ncols);
+  testTl2cgen(path, loaded_data, loaded_label, nrows, ncols);
 
   const std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
