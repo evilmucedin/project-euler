@@ -281,7 +281,10 @@ void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data,
     }
   }
 
-  void* predictor_handle = dlopen(tl2cgen_predictor_so.c_str(), RTLD_LAZY | RTLD_LOCAL);
+  // void* predictor_handle = dlopen(tl2cgen_predictor_so.c_str(), RTLD_LAZY | RTLD_LOCAL);
+
+  const std::string predictorFileName = "/home/denplusplus/Programming/project-euler/GdmMlTest/tl2cgen_predictor.so";
+  void* predictor_handle = dlopen(predictorFileName.c_str(), RTLD_LAZY | RTLD_LOCAL);
   if (!predictor_handle) {
     std::cerr << "dlopen failed for '" << tl2cgen_predictor_so << "': " << dlerror() << "\n";
     std::exit(1);
@@ -618,6 +621,7 @@ void testCatBoostLGBM(const std::string& model_path,
                   const std::vector<float>& loaded_label,
                   const int& nrows,
                   const int& ncols) {
+  std::cerr << "testCatBoostLGBM: " << model_path << std::endl;
   if (!std::filesystem::exists(model_path)) {
     std::cerr << "CatBoost model file not found: " << model_path << ". Will attempt to train from data.\n";
     // model path not found; attempt training from data splits in C++ via Python
