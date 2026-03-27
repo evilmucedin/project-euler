@@ -50,7 +50,7 @@ model = treelite.frontend.from_lightgbm(model_lgb)
 # Exporting as a shared library (.so or .dll)
 tl2cgen.export_lib(model, toolchain="gcc", libpath="./predictor.so")
 
-tl2cgen.generate_c_code(model, dirpath="./", params={})
+# tl2cgen.generate_c_code(model, dirpath="./", params={})
 
 # 2. Export the model as a native shared library
 # You can choose "gcc", "clang", or "msvc" as the toolchain
@@ -67,7 +67,70 @@ tl2cgen.export_lib(
 
 print("Conversion successful! Model exported to ./predictor.so")
 
+import catboost
+
+catboost_model_path = "catboostTestModel.bin"
+catboost_model = catboost.CatBoostClassifier()
+catboost_model.load_model(catboost_model_path)
+
+import onnxmltools
+from onnxmltools.convert.common.data_types import FloatTensorType
+
+catboost_model_onnx_path = catboost_model_path + ".onnx"
+catboost_model.save_model(
+    catboost_model_onnx_path,
+    format="onnx",
+    export_parameters={
+        'onnx_domain': 'ai.catboost',
+        'onnx_model_version': 1
+    }
+)
+
+import onnx
+
+onnx_model = onnx.load(catboost_model_onnx_path)
+try:
+    onnx.checker.check_model(onnx_model)
+    print("✅ Model is valid!")
+except onnx.checker.ValidationError as e:
+    print(f"The model is invalid: {e}")
+
+# Define input types and convert
+initial_type = [('float_input', FloatTensorType([None, 4]))]
+
+# onnx_model = onnxmltools.convert_catboost(catboost_model, initial_types=initial_type)
+onnxmltools.utils.save_model(onnx_model, 'catboost_model.onnx')
+
+import onnx
+import tl2cgen
+import onnx
+
+tl2gen_model = tl2cgen.load_onnx(catboost_model_onnx_path)
+tl2cgen.export_lib(tl2gen_model, toolchain="gcc", libpath="./predictorCatboost.so")
+
+# tl_model = treelite.Model.load("catboostTestModel.bin", model_format="catboost")
+tl_model = treelite.Model.load(catboost_model_onnx_path, model_format="onnx")
+# 3. Use TL2cgen to compile to a shared library
+tl2cgen.export_lib(tl_model, toolchain="gcc", libpath="./predictorCatboost.so")
+
+### CATBOOST
+
+
 # 4. (Optional) Run prediction using the generated library
-predictor = tl2cgen.Predictor("./predictor.so")
+# predictor = tl2cgen.Predictor("./predictor.so")
 # dmat = tl2cgen.DMatrix(data)
 # predictions = predictor.predict(dmat)
+# tl2cgen.export_lib(model, toolchain="gcc", libpath="./predictorCatboost.so")
+
+# tl2cgen.generate_c_code(model, dirpath="./", params={})
+
+# 2. Export the model as a native shared library
+# You can choose "gcc", "clang", or "msvc" as the toolchain
+# tl2cgen.export_lib(
+#    model, 
+#    toolchain="gcc", 
+#    libpath="./modelTl2cgenCatBoostPredictor.so", 
+#    params={"parallel_comp": 4}  # Optional: use 4 threads for compilation
+#)
+
+
