@@ -69,6 +69,7 @@ print("Conversion successful! Model exported to ./predictor.so")
 
 import catboost
 
+catboost_dir = "/home/denplusplus/Programming/project-euler/GdmMlTest/"
 catboost_model_path = "catboostTestModel.bin"
 catboost_model = catboost.CatBoostClassifier()
 catboost_model.load_model(catboost_model_path)
@@ -76,6 +77,7 @@ catboost_model.load_model(catboost_model_path)
 import onnxmltools
 from onnxmltools.convert.common.data_types import FloatTensorType
 
+catboost_model_cbm_path = catboost_dir + catboost_model_path + ".cbm"
 catboost_model_onnx_path = catboost_model_path + ".onnx"
 catboost_model.save_model(
     catboost_model_onnx_path,
@@ -100,6 +102,20 @@ initial_type = [('float_input', FloatTensorType([None, 4]))]
 
 # onnx_model = onnxmltools.convert_catboost(catboost_model, initial_types=initial_type)
 onnxmltools.utils.save_model(onnx_model, 'catboost_model.onnx')
+
+
+print(catboost_model_cbm_path)
+
+import tl2cgen
+model = tl2cgen.load_catboost_model(catboost_model_cbm_path)
+
+model = treelite.Model.load(catboost_model_cbm_path, model_format="catboost")
+
+# Then use tl2cgen to compile it
+tl2cgen.compile(model, toolchain="gcc", options=["-O3"])
+
+exit()
+
 
 import onnx
 import tl2cgen
