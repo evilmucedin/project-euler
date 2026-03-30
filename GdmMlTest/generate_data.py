@@ -4,7 +4,7 @@ import os
 import random
 
 NUM_FEATURES = 100
-NUM_ROWS = 80000
+NUM_ROWS = 800000
 SEED = 42
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.data")
 
