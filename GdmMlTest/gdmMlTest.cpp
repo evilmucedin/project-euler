@@ -192,7 +192,7 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
               "BoosterPredictForMat");
         auto t1 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t1 - t0;
-        std::cout << "LGBM_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", nrows: " << nrows << "\n";
+        std::cout << "LGBM_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", ncols: " << ncols << ", nrows: " << nrows << ", rows: " << rows << "\n";
     }
 
     if (out_len != static_cast<int64_t>(rows)) {
@@ -534,6 +534,7 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
 // #include <catboost/libs/model/model.h>
 
 void testCatBoostCalcer(
+    const std::string& functionName,
     const std::string& file_path,
     ModelCalcerHandle* calcer,
     const int& nrows,
@@ -553,11 +554,11 @@ void testCatBoostCalcer(
 
 
     for (int it = 0; it < N_IT; ++it) {
-        auto t0 = std::chrono::high_resolution_clock::now();
-        bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
-        auto t1 = std::chrono::high_resolution_clock::now();
+        const auto t0 = std::chrono::high_resolution_clock::now();
+        const bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
+        const auto t1 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t1 - t0;
-        std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, path: " << file_path <<   "  rows: " << rows << "\n";
+        std::cout << functionName << " CalcModelPredictionFlat time: " << elapsed.count() << " ms, path: " << file_path <<   "  rows: " << rows << "\n";
 
         if (!ok) {
           std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << " rows: " << rows << "\n";
@@ -609,7 +610,7 @@ void testCatBoost(const std::string& model_path,
     return;
   }
 
-  testCatBoostCalcer(model_path, calcer, nrows, ncols, split);
+  testCatBoostCalcer("testCatBoost", model_path, calcer, nrows, ncols, split);
 
   ModelCalcerDelete(calcer);
 }
@@ -652,7 +653,7 @@ void testCatBoostLGBM(const std::string& model_path,
     return;
   }
 
-  testCatBoostCalcer(model_path, calcer, nrows, ncols, split);
+  testCatBoostCalcer("testCatBoostLGBM", model_path, calcer, nrows, ncols, split);
 
   ModelCalcerDelete(calcer);
 }
