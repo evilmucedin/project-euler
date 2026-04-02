@@ -449,7 +449,7 @@ void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data,
     std::exit(1);
   };
 
-  const int N_IT_TL2CGEN = 1;
+  const int N_IT_TL2CGEN = N_IT;
   double train_acc = 0.0;
   double test_acc = 0.0;
   for (int it = 0; it < N_IT_TL2CGEN; ++it) {
