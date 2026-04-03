@@ -183,12 +183,13 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
                              const std::vector<float>& labels, int rows) {
     std::vector<double> preds(rows);
     int64_t out_len = 0;
+    const char* params = "num_threads=1";
 
     for (int it = 0; it < N_IT; ++it) {
         auto t0 = std::chrono::high_resolution_clock::now();
         check(LGBM_BoosterPredictForMat(booster, dataset.data(), C_API_DTYPE_FLOAT32,
                                         rows, ncols, 1, C_API_PREDICT_NORMAL, 0, -1,
-                                        "", &out_len, preds.data()),
+                                        params, &out_len, preds.data()),
               "BoosterPredictForMat");
         auto t1 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t1 - t0;
