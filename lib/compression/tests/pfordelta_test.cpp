@@ -3,6 +3,7 @@
 #include "lib/compression/pfordelta.h"
 
 #include <vector>
+#include <iostream>
 
 namespace {
 
@@ -12,6 +13,7 @@ using PForDelta::kBlockSize;
 
 void ExpectRoundTrip(const U32Vector& values) {
   const vector<u8> packed = compress(values);
+  cerr << "Pack " << values.capacity()*sizeof(u32) << " to " << packed.capacity()*sizeof(u8) << endl;
   const U32Vector got = decompress(packed);
   EXPECT_EQ(got, values);
 }
