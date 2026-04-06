@@ -1,4 +1,4 @@
 #pragma once
 
-nameapace PForDelta {
-};
+namespace PForDelta {
+}

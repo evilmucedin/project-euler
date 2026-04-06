@@ -2,7 +2,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 # load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
-package(default_visibility = ["//lib/compression"])
+package(default_visibility = ["//visibility:public"])
 
 # cc_library(
 #     name="compression",
@@ -20,7 +20,6 @@ cc_library(
   deps=[
     "//lib:header",
   ],
-  visibility = [],
   features = ["-lto"],
 )
 
