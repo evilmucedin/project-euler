@@ -6,3 +6,11 @@
 ###############################################################################
 
 bazel_dep(name = "rules_cc", version = "0.0.17")
+
+# bazel_dep(name = "rules_rust", version = "0.54.1") # Use the latest stable version
+
+# rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+# rust.toolchain(edition = "2021", versions = ["1.75.0"])
+# use_repo(rust, "rust_toolchains")
+# register_toolchains("@rust_toolchains//:all")
+

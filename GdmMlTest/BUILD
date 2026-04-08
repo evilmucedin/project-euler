@@ -23,5 +23,9 @@ cc_binary(
     copts = ["-std=c++17"],
     features = ["-lto"],
     # Link against the CatBoost model interface shared library (relative path)
+<<<<<<< HEAD
     linkopts = ["-lstdc++", "../catboost/libs/model_interface/libcatboostmodel.so"],
+=======
+    linkopts = ["-lstdc++", "../catboost/libs/model_interface/libcatboostmodel.so", "-ldl"],
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
 )

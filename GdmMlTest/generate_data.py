@@ -4,7 +4,11 @@ import os
 import random
 
 NUM_FEATURES = 100
+<<<<<<< HEAD
 NUM_ROWS = 80000
+=======
+NUM_ROWS = 800000
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
 SEED = 42
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.data")
 
