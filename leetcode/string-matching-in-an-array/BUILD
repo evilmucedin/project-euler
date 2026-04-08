@@ -1,9 +1,7 @@
-load("@rules_rust//rust:defs.bzl", "rust_binary")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
-
-rust_binary(
+genrule(
     name = "solution",
     srcs = ["solution.rs"],
-    edition = "2021",
+    outs = ["solution.rlib"],
+    cmd = "rustc $(location solution.rs) --crate-name solution --crate-type lib -o $@",
 )
 
