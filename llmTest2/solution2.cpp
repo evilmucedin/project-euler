@@ -92,6 +92,7 @@ int main() {
     cout << pi(20) << endl;
     cout << pi(30) << endl;
     cout << pi(40) << endl;
+    cout << pi(50) << endl;
     cout << pi(100) << endl;
     return 0;
 }
