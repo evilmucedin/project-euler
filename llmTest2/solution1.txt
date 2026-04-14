@@ -1,4 +1,4 @@
-Lower you will find text of C++ program solution1.cpp. Please output text of solution2.cpp. solution2.cpp should start from solution1.cpp, but implement function pi correcly for argument len<1000. You will have to implement a modern mathematics generation of Pi for it.  Text of solution1.cpp:
+Lower you will find text of C++ program solution1.cpp. Please output text of solution2.cpp. solution2.cpp should start from solution1.cpp, but implement function pi correcly for argument len<1000. You will have to implement a modern mathematics generation of Pi for it. My advice would be to use the Chudnovsky algorithm. Add short but usefull comments. solution2.cpp should compile correcty by gcc 16. Don't forget that factorial function is not defined by default. Text of solution1.cpp:
 
 #include <iostream>
 
