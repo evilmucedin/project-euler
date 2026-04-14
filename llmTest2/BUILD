@@ -7,3 +7,10 @@ cc_binary(
         "solution1.cpp",
     ],
 )
+
+cc_binary(
+    name="solution2",
+    srcs=[
+        "solution2.cpp",
+    ],
+)

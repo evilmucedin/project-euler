@@ -1,0 +1,14 @@
+Lower you will find text of C++ program solution1.cpp. Please output text of solution2.cpp. solution2.cpp should start from solution1.cpp, but implement function pi correcly for argument len<1000. You will have to implement a modern mathematics generation of Pi for it.  Text of solution1.cpp:
+
+#include <iostream>
+
+using namespace std;
+
+string pi(int len) {
+    return "3.14";
+}
+
+int main() {
+    cout << pi(2) << endl;
+    return 0;
+}
