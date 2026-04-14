@@ -41,7 +41,7 @@ tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "SHOP", "GOOG",
            "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG", "FPRO", "FBCV", "FMIL",
            "COIN", "LMT", "FDIG", "ARKK", "FELG", "FTEC", "FDVV",
            "BITO", "BITW", "VBB", "SFY", "IJR", "SCHD", "FTLS", "FDHT", "FRNW", "FDRV", "FCLD", "ITA", "PPA", "XAR", "USO", "IEO", "SPGP", "IWY", "SPYG", "DBO", "AIQ",
-           "BAMXF"
+           "BAMXF", "FLOC",
            # "59101K877", "09259A395"
            ]
 assert(len(tickers) == len(set(tickers)))
