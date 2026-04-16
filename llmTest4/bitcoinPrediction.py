@@ -1,91 +1,82 @@
-Creating a Python application to predict the future price of Bitcoin involves several steps, including data collection, preprocessing, model training, and prediction. Given the complexity of financial market predictions, especially for cryptocurrencies like Bitcoin, a more sophisticated approach would typically involve advanced machine learning techniques and substantial amounts of historical data.
-
-However, I'll provide you with a simplified example using historical Bitcoin prices from an open API (e.g., CoinGecko) and a basic machine learning model. This example will predict whether the price of Bitcoin will increase or decrease in the next hour based on past 24 hours of data.
-
-### Prerequisites
-1. Install required Python packages:
-   ```sh
-   pip install requests pandas numpy scikit-learn
-   ```
-
-### Code: `bitcoinPrediction2.py`
-```python
 import requests
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+from datetime import datetime, timedelta
 
-# Fetch historical Bitcoin data from CoinGecko API
+# Fetch Bitcoin price data from CoinGecko API
 def fetch_bitcoin_data():
-    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
-    params = {
-        "vs_currency": "usd",
-        "days": "1",
-        "interval": "hourly"
-    }
-    response = requests.get(url, params=params)
+    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30&interval=1h"
+    response = requests.get(url)
     data = response.json()
-    
-    # Convert to DataFrame
-    prices = pd.DataFrame(data['prices'], columns=['timestamp', 'price'])
-    prices['timestamp'] = pd.to_datetime(prices['timestamp'], unit='ms')
-    prices.set_index('timestamp', inplace=True)
-    
-    return prices
 
-# Prepare the dataset for prediction
-def prepare_data(prices):
-    prices['price_change'] = prices['price'].diff().shift(-1)  # Calculate next hour's price change
-    prices.dropna(inplace=True)
-    X = prices['price'].values.reshape(-1, 1)
-    y = (prices['price_change'] > 0).astype(int)  # Label: 1 if price increases, 0 otherwise
-    
-    return train_test_split(X, y, test_size=0.2, random_state=42)
+    print(data.keys())
+
+    prices = [x[1] for x in data['prices']]
+    timestamps = [datetime.fromtimestamp(x[0]/1000) for x in data['prices']]
+
+    df = pd.DataFrame({'timestamp': timestamps, 'price': prices})
+    return df
+
+# Prepare the dataset
+def prepare_dataset(df):
+    # Calculate price change percentage over the next hour
+    df['next_hour_price'] = df['price'].shift(-1)
+    df['price_change'] = (df['next_hour_price'] - df['price']) / df['price']
+
+    # Convert timestamps to features
+    df['hour_of_day'] = df['timestamp'].dt.hour
+    df['day_of_week'] = df['timestamp'].dt.dayofweek
+
+    # Drop rows with missing values
+    df.dropna(inplace=True)
+
+    # Define X and y
+    X = df[['hour_of_day', 'day_of_week']]
+    y = (df['price_change'] > 0).astype(int)  # 1 if price will increase, 0 otherwise
+
+    return X, y
 
 # Train a logistic regression model
-def train_model(X_train, y_train):
+def train_model(X, y):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
     model = LogisticRegression()
     model.fit(X_train, y_train)
+
+    # Evaluate the model
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
+    print(f"Model Accuracy: {accuracy:.2f}")
+
     return model
 
-# Predict future price change
-def predict_price_change(model, last_hour_price):
-    prediction = model.predict(np.array([[last_hour_price]]))
-    return "increase" if prediction[0] == 1 else "decrease"
+# Fetch and prepare data
+df = fetch_bitcoin_data()
+X, y = prepare_dataset(df)
 
-if __name__ == "__main__":
-    # Fetch data
-    prices = fetch_bitcoin_data()
-    
-    # Prepare dataset
-    X_train, X_test, y_train, y_test = prepare_data(prices)
-    
-    # Train model
-    model = train_model(X_train, y_train)
-    
-    # Evaluate model (optional)
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Model Accuracy: {accuracy:.2f}")
-    
-    # Predict next hour's price change
-    last_hour_price = prices['price'].iloc[-1]
-    prediction = predict_price_change(model, last_hour_price)
-    print(f"Predicted price change in the next hour: {prediction}")
-```
+# Train the model
+model = train_model(X, y)
 
-### Running the Application
-To run the application, save the code to `bitcoinPrediction2.py` and execute it:
-```sh
-python bitcoinPrediction2.py
-```
+# Make a prediction for the next hour
+def predict_next_hour_price():
+    # Get the latest timestamp and price
+    latest_timestamp = df['timestamp'].iloc[-1]
+    latest_price = df['price'].iloc[-1]
 
-### Notes
-1. **Data Source**: The CoinGecko API provides historical data for Bitcoin prices in USD.
-2. **Model Complexity**: This example uses a simple logistic regression model. For better accuracy, consider using more advanced models like Random Forests, LSTM networks, or even transformers.
-3. **Feature Engineering**: More features (e.g., trading volume, market capitalization) can be added to improve prediction accuracy.
-4. **Real-time Data**: For real-time predictions, you would need to fetch the latest data and update your model accordingly.
+    # Prepare features for prediction
+    current_hour = latest_timestamp.hour
+    current_day_of_week = latest_timestamp.dayofweek
 
-This example should give you a starting point for predicting Bitcoin price changes using Python.
+    X_pred = pd.DataFrame({'hour_of_day': [current_hour], 'day_of_week': [current_day_of_week]})
+
+    # Predict if the price will increase or decrease
+    prediction = model.predict(X_pred)[0]
+    if prediction == 1:
+        print(f"Prediction: Bitcoin price is likely to increase in the next hour.")
+    else:
+        print(f"Prediction: Bitcoin price is likely to decrease in the next hour.")
+
+# Run the prediction function
+predict_next_hour_price()
