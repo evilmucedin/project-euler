@@ -1,0 +1,1 @@
+Wrire an Python app for prediction if price of Bitcoin will be more or less in one hour. The app can request and data from Internet.
