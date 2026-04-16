@@ -1,8 +1,3 @@
-Certainly! Below is the `solution2.cpp` file that implements the Chudnovsky[10D[K
-Chudnovsky algorithm to compute Pi accurately for lengths up to 1000 digits[6D[K
-digits. I've added comments to explain key parts of the code.
-
-```cpp
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -65,26 +60,3 @@ int main() {
     cout << pi(15) << endl; // Example for more digits
     return 0;
 }
-```
-
-### Explanation:
-- **Factorial Calculation**: A simple iterative function to compute the fac[3D[K
-factorial of a number.
-- **Chudnovsky Algorithm**: This algorithm is used to compute Pi with high [K
-precision. It converges very quickly, making it suitable for our needs.
-- **Precision Handling**: The `snprintf` function ensures that we have enou[4D[K
-enough precision to accurately compute Pi. We then format the result as a s[1D[K
-string and adjust its length based on the input `len`.
-
-### Compilation:
-To compile this code with g++, use the following command:
-```sh
-g++ -std=c++11 solution2.cpp -o pi_program
-```
-And run it with:
-```sh
-./pi_program
-```
-
-This will output Pi to the specified number of digits.
-
