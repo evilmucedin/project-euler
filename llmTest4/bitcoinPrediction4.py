@@ -31,9 +31,7 @@ class BitcoinPredictor:
             print(f"📡 Fetching Bitcoin data from CoinGecko...")
             print(f"   Time range: {days} days")
             
-            print(f"Days: {days}")
-            response = requests.get(url, timeout=300)
-            print(f"Days2: {days, response.status_code}")
+            response = requests.get(url, timeout=30)
             
             if response.status_code == 429:
                 print("⚠️ Rate limit reached, waiting before retry...")
@@ -47,7 +45,6 @@ class BitcoinPredictor:
             
             data = response.json()
             print(f"✅ Successfully fetched {len(data)} data points")
-            print(f"Data3: {data}")
             
             return data
             
@@ -57,31 +54,21 @@ class BitcoinPredictor:
             
     def process_data(self, data):
         """Process raw data into features"""
-        print(f"Data5: {len(data)}")
         df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close'])
-        print(f"Data6: {len(data)}")
-        
+
         # Convert timestamp to datetime
-        print(f"Data6666: {len(data)}")
-        # df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-        print(f"Data666: {len(data)}")
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
         df.set_index('timestamp', inplace=True)
         
         # Calculate price features
         df['price_change'] = df['close'].pct_change()
         df['volume_change'] = df['close'] - df['close'].shift(1)
-        print(f"Data6: {len(data)}")
-        
+
         # Calculate technical indicators
-        print(f"Data77: {len(data)}")
         df['SMA_5'] = df['close'].rolling(window=5).mean()
-        print(f"Data7: {len(data)}")
         df['SMA_10'] = df['close'].rolling(window=10).mean()
-        print(f"Data8: {len(data)}")
         df['RSI'] = self.calculate_rsi(df['close'], period=14)
-        print(f"Data9: {len(data)}")
         df['volatility'] = df['close'].rolling(window=10).std()
-        print(f"Data7: {len(data)}")
         
         # Calculate price range
         df['price_range'] = (df['high'] - df['low']) / df['close']
@@ -113,12 +100,9 @@ class BitcoinPredictor:
     def train_model(self, data):
         """Train the prediction model"""
         print("🎯 Training prediction model...")
-        print(f"Data2: ")
-        print(f"Data2: {len(data)}")
-        
+
         # Process data
         df = self.process_data(data)
-        print(f"Data22: {len(data)}")
         
         # Create features
         X, y = self.create_features(df)
@@ -163,9 +147,7 @@ class BitcoinPredictor:
         try:
             # Fetch latest data
             data = self.fetch_historical_data(days=1)
-            print(f"Data77: {len(data)}")
             df = self.process_data(data)
-            print(f"DF: {df}")
             
             # Get last row
             last_row = df.iloc[-1]
