@@ -1,1 +1,1 @@
-Wrire an Python app for prediction if price of Bitcoin will be more or less in one hour. The app can request and download any data from Internet which is free and open for everyone. If you can write a solution, save it to bitcoinPrediction2.py, then run and fix errors.
+Wrire an Python app for prediction if price of Bitcoin will be more or less in one hour. The app can request and download any data from an USA Internet which is free and open for everyone. If you can write a solution, save it to bitcoinPrediction5.py, then run and fix errors.
