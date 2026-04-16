@@ -1,58 +1,44 @@
 #!/usr/bin/env python
 
-import argparse
+import sys
 
-def extract_cpp_code(md_content):
-    """
-    Extracts C++ code blocks from markdown content.
-    
-    Args:
-        md_content (str): Markdown content as a single string.
-        
-    Returns:
-        str: A string containing the C++ code extracted from the markdown.
-    """
-    lines = md_content.splitlines()
-    cpp_code = []
-    in_cpp_block = False
-    
-    for line in lines:
-        if "```cpp" in line:
-            in_cpp_block = True
-        elif "```" in line and in_cpp_block:
-            break
-        elif in_cpp_block:
-            cpp_code.append(line)
-    
-    return "\n".join(cpp_code)
-
-def main():
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description='Extract C++ code from a Markdown file.')
-    parser.add_argument('md_file', help='Path to the input Markdown file')
-    parser.add_argument('cpp_file', help='Path to the output C++ file')
-
-    # Parse arguments
-    args = parser.parse_args()
-
+def extract_cpp_code(input_file, output_file):
     try:
-        # Read the Markdown file
-        with open(args.md_file, 'r') as md_file:
-            md_content = md_file.read()
+        with open(input_file, 'r') as md_file:
+            lines = md_file.readlines()
 
-        # Extract C++ code
-        cpp_code = extract_cpp_code(md_content)
+        extracting = False
+        cpp_code = []
 
-        # Write C++ code to a new file
-        with open(args.cpp_file, 'w') as cpp_file:
-            cpp_file.write(cpp_code)
+        for line in lines:
+            if "```cpp" in line:
+                extracting = True
+                continue
+            elif "```" in line and extracting:
+                extracting = False
+                break
 
-        print(f"C++ code successfully extracted and written to {args.cpp_file}")
+            if extracting:
+                # Remove Markdown formatting from the line
+                plain_text_line = line.replace("*", "").replace("#", "").strip()
+                cpp_code.append(plain_text_line)
+
+        with open(output_file, 'w') as cpp_file:
+            for line in cpp_code:
+                cpp_file.write(line + "\n")
+
+        print(f"Successfully extracted and saved C++ code to {output_file}")
 
     except FileNotFoundError:
-        print(f"Error: The file {args.md_file} was not found.")
+        print(f"Error: The file {input_file} does not exist.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python extract_cpp.py <input_md_file> <output_cpp_file>")
+    else:
+        input_md_file = sys.argv[1]
+        output_cpp_file = sys.argv[2]
+        extract_cpp_code(input_md_file, output_cpp_file)
+
