@@ -1,13 +1,12 @@
+
 #include <iostream>
 #include <cmath>
-#include <string>
+#include <vector>
 
 using namespace std;
 
-// Function to calculate factorial of a number
+// Function to calculate factorial
 unsigned long long factorial(int n) {
-    if (n == 0 || n == 1)
-        return 1;
     unsigned long long result = 1;
     for (int i = 2; i <= n; ++i) {
         result *= i;
@@ -15,37 +14,40 @@ unsigned long long factorial(int n) {
     return result;
 }
 
-// Function to calculate the nth term of the Chudnovsky series
-double chudnovsky_term(int k) {
-    const double C = 426880 * sqrt(10005);
-    double M = (factorial(6 * k)) / (factorial(k) * factorial(3 * k));
-    double X = pow(-1, k) * M;
-    double L = 545140134 * k + 13591409;
-    return X / L;
-}
-
-// Function to calculate Pi using the Chudnovsky algorithm
+// Function to generate Pi using the Chudnovsky algorithm
 string pi(int len) {
-    if (len >= 1000) {
-        return "3.14"; // Use a simple approximation for len >= 1000
+    if (len < 0) {
+        return "Invalid length";
     }
 
-    double sum = 0.0;
-    const int terms = len / 14 + 2; // Estimate the number of terms needed
+    // Constants used in the Chudnovsky formula
+    const double C = 426880 * sqrt(10005);
+    const int M = 1;
+    const int K = 6;
 
-    for (int k = 0; k < terms; ++k) {
-        sum += chudnovsky_term(k);
+    // Variables to store the result and intermediate values
+    long double sum = 0.0;
+
+    // Chudnovsky series calculation
+    for (int k = 0; k < len / 14 + 1; ++k) {
+        long double term numerator = factorial(6 * k) * (545140134 * k + 13[2D[K
+13591409);
+        long double term denominator = pow(factorial(3 * k), 3) * pow(facto[9D[K
+pow(factorial(k), 3) * pow(-262537412640768000, k);
+        sum += term numerator / term denominator;
     }
 
-    double pi_value = 1 / sum;
+    // Calculate Pi using the Chudnovsky formula
+    long double pi_value = C / sum;
 
-    // Convert pi value to string with specified length
-    string pi_str = to_string(pi_value);
-    return pi_str.substr(0, len + 2); // Include "3." and the decimal point
+    // Convert the result to a string with the desired length
+    char buffer[1024];
+    snprintf(buffer, sizeof(buffer), "%.*Lf", len, pi_value);
+    return buffer;
 }
 
 int main() {
-    cout << pi(2) << endl;  // Output: 3.
-    cout << pi(10) << endl; // Example output with more precision
+    cout << pi(4) << endl;  // Should output "3.14"
+    cout << pi(50) << endl; // Example of more precision
     return 0;
 }
