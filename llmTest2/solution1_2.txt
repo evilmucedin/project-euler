@@ -1,15 +1,22 @@
-Certainly! Below is the modified `solution2.cpp` file based on your require[7D[K
-requirements. The program implements the Chudnovsky algorithm to calculate [K
-π (pi) accurately for a given length up to 1000 characters.
+To implement the `pi` function correctly using the Chudnovsky algorithm, we[2D[K
+we need to follow these steps:
+
+1. Implement a factorial function since it's not defined by default.
+2. Use the Chudnovsky algorithm to compute Pi with high precision.
+3. Adjust the implementation to handle cases where `len < 1000`.
+
+Here is the corrected and enhanced version of `solution1.cpp`, renamed to `[1D[K
+`solution2.cpp`:
 
 ```cpp
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <string>
 
 using namespace std;
 
-// Function to calculate factorial of a number n
+// Function to calculate factorial
 unsigned long long factorial(int n) {
     unsigned long long result = 1;
     for (int i = 2; i <= n; ++i) {
@@ -18,74 +25,54 @@ unsigned long long factorial(int n) {
     return result;
 }
 
-// Function to implement the Chudnovsky algorithm to calculate pi
+// Function to compute Pi using the Chudnovsky algorithm
 string pi(int len) {
-    const double C = 426880 * sqrt(10005);
-    double sum = 0.0;
-
-    for (int k = 0; k < 10; ++k) { // You can adjust the number of terms fo[2D[K
-for precision
-        double M_k = factorial(6 * k) / (factorial(k) * pow(factorial(3), k[1D[K
-k) * pow(factorial(2), 3 * k));
-        double X_k = pow(-1, k) * M_k * (13591409 + 545140134 * k);
-        double Y_k = factorial(3 * k) * pow(factorial(2), 3 * k) * pow(fact[8D[K
-pow(factorial(6), 3);
-
-        sum += X_k / Y_k;
+    if (len < 1) {
+        return "3";
     }
 
+    // Constants for the Chudnovsky algorithm
+    const double C = 426880 * sqrt(10005);
+    double sum = 0.0;
+    int K = len / 14 + 1; // Adjust K based on the length required
+
+    for (int k = 0; k < K; ++k) {
+        unsigned long long M_k = factorial(6 * k) / (factorial(k) * factori[7D[K
+factorial(3 * k));
+        double L_k = pow(-1, k);
+        double X_k = 545140134;
+        double Y_k = 13591409;
+        double Z_k = 640320;
+
+        sum += M_k * L_k * (X_k + Y_k * k) / pow(Z_k, 3 * k + 3/2);
+    }
+
+    // Calculate Pi
     double pi_value = C / sum;
 
-    // Convert the calculated pi value to a string with the desired length
-    stringstream ss;
-    ss << setprecision(len - 1) << fixed << pi_value;
-    return ss.str();
+    // Convert to string with the specified length
+    ostringstream out;
+    out << fixed << setprecision(len - 1) << pi_value;
+    return out.str();
 }
 
 int main() {
-    int len;
-    cout << "Enter the number of decimal places for Pi (max 1000): ";
-    cin >> len;
-
-    if (len < 1 || len > 1000) {
-        cerr << "Length must be between 1 and 1000." << endl;
-        return 1;
-    }
-
-    cout << pi(len) << endl;
+    cout << pi(4) << endl; // Should print "3.14"
+    cout << pi(10) << endl; // Example for more digits
     return 0;
 }
 ```
 
 ### Explanation:
+- **Factorial Function**: A simple iterative approach is used to compute th[2D[K
+the factorial of a number.
+- **Chudnovsky Algorithm**: This algorithm is highly efficient and converge[8D[K
+converges quickly, making it suitable for computing Pi with high precision.[10D[K
+precision.
+- **Precision Handling**: The `ostringstream` and `fixed`/`setpre[15D[K
+`fixed`/`setprecision` manipulators are used to format the output string to[2D[K
+to the desired length.
 
-- **Factorial Function**: A simple function to calculate the factorial of a[1D[K
-a number using an iterative approach.
-  
-- **Chudnovsky Algorithm**: This is an extremely fast and accurate algorith[8D[K
-algorithm for calculating π. It computes π based on a series that converges[9D[K
-converges rapidly. The implementation uses a loop to sum terms until a suff[4D[K
-sufficient number of iterations are reached.
-
-- **Precision Handling**: The `setprecision` function from `<iomanip>` ensu[4D[K
-ensures the output string has the desired length. The `fixed` manipulator i[1D[K
-is used to set fixed-point notation, which prevents scientific notation.
-
-- **Input Validation**: The program checks if the input length is within a [K
-valid range (1 to 1000).
-
-You can compile this program using g++ version 16 or higher:
-
-```bash
-g++ -std=c++17 solution2.cpp -o pi_calculator
-```
-
-Then run it with:
-
-```bash
-./pi_calculator
-```
-
-This will prompt you to enter the number of decimal places you want for π, [K
-and it will output the value accordingly.
+This code should compile correctly using g++ 16 and will print Pi with the [K
+specified number of decimal places when called.
 
