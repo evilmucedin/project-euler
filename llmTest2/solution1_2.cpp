@@ -1,10 +1,4 @@
-#include <iostream>
-#include <iomanip>
-#include <cmath>
-#include <string>
-
 using namespace std;
-
 // Function to calculate factorial
 unsigned long long factorial(int n) {
 if (n <= 1)
@@ -44,6 +38,5 @@ return string(buffer).substr(0, len); // Return the first 'len' characters
 }
 int main() {
 cout << pi(4) << endl; // Should output: "3.14"
-cout << pi(10) << endl; // Example for more digits
 return 0;
 }
