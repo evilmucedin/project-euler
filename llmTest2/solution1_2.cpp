@@ -1,52 +1,42 @@
-#include <iostream>
-#include <iomanip>
-#include <cmath>
-#include <string>
-
 using namespace std;
-
 // Function to calculate factorial
 unsigned long long factorial(int n) {
+if (n <= 1)
+return 1;
+return n * factorial(n - 1);
+}
+// Function to calculate binomial coefficient
+unsigned long long binomial_coefficient(int n, int k) {
+if (k > n)
+return 0;
 unsigned long long result = 1;
-for (int i = 2; i <= n; ++i) {
-result *= i;
+for (int i = 0; i < k; ++i) {
+result *= (n - i);
+result /= (i + 1);
 }
 return result;
 }
-
-// Function to compute Pi using the Chudnovsky algorithm
+// Function to calculate the nth term of Chudnovsky series
+double chudnovsky_term(int n) {
+double numerator = pow(-1, n) * factorial(6 * n) * (545140134 * n + 13591409);
+double denominator = pow(factorial(3 * n), 3) * pow(640320, 3 * n + 3.0 / 2.0);
+return numerator / denominator;
+}
+// Function to calculate Pi using Chudnovsky algorithm
 string pi(int len) {
-if (len < 1) {
-return "3";
+if (len < 1 || len >= 1000) {
+return "Invalid length";
 }
-
-// Constants for the Chudnovsky algorithm
-const double C = 426880 * sqrt(10005);
 double sum = 0.0;
-int K = len / 14 + 1; // Adjust K based on the length required
-
-for (int k = 0; k < K; ++k) {
-unsigned long long M_k = factorial(6 * k) / (factorial(k) * factori[7D[K
-factorial(3 * k));
-double L_k = pow(-1, k);
-double X_k = 545140134;
-double Y_k = 13591409;
-double Z_k = 640320;
-
-sum += M_k * L_k * (X_k + Y_k * k) / pow(Z_k, 3 * k + 3/2);
+for (int n = 0; n <= len / 8; ++n) { // The series converges very fast
+sum += chudnovsky_term(n);
 }
-
-// Calculate Pi
-double pi_value = C / sum;
-
-// Convert to string with the specified length
-ostringstream out;
-out << fixed << setprecision(len - 1) << pi_value;
-return out.str();
+double pi_value = 1.0 / (12.0 * sum);
+char buffer[1000];
+sprintf(buffer, "%.*f", len, pi_value);
+return string(buffer).substr(0, len); // Return the first 'len' characters
 }
-
 int main() {
-cout << pi(4) << endl; // Should print "3.14"
-cout << pi(10) << endl; // Example for more digits
+cout << pi(4) << endl; // Should output: "3.14"
 return 0;
 }
