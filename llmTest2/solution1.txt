@@ -1,6 +1,6 @@
-Pi  is the ratio of a circle's circumference (distance around) to its diameter (distance across). No matter the size of the circle, this ratio is always the same, roughly. Simply put, if you unroll a circle's edge, it is a little over times the length of its width. 
+Pi is the ratio of a circle's circumference (distance around) to its diameter (distance across). No matter the size of the circle, this ratio is always the same, roughly. Simply put, if you unroll a circle's edge, it is a little over times the length of its width. 
 
-Lower you will find text of C++ program solution1.cpp. Please output text of solution2.cpp. solution2.cpp should start from solution1.cpp, but implement function pi correcly for argument len<1000. Function pi(n) should correcly return string with n chars with value of Pi. You will have to implement a modern mathematics generation of Pi for it. My advice would be to use the Chudnovsky algorithm. Add short but usefull comments. solution2.cpp should compile correcty by gcc 16. Don't forget that factorial function is not defined by default. Text of solution1.cpp:
+Lower you will find text of C++ program solution1.cpp. Please output text of solution2.cpp. solution2.cpp should start from solution1.cpp, but implement function pi correcly for argument len<1000. Function pi(n) should correcly return string with n chars with value of Pi. You will have to implement a modern mathematics generation of Pi for it. My advice would be to use the Chudnovsky algorithm. Add short but usefull comments. solution2.cpp should compile correcty by g++ 16. Don't forget that factorial function is not defined by default. Text of solution1.cpp:
 
 ``` cpp
 
