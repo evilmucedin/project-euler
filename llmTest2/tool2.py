@@ -1,40 +1,52 @@
 import sys
 
-def extract_code_from_md(input_file, output_file):
+def extract_and_format_cpp(input_file, output_file):
+    with open(input_file, 'r') as f:
+        lines = f.readlines()
+
     start_marker = "```cpp"
     end_marker = "```"
 
-    with open(input_file, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
+    # Find the start and end indices of the code block
+    start_index = None
+    end_index = None
 
-    in_code_block = False
-    extracted_lines = []
-
-    for line in lines:
-        if line.strip() == start_marker:
-            in_code_block = True
-            continue
-        elif line.strip() == end_marker:
-            in_code_block = False
+    for i, line in enumerate(lines):
+        if start_marker in line:
+            start_index = i + 1  # Start from the next line after the marke[5D[K
+marker
+        elif end_marker in line and start_index is not None:
+            end_index = i
             break
-        if in_code_block:
-            extracted_lines.append(line)
 
-    # Remove leading and trailing whitespace from each line and join them into a single string
-    code_content = ''.join(extracted_lines).strip()
+    if start_index is None or end_index is None:
+        print("Error: Could not find code block markers.")
+        return
 
-    # Write the extracted code to the output file
-    with open(output_file, 'w', encoding='utf-8') as file:
-        file.write(code_content)
+    # Extract lines within the code block
+    extracted_lines = lines[start_index:end_index]
+
+    # Remove markdown formatting (e.g., backticks, emphasis)
+    formatted_lines = []
+    for line in extracted_lines:
+        formatted_line = line.strip()
+        if formatted_line.startswith('`') and formatted_line.endswith('`'):[29D[K
+formatted_line.endswith('`'):
+            formatted_line = formatted_line[1:[17D[K
+formatted_line[1:-1]
+        formatted_lines.append(formatted_line)
+
+    # Write the formatted lines to the output file
+    with open(output_file, 'w') as f:
+        for line in formatted_lines:
+            f.write(line + '\n')
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python extract_code.py <input_md_file> <output_cpp_file>")
+        print("Usage: python extract_cpp.py <input_file> <output_file>")
         sys.exit(1)
-    
-    input_md_file = sys.argv[1]
-    output_cpp_file = sys.argv[2]
 
-    extract_code_from_md(input_md_file, output_cpp_file)
-    print(f"Code extracted and saved to {output_cpp_file}")
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
 
+    extract_and_format_cpp(input_file, output_file)
