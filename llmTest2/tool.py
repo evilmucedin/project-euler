@@ -20,7 +20,7 @@ def extract_cpp_code(input_file, output_file):
 
             if extracting:
                 # Remove Markdown formatting from the line
-                plain_text_line = line.replace("*", "").replace("#", "").strip()
+                plain_text_line = line.strip() # line.replace("*", "").replace("#", "").strip()
                 cpp_code.append(plain_text_line)
 
         with open(output_file, 'w') as cpp_file:
