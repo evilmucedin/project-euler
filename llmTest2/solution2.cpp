@@ -1,52 +1,50 @@
 #include <iostream>
-#include <iomanip>
 #include <cmath>
+#include <string>
 
 using namespace std;
-
-// Function to calculate factorial of a number n
+// Function to calculate factorial
 unsigned long long factorial(int n) {
-    unsigned long long result = 1;
-    for (int i = 2; i <= n; ++i) {
-        result *= i;
-    }
-    return result;
+if (n <= 1)
+return 1;
+return n * factorial(n - 1);
 }
-
-// Function to implement the Chudnovsky algorithm to calculate pi
+// Function to calculate binomial coefficient
+unsigned long long binomial_coefficient(int n, int k) {
+if (k > n)
+return 0;
+unsigned long long result = 1;
+for (int i = 0; i < k; ++i) {
+result *= (n - i);
+result /= (i + 1);
+}
+return result;
+}
+// Function to calculate the nth term of Chudnovsky series
+double chudnovsky_term(int n) {
+double numerator = pow(-1, n) * factorial(6 * n) * (545140134 * n + 13591409);
+double denominator = pow(factorial(3 * n), 3) * pow(640320, 3 * n + 3.0 / 2.0);
+return numerator / denominator;
+}
+// Function to calculate Pi using Chudnovsky algorithm
 string pi(int len) {
-    const double C = 426880 * sqrt(10005);
-    double sum = 0.0;
-
-    for (int k = 0; k < 10; ++k) { // You can adjust the number of terms fo[2D[K
-for precision
-        double M_k = factorial(6 * k) / (factorial(k) * pow(factorial(3), k[1D[K
-k) * pow(factorial(2), 3 * k));
-        double X_k = pow(-1, k) * M_k * (13591409 + 545140134 * k);
-        double Y_k = factorial(3 * k) * pow(factorial(2), 3 * k) * pow(fact[8D[K
-pow(factorial(6), 3);
-
-        sum += X_k / Y_k;
-    }
-
-    double pi_value = C / sum;
-
-    // Convert the calculated pi value to a string with the desired length
-    stringstream ss;
-    ss << setprecision(len - 1) << fixed << pi_value;
-    return ss.str();
+if (len < 1 || len >= 1000) {
+return "Invalid length";
 }
-
+double sum = 0.0;
+for (int n = 0; n <= len / 8; ++n) { // The series converges very fast
+sum += chudnovsky_term(n);
+}
+double pi_value = 1.0 / (12.0 * sum);
+char buffer[1000];
+sprintf(buffer, "%.*f", len, pi_value);
+return string(buffer).substr(0, len); // Return the first 'len' characters
+}
 int main() {
-    int len;
-    cout << "Enter the number of decimal places for Pi (max 1000): ";
-    cin >> len;
-
-    if (len < 1 || len > 1000) {
-        cerr << "Length must be between 1 and 1000." << endl;
-        return 1;
-    }
-
-    cout << pi(len) << endl;
-    return 0;
+cout << pi(4) << endl; // Should output: "3.14"
+cout << pi(20) << endl; // Should output: "3.14"
+cout << pi(30) << endl; // Should output: "3.14"
+cout << pi(40) << endl; // Should output: "3.14"
+cout << pi(100) << endl; // Should output: "3.14"
+return 0;
 }
