@@ -1,14 +1,9 @@
-Certainly! Below is a Python script that you can run as an Ubuntu console t[1D[K
-tool. This script will take two arguments: the input text file and the outp[4D[K
-output `.cpp` file. It extracts the code block between "```cpp" and "```", [K
-strips out any Markdown formatting, and writes it to the specified output f[1D[K
-file.
+Certainly! Below is a Python script that you can run as an Ubuntu console tool. This script will take two arguments: the input text file and the output `.cpp` file. It extracts the code block between "```cpp" and "```", strips out any Markdown formatting, and writes it to the specified output file.
 
 To use this script:
 1. Save it to a file, for example, `extract_cpp.py`.
 2. Make it executable with the command: `chmod +x extract_cpp.py`.
-3. Run it from the terminal by providing the input and output filenames as [K
-arguments: `./extract_cpp.py input.txt output.cpp`.
+3. Run it from the terminal by providing the input and output filenames as arguments: `./extract_cpp.py input.txt output.cpp`.
 
 Here is the script:
 
@@ -39,8 +34,7 @@ def extract_code_block(input_file, output_file):
 
     # Extract the code block lines
     for i in range(start_line, end_line):
-        line = lines[i].strip()  # Remove leading/trailing whitespace and n[1D[K
-newlines
+        line = lines[i].strip()  # Remove leading/trailing whitespace and newlines
         if line.startswith('#'):  # Skip Markdown comments
             continue
         code_block.append(line)
@@ -62,17 +56,9 @@ if __name__ == "__main__":
 ```
 
 ### Explanation:
-1. **Reading the Input File**: The script reads the entire content of the i[1D[K
-input file into a list of lines.
-2. **Finding Start and End Lines**: It searches for the lines containing "`[2D[K
-"```cpp" and "```. These lines define the start and end of the code block.
-3. **Extracting the Code Block**: Between the start and end lines, it colle[5D[K
-collects all lines that do not start with a Markdown comment (`#`). This is[2D[K
-is to ensure that any comments within the code are preserved for compilatio[10D[K
-compilation.
-4. **Writing the Output File**: The extracted lines are written to the spec[4D[K
-specified output file.
+1. **Reading the Input File**: The script reads the entire content of the input file into a list of lines.
+2. **Finding Start and End Lines**: It searches for the lines containing "```cpp" and "```. These lines define the start and end of the code block.
+3. **Extracting the Code Block**: Between the start and end lines, it collects all lines that do not start with a Markdown comment (`#`). This is to ensure that any comments within the code are preserved for compilation.
+4. **Writing the Output File**: The extracted lines are written to the specified output file.
 
-This script should help you extract and compile C++ code from the output of[2D[K
-of your Ollama LLM CLI tool.
-
+This script should help you extract and compile C++ code from the output of your Ollama LLM CLI tool.

@@ -59,8 +59,7 @@ class BitcoinPredictor:
         """Process raw data into features"""
         print(f"Data5: {len(data)}")
         df = pd.DataFrame(data, columns=['timestamp', 'open', 'high', 'low', 'close'])
-        print(f"Data6: {len(data)}")
-        
+
         # Convert timestamp to datetime
         print(f"Data6666: {len(data)}")
         # df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
@@ -70,8 +69,7 @@ class BitcoinPredictor:
         # Calculate price features
         df['price_change'] = df['close'].pct_change()
         df['volume_change'] = df['close'] - df['close'].shift(1)
-        print(f"Data6: {len(data)}")
-        
+
         # Calculate technical indicators
         print(f"Data77: {len(data)}")
         df['SMA_5'] = df['close'].rolling(window=5).mean()
@@ -113,9 +111,7 @@ class BitcoinPredictor:
     def train_model(self, data):
         """Train the prediction model"""
         print("🎯 Training prediction model...")
-        print(f"Data2: ")
-        print(f"Data2: {len(data)}")
-        
+
         # Process data
         df = self.process_data(data)
         print(f"Data22: {len(data)}")

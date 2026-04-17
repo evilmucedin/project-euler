@@ -27,12 +27,12 @@ def fetch_bitcoin_data():
     }
     response = requests.get(url, params=params)
     data = response.json()
-    
+
     # Convert to DataFrame
     prices = pd.DataFrame(data['prices'], columns=['timestamp', 'price'])
     prices['timestamp'] = pd.to_datetime(prices['timestamp'], unit='ms')
     prices.set_index('timestamp', inplace=True)
-    
+
     return prices
 
 # Prepare the dataset for prediction
@@ -41,7 +41,7 @@ def prepare_data(prices):
     prices.dropna(inplace=True)
     X = prices['price'].values.reshape(-1, 1)
     y = (prices['price_change'] > 0).astype(int)  # Label: 1 if price increases, 0 otherwise
-    
+
     return train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Train a logistic regression model
@@ -58,18 +58,18 @@ def predict_price_change(model, last_hour_price):
 if __name__ == "__main__":
     # Fetch data
     prices = fetch_bitcoin_data()
-    
+
     # Prepare dataset
     X_train, X_test, y_train, y_test = prepare_data(prices)
-    
+
     # Train model
     model = train_model(X_train, y_train)
-    
+
     # Evaluate model (optional)
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Model Accuracy: {accuracy:.2f}")
-    
+
     # Predict next hour's price change
     last_hour_price = prices['price'].iloc[-1]
     prediction = predict_price_change(model, last_hour_price)
