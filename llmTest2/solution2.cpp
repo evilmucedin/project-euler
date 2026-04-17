@@ -86,7 +86,6 @@ string pi(int len) {
     // exp_out==1: value = 0.digits × 10^1, so digits[0] is the integer part
     return digits.substr(0, 1) + "." + digits.substr(1, len);
 }
-
 int main() {
     cout << pi(4) << endl;
     cout << pi(20) << endl;
