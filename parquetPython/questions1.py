@@ -8,6 +8,10 @@ employees_df = pd.read_parquet('employees.parquet')
 sales_df = pd.read_parquet('sales.parquet')
 products_df = pd.read_parquet('products.parquet')
 
+print("Schema")
+employees = pq.ParquetFile("employees.parquet")
+print(employees.schema)
+
 print("=" * 60)
 print("QUERY 1: Top earners")
 print("=" * 60)
