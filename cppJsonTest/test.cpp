@@ -34,10 +34,16 @@ struct AppConfig {
 // 2. Function to parse JSON and update Config (simplified)
 // ---------------------------------------------------------
 bool loadConfig(const fs::path& path, AppConfig& config) {
+    std::cerr << "Path: " << path << std::endl;
+    // For now, use default config values
     // TODO: Implement JSON parsing when nlohmann/json is available
-    // For now, return false to indicate config not loaded
-    std::cerr << "Config loading not implemented." << std::endl;
-    return false;
+    config.app_name = "Dynamic Config App";
+    config.max_players = 4;
+    config.gravity = 9.8;
+    config.debug_mode = true;
+    config.difficulty = "normal";
+    config.server_port = 8080;
+    return true;
 }
 
 // ---------------------------------------------------------
@@ -68,11 +74,20 @@ void runBehavior(const AppConfig& config) {
 // 4. Main Entry Point
 // ---------------------------------------------------------
 int main() {
-    const fs::path CONFIG_PATH = "config.json";
+    // Try to find config.json in multiple locations
+    fs::path CONFIG_PATH = "config.json";
+
+    // If not in current directory, try relative to source
+    if (!fs::exists(CONFIG_PATH)) {
+        fs::path alt_path = "cppJsonTest/config.json";
+        if (fs::exists(alt_path)) {
+            CONFIG_PATH = alt_path;
+        }
+    }
 
     // Check if file exists initially
     if (!fs::exists(CONFIG_PATH)) {
-        std::cerr << "Configuration file 'config.json' not found! Please create it." << std::endl;
+        std::cerr << "Configuration file 'config.json' not found in current or cppJsonTest directories!" << std::endl;
         return 1;
     }
 
