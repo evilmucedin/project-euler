@@ -161,7 +161,7 @@ PriceData loadData(const StringVector& tickers) {
 using Portfolio = DoubleVector;
 
 void normalizeNavInplace(Portfolio& p) {
-    double sm = sum(p);
+    const double sm = sum(p);
     ASSERTNEQ(sm, 0);
     for (auto& x : p) {
         x /= sm;
@@ -317,8 +317,8 @@ Portfolio randomPortfolio(const StringVector& tickers) {
 
 Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
     auto df = DataFrame::loadFromCsv(filename);
-    auto colSymbol = df->getColumn("Symbol", filename, filename);
-    auto colValue = df->getColumn("Current Value", filename, filename);
+    const auto colSymbol = df->getColumn("Symbol", filename, filename);
+    const auto colValue = df->getColumn("Current Value", filename, filename);
     unordered_map<string, double> symbol2value;
     for (size_t i = 0; i < colSymbol->size(); ++i) {
         symbol2value.emplace(colSymbol->as(i), colValue->as<double>(i));
