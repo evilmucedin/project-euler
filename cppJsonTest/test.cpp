@@ -6,74 +6,10 @@
 #include <filesystem>
 #include <exception>
 #include <iomanip>
-
-// Include nlohmann/json (Ensure json.hpp is in your include path)
-// #include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
-// using json = nlohmann::json;
-
-// ---------------------------------------------------------
-// Helper: Extract string value from JSON
-// ---------------------------------------------------------
-std::string extractJsonString(const std::string& json_str, const std::string& key) {
-    std::string search = "\"" + key + "\":";
-    size_t pos = json_str.find(search);
-    if (pos == std::string::npos) return "";
-
-    pos = json_str.find("\"", pos + search.length());
-    if (pos == std::string::npos) return "";
-    pos++; // skip opening quote
-
-    size_t end_pos = json_str.find("\"", pos);
-    if (end_pos == std::string::npos) return "";
-
-    return json_str.substr(pos, end_pos - pos);
-}
-
-// Helper: Extract number value from JSON
-template<typename T>
-T extractJsonNumber(const std::string& json_str, const std::string& key) {
-    std::string search = "\"" + key + "\":";
-    size_t pos = json_str.find(search);
-    if (pos == std::string::npos) return T();
-
-    pos += search.length();
-    // Skip whitespace
-    while (pos < json_str.length() && isspace(json_str[pos])) pos++;
-
-    size_t end_pos = pos;
-    while (end_pos < json_str.length() && (isdigit(json_str[end_pos]) || json_str[end_pos] == '.' || json_str[end_pos] == '-')) {
-        end_pos++;
-    }
-
-    std::string num_str = json_str.substr(pos, end_pos - pos);
-    if (num_str.empty()) return T();
-
-    try {
-        if constexpr (std::is_same_v<T, int>) {
-            return std::stoi(num_str);
-        } else if constexpr (std::is_same_v<T, double>) {
-            return std::stod(num_str);
-        }
-    } catch (...) {}
-    return T();
-}
-
-// Helper: Extract bool value from JSON
-bool extractJsonBool(const std::string& json_str, const std::string& key) {
-    std::string search = "\"" + key + "\":";
-    size_t pos = json_str.find(search);
-    if (pos == std::string::npos) return false;
-
-    pos += search.length();
-    // Skip whitespace
-    while (pos < json_str.length() && isspace(json_str[pos])) pos++;
-
-    if (json_str.substr(pos, 4) == "true") return true;
-    if (json_str.substr(pos, 5) == "false") return false;
-    return false;
-}
+using json = nlohmann::json;
 
 // ---------------------------------------------------------
 // 1. Data Structure to hold our configuration
@@ -103,16 +39,17 @@ bool loadConfig(const fs::path& path, AppConfig& config) {
             return false;
         }
 
-        std::string json_content((std::istreambuf_iterator<char>(fileStream)),
-                                 std::istreambuf_iterator<char>());
+        std::cerr << "Ok: " << path << " " << fs::canonical(path) << std::endl;
 
-        // Parse JSON values using simple string extraction
-        config.app_name = extractJsonString(json_content, "name");
-        config.max_players = extractJsonNumber<int>(json_content, "max_players");
-        config.gravity = extractJsonNumber<double>(json_content, "gravity_multiplier");
-        config.debug_mode = extractJsonBool(json_content, "is_debug_mode");
-        config.difficulty = extractJsonString(json_content, "difficulty_level");
-        config.server_port = extractJsonNumber<int>(json_content, "server_port");
+        json parsed;
+        fileStream >> parsed;
+
+        config.app_name = parsed.value("name", config.app_name);
+        config.max_players = parsed.value("max_players", config.max_players);
+        config.gravity = parsed.value("gravity_multiplier", config.gravity);
+        config.debug_mode = parsed.value("is_debug_mode", config.debug_mode);
+        config.difficulty = parsed.value("difficulty_level", config.difficulty);
+        config.server_port = parsed.value("server_port", config.server_port);
 
         return true;
     }

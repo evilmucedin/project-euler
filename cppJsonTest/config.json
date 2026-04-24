@@ -5,7 +5,7 @@
     "is_debug_mode": true
   },
   "game_settings": {
-    "max_players": 4,
+    "max_players": 1,
     "gravity_multiplier": 9.8,
     "difficulty_level": "normal"
   },
