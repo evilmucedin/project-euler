@@ -32,14 +32,14 @@ static const StringVector etfs = {
     "OIH",   "XME",   "PFIX",  "VXX",   "EWZ",   "ILF",   "SCHE", "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG",
     "FPRO",  "FBCV",  "FMIL",  "BITO",  "BITW",  "VBB",   "SFY",  "IJR",  "SCHD", "FTLS",  "FDHT", "FRNW",
     "FDRV",  "FCLD",  "FDIG",  "ARKK",  "ITA",   "PPA",   "XAR",  "USO",  "IEO",  "SPGP",  "IWY",  "SPYG",
-    "FELG",  "FTEC",  "FDVV", "DBO", "AIQ",
+    "FELG",  "FTEC",  "FDVV", "DBO", "AIQ", "VDE",
 
 };
 
 static const StringVector stocks = {
     "GOOG", "GOOGL", "MSFT", "T",  "NCLH", "AMZN", "META", "AVGO", "AMD", "TSLA", "GME",  "AAPL",  "NVDA", "TSM",  "UNH", "JNJ", "V",
     "WMT",  "JPM",  "PG", "XOM",  "HD",   "CVX",  "PFE",  "COIN", "VWAGY", "LMT", "KHC", "NKE", "SBUX", "SHOP",
-    "NBIS", "PLTR",
+    "NBIS", "PLTR", "FLOC", "COP",
 };
 
 // static const StringVector tickers = etfs;
@@ -213,7 +213,7 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav, bool useCon
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
         ALWAYS_ASSERT(isfinite(result.originalShares[i]));
         if (result.originalShares[i] < 0)
-            cerr << "Err empty: " << i << "\t" << result.originalShares[i] << "\t" << result.originalNav[i] <<  endl;
+            cerr << "Err empty: " << i << "\t" << result.originalShares[i] << "\t" << result.originalNav[i] << " '" << pd.tickers_[i] <<  "'"  <<  endl;
         ALWAYS_ASSERT(result.originalShares[i] >= 0);
     }
     const double originalNavSum = sum(originalNav);

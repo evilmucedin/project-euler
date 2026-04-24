@@ -1,0 +1,60 @@
+Problem
+
+Write a Python application that predicts whether Bitcoin's USD price will be higher or lower one hour from a given time. The application may fetch historical hourly price data from the Internet and must be runnable locally for testing.
+
+Summary of approach
+
+- Data source: Fetch recent hourly Bitcoin price history (e.g., CoinGecko market_chart) for the past 30 days. If live fetch fails, support a synthetic/local fallback so the app remains runnable for testing.
+- Features: Use simple time-based features such as `hour_of_day` and `day_of_week`. Optionally add rolling returns, price momentum, or lagged returns for better performance.
+- Label: For each timestamp, label the sample 1 if the next-hour price is higher, otherwise 0.
+- Model: Train a lightweight classifier (Logistic Regression, RandomForest, or XGBoost) and evaluate using an 80/20 train/test split.
+- Prediction: Use the most recent timestamp to compute feature values and predict whether price will increase in the next hour.
+
+Implementation notes (what the repository contains)
+
+- `bitcoinPrediction.py`: A runnable script that
+  - fetches market data from CoinGecko with timeout and basic retry logic,
+  - falls back to a synthetic dataset if the API is unreachable or returns unexpected data,
+  - prepares features (`hour_of_day`, `day_of_week`) and creates the binary target (next-hour up/down),
+  - trains a `LogisticRegression` classifier and prints test accuracy,
+  - prints a one-hour-up-or-down prediction for the latest timestamp.
+
+Dependencies
+
+- Python 3.8+
+- requests
+- pandas
+- scikit-learn
+
+Install dependencies (recommended in a virtualenv):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+pip install requests pandas scikit-learn
+```
+
+Run
+
+```bash
+python3 ./bitcoinPrediction.py
+```
+
+Behavior and error handling
+
+- The script attempts to fetch CoinGecko data and will raise a clear error if the network request fails. To ensure the script remains useful for development and CI, it provides a synthetic fallback dataset when the API cannot be reached or returns unexpected JSON.
+- When the API returns 401/403 or other HTTP errors, the script retries once using a browser-like `User-Agent` header before falling back.
+
+Recommendations and next improvements
+
+- Add more predictive features: lagged returns (1h, 3h, 6h), rolling mean/std, volume and order-book signals if available.
+- Use a time-series aware train/test split (no leakage across time) or use cross-validation that respects chronology.
+- Add CLI flags to select data source (`--live`, `--file path.csv`, `--synthetic`) and model parameters.
+- Persist trained models and evaluation reports to files (`model.joblib`, `metrics.json`).
+- Add unit tests for data parsing and feature engineering.
+
+If you want, I can:
+- Add CLI flags and save a small README and `requirements.txt`.
+- Replace the synthetic fallback with loading a local CSV when available.
+- Try a slightly richer feature set and show the resulting accuracy.

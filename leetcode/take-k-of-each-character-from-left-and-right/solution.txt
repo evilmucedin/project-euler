@@ -1,0 +1,195 @@
+Solve a C++ problem:
+```txt
+
+Code
+Testcase
+Testcase
+Test Result
+2516. Take K of Each Character From Left and Right
+Attempted
+Medium
+Topics
+premium lock icon
+Companies
+Hint
+You are given a string s consisting of the characters 'a', 'b', and 'c' and a non-negative integer k. Each minute, you may take either the leftmost character of s, or the rightmost character of s.
+
+Return the minimum number of minutes needed for you to take at least k of each character, or return -1 if it is not possible to take k of each character.
+
+ 
+
+Example 1:
+
+Input: s = "aabaaaacaabc", k = 2
+Output: 8
+Explanation: 
+Take three characters from the left of s. You now have two 'a' characters, and one 'b' character.
+Take five characters from the right of s. You now have four 'a' characters, two 'b' characters, and two 'c' characters.
+A total of 3 + 5 = 8 minutes is needed.
+It can be proven that 8 is the minimum number of minutes needed.
+Example 2:
+
+Input: s = "a", k = 1
+Output: -1
+Explanation: It is not possible to take one 'b' or 'c' so return -1.
+ 
+
+Constraints:
+
+1 <= s.length <= 10^5
+s consists of only the letters 'a', 'b', and 'c'.
+0 <= k <= s.length
+ 
+Seen this question in a real interview before?
+1/6
+Yes
+No
+Accepted
+115,244/224K
+Acceptance Rate
+51.4%
+Topics
+icon
+Companies
+Hint 1
+Hint 2
+Hint 3
+Similar Questions
+Discussion (186)
+
+Choose a type
+
+
+
+
+
+
+
+
+Read more
+
+
+
+
+
+
+
+
+Copyright © 2026 LeetCode. All rights reserved.
+```
+
+by fixing a bug in a C++ solution:
+```cpp
+#include "../header.h"
+
+class Solution {
+public:
+    using PII = tuple<int, int, int, int, int>;
+    map<PII, int> dp_;
+
+    /*
+    void fillPos(const string& s, vector<PII>& res, char ch) {
+        for (int i = 0; i < s.size(); ++i) {
+            if (s[i] == ch) {
+                res.emplace_back(PII(i, i, i, 0));
+                res.emplace_back(PII(s.size() - 1 - i, i, 0, i));
+            }
+        }
+        sort(res.begin(), res.end());
+    }
+
+    pair<int, int> find(const vector<PII>& pos, int k) {
+        set<int> posU;
+        set<int> offsets;
+        int i = 0;
+        int result1 = 0;
+        int result2 = 0;
+        while (posU.size() != k) {
+            result1 = max(result1, std::get<2>(pos[i]));
+            result2 = max(result2, std::get<3>(pos[i]));
+            posU.emplace(std::get<1>(pos[i++]));
+        }
+        return make_pair(result1, result2);
+    }
+    */
+
+    static int off(const string& s, int left, int index, char ch) {
+        if (s[index] == ch) {
+            return left - 1;
+        } else {
+            return left;
+        }
+    }
+
+    int dp__(const string& s, int left, int right, int leftA, int leftB, int leftC) {
+        if (leftA <= 0 && leftB <= 0 && leftC <= 0) {
+            return right - left;
+        }
+        return max( dp(s, left + 1, right, off(s, leftA, left, 'a'), off(s, leftB, left, 'b'), off(s, leftC, left, 'c')),
+                    dp(s, left, right - 1, off(s, leftA, right, 'a'), off(s, leftB, right, 'b'), off(s, leftC, right, 'c')));
+    }
+
+    int dp(const string& s, int left, int right, int leftA, int leftB, int leftC) {
+        PII key(left, right, leftA, leftB, leftC);
+        auto toKey = dp_.find(key);
+        if (toKey != dp_.end()) {
+            return toKey->second;
+        }
+        int res = dp__(s, left, right, leftA, leftB, leftC);
+        dp_.emplace(key, res);
+        return res;
+    }
+
+    int count(const string& s, char ch) {
+        int result = 0;
+        for (char c: s) {
+            if (c == ch) {
+                ++result;
+            }
+        }
+        return result;
+    }
+
+    int takeCharacters(string s, int k) {
+        if (count(s, 'a') < k) {
+            return -1;
+        }
+        if (count(s, 'b') < k) {
+            return -1;
+        }
+        if (count(s, 'c') < k) {
+            return -1;
+        }
+
+        return s.size() - dp(s, 0, s.size() - 1, k, k, k) - 1;
+
+        /*
+        vector<PII> aPos;
+        vector<PII> bPos;
+        vector<PII> cPos;
+        fillPos(s, aPos, 'a');
+        fillPos(s, bPos, 'b');
+        fillPos(s, cPos, 'c');
+        int result1 = max({find(aPos, k).first, find(bPos, k).first, find(cPos, k).first});
+        int result2 = max({find(aPos, k).second, find(bPos, k).second, find(cPos, k).second});
+        return result1 + result2;
+
+        */
+    }
+};
+
+int main() {
+    Solution sol;
+    Timer t("Subarray timer");
+    cerr
+        << sol.takeCharacters(
+               "abccabbbacacbccbaaacacabccacbbacccccbbbcbaaaabaaabcababbabcbcccbbbabbabbacabccabbbaabbaacabcbabbacaabcc"
+               "aacccbacbcbccaabccbbbbababccbbcccaccccbababccacccaaacccabccccbbccabbbbaabcccabccbacaabbcbabaccaaaaaaabb"
+               "baacbcacbbaaccaabcccccbcbabcbbccacccabccaabbaaccbcccbbcbcbaaccabbacccbababcaccababaabaabccaaacbaaaabcca"
+               "cbbcccccaabbacaacccaababaccbcccbaabaabccbacbacccbcccbbcababccbaabcbbbccbbbbacaacbacccaabac",
+               32701)
+        << endl;
+
+    return 0;
+}
+```

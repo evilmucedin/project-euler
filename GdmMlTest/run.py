@@ -14,6 +14,11 @@ CATBOOST_REPO = "/home/denplusplus/Programming/catboost"
 print("=== Bazel GdmMlTest with LightGBM from build_gpp ===")
 print(f"Workspace base: {BASE}")
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 bazel_env = os.environ.copy()
 # Bazel in this environment is Bazelisk-style and may try to download when using a "latest" style config.
 # Pin to a cached version so `run.py` works in a network-restricted sandbox.
@@ -49,17 +54,33 @@ os.makedirs(repo_contents_cache, exist_ok=True)
 server_dir = os.path.join(output_base, "server")
 shutil.rmtree(server_dir, ignore_errors=True)
 
+<<<<<<< HEAD
+=======
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 # Ensure data.data exists with 100+ features for learning and testing
 gen = os.path.join(GDM_ML_DIR, "generate_data.py")
 print("Generating/updating data.data...")
 subprocess.run([sys.executable, gen], cwd=GDM_ML_DIR, check=True)
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+cmd_clean = ["bazel", "clean", "--expunge"]
+print("Running:", " ".join(cmd_clean))
+subprocess.run(cmd_clean, cwd=BASE, check=True)
+=======
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 # Bazel's "clean --expunge" tends to touch output-cache lock files that may be unwritable
 # in this sandbox. We skip it; the subsequent build/run will compile as needed.
 
 print("Running gdmMlTest via ./run.sh (no Bazel) ...")
 res = subprocess.run([os.path.join(GDM_ML_DIR, "run.sh")], cwd=GDM_ML_DIR)
 sys.exit(res.returncode)
+<<<<<<< HEAD
+=======
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 
 cmd_run = [
     "bazel",

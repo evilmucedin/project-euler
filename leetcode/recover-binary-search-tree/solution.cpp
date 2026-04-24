@@ -1,6 +1,14 @@
 #include <iostream>
+<<<<<<< HEAD
 #include <vector>
 #include <algorithm>
+=======
+<<<<<<< HEAD
+=======
+#include <vector>
+#include <algorithm>
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 
 using namespace std;
 
@@ -18,6 +26,7 @@ using namespace std;
 
 class Solution {
 public:
+<<<<<<< HEAD
     static TreeNode* findMin(TreeNode* node) {
         if (!node)
             return node;
@@ -31,6 +40,25 @@ public:
         return result;
     }
 
+=======
+<<<<<<< HEAD
+    void recoverTree(TreeNode* root) {
+
+=======
+    static TreeNode* findMin(TreeNode* node) {
+        if (!node)
+            return node;
+        auto result = node;
+        auto lResult = findMin(node->left);
+        if (lResult && lResult->val < result->val)
+            result = lResult;
+        auto rResult = findMin(node->right);
+        if (rResult && rResult->val < result->val)
+            result = rResult;
+        return result;
+    }
+
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
     static TreeNode* findMax(TreeNode* node) {
         if (!node)
             return node;
@@ -84,6 +112,10 @@ public:
         sort(v.begin(), v.end());
         int i = 0;
         unfill(v, i, root);
+<<<<<<< HEAD
+=======
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
     }
 };
 

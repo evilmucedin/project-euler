@@ -9,8 +9,16 @@
 #include <string>
 #include <vector>
 #include <cstdio>
+<<<<<<< HEAD
 #include <cstdlib>
 #include <cstdint>
+=======
+<<<<<<< HEAD
+=======
+#include <cstdlib>
+#include <cstdint>
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 
 #include <LightGBM/c_api.h>
 #include <catboost/libs/model_interface/model_calcer_wrapper.h>
@@ -183,16 +191,28 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
                              const std::vector<float>& labels, int rows) {
     std::vector<double> preds(rows);
     int64_t out_len = 0;
+<<<<<<< HEAD
+=======
+    const char* params = "num_threads=1";
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
 
     for (int it = 0; it < N_IT; ++it) {
         auto t0 = std::chrono::high_resolution_clock::now();
         check(LGBM_BoosterPredictForMat(booster, dataset.data(), C_API_DTYPE_FLOAT32,
                                         rows, ncols, 1, C_API_PREDICT_NORMAL, 0, -1,
+<<<<<<< HEAD
                                         "", &out_len, preds.data()),
               "BoosterPredictForMat");
         auto t1 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t1 - t0;
         std::cout << "LGBM_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", nrows: " << nrows << "\n";
+=======
+                                        params, &out_len, preds.data()),
+              "BoosterPredictForMat");
+        auto t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
+        std::cout << "LGBM_BoosterPredictForMat time: " << elapsed.count() << " ms " << path << ", ncols: " << ncols << ", nrows: " << nrows << ", rows: " << rows << "\n";
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
     }
 
     if (out_len != static_cast<int64_t>(rows)) {
@@ -213,6 +233,11 @@ void testLGBM(const std::string& path, const std::vector<float>& loaded_data, co
   check(LGBM_DatasetFree(train_dataset), "DatasetFree");
 }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 #include <iostream>
 #include <vector>
 #include <dlfcn.h>
@@ -449,7 +474,11 @@ void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data,
     std::exit(1);
   };
 
+<<<<<<< HEAD
   const int N_IT_TL2CGEN = 1;
+=======
+  const int N_IT_TL2CGEN = N_IT;
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
   double train_acc = 0.0;
   double test_acc = 0.0;
   for (int it = 0; it < N_IT_TL2CGEN; ++it) {
@@ -476,6 +505,10 @@ void testTl2cgen(const std::string& path, const std::vector<float>& loaded_data,
   dlclose(predictor_handle);
 }
 
+<<<<<<< HEAD
+=======
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 bool trainCatBoostModel(const std::string& data_path, const std::string& model_path) {
   if (std::filesystem::exists(model_path)) {
     return true;
@@ -529,20 +562,41 @@ bool trainCatBoostModel(const std::string& data_path, const std::string& model_p
   return std::filesystem::exists(model_path);
 }
 
+<<<<<<< HEAD
+#include <cstdlib>
+#include <iostream>
+// #include <catboost/libs/model/model.h>
+
+=======
+<<<<<<< HEAD
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
+void testCatBoostCalcer(
+=======
 #include <cstdlib>
 #include <iostream>
 // #include <catboost/libs/model/model.h>
 
 void testCatBoostCalcer(
+    const std::string& functionName,
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
     const std::string& file_path,
     ModelCalcerHandle* calcer,
     const int& nrows,
     const int& ncols,
     const DatasetSplit& split) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 
 
   // TFullModel& fullModel = *calcer->FullModel;
 
+<<<<<<< HEAD
+=======
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
   auto evaluate = [&](const std::vector<float>& data, const std::vector<float>& label, int rows) {
     std::vector<const float*> features(rows);
     for (int i = 0; i < rows; ++i) {
@@ -553,11 +607,19 @@ void testCatBoostCalcer(
 
 
     for (int it = 0; it < N_IT; ++it) {
+<<<<<<< HEAD
         auto t0 = std::chrono::high_resolution_clock::now();
         bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
         auto t1 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> elapsed = t1 - t0;
         std::cout << "CalcModelPredictionFlat time: " << elapsed.count() << " ms, path: " << file_path <<   "  rows: " << rows << "\n";
+=======
+        const auto t0 = std::chrono::high_resolution_clock::now();
+        const bool ok = CalcModelPredictionFlat(calcer, rows, features.data(), ncols, preds.data(), rows);
+        const auto t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = t1 - t0;
+        std::cout << functionName << " CalcModelPredictionFlat time: " << elapsed.count() << " ms, path: " << file_path <<   "  rows: " << rows << "\n";
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
 
         if (!ok) {
           std::cerr << "CatBoost CalcModelPredictionFlat failed: " << GetErrorString() << " rows: " << rows << "\n";
@@ -609,7 +671,11 @@ void testCatBoost(const std::string& model_path,
     return;
   }
 
+<<<<<<< HEAD
   testCatBoostCalcer(model_path, calcer, nrows, ncols, split);
+=======
+  testCatBoostCalcer("testCatBoost", model_path, calcer, nrows, ncols, split);
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
 
   ModelCalcerDelete(calcer);
 }
@@ -621,7 +687,14 @@ void testCatBoostLGBM(const std::string& model_path,
                   const std::vector<float>& loaded_label,
                   const int& nrows,
                   const int& ncols) {
+<<<<<<< HEAD
   std::cerr << "testCatBoostLGBM: " << model_path << std::endl;
+=======
+<<<<<<< HEAD
+=======
+  std::cerr << "testCatBoostLGBM: " << model_path << std::endl;
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
   if (!std::filesystem::exists(model_path)) {
     std::cerr << "CatBoost model file not found: " << model_path << ". Will attempt to train from data.\n";
     // model path not found; attempt training from data splits in C++ via Python
@@ -652,7 +725,11 @@ void testCatBoostLGBM(const std::string& model_path,
     return;
   }
 
+<<<<<<< HEAD
   testCatBoostCalcer(model_path, calcer, nrows, ncols, split);
+=======
+  testCatBoostCalcer("testCatBoostLGBM", model_path, calcer, nrows, ncols, split);
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
 
   ModelCalcerDelete(calcer);
 }
@@ -670,7 +747,14 @@ int main(int argc, char** argv) {
   loadDataset(path, loaded_data, loaded_label, nrows, ncols);
 
   testLGBM(path, loaded_data, loaded_label, nrows, ncols);
+<<<<<<< HEAD
   testTl2cgen(path, loaded_data, loaded_label, nrows, ncols);
+=======
+<<<<<<< HEAD
+=======
+  testTl2cgen(path, loaded_data, loaded_label, nrows, ncols);
+>>>>>>> 5dd2c62abcc99357697d23886080f074089f813f
+>>>>>>> ee168571e320dce3eafc6655b284fad8ae780efb
 
   const std::string catBoostModelPath = "/home/denplusplus/Programming/project-euler/GdmMlTest/catboostTestModel.bin";
   testCatBoost(catBoostModelPath, loaded_data, loaded_label, nrows, ncols);
