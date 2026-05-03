@@ -82,14 +82,39 @@ def memory_benchmark(size=6_000_000):
     return (size / (1024 * 1024)) / elapsed
 
 
-def ollama_available():
-    if not shutil.which("ollama"):
-        return False
+def get_ollama_status():
+    ollama_path = shutil.which("ollama")
+    if not ollama_path:
+        return {
+            "installed": False,
+            "usable": False,
+            "path": None,
+            "reason": "ollama is not on PATH",
+        }
+
     try:
-        subprocess.check_output(["ollama", "list"], text=True, stderr=subprocess.DEVNULL)
-        return True
-    except subprocess.CalledProcessError:
-        return False
+        subprocess.check_output(["ollama", "list"], text=True, stderr=subprocess.STDOUT, timeout=15)
+        return {
+            "installed": True,
+            "usable": True,
+            "path": ollama_path,
+            "reason": "ok",
+        }
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.output or "").strip()
+        return {
+            "installed": True,
+            "usable": False,
+            "path": ollama_path,
+            "reason": detail or "ollama command failed",
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "installed": True,
+            "usable": False,
+            "path": ollama_path,
+            "reason": "ollama list timed out",
+        }
 
 
 def pick_small_local_model():
@@ -164,12 +189,13 @@ def main():
     gpus = detect_gpu()
     cpu_ops = cpu_benchmark()
     mem_bw = memory_benchmark()
-    has_ollama = ollama_available()
-    ollama_bench = run_ollama_microbenchmark() if has_ollama else {
+    ollama_status = get_ollama_status()
+    has_ollama = ollama_status["installed"]
+    ollama_bench = run_ollama_microbenchmark() if ollama_status["usable"] else {
         "ran": False,
         "model": None,
         "tokens_per_sec": 0.0,
-        "reason": "Ollama command not available",
+        "reason": ollama_status["reason"],
     }
     tokens = estimate_tokens_per_year(
         cpu,
@@ -198,7 +224,9 @@ def main():
     for k, v in memory.items():
         print(f"{k}: {v}")
     print(f"bandwidth_mb_per_sec: {mem_bw:.2f}")
-    print(f"\nOllama available: {has_ollama}")
+    print(f"\nOllama installed: {ollama_status['installed']}")
+    print(f"Ollama usable in current runtime: {ollama_status['usable']}")
+    print(f"Ollama path: {ollama_status['path']}")
     print(f"Ollama benchmark ran: {ollama_bench['ran']}")
     print(f"Ollama model: {ollama_bench['model']}")
     print(f"Ollama tokens_per_sec: {ollama_bench['tokens_per_sec']:.2f}")
