@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #!/usr/bin/env python3
 
 import platform
@@ -93,7 +92,55 @@ def ollama_available():
         return False
 
 
-def estimate_tokens_per_year(cpu, memory, gpus, cpu_ops, mem_mb_s, has_ollama):
+def pick_small_local_model():
+    if not shutil.which("ollama"):
+        return None
+    try:
+        output = subprocess.check_output(["ollama", "list"], text=True, stderr=subprocess.DEVNULL).strip()
+    except subprocess.CalledProcessError:
+        return None
+
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    if len(lines) <= 1:
+        return None
+
+    names = [line.split()[0] for line in lines[1:]]
+    preferred_prefixes = ("tinyllama", "qwen2:0.5b", "gemma:2b", "phi3:mini")
+    for prefix in preferred_prefixes:
+        for model_name in names:
+            if model_name.lower().startswith(prefix):
+                return model_name
+    return names[0] if names else None
+
+
+def run_ollama_microbenchmark():
+    model = pick_small_local_model()
+    if not model:
+        return {"ran": False, "model": None, "tokens_per_sec": 0.0, "reason": "No local Ollama model found"}
+
+    prompt = "Respond with one short sentence about Ubuntu performance testing."
+    start = time.perf_counter()
+    try:
+        output = subprocess.check_output(
+            ["ollama", "run", model, prompt],
+            text=True,
+            stderr=subprocess.DEVNULL,
+            timeout=60,
+        ).strip()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return {"ran": False, "model": model, "tokens_per_sec": 0.0, "reason": "Model run failed or timed out"}
+
+    elapsed = max(time.perf_counter() - start, 0.001)
+    estimated_tokens = max(int(len(output.split()) * 1.3), 1)
+    return {
+        "ran": True,
+        "model": model,
+        "tokens_per_sec": estimated_tokens / elapsed,
+        "reason": "ok",
+    }
+
+
+def estimate_tokens_per_year(cpu, memory, gpus, cpu_ops, mem_mb_s, has_ollama, ollama_tps=0.0):
     gpu_mem = sum(g["memory_gb"] for g in gpus)
     base = (
         cpu["logical_cores"] * 60
@@ -104,6 +151,8 @@ def estimate_tokens_per_year(cpu, memory, gpus, cpu_ops, mem_mb_s, has_ollama):
     )
     if has_ollama:
         base *= 1.1
+    if ollama_tps > 0:
+        base += ollama_tps * 6
     return int(max(base, 1) * 35_000)
 
 
@@ -116,7 +165,21 @@ def main():
     cpu_ops = cpu_benchmark()
     mem_bw = memory_benchmark()
     has_ollama = ollama_available()
-    tokens = estimate_tokens_per_year(cpu, memory, gpus, cpu_ops, mem_bw, has_ollama)
+    ollama_bench = run_ollama_microbenchmark() if has_ollama else {
+        "ran": False,
+        "model": None,
+        "tokens_per_sec": 0.0,
+        "reason": "Ollama command not available",
+    }
+    tokens = estimate_tokens_per_year(
+        cpu,
+        memory,
+        gpus,
+        cpu_ops,
+        mem_bw,
+        has_ollama,
+        ollama_bench["tokens_per_sec"],
+    )
 
     print("Specification (test2.txt):")
     print(spec)
@@ -136,6 +199,11 @@ def main():
         print(f"{k}: {v}")
     print(f"bandwidth_mb_per_sec: {mem_bw:.2f}")
     print(f"\nOllama available: {has_ollama}")
+    print(f"Ollama benchmark ran: {ollama_bench['ran']}")
+    print(f"Ollama model: {ollama_bench['model']}")
+    print(f"Ollama tokens_per_sec: {ollama_bench['tokens_per_sec']:.2f}")
+    if not ollama_bench["ran"]:
+        print(f"Ollama benchmark note: {ollama_bench['reason']}")
     print(f"Estimated LLM tokens per year: {tokens:,}")
 
 
