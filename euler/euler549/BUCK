@@ -1,0 +1,9 @@
+cxx_binary(
+  name="549",
+  srcs=[
+    "549.cpp"
+  ],
+  deps=[
+    "//lib:primes",
+  ],
+)

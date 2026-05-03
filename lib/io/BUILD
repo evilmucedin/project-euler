@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
   name="binarySerialization",
   hdrs=[
@@ -9,7 +11,8 @@ cc_library(
   deps=[
     ":stream",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -26,7 +29,8 @@ cc_library(
     "//lib:noncopyable",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  features = ["-lto"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 )
 
 # cxx_library(
@@ -73,9 +77,10 @@ cc_library(
   deps=[
     "//lib:header",
     ":stream",
-    "//zlib2:zlib",
+    "//zlib:zlib2",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -93,7 +98,8 @@ cc_library(
     "//lib:string",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  features = ["-lto"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
 )
 
 cc_library(
@@ -110,7 +116,8 @@ cc_library(
     "//lib:string",
     ":stream",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -124,7 +131,9 @@ cc_library(
   deps=[
     ":fileIo",
   ],
-    visibility = ["//visibility:public"],
+  features = ["-lto"],
+  visibility = ["//visibility:public"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -135,7 +144,8 @@ cc_library(
   deps=[
     "//lib/io:fileIo",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )
 
 cc_library(
@@ -150,5 +160,7 @@ cc_library(
     ":fileIo",
     "//lib:exception",
   ],
-    visibility = ["//visibility:public"],
+  features = ["-lto"],
+  visibility = ["//visibility:public"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 )

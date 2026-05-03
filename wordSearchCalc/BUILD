@@ -1,10 +1,12 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
 # load("@bazel_tools//src/conditions:os_conditions.bzl", "OS_CONSTRAINTS")
 # load("@bazel_tools//src/conditions:windows.bzl", "windows_condition")
 
 cc_binary(
-    name="findStrean",
+    name="findStream",
     srcs=[
-        "findStrean.cpp",
+        "findStream.cpp",
     ],
     deps = ["@bazel_tools//tools/cpp/runfiles"],
     data = [
@@ -14,9 +16,9 @@ cc_binary(
 )
 
 cc_binary(
-    name="findStreanWin",
+    name="findStreamWin",
     srcs=[
-        "findStrean.cpp",
+        "findStream.cpp",
     ],
 ###    deps = ["@bazel_tools//tools/cpp/runfiles"],
     data = [

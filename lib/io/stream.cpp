@@ -107,6 +107,7 @@ void StdOutputStream::flush() {}
 FileInputStream::FileInputStream(const string& filename) : filename_(filename), fd_(-1), eof_(false) {
     fd_ = open(filename_.c_str(), O_RDONLY);
     if (-1 == fd_) {
+        cerr << "failed to open file '" << filename_ << "' '" << strError() << "'" << endl;
         THROW("failed to open file '" << filename_ << "' '" << strError() << "'");
     }
 }
@@ -155,7 +156,7 @@ FileOutputStream::~FileOutputStream() {
 void FileOutputStream::write(const char* buffer, size_t toWrite) {
     if (toWrite) {
         const auto written = ::write(fd_, buffer, toWrite);
-        if (toWrite != written) {
+        if (toWrite != (size_t)written) {
             THROW("write failed " << written << " " << toWrite << " " << errno);
         }
     }

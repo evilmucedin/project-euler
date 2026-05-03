@@ -1,4 +1,4 @@
-#include "lib/io/zstream.h"
+#include "zstream.h"
 
 #include <cassert>
 #include <cstring>

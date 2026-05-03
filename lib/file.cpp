@@ -39,7 +39,7 @@ WChar File::getUTF8C() {
     size_t len;
     unsigned int cp;
     unsigned int min;
-    unsigned int buf = getC();
+    int buf = getC();
     if (buf == EOF) {
         return WEOF;
     }

@@ -1,0 +1,16 @@
+{
+  "application": {
+    "name": "Dynamic Config App",
+    "version": "1.0.0",
+    "is_debug_mode": true
+  },
+  "game_settings": {
+    "max_players": 1,
+    "gravity_multiplier": 9.8,
+    "difficulty_level": "normal"
+  },
+  "network": {
+    "server_port": 8080,
+    "max_connections": 100
+  }
+}

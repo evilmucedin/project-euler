@@ -1,0 +1,11 @@
+cxx_binary(
+  name="581",
+  srcs=[
+    "581.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:primes",
+    "//glog:glog",
+  ],
+)

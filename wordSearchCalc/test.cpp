@@ -6,6 +6,6 @@
 using namespace std;
 
 int main() {
-	cout << "Den created it." << endl;
+	cout << "> Den created it." << endl;
 	return 0;
 }

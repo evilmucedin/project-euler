@@ -1,0 +1,221 @@
+Here is a complete solution for a C++ application that dynamically loads configuration from a JSON file and detects changes to update its behavior at runtime (hot-reloading).
+
+### Prerequisites
+
+1.  **C++ Compiler:** Requires **C++17** or higher (for `std::filesystem`).
+2.  **JSON Library:** We will use the industry-standard header-only library [`nlohmann/json`](https://github.com/nlohmann/json).
+    *   *Installation:* You do not need to install it via package manager. Simply download the single header file `json.hpp` from their GitHub releases and place it in your project folder.
+
+### 1. Example JSON File (`config.json`)
+
+Create a file named `config.json` in the same directory as your executable. This file acts as the configuration source.
+
+```json
+{
+  "application": {
+    "name": "Dynamic Config App",
+    "version": "1.0.0",
+    "is_debug_mode": true
+  },
+  "game_settings": {
+    "max_players": 4,
+    "gravity_multiplier": 9.8,
+    "difficulty_level": "normal"
+  },
+  "network": {
+    "server_port": 8080,
+    "max_connections": 100
+  }
+}
+```
+
+### 2. The C++ Application (`main.cpp`)
+
+This application creates a polling loop. It checks the file's modification timestamp every second. If the timestamp changes (meaning you edited the file), it reloads the JSON and updates the internal state immediately.
+
+```cpp
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <chrono>
+#include <thread>
+#include <filesystem>
+#include <exception>
+#include <iomanip>
+
+// Include nlohmann/json (Ensure json.hpp is in your include path)
+#include "json.hpp" 
+
+namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+// ---------------------------------------------------------
+// 1. Data Structure to hold our configuration
+// ---------------------------------------------------------
+struct AppConfig {
+    std::string app_name;
+    std::string difficulty;
+    int max_players;
+    double gravity;
+    bool debug_mode;
+    int server_port;
+
+    // Default constructor with fallback values
+    AppConfig() : app_name("Unknown"), difficulty("easy"), 
+                  max_players(1), gravity(1.0), debug_mode(false), 
+                  server_port(0) {}
+};
+
+// ---------------------------------------------------------
+// 2. Function to parse JSON and update Config
+// ---------------------------------------------------------
+bool loadConfig(const fs::path& path, AppConfig& config) {
+    try {
+        std::ifstream fileStream(path);
+        if (!fileStream.is_open()) {
+            std::cerr << "Error: Could not open config file." << std::endl;
+            return false;
+        }
+
+        json j = json::parse(fileStream);
+
+        // Safe parsing with defaults if keys are missing
+        config.app_name = j["application"]["name"].get<std::string>();
+        config.max_players = j["game_settings"]["max_players"].get<int>();
+        config.gravity = j["game_settings"]["gravity_multiplier"].get<double>();
+        config.debug_mode = j["application"]["is_debug_mode"].get<bool>();
+        config.difficulty = j["game_settings"]["difficulty_level"].get<std::string>();
+        config.server_port = j["network"]["server_port"].get<int>();
+
+        return true;
+    }
+    catch (const json::exception& e) {
+        std::cerr << "JSON Parsing Error: " << e.what() << std::endl;
+        return false;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "General Error: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+// ---------------------------------------------------------
+// 3. Function to simulate application behavior
+// ---------------------------------------------------------
+void runBehavior(const AppConfig& config) {
+    std::cout << "------------------------------------------------" << std::endl;
+    std::cout << ">>> BEHAVIOR SIMULATION <<<" << std::endl;
+    std::cout << "Current App: " << config.app_name << std::endl;
+    
+    // Behavior depends on config values
+    double calculation = config.max_players * config.gravity;
+    
+    if (config.debug_mode) {
+        std::cout << "[DEBUG] Calculation raw value: " << std::fixed << std::setprecision(2) << calculation << std::endl;
+        std::cout << "[DEBUG] Server Port is set to: " << config.server_port << std::endl;
+    } 
+    else {
+        // In production mode, we might hide sensitive info
+        std::cout << "Status: Running safely." << std::endl;
+    }
+
+    std::cout << "Active Players Limit: " << config.max_players << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
+}
+
+// ---------------------------------------------------------
+// 4. Main Entry Point
+// ---------------------------------------------------------
+int main() {
+    const fs::path CONFIG_PATH = "config.json";
+    
+    // Check if file exists initially
+    if (!fs::exists(CONFIG_PATH)) {
+        std::cerr << "Configuration file 'config.json' not found! Please create it." << std::endl;
+        return 1;
+    }
+
+    AppConfig config;
+    fs::last_write_time last_modified_time = fs::last_write_time(CONFIG_PATH);
+    
+    // Initial Load
+    if (!loadConfig(CONFIG_PATH, config)) {
+        std::cerr << "Failed to load initial config." << std::endl;
+        return 1;
+    }
+
+    std::cout << "=== App Started. Watching '" << CONFIG_PATH.string() << "' ===" << std::endl;
+    std::cout << "Edit the JSON file and save to see behavior change live." << std::endl;
+    std::cout << "Press Ctrl+C to exit." << std::endl;
+    std::cout << std::endl;
+
+    // Show initial state
+    runBehavior(config);
+
+    // Infinite Loop to monitor for changes
+    while (true) {
+        try {
+            // Get current modification time
+            fs::last_write_time current_modified_time = fs::last_write_time(CONFIG_PATH);
+
+            // Check if file was modified
+            if (current_modified_time != last_modified_time) {
+                std::cout << "\n[NOTIFICATION] Config file updated detected! Reloading..." << std::endl;
+                
+                // Update the stored timestamp
+                last_modified_time = current_modified_time;
+
+                // Reload config
+                if (loadConfig(CONFIG_PATH, config)) {
+                    // Re-run behavior to demonstrate change
+                    runBehavior(config);
+                } else {
+                    std::cerr << "[ERROR] Failed to reload config. Check syntax." << std::endl;
+                }
+            }
+
+        } catch (const std::system_error& e) {
+            // Ignore errors if file is temporarily locked or deleted during edit
+            std::cerr << "[Warning] Could not read file status: " << e.what() << std::endl;
+        }
+
+        // Sleep to avoid high CPU usage
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+
+    return 0;
+}
+```
+
+### 3. How to Compile and Run
+
+1.  **Get the JSON header:**
+    Download `json.hpp` from [https://github.com/nlohmann/json/releases](https://github.com/nlohmann/json/releases). Place it in the same folder as `main.cpp` and `config.json`.
+
+2.  **Compile:**
+    Use `g++` (GCC) with C++17 standard support.
+    ```bash
+    g++ -std=c++17 main.cpp -o config_app
+    ```
+    *(Note: On Windows using MSVC, use `cl /EHsc /std:c++17 main.cpp`)*
+
+3.  **Run:**
+    ```bash
+    ./config_app
+    ```
+
+### 4. How to Test the Behavior Change
+
+1.  Keep the terminal running. You will see the initial simulation output.
+2.  Open `config.json` in a text editor.
+3.  Change `is_debug_mode` to `false`.
+4.  Change `max_players` to `10`.
+5.  **Save** the file.
+6.  **Observe the terminal:** The application detects the file save, prints `[NOTIFICATION] Config file updated detected!`, reloads the values, and the simulation output changes immediately (e.g., the Debug lines will disappear).
+
+### Key Implementation Details
+
+1.  **`nlohmann::json`**: We used this library because it maps JSON structures directly to C++ types (`get<int>()`, `get<string>()`). It handles all the parsing complexity.
+2.  **`std::filesystem`**: This C++17 standard library allows us to check `fs::last_write_time`. This is the core logic for "watching" the file.
+3.  **Error Handling**: We wrapped the parsing in a `try-catch` block. If the JSON is invalid (e.g., missing a comma), the app logs an error but continues running (preventing a crash).
+4.  **Thread Safety Note**: In this single-threaded demo, reloading happens while the main loop pauses. In a production multi-threaded app, you would need a `std::mutex` to lock the `config` object while writing to it and while reading it.

@@ -1,6 +1,0 @@
-cxx_binary(
-    name="504",
-    srcs=[
-        "504.cpp",
-    ],
-)

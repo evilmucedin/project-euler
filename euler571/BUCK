@@ -1,9 +1,0 @@
-cxx_binary(
-  name="571",
-  srcs=[
-    "571.cpp"
-  ],
-  deps=[
-    "//lib:header",
-  ],
-)

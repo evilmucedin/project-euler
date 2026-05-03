@@ -1,0 +1,12 @@
+cxx_binary(
+  name="615",
+  srcs=[
+    "615.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//lib:primes",
+    "//glog:glog",
+  ],
+)

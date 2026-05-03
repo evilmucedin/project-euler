@@ -6,6 +6,7 @@
 #include <complex>
 #include <fstream>
 #include <iostream>
+#include <ostream>
 #include <map>
 #include <set>
 #include <memory>

@@ -3,3 +3,7 @@ common/common.pyc
 perf.data
 perf.data.old
 .buckconfig.local
+glog2/bazel-bin/
+glog2/bazel-glog2/
+glog2/bazel-out/
+glog2/bazel-testlogs/

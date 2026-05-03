@@ -1,9 +1,0 @@
-cxx_binary(
-  name="443",
-  srcs=[
-    "443.cpp"
-  ],
-  deps=[
-    "//lib:primes",
-  ],
-)

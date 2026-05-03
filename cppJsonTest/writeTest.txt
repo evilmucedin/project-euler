@@ -1,0 +1,1 @@
+Implement a new C++ application with focus on using a JSON file. The app thould depend on the JSON file on disk and change some behaviour after updates of the JSON file. Print and example of the JSON file too.

@@ -1,0 +1,11 @@
+cxx_binary(
+  name="435",
+  srcs=[
+    "435.cpp"
+  ],
+  deps=[
+    "//lib:cycles",
+    "//lib:primes",
+    "//lib:threads",
+  ],
+)

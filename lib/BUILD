@@ -1,3 +1,6 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 # load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
@@ -32,6 +35,7 @@ cc_library(
 cc_library(
     name = "header",
     hdrs = ["header.h"],
+    srcs = ["header.cpp"],
     visibility = ["//visibility:public"],
     features = ["-lto"],
 )
@@ -47,7 +51,7 @@ cc_library(
     deps=[
         ":header",
         "//gflags:gflags2",
-        "//glog:glog2",
+        "//glog2:glog",
     ],
     visibility=[
 	    "//visibility:public",
@@ -71,8 +75,9 @@ cc_library(
     visibility=[
         "//visibility:public",
     ],
+    alwayslink=1,
     features = ["-lto"],
-    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 #    alwayslink = 1,
 )
 
@@ -91,7 +96,7 @@ cc_library(
     visibility=[
 	    "//visibility:public",
     ],
-    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
     features = ["-lto"],
 #    alwayslink = 1,
 )
@@ -104,7 +109,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [":header"],
 #    alwayslink = 1,
-    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
     features = ["-lto"],
 )
 
@@ -115,7 +120,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [":header"],
 #    alwayslink = 1,
-    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
     features = ["-lto"],
 )
 
@@ -125,7 +130,7 @@ cc_library(
     srcs = ["timer.cpp"],
     visibility = ["//visibility:public"],
     deps = [":header"],
-    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
     features = ["-lto"],
 #    alwayslink = 1,
 )
@@ -142,7 +147,7 @@ cc_library(
         ":header",
     ],
     visibility = ["//visibility:public"],
-    copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+    # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
     features = ["-lto"],
 #    alwayslink = 1,
 )
@@ -158,5 +163,15 @@ cc_library(
     visibility = ["//visibility:public"],
 #    alwayslink = 1,
     features = ["-lto"],
+)
+
+cc_library(
+    name="yfinance2",
+    deps=[
+        "//lib/yfinance:yfinance2",
+    ],
+    visibility = ["//visibility:public"],
+    features = ["-lto"],
+    copts = ["-std=c++23"],
 )
 

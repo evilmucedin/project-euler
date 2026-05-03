@@ -1,3 +1,6 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 cc_library(
     name="gflags2",
 
@@ -17,7 +20,8 @@ cc_library(
     "gflags_reporting.cc",
   ],
   visibility = ["//visibility:public"],
-  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0"],
+  # copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
+  features = ["-lto"],
 )
 
 #cc_binary(

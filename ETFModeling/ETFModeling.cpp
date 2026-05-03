@@ -13,14 +13,16 @@
 
 DEFINE_string(first_date, "", "First modeling date");
 DEFINE_bool(additive_sortino, true, "subtract risk");
-DEFINE_int32(iterations, 10, "nuimber of iterations");
+DEFINE_int32(iterations, 10, "number of iterations");
 DEFINE_string(mode, "optimize", "mode (optimize, optimize1)");
+DEFINE_bool(portfolio_print, false, "portfolio print");
 DEFINE_string(input, "portfolio input", "");
 DEFINE_string(tickers, "tickers", "");
 DEFINE_bool(stocks, false, "add stocks");
 DEFINE_double(risk_weight, 0.05, "risk weight");
 DEFINE_bool(decay, true, "decay");
 DEFINE_double(concentration_risk_weight, 0.00, "concentration risk weight");
+DEFINE_string(dataFolder, "", "Directory for input data");
 
 static const StringVector etfs = {
     "FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "IWM",  "VUG",  "SPY",  "IVV",   "VOO",  "QQQ",
@@ -30,11 +32,14 @@ static const StringVector etfs = {
     "OIH",   "XME",   "PFIX",  "VXX",   "EWZ",   "ILF",   "SCHE", "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG",
     "FPRO",  "FBCV",  "FMIL",  "BITO",  "BITW",  "VBB",   "SFY",  "IJR",  "SCHD", "FTLS",  "FDHT", "FRNW",
     "FDRV",  "FCLD",  "FDIG",  "ARKK",  "ITA",   "PPA",   "XAR",  "USO",  "IEO",  "SPGP",  "IWY",  "SPYG",
+    "FELG",  "FTEC",  "FDVV", "DBO", "AIQ", "VDE",
+
 };
 
 static const StringVector stocks = {
-    "GOOG", "MSFT", "T",  "NCLH", "AMZN", "META", "TSLA", "GME",  "AAPL",  "NVDA", "TSM",  "UNH", "JNJ", "V",
-    "WMT",  "JPM",  "PG", "XOM",  "HD",   "CVX",  "PFE",  "COIN", "VWAGY", "LMT", "KHC", "NKE", "SBUX",
+    "GOOG", "GOOGL", "MSFT", "T",  "NCLH", "AMZN", "META", "AVGO", "AMD", "TSLA", "GME",  "AAPL",  "NVDA", "TSM",  "UNH", "JNJ", "V",
+    "WMT",  "JPM",  "PG", "XOM",  "HD",   "CVX",  "PFE",  "COIN", "VWAGY", "LMT", "KHC", "NKE", "SBUX", "SHOP",
+    "NBIS", "PLTR", "FLOC", "COP",
 };
 
 // static const StringVector tickers = etfs;
@@ -77,7 +82,7 @@ PriceData loadData(const StringVector& tickers) {
         Timer tFileRead("Read files");
         for (const auto& ticker : tickers) {
             DLOG(INFO) << "Ticker: " << ticker;
-            const string fileName = "marketData/" + ticker + ".csv";
+            const string fileName = FLAGS_dataFolder + "marketData/" + ticker + ".csv";
             auto df = DataFrame::loadFromCsv(fileName);
             auto date = df->getColumn("Date", ticker, fileName);
             auto price = df->getColumn("Adj Close", ticker, fileName);
@@ -116,7 +121,7 @@ PriceData loadData(const StringVector& tickers) {
         col.resize(result.tickers_.size());
     }
     for (auto& col : result.dividends_) {
-        col.resize(result.dividends_.size());
+        col.resize(result.tickers_.size());
     }
     size_t iDate = 0;
     for (const auto& date : dates) {
@@ -156,7 +161,7 @@ PriceData loadData(const StringVector& tickers) {
 using Portfolio = DoubleVector;
 
 void normalizeNavInplace(Portfolio& p) {
-    double sm = sum(p);
+    const double sm = sum(p);
     ASSERTNEQ(sm, 0);
     for (auto& x : p) {
         x /= sm;
@@ -184,7 +189,7 @@ struct ModelResult {
     void calcReturns() {
         dailyReturns.clear();
         dailyReturnsStat.clear();
-        for (int i = 1; i < dailyPrices.size(); ++i) {
+        for (unsigned int i = 1; i < dailyPrices.size(); ++i) {
             ASSERTNE(dailyPrices[i - 1], 0);
             double dailyReturn = log(dailyPrices[i] / dailyPrices[i - 1]);
             dailyReturns.emplace_back(dailyReturn);
@@ -207,6 +212,8 @@ ModelResult model(const PriceData& pd, const Portfolio& originalNav, bool useCon
     for (size_t i = 0; i < pd.tickers_.size(); ++i) {
         result.originalShares[i] = result.originalNav[i] / pd.prices_.front()[i];
         ALWAYS_ASSERT(isfinite(result.originalShares[i]));
+        if (result.originalShares[i] < 0)
+            cerr << "Err empty: " << i << "\t" << result.originalShares[i] << "\t" << result.originalNav[i] << " '" << pd.tickers_[i] <<  "'"  <<  endl;
         ALWAYS_ASSERT(result.originalShares[i] >= 0);
     }
     const double originalNavSum = sum(originalNav);
@@ -310,8 +317,8 @@ Portfolio randomPortfolio(const StringVector& tickers) {
 
 Portfolio loadPortfolio(const PriceData& pd, const string& filename) {
     auto df = DataFrame::loadFromCsv(filename);
-    auto colSymbol = df->getColumn("Symbol", filename, filename);
-    auto colValue = df->getColumn("Current Value", filename, filename);
+    const auto colSymbol = df->getColumn("Symbol", filename, filename);
+    const auto colValue = df->getColumn("Current Value", filename, filename);
     unordered_map<string, double> symbol2value;
     for (size_t i = 0; i < colSymbol->size(); ++i) {
         symbol2value.emplace(colSymbol->as(i), colValue->as<double>(i));
@@ -500,8 +507,9 @@ void optimize1() {
             stockF = resStock.f;
         }
 
-        cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
-             << endl;
+        if (!FLAGS_portfolio_print || p0[r.second] > 0)
+            cout << r.first << "\t" << ticker << "\t" << p0[r.second] << "\t" << has(stocks, ticker) << "\t" << stockF
+                << endl;
     }
     out(bestRes);
 }
@@ -513,8 +521,8 @@ void testStrategy() {
         ModelResult res;
         ModelResult resMinMax;
 
-        vector<int> mins;
-        vector<int> maxs;
+        vector<size_t> mins;
+        vector<size_t> maxs;
         for (size_t j = 1; j + 1 < pd.prices_.size(); ++j) {
             if (pd.prices_[j][i] < pd.prices_[j - 1][i] && pd.prices_[j][i] < pd.prices_[j + 1][i]) {
                 mins.emplace_back(j);
@@ -529,8 +537,8 @@ void testStrategy() {
 
         double cash = pd.prices_[0][i];
         double stock = 0;
-        int iMin = 0;
-        int iMax = 0;
+        long unsigned int iMin = 0;
+        long unsigned int iMax = 0;
         for (size_t j = 0; j < pd.prices_.size(); ++j) {
             res.dailyPrices.emplace_back(pd.prices_[j][i]);
 
@@ -556,6 +564,16 @@ void testStrategy() {
 
 int main(int argc, char* argv[]) {
     standardInit(argc, argv);
+
+    {
+        string sArgs;
+        for (int i = 0; i < argc; ++i) {
+            if (sArgs.size() > 0)
+                sArgs += " ";
+            sArgs += argv[i];
+        }
+        cout << "Args: " << sArgs << endl;
+    }
 
     if (FLAGS_mode == "optimize") {
         optimize();

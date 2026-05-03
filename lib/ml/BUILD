@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 # package(default_visibility = ["//lib/ml"])
@@ -19,6 +21,7 @@ cc_library(
     "//lib:header",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -33,6 +36,7 @@ cc_library(
     "//lib:header",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -50,7 +54,8 @@ cc_library(
     "//lib:string",
     ":regressor",
   ],
-    visibility = ["//visibility:public"],
+  visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -66,6 +71,7 @@ cc_library(
     ":regressor",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
 )
 
 cc_library(
@@ -84,5 +90,7 @@ cc_library(
     "//lib:exception",
   ],
   visibility = ["//visibility:public"],
+  features = ["-lto"],
+  alwayslink=1,
 )
 

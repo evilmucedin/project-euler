@@ -1,10 +1,12 @@
-#include "lib/io/csv.h"
+// #include "lib/io/csv.h"
+
+#include "csv.h"
 
 #include <cassert>
 
 #include "lib/exception.h"
 #include "lib/string.h"
-#include "lib/io/stream.h"
+#include "stream.h"
 
 CsvParser::CsvParser(shared_ptr<InputStream> stream, char delim, char quote)
     : stream_(std::move(stream)), delim_(delim), quote_(quote), iLine_(0) {}
@@ -20,6 +22,8 @@ bool CsvParser::readHeader() {
     header_ = line_;
     fieldToIndex_.clear();
     for (size_t i = 0; i < header_.size(); ++i) {
+        if (fieldToIndex_.count(header_[i]) != 0)
+            cerr << "Error: " << filename_ << " " << header_[i] << endl;
         ASSERTEQ(fieldToIndex_.count(header_[i]), 0);
         fieldToIndex_.emplace(header_[i], i);
     }
@@ -119,7 +123,7 @@ void CsvParser::unquote(string& s) {
 
 size_t CsvParser::lineIndex() const { return iLine_; }
 
-std::string CsvParser::line() const { return sLine_; }
+const std::string& CsvParser::line() const { return sLine_; }
 
 bool CsvParser::skipLines(size_t nLines) {
     for (size_t iLine = 0; iLine < nLines; ++iLine) {
