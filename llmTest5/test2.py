@@ -191,6 +191,29 @@ def estimate_tokens_per_year(cpu, memory, gpus, cpu_ops, mem_mb_s, has_ollama, o
     return int(max(base, 1) * 35_000)
 
 
+def print_quick_view(system, cpu, gpus, memory, cpu_ops, mem_bw, ollama_status, ollama_bench, bench_timeout, tokens):
+    # Compact labels (max 4 chars) for fast terminal reading.
+    print("\nQuick view:")
+    print(f"OS  : {system['os']}")
+    print(f"PY  : {system['python']}")
+    print(f"PCOR: {cpu['physical_cores']}")
+    print(f"LCOR: {cpu['logical_cores']}")
+    print(f"CFRQ: {cpu['freq_mhz']}")
+    print(f"CUSE: {cpu['usage_percent']}")
+    print(f"COPS: {int(cpu_ops):,}")
+    print(f"GRAM: {sum(g['memory_gb'] for g in gpus):.2f}")
+    print(f"MTOT: {memory['total_gb']}")
+    print(f"MAVL: {memory['available_gb']}")
+    print(f"MUSE: {memory['used_percent']}")
+    print(f"MBWS: {mem_bw:.2f}")
+    print(f"OINS: {ollama_status['installed']}")
+    print(f"OUSE: {ollama_status['usable']}")
+    print(f"ORAN: {ollama_bench['ran']}")
+    print(f"OTPS: {ollama_bench['tokens_per_sec']:.2f}")
+    print(f"OTMO: {bench_timeout}")
+    print(f"TYR : {tokens:,}")
+
+
 def main():
     spec = read_spec("test2.txt")
     system = get_system_info()
@@ -245,6 +268,7 @@ def main():
     if not ollama_bench["ran"]:
         print(f"Ollama benchmark note: {ollama_bench['reason']}")
     print(f"Estimated LLM tokens per year: {tokens:,}")
+    print_quick_view(system, cpu, gpus, memory, cpu_ops, mem_bw, ollama_status, ollama_bench, bench_timeout, tokens)
 
 
 if __name__ == "__main__":
