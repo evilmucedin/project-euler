@@ -131,7 +131,7 @@ def pick_small_local_model():
         return None
 
     names = [line.split()[0] for line in lines[1:]]
-    preferred_prefixes = ("tinyllama", "qwen2:0.5b", "gemma:2b", "phi3:mini")
+    preferred_prefixes = ("tinyllama", "qwen2.5-coder:0.5b", "gemma:2b", "phi3:mini")
     for prefix in preferred_prefixes:
         for model_name in names:
             if model_name.lower().startswith(prefix):
@@ -226,10 +226,10 @@ def main():
     ollama_status = get_ollama_status()
     has_ollama = ollama_status["installed"]
     bench_timeout = int(os.getenv("OLLAMA_BENCH_TIMEOUT", "5800"))
-    fast_timeout = max(1, bench_timeout // 50)
+    fast_timeout = max(1, bench_timeout // 10)
     fast_prompt = (
-        "Write a short 1-2 sentence summary of Ubuntu laptop performance testing for "
-        "CPU, GPU, RAM, and LLM workloads. Keep it concise."
+        "Write a short 1 sentence summary of Ubuntu laptop performance testing for "
+        "CPU.. Keep it concise."
     )
 
     fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, prompt=fast_prompt) if ollama_status["usable"] else {
