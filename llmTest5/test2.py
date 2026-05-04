@@ -228,8 +228,8 @@ def main():
     bench_timeout = int(os.getenv("OLLAMA_BENCH_TIMEOUT", "5800"))
     fast_timeout = max(1, bench_timeout // 10)
     fast_prompt = (
-        "Write a short 1 sentence summary of Ubuntu laptop performance testing for "
-        "CPU.. Keep it concise."
+        "Write a short 1-2 sentence summary of Ubuntu laptop performance testing for "
+        "CPU and GPU.. Keep it concise."
     )
 
     fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, prompt=fast_prompt) if ollama_status["usable"] else {
