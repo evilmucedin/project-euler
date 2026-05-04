@@ -139,7 +139,7 @@ def pick_small_local_model():
     return names[0] if names else None
 
 
-def run_ollama_microbenchmark(timeout_seconds=1800):
+def run_ollama_microbenchmark(timeout_seconds=5800):
     model = pick_small_local_model()
     if not model:
         return {"ran": False, "model": None, "tokens_per_sec": 0.0, "reason": "No local Ollama model found"}
@@ -224,7 +224,7 @@ def main():
     mem_bw = memory_benchmark()
     ollama_status = get_ollama_status()
     has_ollama = ollama_status["installed"]
-    bench_timeout = int(os.getenv("OLLAMA_BENCH_TIMEOUT", "1800"))
+    bench_timeout = int(os.getenv("OLLAMA_BENCH_TIMEOUT", "5800"))
     ollama_bench = run_ollama_microbenchmark(timeout_seconds=bench_timeout) if ollama_status["usable"] else {
         "ran": False,
         "model": None,
