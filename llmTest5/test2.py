@@ -139,7 +139,7 @@ def pick_small_local_model():
     return names[0] if names else None
 
 
-def run_ollama_microbenchmark(timeout_seconds=5800, prompt=None):
+def run_ollama_microbenchmark(timeout_seconds=5800, prompt=None, runs=10):
     model = pick_small_local_model()
     if not model:
         return {"ran": False, "model": None, "tokens_per_sec": 0.0, "reason": "No local Ollama model found"}
@@ -150,29 +150,42 @@ def run_ollama_microbenchmark(timeout_seconds=5800, prompt=None):
             "Write 120-160 words about practical Ubuntu laptop performance testing for "
             "CPU, GPU, RAM, and LLM workloads. Keep it factual."
         )
-    start = time.perf_counter()
-    try:
-        output = subprocess.check_output(
-            ["ollama", "run", model, prompt],
-            text=True,
-            stderr=subprocess.DEVNULL,
-            timeout=timeout_seconds,
-        ).strip()
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+
+    total_tokens_per_sec = 0.0
+    success_count = 0
+    last_reason = "ok"
+
+    for i in range(runs):
+        start = time.perf_counter()
+        try:
+            output = subprocess.check_output(
+                ["ollama", "run", model, prompt],
+                text=True,
+                stderr=subprocess.DEVNULL,
+                timeout=timeout_seconds,
+            ).strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            last_reason = f"Run {i + 1}/{runs} failed or timed out after {timeout_seconds}s"
+            continue
+
+        elapsed = max(time.perf_counter() - start, 0.001)
+        estimated_tokens = max(int(len(output.split()) * 1.3), 1)
+        total_tokens_per_sec += estimated_tokens / elapsed
+        success_count += 1
+
+    if success_count == 0:
         return {
             "ran": False,
             "model": model,
             "tokens_per_sec": 0.0,
-            "reason": f"Model run failed or timed out after {timeout_seconds}s",
+            "reason": last_reason,
         }
 
-    elapsed = max(time.perf_counter() - start, 0.001)
-    estimated_tokens = max(int(len(output.split()) * 1.3), 1)
     return {
         "ran": True,
         "model": model,
-        "tokens_per_sec": estimated_tokens / elapsed,
-        "reason": "ok",
+        "tokens_per_sec": total_tokens_per_sec / success_count,
+        "reason": "ok" if success_count == runs else f"ok ({success_count}/{runs} runs succeeded)",
     }
 
 
@@ -232,7 +245,7 @@ def main():
         "CPU and GPU.. Keep it concise."
     )
 
-    fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, prompt=fast_prompt) if ollama_status["usable"] else {
+    fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, prompt=fast_prompt, runs=10) if ollama_status["usable"] else {
         "ran": False,
         "model": None,
         "tokens_per_sec": 0.0,
@@ -245,7 +258,7 @@ def main():
     print(f"  timeout_sec: {fast_timeout}")
     print(f"  reason: {fast_ollama_bench['reason']}")
 
-    ollama_bench = run_ollama_microbenchmark(timeout_seconds=bench_timeout) if ollama_status["usable"] else {
+    ollama_bench = run_ollama_microbenchmark(timeout_seconds=bench_timeout, runs=2) if ollama_status["usable"] else {
         "ran": False,
         "model": None,
         "tokens_per_sec": 0.0,
