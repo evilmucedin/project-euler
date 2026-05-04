@@ -8,7 +8,7 @@ int main()
 {
     // static const size_t N = 15;
     // static const size_t N = 1000;
-    static const size_t N = 1000;
+    static const long long int N = 1000;
     // static const size_t N = 10000000;
     size_t count = 0;
     for (long long int a = 1; a <= N; ++a)
