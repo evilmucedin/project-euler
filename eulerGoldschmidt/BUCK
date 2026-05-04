@@ -1,0 +1,14 @@
+cxx_binary(
+  name="Goldschmidt",
+  srcs=[
+    "Goldschmidt.cpp"
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+    "//lib:matrix",
+    "//lib:random",
+    "//lib:timer",
+  ],
+)
+

@@ -1,0 +1,64 @@
+cxx_test(
+  name="zstreamTest",
+  srcs=[
+    "zstreamTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:random",
+    "//lib/io:utils",
+    "//lib/io:zstream",
+    "//glog:glog",
+  ],
+)
+
+# cxx_test(
+#   name="zstreamDeprecatedTest",
+#   srcs=[
+#     "zstreamDeprecatedTest.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#     "//lib/io:utils",
+#     "//lib/io:zstreamDeprecated",
+#     "//lib:random",
+#     "//glog:glog",
+#   ],
+# )
+# 
+cxx_test(
+  name="streamTest",
+  srcs=[
+    "streamTest.cpp",
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+    "//lib/io:stream",
+    "//lib:random",
+    "//lib:timer",
+  ],
+)
+
+cxx_test(
+  name="csvTest",
+  srcs=[
+    "csvTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io:csv",
+  ],
+)
+
+cxx_test(
+  name="binarySerializationTest",
+  srcs=[
+    "binarySerializationTest.cpp",
+  ],
+  deps=[
+    "//lib:random",
+    "//lib/io:binarySerialization",
+    "//lib/io:zstream",
+  ],
+)

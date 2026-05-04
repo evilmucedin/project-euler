@@ -1,0 +1,10 @@
+cxx_binary(
+  name="palindrome-pairs",
+  srcs=[
+    "pairs.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,19 @@
+cxx_library(
+  name="blockStorage",
+  exported_headers=[
+    "blockStorage.h",
+  ],
+  srcs=[
+    "blockStorage.cpp",
+  ],
+  deps=[
+    "//lib:exception",
+    "//lib:header",
+    "//lib/io:file",
+    "//glog:glog",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+

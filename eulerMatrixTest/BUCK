@@ -1,0 +1,16 @@
+include_defs('//armadillo/DEFS', 'armadillo_defs')
+
+cxx_binary(
+  name="MatrixTest",
+  srcs=[
+    "MatrixTest.cpp"
+  ],
+  deps=[
+    "//armadillo:armadillo",
+    "//lib:header",
+    "//lib:random",
+    "//lib:timer",
+    "//gflags:gflags",
+  ],
+  linker_flags=armadillo_defs.linker_flags,
+)

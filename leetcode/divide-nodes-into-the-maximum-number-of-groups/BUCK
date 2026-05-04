@@ -1,0 +1,11 @@
+cxx_binary(
+  name="divide-nodes-into-the-maximum-number-of-groups",
+  srcs=[
+    "divide-nodes-into-the-maximum-number-of-groups.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFindDense",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-subarrays-with-fixed-bounds",
+  srcs=[
+    "count-subarrays-with-fixed-bounds.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

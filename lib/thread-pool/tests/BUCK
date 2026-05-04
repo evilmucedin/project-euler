@@ -1,0 +1,9 @@
+cxx_test(
+  name="threadPoolTest",
+  srcs=[
+    "threadPoolTest.cpp",
+  ],
+  deps=[
+    "//lib/thread-pool:thread-pool",
+  ],
+)

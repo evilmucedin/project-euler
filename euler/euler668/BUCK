@@ -1,0 +1,11 @@
+cxx_binary(
+  name="668",
+  srcs=[
+    "668.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:atkinSieve",
+    "//glog:glog",
+  ],
+)

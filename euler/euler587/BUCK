@@ -1,0 +1,10 @@
+cxx_binary(
+  name="587",
+  srcs=[
+    "587.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:integrate",
+  ],
+)

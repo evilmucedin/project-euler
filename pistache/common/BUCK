@@ -1,0 +1,27 @@
+cxx_library(
+  name="common",
+  srcs=[
+    "base64.cc",
+    "cookie.cc",
+    "http.cc",
+    "http_defs.cc",
+    "http_header.cc",
+    "http_headers.cc",
+    "mime.cc",
+    "net.cc",
+    "os.cc",
+    "peer.cc",
+    "reactor.cc",
+    "stream.cc",
+    "tcp.cc",
+    "timer_pool.cc",
+    "transport.cc",
+  ],
+  deps=[
+    "//pistache:headers",
+    "//pistache/date:date",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="wildcard-matching",
+  srcs=[
+    "wildcard-matching.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

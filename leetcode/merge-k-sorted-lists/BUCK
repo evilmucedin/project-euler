@@ -1,0 +1,10 @@
+cxx_binary(
+  name="merge-k-sorted-lists",
+  srcs=[
+    "merge-k-sorted-lists.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="concatenated-words",
+  srcs=[
+    "concatenated-words.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimize-the-maximum-difference-of-pairs",
+  srcs=[
+    "minimize-the-maximum-difference-of-pairs.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

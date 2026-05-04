@@ -1,0 +1,10 @@
+cxx_binary(
+  name="champagne-tower",
+  srcs=[
+    "champagne-tower.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

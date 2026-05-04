@@ -1,0 +1,10 @@
+cxx_binary(
+  name="longest-cycle-in-a-graph",
+  srcs=[
+    "longest-cycle-in-a-graph.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="restore-the-array",
+  srcs=[
+    "restore-the-array.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

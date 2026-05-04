@@ -1,0 +1,10 @@
+cxx_binary(
+  name="new-21-game",
+  srcs=[
+    "new-21-game.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

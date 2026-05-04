@@ -1,0 +1,10 @@
+cxx_binary(
+  name="518",
+  srcs=[
+    "518.cpp"
+  ],
+  deps=[
+    "//lib:math",
+    "//lib:primes",
+  ],
+)

@@ -1,0 +1,168 @@
+cxx_library(
+  name="binarySerialization",
+  exported_headers=[
+    "binarySerialization.h",
+  ],
+  srcs=[
+    "binarySerialization.cpp",
+  ],
+  deps=[
+    ":stream",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="fileIo",
+  exported_headers=[
+    "fileIo.h",
+  ],
+  srcs=[
+    "fileIo.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:exception",
+    "//lib:noncopyable",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+# cxx_library(
+#   name="fstreamDeprecated",
+#   exported_headers=[
+#     "fstreamDeprecated.h",
+#   ],
+#   srcs=[
+#      "fstreamDeprecated.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#   ],
+#   visibility=[
+#     "PUBLIC",
+#   ],
+# )
+
+# cxx_library(
+#   name="zstreamDeprecated",
+#   exported_headers=[
+#     "zstreamDeprecated.h",
+#   ],
+#   srcs=[
+#      "zstreamDeprecated.cpp",
+#   ],
+#   deps=[
+#     "//lib:header",
+#     "//zlib:zlib",
+#   ],
+#   visibility=[
+#     "PUBLIC",
+#   ],
+# )
+
+cxx_library(
+  name="zstream",
+  exported_headers=[
+    "zstream.h",
+  ],
+  srcs=[
+     "zstream.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io:stream",
+    "//zlib:zlib",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
+cxx_library(
+  name="csv",
+  exported_headers=[
+    "csv.h",
+  ],
+  srcs=[
+    "csv.cpp",
+  ],
+  deps=[
+    "//lib:exception",
+    "//lib:header",
+    "//lib/io:stream",
+    "//lib:string",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
+cxx_library(
+  name="utils",
+  exported_headers=[
+    "utils.h"
+  ],
+  srcs=[
+    "utils.cpp",
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+    "//lib:string",
+    "//lib/io:stream",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="varlen",
+  exported_headers=[
+    "varlen.h"
+  ],
+  srcs=[
+    "varlen.cpp",
+  ],
+  deps=[
+    ":fileIo",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="structFile",
+  exported_headers=[
+    "structFile.h",
+  ],
+  deps=[
+    ":fileIo",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="stream",
+  exported_headers=[
+    "stream.h",
+  ],
+  srcs=[
+    "stream.cpp",
+  ],
+  deps=[
+    ":fileIo",
+    "//lib:exception",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)

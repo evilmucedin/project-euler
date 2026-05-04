@@ -1,0 +1,1 @@
+linker_flags=["-lmkl_intel_thread", "-lmkl_gf_lp64", "-lmkl_core", "-lmkl_intel_lp64", "-lmkl_intel_thread", "-lmkl_core", "-lmkl_def", "-llapack", "-lblas", "-lomp"]

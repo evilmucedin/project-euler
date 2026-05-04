@@ -1,0 +1,11 @@
+cxx_binary(
+  name="XGBoost",
+  srcs=[
+    "XGBoost.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io:utils",
+    "//glog:glog",
+  ],
+)

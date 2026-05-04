@@ -1,0 +1,14 @@
+cxx_binary(
+  name="Normal",
+  srcs=[
+    "Normal.cpp"
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+    "//lib:math",
+    "//lib:random",
+    "//lib:timer",
+    "//lib/stat:stat",
+  ],
+)

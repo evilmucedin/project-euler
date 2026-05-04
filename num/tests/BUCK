@@ -1,0 +1,10 @@
+cxx_test(
+  name="nunTest",
+  srcs=[
+    "tests.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//num:num",
+  ],
+)

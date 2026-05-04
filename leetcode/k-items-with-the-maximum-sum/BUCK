@@ -1,0 +1,10 @@
+cxx_binary(
+  name="k-items-with-the-maximum-sum",
+  srcs=[
+    "k-items-with-the-maximum-sum.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

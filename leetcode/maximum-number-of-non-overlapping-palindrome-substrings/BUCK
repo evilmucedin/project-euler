@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-number-of-non-overlapping-palindrome-substrings",
+  srcs=[
+    "maximum-number-of-non-overlapping-palindrome-substrings.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

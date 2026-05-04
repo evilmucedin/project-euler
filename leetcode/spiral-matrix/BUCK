@@ -1,0 +1,10 @@
+cxx_binary(
+  name="spiral-matrix",
+  srcs=[
+    "spiral-matrix.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

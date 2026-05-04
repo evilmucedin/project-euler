@@ -1,0 +1,10 @@
+cxx_binary(
+  name="fruit-into-baskets",
+  srcs=[
+    "fruit-into-baskets.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

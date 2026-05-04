@@ -1,0 +1,10 @@
+cxx_binary(
+  name="apply-operations-to-maximize-score",
+  srcs=[
+    "apply-operations-to-maximize-score.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

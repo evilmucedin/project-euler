@@ -1,0 +1,11 @@
+cxx_binary(
+  name="similar-string-groups",
+  srcs=[
+    "similar-string-groups.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFindDense",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="evaluate-division",
+  srcs=[
+    "evaluate-division.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

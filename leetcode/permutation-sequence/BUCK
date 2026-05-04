@@ -1,0 +1,10 @@
+cxx_binary(
+  name="permutation-sequence",
+  srcs=[
+    "permutation-sequence.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

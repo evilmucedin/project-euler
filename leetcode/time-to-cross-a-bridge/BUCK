@@ -1,0 +1,10 @@
+cxx_binary(
+  name="time-to-cross-a-bridge",
+  srcs=[
+    "time-to-cross-a-bridge.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

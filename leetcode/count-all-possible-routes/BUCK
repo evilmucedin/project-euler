@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-all-possible-routes",
+  srcs=[
+    "count-all-possible-routes.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

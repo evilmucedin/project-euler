@@ -1,0 +1,10 @@
+cxx_binary(
+  name="reorganize-string",
+  srcs=[
+    "reorganize-string.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

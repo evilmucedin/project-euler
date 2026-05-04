@@ -1,0 +1,10 @@
+cxx_binary(
+  name="count-and-say",
+  srcs=[
+    "count-and-say.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

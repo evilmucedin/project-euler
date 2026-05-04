@@ -1,0 +1,13 @@
+cxx_binary(
+  name="808",
+  srcs=[
+    "808.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//lib:primes",
+    "//lib:string",
+    "//glog:glog",
+  ],
+)

@@ -1,0 +1,24 @@
+cxx_test(
+  name="tdigestTest",
+  srcs=[
+    "tdigestTest.cpp",
+  ],
+  deps=[
+    "//lib/stat:tdigest",
+    "//gtest:gtest",
+    "//glog:glog",
+  ],
+)
+
+cxx_test(
+  name="countersTest",
+  srcs=[
+    "countersTest.cpp",
+  ],
+  deps=[
+    "//lib/stat:counters",
+    "//gtest:gtest",
+    "//glog:glog",
+  ],
+)
+

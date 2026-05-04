@@ -1,0 +1,10 @@
+cxx_binary(
+  name="first-missing-positive",
+  srcs=[
+    "first-missing-positive.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

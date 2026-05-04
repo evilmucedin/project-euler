@@ -1,0 +1,16 @@
+cxx_binary(
+  name="264",
+  srcs=[
+    "264.cpp"
+  ],
+  deps=[
+    "//gflags:gflags",
+    "//glog:glog",
+    "//lib:header",
+    "//lib:init",
+    "//lib/io:stream",
+    "//lib:string",
+    "//lib/thread-pool:thread-pool",
+    "//tqdm:tqdm",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="remove-nodes-from-linked-list",
+  srcs=[
+    "remove-nodes-from-linked-list.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

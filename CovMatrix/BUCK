@@ -1,0 +1,13 @@
+cxx_binary(
+  name="CovMatrix",
+  srcs=[
+    "CovMatrix.cpp"
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+    "//lib:matrix",
+    "//lib:random",
+    "//lib:timer",
+  ],
+)

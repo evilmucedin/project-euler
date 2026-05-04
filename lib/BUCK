@@ -1,0 +1,571 @@
+cxx_library(
+    name="header",
+    srcs=[
+        "header.cpp",
+    ],
+    deps=[
+    ],
+    exported_headers=[
+        "header.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="init",
+    exported_headers=[
+        "init.h",
+    ],
+    srcs=[
+        "init.cpp",
+    ],
+    deps=[
+        ":header",
+        "//gflags:gflags",
+        "//glog:glog",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="file",
+    exported_headers=[
+        "file.h",
+    ],
+    srcs=[
+        "file.cpp",
+    ],
+    deps=[
+        ":header",
+        ":string",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="matrix",
+    exported_headers=[
+        "matrix.h",
+    ],
+    srcs=[
+        "matrix.cpp",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="string",
+    exported_headers=[
+        "string.h",
+    ],
+    srcs=[
+        "string.cpp",
+    ],
+    deps=[
+        ":header",
+        ":exception",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="datetime",
+    exported_headers=[
+        "datetime.h",
+    ],
+    srcs=[
+        "datetime.cpp",
+    ],
+    deps=[
+        ":header",
+        ":math",
+        ":string",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="random",
+    exported_headers=[
+        "random.h",
+    ],
+    srcs=[
+        "random.cpp",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="threads",
+    exported_headers=[
+        "threads.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="math",
+    exported_headers=[
+        "math.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="console",
+    exported_headers=[
+        "console.h",
+    ],
+    srcs=[
+        "console.cpp",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="primes",
+    srcs=[
+        "primes.cpp",
+    ],
+    exported_headers=[
+        "primes.h",
+    ],
+    deps=[
+        ":header",
+        ":math",
+        "//glog:glog",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="radixSort",
+    srcs=[
+        "radixSort.cpp",
+    ],
+    exported_headers=[
+        "radixSort.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="segmentTree",
+    exported_headers=[
+        "segmentTree.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="redBlackTree",
+    exported_headers=[
+        "redBlackTree.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="timer",
+    srcs=[
+        "timer.cpp",
+    ],
+    exported_headers=[
+        "timer.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="integrate",
+    srcs=[
+        "integrate.cpp",
+    ],
+    exported_headers=[
+        "integrate.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="fft",
+    srcs=[
+        "fft.cpp",
+    ],
+    exported_headers=[
+        "fft.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="progressBar",
+    srcs=[
+        "progressBar.cpp",
+    ],
+    exported_headers=[
+        "progressBar.h",
+    ],
+    deps=[
+        ":header",
+        "//lib/io:stream",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="geometry",
+    srcs=[
+        "geometry.cpp",
+    ],
+    exported_headers=[
+        "geometry.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="convexHull",
+    exported_headers=[
+        "convexHull.h",
+    ],
+    deps=[
+        ":geometry",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="exception",
+    srcs=[
+        "exception.cpp",
+    ],
+    exported_headers=[
+        "exception.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="lru",
+    srcs=[
+        "lru.cpp",
+    ],
+    exported_headers=[
+        "lru.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="noncopyable",
+    srcs=[
+        "noncopyable.cpp",
+    ],
+    exported_headers=[
+        "noncopyable.h",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="rmq",
+    exported_headers=[
+        "rmq.h",
+    ],
+    deps=[
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="fraction",
+    exported_headers=[
+        "fraction.h",
+    ],
+    deps=[
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="treap",
+    exported_headers=[
+        "treap.h",
+    ],
+    deps=[
+        ":header",
+        ":random",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="implicitTreap",
+    exported_headers=[
+        "implicitTreap.h",
+    ],
+    deps=[
+        ":header",
+        ":random",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="stat",
+    exported_headers=[
+        "stat.h",
+    ],
+    deps=[
+        ":header",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="benchmark",
+    exported_headers=[
+        "benchmark.h",
+    ],
+    deps=[
+        ":header",
+        ":stat",
+        ":timer",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="atkinSieve",
+    exported_headers=[
+        "atkinSieve.h",
+    ],
+    srcs=[
+        "atkinSieve.cpp",
+    ],
+    deps=[
+        ":header",
+        "//glog:glog",
+    ],
+    visibility=[
+        'PUBLIC',
+    ],
+)
+
+cxx_library(
+    name="cycles",
+    deps=[
+        ":header",
+    ],
+    exported_headers=[
+        "cycles.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="robinHood",
+    exported_headers=[
+        "robinHood.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="bigint",
+    exported_headers=[
+        "bigint.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="unionFind",
+    exported_headers=[
+        "unionFind.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="unionFindDense",
+    exported_headers=[
+        "unionFindDense.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="minStack",
+    deps=[
+    ],
+    exported_headers=[
+        "minStack.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="trie",
+    deps=[
+        ":exception",
+    ],
+    exported_headers=[
+        "trie.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="quickSort",
+    deps=[
+    ],
+    exported_headers=[
+        "quicksort.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="fenvick",
+    deps=[
+    ],
+    srcs=[
+        "fenvick.cpp",
+    ],
+    exported_headers=[
+        "fenvick.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="combinatorics",
+    deps=[
+    ],
+    srcs=[
+        "combinatorics.cpp",
+    ],
+    exported_headers=[
+        "combinatorics.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)

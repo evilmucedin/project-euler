@@ -1,0 +1,10 @@
+cxx_binary(
+  name="reverse-words-in-a-string",
+  srcs=[
+    "reverse-words-in-a-string.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

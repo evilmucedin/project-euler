@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-length-of-repeated-subarray",
+  srcs=[
+    "subarray.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

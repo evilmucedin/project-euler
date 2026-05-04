@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-profit-in-job-scheduling",
+  srcs=[
+    "maximum-profit-in-job-scheduling.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimum-absolute-difference-between-elements-with-constraint",
+  srcs=[
+    "minimum-absolute-difference-between-elements-with-constraint.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

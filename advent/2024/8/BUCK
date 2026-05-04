@@ -1,0 +1,16 @@
+
+cxx_binary(
+  name="8",
+  srcs=[
+    "8.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:init",
+    "//lib:string",
+    "//gflags:gflags",
+    "//advent/lib:aoc",
+    "//glog:glog",
+  ],
+)
+

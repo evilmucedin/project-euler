@@ -1,0 +1,10 @@
+cxx_binary(
+  name="contains-duplicate-iii",
+  srcs=[
+    "contains-duplicate-iii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

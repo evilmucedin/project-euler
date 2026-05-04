@@ -1,0 +1,11 @@
+cxx_binary(
+  name="abseil-test",
+  srcs=[
+    "test.cpp"
+  ],
+  deps=[
+    "//abseil:hash",
+  ],
+)
+
+

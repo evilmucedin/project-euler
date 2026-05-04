@@ -1,0 +1,11 @@
+cxx_binary(
+  name="simplify-path",
+  srcs=[
+    "simplify-path.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:string",
+    "//lib:timer",
+  ],
+)

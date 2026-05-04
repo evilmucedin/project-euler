@@ -1,0 +1,10 @@
+cxx_binary(
+  name="stone-game-ii",
+  srcs=[
+    "stone-game-ii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

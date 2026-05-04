@@ -1,0 +1,10 @@
+cxx_binary(
+  name="split-the-array-to-make-coprime-products",
+  srcs=[
+    "split-the-array-to-make-coprime-products.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-number-of-events-that-can-be-attended-ii",
+  srcs=[
+    "maximum-number-of-events-that-can-be-attended-ii.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

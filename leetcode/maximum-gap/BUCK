@@ -1,0 +1,10 @@
+cxx_binary(
+  name="maximum-gap",
+  srcs=[
+    "maximum-gap.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

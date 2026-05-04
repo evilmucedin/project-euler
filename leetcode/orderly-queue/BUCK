@@ -1,0 +1,10 @@
+cxx_binary(
+  name="orderly-queue",
+  srcs=[
+    "orderly-queue.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

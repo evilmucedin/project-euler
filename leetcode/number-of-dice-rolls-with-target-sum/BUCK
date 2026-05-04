@@ -1,0 +1,10 @@
+cxx_binary(
+  name="number-of-dice-rolls-with-target-sum",
+  srcs=[
+    "number-of-dice-rolls-with-target-sum.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

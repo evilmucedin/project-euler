@@ -1,0 +1,13 @@
+cxx_binary(
+  name="SortedIterator",
+  srcs=[
+    "SortedIterator.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:radixSort",
+    "//lib:random",
+    "//lib:timer",
+    "//glog:glog",
+  ],
+)

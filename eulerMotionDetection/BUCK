@@ -1,0 +1,9 @@
+cxx_binary(
+  name="MotionDetection",
+  srcs=[
+    "MotionDetection.cpp"
+  ],
+  deps=[
+    "//lib:header",
+  ],
+)

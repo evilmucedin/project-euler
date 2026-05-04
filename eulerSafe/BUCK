@@ -1,0 +1,10 @@
+cxx_binary(
+  name="Safe",
+  srcs=[
+    "Safe.cpp"
+  ],
+  deps=[
+    "//glog:glog",
+    "//lib:header",
+  ],
+)

@@ -1,0 +1,11 @@
+cxx_test(
+  name="blockStorageTest",
+  srcs=[
+    "blockStorageTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib/io/keyvalue:blockStorage",
+  ],
+)
+

@@ -1,0 +1,1 @@
+Create two python programs. First progream should write a few tables on Parquest data on disk. Write the first program in new file generate1.py. The second program should run a few queries on the written Parquet file on dist. Write the second program on quetions1.py on disk.

@@ -1,0 +1,10 @@
+cxx_binary(
+  name="755",
+  srcs=[
+    "755.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//glog:glog",
+  ],
+)

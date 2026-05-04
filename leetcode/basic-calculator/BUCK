@@ -1,0 +1,11 @@
+cxx_binary(
+  name="basic-calculator",
+  srcs=[
+    "basic-calculator.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:exception",
+    "//lib:timer",
+  ],
+)

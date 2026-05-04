@@ -1,0 +1,29 @@
+cxx_library(
+    name="pushRelabel",
+    deps=[
+        "//lib:header",
+    ],
+    exported_headers=[
+        "pushRelabel.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="hungarian",
+    deps=[
+        "//lib:header",
+    ],
+    srcs=[
+        "hungarian.cpp",
+    ],
+    exported_headers=[
+        "hungarian.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+

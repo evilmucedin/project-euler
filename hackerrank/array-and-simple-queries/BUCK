@@ -1,0 +1,9 @@
+cxx_binary(
+    name="arrayAndSimpleQueries",
+    srcs=[
+        "arrayAndSimpleQueries.cpp"
+    ],
+    deps=[
+        "//lib:implicitTreap",
+    ],
+)

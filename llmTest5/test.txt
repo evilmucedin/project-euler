@@ -1,0 +1,1 @@
+Implement a Python app for estimation of performance of a laptop or PC with Ubuntu installed. The app should estimate performance of CPU, GPU and memory. The app should test it and output estimation of LLM tokens it can make per year by running good expensive LLMs with Ollama. The app can expect ollama installed with snap and python.

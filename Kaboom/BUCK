@@ -1,0 +1,16 @@
+cxx_binary(
+  name="Kaboom",
+  compiler_flags=[
+    "-fopenmp",
+  ],
+  linker_flags=[
+    "-fopenmp",
+  ],
+  srcs=[
+    "Kaboom.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:geometry",
+  ],
+)

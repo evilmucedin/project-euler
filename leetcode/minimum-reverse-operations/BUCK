@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimum-reverse-operations",
+  srcs=[
+    "minimum-reverse-operations.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

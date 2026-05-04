@@ -1,0 +1,10 @@
+cxx_binary(
+  name="minimum-time-to-make-rope-colorful",
+  srcs=[
+    "minimum-time-to-make-rope-colorful.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+  ],
+)

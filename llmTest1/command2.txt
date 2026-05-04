@@ -1,0 +1,7 @@
+Copy ./run2.sh to new file run3.sh.
+Copy calculator2.cpp to new file calculator3.cpp.
+Change using calculator2.cpp in run3.sh to using calculator3.cpp.
+Change creatinr buildfile calculator3 in run3.sh to creating calculator3 .
+Change calculator3.cpp from a simple text editor for a calculator operation to two text editors.
+
+Create a new app from ./run3.sh and calculator3.cpp .

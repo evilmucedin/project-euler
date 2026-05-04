@@ -1,0 +1,3 @@
+build --cxxopt=-std=c++17
+common --noenable_bzlmod
+

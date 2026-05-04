@@ -1,0 +1,13 @@
+cxx_library(
+  name="client",
+  srcs=[
+    "client.cc",
+  ],
+  deps=[
+    "//pistache:headers",
+    "//pistache/common:common",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)

@@ -1,0 +1,11 @@
+cxx_test(
+  name="eigenTest",
+  srcs=[
+    "eigenTest.cpp",
+  ],
+  deps=[
+    "//eigen:eigen",
+    "//gtest:gtest",
+  ],
+)
+

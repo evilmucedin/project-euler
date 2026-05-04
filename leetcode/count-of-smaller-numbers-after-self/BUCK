@@ -1,0 +1,11 @@
+cxx_binary(
+  name="count-of-smaller-numbers-after-self",
+  srcs=[
+    "count-of-smaller-numbers-after-self.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:segmentTree",
+  ],
+)

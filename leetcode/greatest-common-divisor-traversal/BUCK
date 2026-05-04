@@ -1,0 +1,11 @@
+cxx_binary(
+  name="greatest-common-divisor-traversal",
+  srcs=[
+    "greatest-common-divisor-traversal.cpp"
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:timer",
+    "//lib:unionFindDense",
+  ],
+)
