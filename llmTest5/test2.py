@@ -139,16 +139,17 @@ def pick_small_local_model():
     return names[0] if names else None
 
 
-def run_ollama_microbenchmark(timeout_seconds=5800):
+def run_ollama_microbenchmark(timeout_seconds=5800, prompt=None):
     model = pick_small_local_model()
     if not model:
         return {"ran": False, "model": None, "tokens_per_sec": 0.0, "reason": "No local Ollama model found"}
 
-    # Longer prompt gives a more stable throughput estimate than very short completions.
-    prompt = (
-        "Write 120-160 words about practical Ubuntu laptop performance testing for "
-        "CPU, GPU, RAM, and LLM workloads. Keep it factual."
-    )
+    if prompt is None:
+        # Longer prompt gives a more stable throughput estimate than very short completions.
+        prompt = (
+            "Write 120-160 words about practical Ubuntu laptop performance testing for "
+            "CPU, GPU, RAM, and LLM workloads. Keep it factual."
+        )
     start = time.perf_counter()
     try:
         output = subprocess.check_output(
@@ -225,12 +226,38 @@ def main():
     ollama_status = get_ollama_status()
     has_ollama = ollama_status["installed"]
     bench_timeout = int(os.getenv("OLLAMA_BENCH_TIMEOUT", "5800"))
+    fast_timeout = max(1, bench_timeout // 50)
+    fast_prompt = (
+        "Write a short 1-2 sentence summary of Ubuntu laptop performance testing for "
+        "CPU, GPU, RAM, and LLM workloads. Keep it concise."
+    )
+
+    fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, prompt=fast_prompt) if ollama_status["usable"] else {
+        "ran": False,
+        "model": None,
+        "tokens_per_sec": 0.0,
+        "reason": ollama_status["reason"],
+    }
+    print("\nOllama fast benchmark result:")
+    print(f"  ran: {fast_ollama_bench['ran']}")
+    print(f"  model: {fast_ollama_bench['model']}")
+    print(f"  tokens_per_sec: {fast_ollama_bench['tokens_per_sec']:.2f}")
+    print(f"  timeout_sec: {fast_timeout}")
+    print(f"  reason: {fast_ollama_bench['reason']}")
+
     ollama_bench = run_ollama_microbenchmark(timeout_seconds=bench_timeout) if ollama_status["usable"] else {
         "ran": False,
         "model": None,
         "tokens_per_sec": 0.0,
         "reason": ollama_status["reason"],
     }
+    print("\nOllama benchmark result:")
+    print(f"  ran: {ollama_bench['ran']}")
+    print(f"  model: {ollama_bench['model']}")
+    print(f"  tokens_per_sec: {ollama_bench['tokens_per_sec']:.2f}")
+    print(f"  timeout_sec: {bench_timeout}")
+    print(f"  reason: {ollama_bench['reason']}")
+
     tokens = estimate_tokens_per_year(
         cpu,
         memory,
