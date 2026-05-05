@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 #!/usr/bin/env -S /Users/den.raskovalov/Programming/project-euler/llmTest5/.venv/bin/python3
 
+import json
 import platform
 import shutil
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 import os
 
 import psutil
+
+# Fixed ollama inference settings so all laptops are compared fairly.
+# num_ctx=512: tiny KV cache, works on weak/low-RAM hardware.
+# num_predict=100: fixed output length → stable tokens/sec measurement.
+# temperature=0: deterministic output.
+OLLAMA_NUM_CTX = 512
+OLLAMA_NUM_PREDICT = 100
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 
 
 def read_spec(path="test2.txt"):
@@ -45,23 +55,37 @@ def get_memory_info():
 
 
 def detect_gpu():
-    if not shutil.which("nvidia-smi"):
-        return [{"name": "No NVIDIA GPU detected", "memory_gb": 0.0}]
-    try:
-        output = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-    except subprocess.CalledProcessError:
-        return [{"name": "No NVIDIA GPU detected", "memory_gb": 0.0}]
+    # Apple Silicon: GPU shares unified memory with RAM; no nvidia-smi present.
+    if platform.system() == "Darwin" and platform.machine() == "arm64":
+        chip = "Apple Silicon"
+        try:
+            chip = subprocess.check_output(
+                ["sysctl", "-n", "machdep.cpu.brand_string"],
+                text=True, stderr=subprocess.DEVNULL,
+            ).strip() or chip
+        except Exception:
+            pass
+        return [{"name": f"{chip} (unified memory)", "memory_gb": 0.0}]
 
-    gpus = []
-    for line in output.splitlines():
-        parts = [x.strip() for x in line.split(",")]
-        if len(parts) == 2:
-            gpus.append({"name": parts[0], "memory_gb": round(float(parts[1]) / 1024.0, 2)})
-    return gpus or [{"name": "No NVIDIA GPU detected", "memory_gb": 0.0}]
+    # NVIDIA GPU (Linux / Windows)
+    if shutil.which("nvidia-smi"):
+        try:
+            output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+                text=True,
+                stderr=subprocess.DEVNULL,
+            ).strip()
+            gpus = []
+            for line in output.splitlines():
+                parts = [x.strip() for x in line.split(",")]
+                if len(parts) == 2:
+                    gpus.append({"name": parts[0], "memory_gb": round(float(parts[1]) / 1024.0, 2)})
+            if gpus:
+                return gpus
+        except subprocess.CalledProcessError:
+            pass
+
+    return [{"name": "No discrete GPU detected", "memory_gb": 0.0}]
 
 
 def cpu_benchmark(seconds=0.4):
@@ -86,58 +110,43 @@ def memory_benchmark(size=6_000_000):
 
 def get_ollama_status():
     ollama_path = shutil.which("ollama")
-    if not ollama_path:
-        return {
-            "installed": False,
-            "usable": False,
-            "path": None,
-            "reason": "ollama is not on PATH",
-        }
-
     try:
-        subprocess.check_output(["ollama", "list"], text=True, stderr=subprocess.STDOUT, timeout=15)
+        req = urllib.request.Request(f"{OLLAMA_HOST}/api/tags")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp.read()
         return {
-            "installed": True,
+            "installed": ollama_path is not None,
             "usable": True,
             "path": ollama_path,
             "reason": "ok",
         }
-    except subprocess.CalledProcessError as exc:
-        detail = (exc.output or "").strip()
+    except Exception as exc:
         return {
-            "installed": True,
+            "installed": ollama_path is not None,
             "usable": False,
             "path": ollama_path,
-            "reason": detail or "ollama command failed",
-        }
-    except subprocess.TimeoutExpired:
-        return {
-            "installed": True,
-            "usable": False,
-            "path": ollama_path,
-            "reason": "ollama list timed out",
+            "reason": str(exc),
         }
 
 
 def pick_small_local_model():
-    if not shutil.which("ollama"):
-        return None
     try:
-        output = subprocess.check_output(["ollama", "list"], text=True, stderr=subprocess.DEVNULL).strip()
-    except subprocess.CalledProcessError:
+        req = urllib.request.Request(f"{OLLAMA_HOST}/api/tags")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+    except Exception:
         return None
 
-    lines = [line.strip() for line in output.splitlines() if line.strip()]
-    if len(lines) <= 1:
+    names = [m["name"] for m in data.get("models", [])]
+    if not names:
         return None
 
-    names = [line.split()[0] for line in lines[1:]]
     preferred_prefixes = ("tinyllama", "qwen2.5-coder:0.5b", "gemma:2b", "phi3:mini")
     for prefix in preferred_prefixes:
-        for model_name in names:
-            if model_name.lower().startswith(prefix):
-                return model_name
-    return names[0] if names else None
+        for name in names:
+            if name.lower().startswith(prefix):
+                return name
+    return names[0]
 
 
 def run_ollama_microbenchmark(timeout_seconds=5800, prompt=None, runs=10):
@@ -146,46 +155,50 @@ def run_ollama_microbenchmark(timeout_seconds=5800, prompt=None, runs=10):
         return {"ran": False, "model": None, "tokens_per_sec": 0.0, "reason": "No local Ollama model found"}
 
     if prompt is None:
-        # Longer prompt gives a more stable throughput estimate than very short completions.
-        prompt = (
-            "Write 120-160 words about practical Ubuntu laptop performance testing for "
-            "CPU, GPU, RAM, and LLM workloads. Keep it factual."
-        )
+        prompt = "Write a short paragraph about laptop performance benchmarking. Keep it factual."
 
-    total_tokens_per_sec = 0.0
+    payload = json.dumps({
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "num_ctx": OLLAMA_NUM_CTX,
+            "num_predict": OLLAMA_NUM_PREDICT,
+            "temperature": 0.0,
+        },
+    }).encode()
+
+    total_tps = 0.0
     success_count = 0
     last_reason = "ok"
 
     for i in range(runs):
-        start = time.perf_counter()
         try:
-            output = subprocess.check_output(
-                ["ollama", "run", model, prompt],
-                text=True,
-                stderr=subprocess.DEVNULL,
-                timeout=timeout_seconds,
-            ).strip()
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-            last_reason = f"Run {i + 1}/{runs} failed or timed out after {timeout_seconds}s"
-            continue
+            req = urllib.request.Request(
+                f"{OLLAMA_HOST}/api/generate",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
+                result = json.loads(resp.read())
 
-        elapsed = max(time.perf_counter() - start, 0.001)
-        estimated_tokens = max(int(len(output.split()) * 1.3), 1)
-        total_tokens_per_sec += estimated_tokens / elapsed
-        success_count += 1
+            eval_count = result.get("eval_count", 0)
+            eval_duration_ns = result.get("eval_duration", 0)
+            if eval_count > 0 and eval_duration_ns > 0:
+                total_tps += eval_count / (eval_duration_ns / 1e9)
+                success_count += 1
+            else:
+                last_reason = f"Run {i + 1}/{runs}: missing eval stats in response"
+        except Exception as exc:
+            last_reason = f"Run {i + 1}/{runs} failed: {exc}"
 
     if success_count == 0:
-        return {
-            "ran": False,
-            "model": model,
-            "tokens_per_sec": 0.0,
-            "reason": last_reason,
-        }
+        return {"ran": False, "model": model, "tokens_per_sec": 0.0, "reason": last_reason}
 
     return {
         "ran": True,
         "model": model,
-        "tokens_per_sec": total_tokens_per_sec / success_count,
+        "tokens_per_sec": total_tps / success_count,
         "reason": "ok" if success_count == runs else f"ok ({success_count}/{runs} runs succeeded)",
     }
 
@@ -241,12 +254,8 @@ def main():
     has_ollama = ollama_status["installed"]
     bench_timeout = int(os.getenv("OLLAMA_BENCH_TIMEOUT", "5800"))
     fast_timeout = max(1, bench_timeout // 10)
-    fast_prompt = (
-        "Write a short 1-2 sentence summary of Ubuntu laptop performance testing for "
-        "CPU and GPU.. Keep it concise."
-    )
 
-    fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, prompt=fast_prompt, runs=10) if ollama_status["usable"] else {
+    fast_ollama_bench = run_ollama_microbenchmark(timeout_seconds=fast_timeout, runs=10) if ollama_status["usable"] else {
         "ran": False,
         "model": None,
         "tokens_per_sec": 0.0,
@@ -257,6 +266,8 @@ def main():
     print(f"  model: {fast_ollama_bench['model']}")
     print(f"  tokens_per_sec: {fast_ollama_bench['tokens_per_sec']:.2f}")
     print(f"  timeout_sec: {fast_timeout}")
+    print(f"  num_ctx: {OLLAMA_NUM_CTX}")
+    print(f"  num_predict: {OLLAMA_NUM_PREDICT}")
     print(f"  reason: {fast_ollama_bench['reason']}")
 
     ollama_bench = run_ollama_microbenchmark(timeout_seconds=bench_timeout, runs=2) if ollama_status["usable"] else {
@@ -270,6 +281,8 @@ def main():
     print(f"  model: {ollama_bench['model']}")
     print(f"  tokens_per_sec: {ollama_bench['tokens_per_sec']:.2f}")
     print(f"  timeout_sec: {bench_timeout}")
+    print(f"  num_ctx: {OLLAMA_NUM_CTX}")
+    print(f"  num_predict: {OLLAMA_NUM_PREDICT}")
     print(f"  reason: {ollama_bench['reason']}")
 
     tokens = estimate_tokens_per_year(
