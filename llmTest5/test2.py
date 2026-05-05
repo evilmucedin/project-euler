@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#!/usr/bin/env -S /Users/den.raskovalov/Programming/project-euler/llmTest5/.venv/bin/python3
 
 import platform
 import shutil
