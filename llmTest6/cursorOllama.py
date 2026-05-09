@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
-cursorOllama.py — Launch Cursor IDE on Ubuntu configured to use a local Ollama LLM.
+cursorOllama.py — Launch Cursor IDE on Ubuntu configured to use Ollama via the ngrok
+tunnel configured in ~/.bashrc_local (static --url forwarded to localhost:11434).
 
 Usage:
-    python3 cursorOllama.py [--model MODEL] [--ollama-host HOST]
+    python3 cursorOllama.py [--model MODEL] [--ollama-host URL]
                             [--cursor-path PATH] [--settings PATH]
                             [--no-launch] [workspace]
 
 Environment variables:
-    OLLAMA_HOST            Ollama API base URL (default: http://localhost:11434)
+    OLLAMA_HOST            Public Ollama base URL Cursor uses (ngrok HTTPS URL)
+                           (default matches ~/.bashrc_local ngrok --url …)
     CURSOR_OLLAMA_MODEL    Default model name   (default: qwen2.5-coder:7b)
+
+Local port 11434 is used to start/serve Ollama and for model pulls; Cursor’s
+API base URL is set to OLLAMA_HOST (the ngrok tunnel) unless overridden.
 """
 
 import argparse
@@ -22,7 +27,14 @@ import time
 import urllib.request
 from pathlib import Path
 
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+# Matches ~/.bashrc_local: ngrok http 11434 --url https://….
+OLLAMA_TUNNEL_HOST = os.getenv(
+    "OLLAMA_HOST",
+    "https://visor-ion-sizably.ngrok-free.dev",
+).rstrip("/")
+LOCAL_OLLAMA_HOST = (
+    os.getenv("OLLAMA_LOCAL_HOST", "http://localhost:11434").rstrip("/")
+)
 DEFAULT_MODEL = os.getenv("CURSOR_OLLAMA_MODEL", "qwen2.5-coder:7b")
 
 # Standard Cursor settings path on Ubuntu (VS Code-style config location).
@@ -45,6 +57,9 @@ CURSOR_CANDIDATES = [
 
 def _ollama_get(host: str, path: str, timeout: int = 8) -> dict:
     req = urllib.request.Request(f"{host}{path}")
+    # ngrok free tier returns an HTML interstitial unless this header is set.
+    if "ngrok" in host.lower():
+        req.add_header("ngrok-skip-browser-warning", "1")
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read())
 
@@ -174,7 +189,10 @@ def launch_cursor(executable: str, workspace: str | None) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Start Cursor IDE on Ubuntu using a local Ollama LLM.",
+        description=(
+            "Start Cursor IDE using Ollama through the ngrok URL from ~/.bashrc_local "
+            "(OLLAMA_HOST), with localhost for serve/pull."
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -184,9 +202,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--ollama-host",
-        default=OLLAMA_HOST,
+        default=OLLAMA_TUNNEL_HOST,
         metavar="URL",
-        help="Ollama API base URL.",
+        help=(
+            "Public Ollama API base URL for Cursor settings (typically your ngrok URL). "
+            "Override with OLLAMA_HOST."
+        ),
     )
     parser.add_argument(
         "--cursor-path",
@@ -212,19 +233,30 @@ def main() -> None:
         help="Workspace path or file to open in Cursor.",
     )
     args = parser.parse_args()
+    cursor_endpoint = args.ollama_host.rstrip("/")
 
-    # 1. Ensure Ollama is running.
-    if is_ollama_running(args.ollama_host):
-        print(f"Ollama is already running at {args.ollama_host}.")
+    # 1. Ensure the local Ollama daemon is running (what ngrok forwards to).
+    if is_ollama_running(LOCAL_OLLAMA_HOST):
+        print(f"Ollama is already running locally at {LOCAL_OLLAMA_HOST}.")
     else:
-        start_ollama_service(args.ollama_host)
+        start_ollama_service(LOCAL_OLLAMA_HOST)
 
-    # 2. Resolve (and optionally pull) the model.
-    model = resolve_model(args.ollama_host, args.model)
+    if (
+        cursor_endpoint != LOCAL_OLLAMA_HOST
+        and not is_ollama_running(cursor_endpoint)
+    ):
+        print(
+            f"\nWarning: Cannot reach Cursor’s OLLAMA_HOST at {cursor_endpoint}.\n"
+            "Ensure ngrok is running (same as in ~/.bashrc_local), tunneling "
+            f"localhost:11434 to this URL. Cursor settings will still use it.\n"
+        )
+
+    # 2. Resolve (and optionally pull) against local daemon (CLI + API).
+    model = resolve_model(LOCAL_OLLAMA_HOST, args.model)
     print(f"Model ready: {model}")
 
-    # 3. Write Cursor settings.
-    configure_cursor_settings(args.ollama_host, model, Path(args.settings))
+    # 3. Write Cursor settings to use the tunnel URL (unless user passed localhost).
+    configure_cursor_settings(cursor_endpoint, model, Path(args.settings))
 
     if args.no_launch:
         print("Done. Skipping Cursor launch (--no-launch).")
