@@ -1,3 +1,10 @@
+[cells]
+  root = .
+  prelude = prelude
+
+[repositories]
+  prelude = prelude
+
 [cxx]
 #cc="c:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29333\\bin\\Hostx64\\x64\\cl.exe"
 #cxx="c:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.28.29333\\bin\\Hostx64\\x64\\cl.exe"
