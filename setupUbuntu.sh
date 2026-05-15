@@ -25,17 +25,33 @@ if [ "$(id -u)" -ne 0 ]; then
     SUDO=sudo
 fi
 
-echo ">>> Installing APT packages from ubuntuPackages.txt"
+echo ">>> Installing required build packages"
 ${SUDO} apt-get update
-# shellcheck disable=SC2046
 ${SUDO} apt-get install -y --no-install-recommends \
-    build-essential curl ca-certificates git pkg-config python3 python3-pip \
-    $(tr '\n' ' ' < ubuntuPackages.txt)
+    build-essential clang lld curl ca-certificates git pkg-config \
+    python3 python3-pip zstd
+
+echo ">>> Installing packages from ubuntuPackages.txt (best-effort)"
+# Install one package at a time so a single unavailable package (e.g. a
+# package that only exists on newer Ubuntu releases) doesn't abort setup.
+missing=()
+for pkg in $(tr '\n' ' ' < ubuntuPackages.txt); do
+    [ -z "${pkg}" ] && continue
+    if ! ${SUDO} apt-get install -y --no-install-recommends "${pkg}"; then
+        missing+=("${pkg}")
+    fi
+done
+if [ "${#missing[@]}" -gt 0 ]; then
+    echo "WARNING: the following packages were not installed: ${missing[*]}" >&2
+fi
 
 echo ">>> Installing pip packages from ubuntuPipPackages.txt"
 if [ -s ubuntuPipPackages.txt ]; then
     # shellcheck disable=SC2046
-    python3 -m pip install --user --upgrade $(tr '\n' ' ' < ubuntuPipPackages.txt)
+    python3 -m pip install --user --upgrade --break-system-packages \
+        $(tr '\n' ' ' < ubuntuPipPackages.txt) || \
+        python3 -m pip install --user --upgrade \
+            $(tr '\n' ' ' < ubuntuPipPackages.txt)
 fi
 
 echo ">>> Installing Buck2"

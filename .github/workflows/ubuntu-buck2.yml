@@ -20,16 +20,14 @@ jobs:
 
       - name: Install APT dependencies
         run: |
+          # CI installs only the packages required for the smoke build. The
+          # full ubuntuPackages.txt list contains developer tools (vim,
+          # fastfetch, lldb, ...) that are unrelated to the build and not
+          # always available on every Ubuntu release.
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential curl ca-certificates git pkg-config python3 python3-pip zstd \
-            $(tr '\n' ' ' < ubuntuPackages.txt)
-
-      - name: Install pip dependencies
-        run: |
-          if [ -s ubuntuPipPackages.txt ]; then
-            python3 -m pip install --upgrade $(tr '\n' ' ' < ubuntuPipPackages.txt)
-          fi
+            build-essential clang lld curl ca-certificates git pkg-config \
+            python3 python3-pip zstd
 
       - name: Install Buck2
         run: |
