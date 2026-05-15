@@ -1,3 +1,5 @@
+load("@prelude//cxx:cxx.bzl", "cxx_binary")
+
 cxx_binary(
   name="best-time-to-buy-and-sell-stock-with-cooldown",
   srcs=[

@@ -1,3 +1,5 @@
+load("@prelude//rust:rust.bzl", "rust_binary")
+
 rust_binary(
     name='1',
     srcs=[

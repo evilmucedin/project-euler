@@ -1,4 +1,5 @@
-include_defs('//armadillo/DEFS', 'armadillo_defs')
+load("@prelude//cxx:cxx.bzl", "cxx_binary")
+load("//armadillo:defs.bzl", "linker_flags")
 
 cxx_binary(
   name="MatrixTest",
@@ -12,5 +13,5 @@ cxx_binary(
     "//lib:timer",
     "//gflags:gflags",
   ],
-  linker_flags=armadillo_defs.linker_flags,
+  linker_flags=linker_flags,
 )
