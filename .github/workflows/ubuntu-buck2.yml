@@ -1,0 +1,57 @@
+name: Ubuntu Buck2 Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: buck2 build (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install APT dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential curl ca-certificates git pkg-config python3 python3-pip zstd \
+            $(tr '\n' ' ' < ubuntuPackages.txt)
+
+      - name: Install pip dependencies
+        run: |
+          if [ -s ubuntuPipPackages.txt ]; then
+            python3 -m pip install --upgrade $(tr '\n' ' ' < ubuntuPipPackages.txt)
+          fi
+
+      - name: Install Buck2
+        run: |
+          arch=$(uname -m)
+          case "${arch}" in
+            x86_64|amd64) buck_arch=x86_64-unknown-linux-musl ;;
+            aarch64|arm64) buck_arch=aarch64-unknown-linux-musl ;;
+            *) echo "Unsupported architecture: ${arch}"; exit 1 ;;
+          esac
+          mkdir -p "${HOME}/.local/bin"
+          curl -fsSL "https://github.com/facebook/buck2/releases/download/latest/buck2-${buck_arch}.zst" \
+            -o /tmp/buck2.zst
+          zstd -d /tmp/buck2.zst -o "${HOME}/.local/bin/buck2"
+          chmod +x "${HOME}/.local/bin/buck2"
+          echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Show buck2 version
+        run: buck2 --version
+
+      - name: Smoke build (small dependency-free target)
+        run: |
+          # Build a small target that transitively exercises lib:header and
+          # the cxx toolchain. Expanding to //... is left to follow-up work
+          # because individual targets require MKL/OpenGL/etc. system libs.
+          buck2 build //advent/2020/1/...
