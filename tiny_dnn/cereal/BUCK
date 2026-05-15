@@ -1,5 +1,3 @@
-load("@prelude//cxx:cxx.bzl", "cxx_library")
-
 cxx_library(
     name="cereal",
     exported_headers=[

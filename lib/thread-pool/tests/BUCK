@@ -1,5 +1,3 @@
-load("@prelude//cxx:cxx.bzl", "cxx_test")
-
 cxx_test(
   name="threadPoolTest",
   srcs=[

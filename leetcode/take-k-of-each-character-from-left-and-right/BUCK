@@ -1,5 +1,3 @@
-load("@prelude//cxx:cxx.bzl", "cxx_binary")
-
 cxx_binary(
   name="take-k-of-each-character-from-left-and-right",
   srcs=[
