@@ -1,5 +1,3 @@
-load("@prelude//cxx:cxx.bzl", "cxx_binary")
-
 cxx_binary(
   name="k-items-with-the-maximum-sum",
   srcs=[

@@ -1,5 +1,3 @@
-load("@prelude//cxx:cxx.bzl", "cxx_binary")
-
 cxx_binary(
   name="number-of-ways-to-form-a-target-string-given-a-dictionary",
   srcs=[

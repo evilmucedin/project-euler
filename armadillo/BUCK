@@ -1,4 +1,3 @@
-load("@prelude//cxx:cxx.bzl", "cxx_library")
 load("//armadillo:defs.bzl", "linker_flags")
 
 cxx_library(
