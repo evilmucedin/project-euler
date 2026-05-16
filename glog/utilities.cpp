@@ -54,8 +54,12 @@ using std::string;
 
 _START_GOOGLE_NAMESPACE_
 
+inline namespace glog_internal_namespace_ {
+
 static const char* g_program_invocation_short_name = NULL;
 static pthread_t g_main_thread_id;
+
+}  // namespace glog_internal_namespace_
 
 _END_GOOGLE_NAMESPACE_
 
@@ -158,7 +162,7 @@ _END_GOOGLE_NAMESPACE_
 
 _START_GOOGLE_NAMESPACE_
 
-namespace glog_internal_namespace_ {
+inline namespace glog_internal_namespace_ {
 
 const char* ProgramInvocationShortName() {
   if (g_program_invocation_short_name != NULL) {

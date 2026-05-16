@@ -136,7 +136,7 @@
 
 _START_GOOGLE_NAMESPACE_
 
-namespace glog_internal_namespace_ {
+inline namespace glog_internal_namespace_ {
 
 #ifdef HAVE___ATTRIBUTE__
 # define ATTRIBUTE_NOINLINE __attribute__ ((noinline))
