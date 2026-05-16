@@ -1,4 +1,4 @@
-include_defs('//armadillo/DEFS', 'armadillo_defs')
+load("//armadillo:defs.bzl", "linker_flags")
 
 cxx_library(
     name="armadillo",
@@ -619,6 +619,6 @@ cxx_library(
         "PUBLIC",
     ],
     
-    linker_flags=armadillo_defs.linker_flags,
+    linker_flags=linker_flags,
 )
 
