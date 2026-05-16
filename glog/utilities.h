@@ -122,11 +122,13 @@
 #endif
 
 // defined by gcc
-#if defined(__ELF__) && defined(OS_LINUX)
-# define HAVE_SYMBOLIZE
-#elif defined(OS_MACOSX) && defined(HAVE_DLADDR)
+#if !defined(HAVE_SYMBOLIZE)
+# if defined(__ELF__) && defined(OS_LINUX)
+#  define HAVE_SYMBOLIZE
+# elif defined(OS_MACOSX) && defined(HAVE_DLADDR)
 // Use dladdr to symbolize.
-# define HAVE_SYMBOLIZE
+#  define HAVE_SYMBOLIZE
+# endif
 #endif
 
 #ifndef ARRAYSIZE
@@ -220,7 +222,5 @@ void ShutdownGoogleLoggingUtilities();
 }  // namespace glog_internal_namespace_
 
 _END_GOOGLE_NAMESPACE_
-
-using namespace GOOGLE_NAMESPACE::glog_internal_namespace_;
 
 #endif  // UTILITIES_H__

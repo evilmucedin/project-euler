@@ -32,16 +32,9 @@
 // Broken out from logging.cc by Soren Lassen
 // logging_unittest.cc covers the functionality herein
 
-<<<<<<< HEAD
 #include "utilities.h"
 
-#include <string.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <errno.h>
-=======
 #include <cerrno>
->>>>>>> refs/remotes/origin/master
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

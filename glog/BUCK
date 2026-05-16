@@ -51,7 +51,7 @@ cxx_library(
     "./raw_logging.cc",
     "./signalhandler.cc",
     "./symbolize.cc",
-    "./utilities.cpp",
+    "./utilities.cc",
     "./vlog_is_on.cc",
     "./port.cc",
   ],
