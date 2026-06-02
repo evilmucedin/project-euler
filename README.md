@@ -14,8 +14,9 @@ The primary supported platform is Ubuntu Linux. To set up a fresh machine:
 ./setupUbuntu.sh
 ```
 
-This installs the APT packages from `ubuntuPackages.txt`, the pip packages from
-`ubuntuPipPackages.txt`, and the latest Buck2 release into `~/.local/bin`.
+This installs the APT packages from `ubuntuPackages.txt` plus core build tools
+(including Ninja), the pip packages from `ubuntuPipPackages.txt` and
+`pipPackages.txt`, and the latest Buck2 release into `~/.local/bin`.
 
 Make sure `~/.local/bin` is on your `PATH`, then build any project with:
 

@@ -192,7 +192,6 @@ subninja eulerXGBoost/build.ninja
 subninja euleramount-of-time-for-binary-tree-to-be-infected/build.ninja
 subninja gflags/build.ninja
 subninja glog/build.ninja
-subninja glog2/build.ninja
 subninja gtest/build.ninja
 subninja gtestTest/build.ninja
 subninja hackerrank/array-and-simple-queries/build.ninja
@@ -360,3 +359,5 @@ subninja tiny_dnn/cereal/build.ninja
 subninja tqdm/build.ninja
 subninja wordSearchCalc/build.ninja
 subninja zlib/build.ninja
+default advent/2020/1/1
+
