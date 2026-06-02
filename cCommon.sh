@@ -3,7 +3,7 @@
 unamestr=`uname`
 
 # Buck is retired for this repository; require Buck2. Allow override via env var.
-if [ -n "${BUCK_BIN}" ]; then
+if [ -n "${BUCK_BIN:-}" ]; then
     buck_bin="${BUCK_BIN}"
 elif command -v buck2 >/dev/null 2>&1; then
     buck_bin=`command -v buck2`
