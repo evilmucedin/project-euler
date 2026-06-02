@@ -14,12 +14,16 @@
 
 # Uses a copy of the prelude bundled with the buck2 binary. You can alternatively delete this
 # section and vendor a copy of the prelude to the `prelude` directory of your project.
-# The vendored local prelude is available in the `prelude` directory.
+[external_cells]
+  prelude = bundled
+
 [repositories]
   prelude = prelude
 
 [parser]
-  target_platform_detector_spec = target:root//...->prelude//platforms:default
+  target_platform_detector_spec = target:root//...->prelude//platforms:default \
+    target:prelude//...->prelude//platforms:default \
+    target:toolchains//...->prelude//platforms:default
 
 [build]
   execution_platforms = prelude//platforms:default
