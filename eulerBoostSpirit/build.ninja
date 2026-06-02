@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerBoostSpirit/BoostSpirit.cpp.o: cxx eulerBoostSpirit/BoostSpirit.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerBoostSpirit/BoostSpirit: link $builddir/obj/eulerBoostSpirit/BoostSpirit.cpp.o $builddir/lib/lib/header.a $builddir/lib/glog/glog.a
+build $builddir/bin/eulerBoostSpirit/BoostSpirit: link $builddir/obj/eulerBoostSpirit/BoostSpirit.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/header.a
 build eulerBoostSpirit/BoostSpirit: phony $builddir/bin/eulerBoostSpirit/BoostSpirit
 

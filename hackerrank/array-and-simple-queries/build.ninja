@@ -2,6 +2,6 @@
 
 build $builddir/obj/hackerrank/array-and-simple-queries/arrayAndSimpleQueries.cpp.o: cxx hackerrank/array-and-simple-queries/arrayAndSimpleQueries.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/hackerrank/array-and-simple-queries/arrayAndSimpleQueries: link $builddir/obj/hackerrank/array-and-simple-queries/arrayAndSimpleQueries.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/random.a $builddir/lib/glog/glog.a
+build $builddir/bin/hackerrank/array-and-simple-queries/arrayAndSimpleQueries: link $builddir/obj/hackerrank/array-and-simple-queries/arrayAndSimpleQueries.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/random.a $builddir/lib/lib/header.a
 build hackerrank/array-and-simple-queries/arrayAndSimpleQueries: phony $builddir/bin/hackerrank/array-and-simple-queries/arrayAndSimpleQueries
 

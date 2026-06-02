@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerNormal/Normal.cpp.o: cxx eulerNormal/Normal.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerNormal/Normal: link $builddir/obj/eulerNormal/Normal.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/header.a $builddir/lib/lib/random.a $builddir/lib/lib/timer.a $builddir/lib/lib/stat/stat.a
+build $builddir/bin/eulerNormal/Normal: link $builddir/obj/eulerNormal/Normal.cpp.o $builddir/lib/lib/stat/stat.a $builddir/lib/lib/timer.a $builddir/lib/lib/random.a $builddir/lib/lib/header.a $builddir/lib/glog/glog.a
 build eulerNormal/Normal: phony $builddir/bin/eulerNormal/Normal
 

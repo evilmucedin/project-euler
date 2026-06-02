@@ -5,7 +5,7 @@ build $builddir/lib/lib/header.a: ar $builddir/obj/lib/header.cpp.o
 build lib/header: phony $builddir/lib/lib/header.a
 
 build $builddir/obj/lib/init.cpp.o: cxx lib/init.cpp
-  extra_cflags = -Iglog/..
+  extra_cflags = -Iglog2/src '-DGLOG_DEPRECATED=__attribute__((deprecated))' '-DGLOG_EXPORT=__attribute__((visibility("default")))' '-DGLOG_NO_EXPORT=__attribute__((visibility("default")))'
 build $builddir/lib/lib/init.a: ar $builddir/obj/lib/init.cpp.o
 build lib/init: phony $builddir/lib/lib/init.a
 

@@ -41,3 +41,6 @@ jobs:
           # full project is left to follow-up work because many targets
           # require MKL/OpenGL/CGAL/etc. system libs.
           ninja advent/2020/1/1
+
+      - name: Build ETFModeling with Ninja
+        run: ninja ETFModeling/ETFModeling

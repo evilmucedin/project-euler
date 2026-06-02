@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerRegression/Regression.cpp.o: cxx eulerRegression/Regression.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerRegression/Regression: link $builddir/obj/eulerRegression/Regression.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/exception.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/string.a $builddir/lib/lib/ml/regressor.a $builddir/lib/lib/ml/gbdt.a $builddir/lib/lib/ml/ols.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/csv.a $builddir/lib/lib/file.a $builddir/lib/lib/ml/dataframe.a $builddir/lib/lib/ml/metrics.a $builddir/lib/glog/glog.a $builddir/lib/lib/io/utils.a
+build $builddir/bin/eulerRegression/Regression: link $builddir/obj/eulerRegression/Regression.cpp.o $builddir/lib/lib/io/utils.a $builddir/lib/glog/glog.a $builddir/lib/lib/ml/metrics.a $builddir/lib/lib/ml/dataframe.a $builddir/lib/lib/file.a $builddir/lib/lib/io/csv.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/ml/ols.a $builddir/lib/lib/ml/gbdt.a $builddir/lib/lib/ml/regressor.a $builddir/lib/lib/string.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/exception.a $builddir/lib/lib/header.a
 build eulerRegression/Regression: phony $builddir/bin/eulerRegression/Regression
 

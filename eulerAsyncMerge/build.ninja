@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerAsyncMerge/AsyncMerge.cpp.o: cxx eulerAsyncMerge/AsyncMerge.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerAsyncMerge/AsyncMerge: link $builddir/obj/eulerAsyncMerge/AsyncMerge.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/header.a $builddir/lib/lib/exception.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/io/varlen.a $builddir/lib/lib/timer.a $builddir/lib/lib/random.a
+build $builddir/bin/eulerAsyncMerge/AsyncMerge: link $builddir/obj/eulerAsyncMerge/AsyncMerge.cpp.o $builddir/lib/lib/random.a $builddir/lib/lib/timer.a $builddir/lib/lib/io/varlen.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/exception.a $builddir/lib/lib/header.a $builddir/lib/glog/glog.a
 build eulerAsyncMerge/AsyncMerge: phony $builddir/bin/eulerAsyncMerge/AsyncMerge
 
