@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+"""Generate per-directory build.ninja files from BUCK / BUILD definitions.
+
+Walks the repo, parses every BUCK file (or BUILD if no BUCK is present) with
+the Python ast module, extracts cxx_binary / cxx_library / cxx_test targets,
+and emits one build.ninja per directory plus a top-level build.ninja that
+defines the toolchain rules and subninjas every generated file.
+
+The generator targets a Unix-y clang/g++ toolchain. Targets that need system
+libraries unavailable on the build machine (MKL, OpenGL, CGAL, ...) will fail
+to link; the CI smoke build only exercises //advent/2020/1 which has no
+external system deps. See README.md for build instructions.
+"""
+
+from __future__ import annotations
+
+import ast
+import os
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+CXX_KINDS = {"cxx_binary", "cxx_library", "cxx_test"}
+
+EXCLUDE_DIRS = {
+    ".git",
+    "buck-out",
+    "bazel-bin",
+    "bazel-out",
+    "bazel-testlogs",
+    "bazel-project-euler",
+    "toolchains",
+    "prelude",
+    "node_modules",
+    "__pycache__",
+}
+
+
+@dataclass
+class Target:
+    kind: str
+    name: str
+    pkg: str  # repo-relative directory, e.g. "lib" or "advent/2020/1"
+    srcs: List[str] = field(default_factory=list)
+    headers: List[str] = field(default_factory=list)
+    deps: List[str] = field(default_factory=list)
+    compiler_flags: List[str] = field(default_factory=list)
+    linker_flags: List[str] = field(default_factory=list)
+    public_include_directories: List[str] = field(default_factory=list)
+
+    @property
+    def label(self) -> str:
+        return f"//{self.pkg}:{self.name}" if self.pkg else f"//:{self.name}"
+
+
+def _literal(node: ast.AST):
+    """Best-effort ast literal evaluation; returns None for unknown forms."""
+    try:
+        return ast.literal_eval(node)
+    except Exception:
+        if isinstance(node, ast.Name):
+            return None  # external symbol, e.g. a load()-imported variable
+        if isinstance(node, ast.List):
+            return [_literal(e) for e in node.elts]
+        return None
+
+
+def _parse_rule(call: ast.Call, pkg: str) -> Optional[Target]:
+    if not isinstance(call.func, ast.Name) or call.func.id not in CXX_KINDS:
+        return None
+    kw = {k.arg: k.value for k in call.keywords if k.arg}
+    name_node = kw.get("name")
+    name = _literal(name_node) if name_node is not None else None
+    if not isinstance(name, str):
+        return None
+
+    def lst(key: str) -> List[str]:
+        v = _literal(kw[key]) if key in kw else None
+        if not isinstance(v, list):
+            return []
+        return [str(x) for x in v if isinstance(x, str)]
+
+    def dict_or_list(key: str) -> List[str]:
+        if key not in kw:
+            return []
+        v = _literal(kw[key])
+        if isinstance(v, dict):
+            return [str(x) for x in v.values() if isinstance(x, str)]
+        if isinstance(v, list):
+            return [str(x) for x in v if isinstance(x, str)]
+        return []
+
+    return Target(
+        kind=call.func.id,
+        name=name,
+        pkg=pkg,
+        srcs=lst("srcs"),
+        headers=dict_or_list("exported_headers") + dict_or_list("headers"),
+        deps=lst("deps"),
+        compiler_flags=lst("compiler_flags") + lst("preprocessor_flags"),
+        linker_flags=lst("linker_flags"),
+        public_include_directories=lst("public_include_directories"),
+    )
+
+
+def parse_build_file(path: Path) -> List[Target]:
+    pkg = str(path.parent.relative_to(REPO_ROOT)).replace(os.sep, "/")
+    if pkg == ".":
+        pkg = ""
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except SyntaxError as exc:
+        print(f"warn: skipping {path}: {exc}", file=sys.stderr)
+        return []
+    targets: List[Target] = []
+    for node in tree.body:
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+            tgt = _parse_rule(node.value, pkg)
+            if tgt is not None:
+                targets.append(tgt)
+    return targets
+
+
+def walk_build_files() -> List[Path]:
+    found: List[Path] = []
+    for dirpath, dirnames, filenames in os.walk(REPO_ROOT):
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS and not d.startswith(".")]
+        if "BUCK" in filenames:
+            found.append(Path(dirpath) / "BUCK")
+        elif "BUILD" in filenames:
+            found.append(Path(dirpath) / "BUILD")
+    return found
+
+
+def resolve_dep(dep: str, pkg: str) -> Optional[Tuple[str, str]]:
+    """Resolve a BUCK dep string to (pkg, name) or None for external/unknown."""
+    if dep.startswith(":"):
+        return (pkg, dep[1:])
+    if dep.startswith("//"):
+        rest = dep[2:]
+        if ":" in rest:
+            p, n = rest.split(":", 1)
+            return (p, n)
+        # //foo means //foo:foo by convention
+        return (rest, rest.rsplit("/", 1)[-1])
+    # Bazel-only "@external//..." etc — skip
+    return None
+
+
+def src_obj(pkg: str, src: str) -> str:
+    """Object path under $builddir for a given source file."""
+    src_clean = src.lstrip("./")
+    base = f"{pkg}/{src_clean}" if pkg else src_clean
+    return f"$builddir/obj/{base}.o"
+
+
+def closure(targets: Dict[Tuple[str, str], Target], root: Target) -> List[Target]:
+    """Return root's transitive deps (including itself), depth-first, deduped."""
+    seen: Dict[Tuple[str, str], None] = {}
+    order: List[Target] = []
+
+    def visit(t: Target):
+        key = (t.pkg, t.name)
+        if key in seen:
+            return
+        seen[key] = None
+        for d in t.deps:
+            r = resolve_dep(d, t.pkg)
+            if r is None or r not in targets:
+                continue
+            visit(targets[r])
+        order.append(t)
+
+    visit(root)
+    return order
+
+
+def emit_root_ninja(all_dirs: List[str]) -> str:
+    rules = r"""# Auto-generated by scripts/generate_ninja.py. Do not edit by hand.
+ninja_required_version = 1.10
+
+builddir = build-ninja
+
+cxx = clang++
+ar = ar
+
+# Repo-root include lets sources use "lib/header.h"-style paths.
+cxxflags = -std=c++17 -fPIC -O2 -I.
+ldflags =
+
+rule cxx
+  command = $cxx -MMD -MT $out -MF $out.d $cxxflags $extra_cflags -c $in -o $out
+  depfile = $out.d
+  deps = gcc
+  description = CXX $out
+
+rule ar
+  command = rm -f $out && $ar rcs $out $in
+  description = AR $out
+
+rule link
+  command = $cxx $in $ldflags $extra_ldflags -o $out
+  description = LINK $out
+
+"""
+    subninjas = "\n".join(
+        f"subninja {d}/build.ninja" for d in all_dirs if d
+    )
+    # default targets: ninja default builds everything that is named
+    return rules + subninjas + "\n"
+
+
+def emit_dir_ninja(pkg: str, dir_targets: List[Target], targets: Dict[Tuple[str, str], Target]) -> str:
+    lines: List[str] = [
+        f"# Auto-generated by scripts/generate_ninja.py for //{pkg}",
+        "",
+    ]
+
+    # Per-package compile flags: union of public_include_directories from deps
+    # plus this target's own compiler_flags. Computed per-target since each
+    # target may pull a different transitive set.
+    for t in dir_targets:
+        if t.kind == "cxx_library" and not t.srcs:
+            # Header-only library — no compile/archive needed.
+            continue
+
+        clos = closure(targets, t)
+        extra_includes: List[str] = []
+        for dep_t in clos:
+            for inc in dep_t.public_include_directories:
+                inc_path = (Path(dep_t.pkg) / inc).as_posix() if dep_t.pkg else inc
+                extra_includes.append(f"-I{inc_path}")
+        # Dedupe while preserving order.
+        seen_inc: Dict[str, None] = {}
+        for inc in extra_includes:
+            seen_inc.setdefault(inc, None)
+        extra_cflags_parts = list(seen_inc.keys()) + t.compiler_flags
+        extra_cflags = " ".join(extra_cflags_parts)
+
+        objs: List[str] = []
+        for src in t.srcs:
+            obj = src_obj(pkg, src)
+            src_path = f"{pkg}/{src}" if pkg else src
+            # Normalize paths like "./foo.cc" -> "foo.cc" preserving pkg prefix.
+            src_path = src_path.replace("/./", "/")
+            lines.append(f"build {obj}: cxx {src_path}")
+            if extra_cflags:
+                lines.append(f"  extra_cflags = {extra_cflags}")
+            objs.append(obj)
+
+        target_id = f"{pkg}/{t.name}" if pkg else t.name
+
+        # Use pkg-qualified phony aliases since subninja shares one global
+        # namespace; short names like "1" and "header" recur across packages.
+        alias = target_id
+
+        if t.kind == "cxx_library":
+            lib = f"$builddir/lib/{target_id}.a"
+            lines.append(f"build {lib}: ar {' '.join(objs)}")
+            lines.append(f"build {alias}: phony {lib}")
+        else:  # cxx_binary, cxx_test
+            # Collect static libs from transitive deps, in reverse-topological
+            # order so the linker sees dependees before dependencies.
+            link_objs: List[str] = list(objs)
+            for dep_t in clos:
+                if dep_t is t:
+                    continue
+                if dep_t.kind == "cxx_library" and dep_t.srcs:
+                    dep_id = f"{dep_t.pkg}/{dep_t.name}" if dep_t.pkg else dep_t.name
+                    link_objs.append(f"$builddir/lib/{dep_id}.a")
+            extra_ldflags = " ".join(t.linker_flags)
+            exe = f"$builddir/bin/{target_id}"
+            lines.append(f"build {exe}: link {' '.join(link_objs)}")
+            if extra_ldflags:
+                lines.append(f"  extra_ldflags = {extra_ldflags}")
+            lines.append(f"build {alias}: phony {exe}")
+        lines.append("")
+    return "\n".join(lines) + "\n"
+
+
+def main(argv: List[str]) -> int:
+    build_files = walk_build_files()
+    targets: Dict[Tuple[str, str], Target] = {}
+    per_dir: Dict[str, List[Target]] = {}
+    for bf in build_files:
+        for t in parse_build_file(bf):
+            key = (t.pkg, t.name)
+            if key in targets:
+                # Prefer BUCK over BUILD (already first in walk for that dir).
+                continue
+            targets[key] = t
+            per_dir.setdefault(t.pkg, []).append(t)
+
+    written: List[str] = []
+    for pkg, dir_targets in sorted(per_dir.items()):
+        if not dir_targets:
+            continue
+        out_path = REPO_ROOT / pkg / "build.ninja" if pkg else REPO_ROOT / "_root.ninja"
+        # Skip emitting to the literal repo root from the per-dir loop; the
+        # top-level build.ninja is written separately below.
+        if not pkg:
+            continue
+        content = emit_dir_ninja(pkg, dir_targets, targets)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(content, encoding="utf-8")
+        written.append(pkg)
+
+    root_path = REPO_ROOT / "build.ninja"
+    root_path.write_text(emit_root_ninja(sorted(written)), encoding="utf-8")
+
+    print(f"Generated {len(written)} per-directory build.ninja files + root build.ninja")
+    print(f"Parsed {len(targets)} targets total across {len(build_files)} BUCK/BUILD files")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
