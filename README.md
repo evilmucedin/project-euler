@@ -24,10 +24,20 @@ Make sure `~/.local/bin` is on your `PATH`, then build any project with:
 ./b.sh Normal           # builds //eulerNormal/... in opt mode
 ./r.sh Normal           # builds and runs //eulerNormal/...
 ./b.sh advent/2020/1    # builds //advent/2020/1/...
+./bETFModelingBuck2.sh   # builds //ETFModeling:ETFModeling with Buck2
 ```
 
-The `cCommon.sh` helper auto-detects `buck2` on PATH. You can override the
-binary with `BUCK_BIN=/path/to/buck2`.
+The `cCommon.sh` helper requires `buck2` on PATH. You can install only Buck2
+with one of the platform installers:
+
+```sh
+./installBuck2Ubuntu.sh      # Ubuntu Linux
+./installBuck2MacOS.sh       # macOS
+powershell -ExecutionPolicy Bypass -File .\\installBuck2Windows.ps1
+```
+
+You can also override the binary with `BUCK_BIN=/path/to/buck2`. Legacy Buck is
+retired for this repository.
 
 ## Building on macOS
 

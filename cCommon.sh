@@ -2,19 +2,18 @@
 
 unamestr=`uname`
 
-# Allow override via env var
+# Buck is retired for this repository; require Buck2. Allow override via env var.
 if [ -n "${BUCK_BIN}" ]; then
     buck_bin="${BUCK_BIN}"
+elif command -v buck2 >/dev/null 2>&1; then
+    buck_bin=`command -v buck2`
 else
-    # Prefer buck2 if available, otherwise fall back to legacy buck
-    if command -v buck2 >/dev/null 2>&1; then
-        buck_bin=`command -v buck2`
-    elif command -v buck >/dev/null 2>&1; then
-        buck_bin=`command -v buck`
-    else
-        echo "WARNING: neither buck2 nor buck found in PATH" >&2
-        buck_bin=buck2
-    fi
+    echo "ERROR: buck2 not found in PATH. Install Buck2 or set BUCK_BIN=/path/to/buck2." >&2
+    exit 1
+fi
+if [ "`basename "${buck_bin}"`" = "buck" ]; then
+    echo "ERROR: legacy buck is retired; use buck2 instead." >&2
+    exit 1
 fi
 
 eulerDir() {
