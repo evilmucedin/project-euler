@@ -1,0 +1,43 @@
+name: Ubuntu Ninja Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ninja build (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install APT dependencies
+        run: |
+          # CI installs only the packages required for the smoke build.
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang ninja-build python3 pkg-config
+
+      - name: Show toolchain versions
+        run: |
+          clang++ --version
+          ninja --version
+          python3 --version
+
+      - name: Generate build.ninja files
+        run: python3 scripts/generate_ninja.py
+
+      - name: Smoke build (small dependency-free target)
+        run: |
+          # Mirror the buck2 workflow: build advent/2020/1 which transitively
+          # exercises lib:header and the cxx toolchain. Expanding to the
+          # full project is left to follow-up work because many targets
+          # require MKL/OpenGL/CGAL/etc. system libs.
+          ninja advent/2020/1/1

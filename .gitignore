@@ -1,4 +1,5 @@
 buck-out/
+build-ninja/
 common/common.pyc
 perf.data
 perf.data.old
