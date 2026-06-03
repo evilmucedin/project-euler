@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 #
-# Install the latest Buck2 release on Ubuntu Linux.
+# Install a known-good Buck2 release on Ubuntu Linux.
 #
 # Usage:
 #   ./scripts/installBuck2Ubuntu.sh
 #   PREFIX=/usr/local ./scripts/installBuck2Ubuntu.sh
 #
 # Installs buck2 to ${PREFIX:-$HOME/.local}/bin/buck2.
+# Override the release with BUCK2_VERSION=YYYY-MM-DD if needed.
 
 set -euo pipefail
 
@@ -45,8 +46,15 @@ trap 'rm -rf "${tmp}"' EXIT
 
 mkdir -p "${bin_dir}"
 
-echo ">>> Downloading Buck2 latest (${buck_arch})"
-curl -fsSL "https://github.com/facebook/buck2/releases/download/latest/buck2-${buck_arch}.zst" \
+# Do not use the historical `latest` tag: it points at an old prerelease whose
+# bundled prelude does not parse with current Buck2 projects on Ubuntu 26.04
+# (for example, `prelude//apple/apple_rules_impl.bzl` can fail on @oss-enable
+# guarded blocks). Pin a dated release so the binary and bundled prelude stay
+# in sync and CI/developer machines are reproducible.
+buck2_version=${BUCK2_VERSION:-2026-06-01}
+
+echo ">>> Downloading Buck2 ${buck2_version} (${buck_arch})"
+curl -fsSL "https://github.com/facebook/buck2/releases/download/${buck2_version}/buck2-${buck_arch}.zst" \
     -o "${tmp}/buck2.zst"
 zstd -d -f "${tmp}/buck2.zst" -o "${install_path}"
 chmod +x "${install_path}"
