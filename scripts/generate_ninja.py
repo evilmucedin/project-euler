@@ -6,7 +6,7 @@ the Python ast module, extracts cxx_binary / cxx_library / cxx_test targets,
 and emits one build.ninja per directory plus a top-level build.ninja that
 defines the toolchain rules and subninjas every generated file.
 
-The generator targets a Unix-y clang/g++ toolchain. Targets that need system
+The generator targets a Unix-y C++ toolchain. Targets that need system
 libraries unavailable on the build machine (MKL, OpenGL, CGAL, ...) will fail
 to link; the CI smoke build only exercises //advent/2020/1 which has no
 external system deps. See README.md for build instructions.
@@ -193,7 +193,11 @@ ninja_required_version = 1.10
 
 builddir = build-ninja
 
-cxx = clang++
+# Use the system C++ driver instead of hard-coding clang++. On Ubuntu releases
+# where the clang package is installed without matching C++ standard library
+# discovery, clang++ may fail to find headers such as <algorithm>; /usr/bin/c++
+# is provided by build-essential and points at the distro-configured compiler.
+cxx = c++
 ar = ar
 
 # Repo-root include lets sources use "lib/header.h"-style paths.
