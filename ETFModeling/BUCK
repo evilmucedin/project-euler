@@ -15,6 +15,8 @@ cxx_binary(
     "//lib:timer",
     "//lib:file",
     "//lib/io:csv",
+    "//lib/io:fileIo",
+    "//lib/io:stream",
     "//lib/ml:dataframe",
   ],
 )
