@@ -13,6 +13,7 @@ This file is for agents running in Pi. Also read `CLAUDE.md`; it contains the sh
 
 - Primary build system: Buck2.
 - Generated smoke-build system: Ninja via `scripts/generate_ninja.py`.
+- Additional build system: Bazel for packages that already have `BUILD` files.
 - After changing any `BUCK` or `BUILD` file, run:
 
 ```sh
@@ -23,6 +24,12 @@ python3 scripts/generate_ninja.py
 
 ```sh
 ninja advent/2020/1/1
+```
+
+- For Bazel changes, validate an explicit target, for example:
+
+```sh
+./bBazel.sh //advent/2024/1:all
 ```
 
 - If `buck2` is installed, also validate:
