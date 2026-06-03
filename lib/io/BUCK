@@ -94,6 +94,7 @@ cxx_library(
   deps=[
     "//lib:exception",
     "//lib:header",
+    "//lib:noncopyable",
     "//lib/io:stream",
     "//lib:string",
   ],
