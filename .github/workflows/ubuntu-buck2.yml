@@ -31,17 +31,7 @@ jobs:
 
       - name: Install Buck2
         run: |
-          arch=$(uname -m)
-          case "${arch}" in
-            x86_64|amd64) buck_arch=x86_64-unknown-linux-musl ;;
-            aarch64|arm64) buck_arch=aarch64-unknown-linux-musl ;;
-            *) echo "Unsupported architecture: ${arch}"; exit 1 ;;
-          esac
-          mkdir -p "${HOME}/.local/bin"
-          curl -fsSL "https://github.com/facebook/buck2/releases/download/latest/buck2-${buck_arch}.zst" \
-            -o /tmp/buck2.zst
-          zstd -d /tmp/buck2.zst -o "${HOME}/.local/bin/buck2"
-          chmod +x "${HOME}/.local/bin/buck2"
+          ./installBuck2Ubuntu.sh
           echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
 
       - name: Show buck2 version
@@ -53,3 +43,6 @@ jobs:
           # the cxx toolchain. Expanding to //... is left to follow-up work
           # because individual targets require MKL/OpenGL/etc. system libs.
           buck2 build //advent/2020/1/...
+
+      - name: Build ETFModeling with Buck2
+        run: ./bETFModelingBuck2.sh

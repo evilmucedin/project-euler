@@ -24,7 +24,7 @@ cxx_library(
     deps=[
         ":header",
         "//gflags:gflags",
-        "//glog:glog",
+        "//glog2:glog",
     ],
     visibility=[
         "PUBLIC",
