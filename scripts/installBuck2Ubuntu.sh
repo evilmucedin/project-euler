@@ -3,8 +3,8 @@
 # Install the latest Buck2 release on Ubuntu Linux.
 #
 # Usage:
-#   ./installBuck2Ubuntu.sh
-#   PREFIX=/usr/local ./installBuck2Ubuntu.sh
+#   ./scripts/installBuck2Ubuntu.sh
+#   PREFIX=/usr/local ./scripts/installBuck2Ubuntu.sh
 #
 # Installs buck2 to ${PREFIX:-$HOME/.local}/bin/buck2.
 
