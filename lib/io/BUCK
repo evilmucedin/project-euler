@@ -162,6 +162,8 @@ cxx_library(
   deps=[
     ":fileIo",
     "//lib:exception",
+    "//lib:header",
+    "//lib:noncopyable",
   ],
   visibility=[
     "PUBLIC",
