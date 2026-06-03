@@ -3,7 +3,11 @@ ninja_required_version = 1.10
 
 builddir = build-ninja
 
-cxx = clang++
+# Use the system C++ driver instead of hard-coding clang++. On Ubuntu releases
+# where the clang package is installed without matching C++ standard library
+# discovery, clang++ may fail to find headers such as <algorithm>; /usr/bin/c++
+# is provided by build-essential and points at the distro-configured compiler.
+cxx = c++
 ar = ar
 
 # Repo-root include lets sources use "lib/header.h"-style paths.
@@ -138,8 +142,6 @@ subninja advent/2024/9/build.ninja
 subninja advent/lib/build.ninja
 subninja advent/template/build.ninja
 subninja armadillo/build.ninja
-subninja crypto/expectations/build.ninja
-subninja crypto/lib/build.ninja
 subninja eigen/build.ninja
 subninja eigen/tests/build.ninja
 subninja euler/264/build.ninja
