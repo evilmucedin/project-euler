@@ -2,8 +2,8 @@
 Install the latest Buck2 release on Windows.
 
 Usage:
-  powershell -ExecutionPolicy Bypass -File .\installBuck2Windows.ps1
-  powershell -ExecutionPolicy Bypass -File .\installBuck2Windows.ps1 -InstallDir C:\Tools\Buck2
+  powershell -ExecutionPolicy Bypass -File .\scripts\installBuck2Windows.ps1
+  powershell -ExecutionPolicy Bypass -File .\scripts\installBuck2Windows.ps1 -InstallDir C:\Tools\Buck2
 
 Installs buck2.exe to $InstallDir, defaulting to $env:USERPROFILE\.local\bin.
 Requires zstd.exe on PATH because Buck2 release assets are distributed as .zst.

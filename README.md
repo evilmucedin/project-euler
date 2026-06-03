@@ -32,9 +32,9 @@ The `cCommon.sh` helper requires `buck2` on PATH. You can install only Buck2
 with one of the platform installers:
 
 ```sh
-./installBuck2Ubuntu.sh      # Ubuntu Linux
-./installBuck2MacOS.sh       # macOS
-powershell -ExecutionPolicy Bypass -File .\\installBuck2Windows.ps1
+./scripts/installBuck2Ubuntu.sh      # Ubuntu Linux
+./scripts/installBuck2MacOS.sh       # macOS
+powershell -ExecutionPolicy Bypass -File .\\scripts\\installBuck2Windows.ps1
 ```
 
 You can also override the binary with `BUCK_BIN=/path/to/buck2`. Legacy Buck is

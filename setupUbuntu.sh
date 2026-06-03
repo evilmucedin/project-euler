@@ -85,7 +85,7 @@ echo ">>> Installing Buck2"
 if command -v buck2 >/dev/null 2>&1; then
     echo "buck2 already installed: $(command -v buck2)"
 else
-    ./installBuck2Ubuntu.sh
+    ./scripts/installBuck2Ubuntu.sh
 fi
 
 if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then

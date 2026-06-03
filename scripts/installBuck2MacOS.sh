@@ -3,8 +3,8 @@
 # Install the latest Buck2 release on macOS.
 #
 # Usage:
-#   ./installBuck2MacOS.sh
-#   PREFIX=/usr/local ./installBuck2MacOS.sh
+#   ./scripts/installBuck2MacOS.sh
+#   PREFIX=/usr/local ./scripts/installBuck2MacOS.sh
 #
 # Installs buck2 to ${PREFIX:-$HOME/.local}/bin/buck2.
 
