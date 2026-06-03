@@ -138,6 +138,8 @@ subninja advent/2024/9/build.ninja
 subninja advent/lib/build.ninja
 subninja advent/template/build.ninja
 subninja armadillo/build.ninja
+subninja crypto/expectations/build.ninja
+subninja crypto/lib/build.ninja
 subninja eigen/build.ninja
 subninja eigen/tests/build.ninja
 subninja euler/264/build.ninja
