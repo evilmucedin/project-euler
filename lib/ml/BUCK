@@ -72,6 +72,11 @@ cxx_library(
   exported_headers=[
     "dataframe.h",
   ],
+  exported_deps=[
+    "//lib:exception",
+    "//lib:header",
+    "//lib:string",
+  ],
   srcs=[
     "dataframe.cpp",
   ],
