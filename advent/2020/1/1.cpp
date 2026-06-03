@@ -1,6 +1,8 @@
 #include "lib/header.h"
 
 void first() {
+    // std::freopen("input.txt", "r", stdin);
+
     I32Set s;
     i32 k;
     while (scanf("%d", &k) == 1) {
