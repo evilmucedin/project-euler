@@ -82,11 +82,10 @@ if [ "${#PIP_PACKAGES[@]}" -gt 0 ]; then
 fi
 
 echo ">>> Installing Buck2"
-if command -v buck2 >/dev/null 2>&1; then
-    echo "buck2 already installed: $(command -v buck2)"
-else
-    ./scripts/installBuck2Ubuntu.sh
-fi
+# Always run the installer instead of trusting an existing buck2 on PATH. Older
+# Buck2 binaries can fail before analysis by parsing an incompatible bundled
+# prelude on Ubuntu 26.04.
+./scripts/installBuck2Ubuntu.sh
 
 if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
     echo "NOTE: add ${HOME}/.local/bin to your PATH to use installed user tools."
