@@ -6,10 +6,10 @@ build eulerStockModeling/stockModelingLib: phony $builddir/lib/eulerStockModelin
 
 build $builddir/obj/eulerStockModeling/StockModeling.cpp.o: cxx eulerStockModeling/StockModeling.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerStockModeling/StockModeling: link $builddir/obj/eulerStockModeling/StockModeling.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/random.a $builddir/lib/eulerStockModeling/stockModelingLib.a $builddir/lib/lib/exception.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/string.a $builddir/lib/lib/io/csv.a $builddir/lib/glog/glog.a $builddir/lib/lib/io/utils.a
+build $builddir/bin/eulerStockModeling/StockModeling: link $builddir/obj/eulerStockModeling/StockModeling.cpp.o $builddir/lib/lib/io/utils.a $builddir/lib/glog/glog.a $builddir/lib/lib/io/csv.a $builddir/lib/lib/string.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/exception.a $builddir/lib/eulerStockModeling/stockModelingLib.a $builddir/lib/lib/random.a $builddir/lib/lib/header.a
 build eulerStockModeling/StockModeling: phony $builddir/bin/eulerStockModeling/StockModeling
 
 build $builddir/obj/eulerStockModeling/StockModelingTest.cpp.o: cxx eulerStockModeling/StockModelingTest.cpp
-build $builddir/bin/eulerStockModeling/StockModelingTest: link $builddir/obj/eulerStockModeling/StockModelingTest.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/random.a $builddir/lib/eulerStockModeling/stockModelingLib.a $builddir/lib/gtest/gtestInt.a $builddir/lib/gtest/gtest.a
+build $builddir/bin/eulerStockModeling/StockModelingTest: link $builddir/obj/eulerStockModeling/StockModelingTest.cpp.o $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a $builddir/lib/eulerStockModeling/stockModelingLib.a $builddir/lib/lib/random.a $builddir/lib/lib/header.a
 build eulerStockModeling/StockModelingTest: phony $builddir/bin/eulerStockModeling/StockModelingTest
 

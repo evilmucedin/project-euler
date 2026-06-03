@@ -2,6 +2,6 @@
 
 build $builddir/obj/euler/euler622/622.cpp.o: cxx euler/euler622/622.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/euler/euler622/622: link $builddir/obj/euler/euler622/622.cpp.o $builddir/lib/lib/header.a $builddir/lib/glog/glog.a
+build $builddir/bin/euler/euler622/622: link $builddir/obj/euler/euler622/622.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/header.a
 build euler/euler622/622: phony $builddir/bin/euler/euler622/622
 

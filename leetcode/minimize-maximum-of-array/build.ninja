@@ -2,6 +2,6 @@
 
 build $builddir/obj/leetcode/minimize-maximum-of-array/minimize-maximum-of-array.cpp.o: cxx leetcode/minimize-maximum-of-array/minimize-maximum-of-array.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/leetcode/minimize-maximum-of-array/minimize-maximum-of-array: link $builddir/obj/leetcode/minimize-maximum-of-array/minimize-maximum-of-array.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/timer.a $builddir/lib/glog/glog.a
+build $builddir/bin/leetcode/minimize-maximum-of-array/minimize-maximum-of-array: link $builddir/obj/leetcode/minimize-maximum-of-array/minimize-maximum-of-array.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/timer.a $builddir/lib/lib/header.a
 build leetcode/minimize-maximum-of-array/minimize-maximum-of-array: phony $builddir/bin/leetcode/minimize-maximum-of-array/minimize-maximum-of-array
 

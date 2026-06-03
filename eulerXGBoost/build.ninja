@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerXGBoost/XGBoost.cpp.o: cxx eulerXGBoost/XGBoost.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerXGBoost/XGBoost: link $builddir/obj/eulerXGBoost/XGBoost.cpp.o $builddir/lib/lib/header.a $builddir/lib/glog/glog.a $builddir/lib/lib/exception.a $builddir/lib/lib/string.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/utils.a
+build $builddir/bin/eulerXGBoost/XGBoost: link $builddir/obj/eulerXGBoost/XGBoost.cpp.o $builddir/lib/lib/io/utils.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/string.a $builddir/lib/lib/exception.a $builddir/lib/glog/glog.a $builddir/lib/lib/header.a
 build eulerXGBoost/XGBoost: phony $builddir/bin/eulerXGBoost/XGBoost
 

@@ -2,11 +2,11 @@
 
 build $builddir/obj/lib/stat/tests/tdigestTest.cpp.o: cxx lib/stat/tests/tdigestTest.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/lib/stat/tests/tdigestTest: link $builddir/obj/lib/stat/tests/tdigestTest.cpp.o $builddir/lib/lib/header.a $builddir/lib/glog/glog.a $builddir/lib/lib/stat/tdigest.a $builddir/lib/gtest/gtestInt.a $builddir/lib/gtest/gtest.a
+build $builddir/bin/lib/stat/tests/tdigestTest: link $builddir/obj/lib/stat/tests/tdigestTest.cpp.o $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a $builddir/lib/lib/stat/tdigest.a $builddir/lib/glog/glog.a $builddir/lib/lib/header.a
 build lib/stat/tests/tdigestTest: phony $builddir/bin/lib/stat/tests/tdigestTest
 
 build $builddir/obj/lib/stat/tests/countersTest.cpp.o: cxx lib/stat/tests/countersTest.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/lib/stat/tests/countersTest: link $builddir/obj/lib/stat/tests/countersTest.cpp.o $builddir/lib/gtest/gtestInt.a $builddir/lib/gtest/gtest.a $builddir/lib/glog/glog.a
+build $builddir/bin/lib/stat/tests/countersTest: link $builddir/obj/lib/stat/tests/countersTest.cpp.o $builddir/lib/glog/glog.a $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a
 build lib/stat/tests/countersTest: phony $builddir/bin/lib/stat/tests/countersTest
 

@@ -5,6 +5,6 @@ build $builddir/lib/gtestTest/sample1.a: ar $builddir/obj/gtestTest/sample1.cc.o
 build gtestTest/sample1: phony $builddir/lib/gtestTest/sample1.a
 
 build $builddir/obj/gtestTest/sample1_unittest.cc.o: cxx gtestTest/sample1_unittest.cc
-build $builddir/bin/gtestTest/sample1Unittest: link $builddir/obj/gtestTest/sample1_unittest.cc.o $builddir/lib/gtestTest/sample1.a $builddir/lib/gtest/gtestInt.a $builddir/lib/gtest/gtest.a
+build $builddir/bin/gtestTest/sample1Unittest: link $builddir/obj/gtestTest/sample1_unittest.cc.o $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a $builddir/lib/gtestTest/sample1.a
 build gtestTest/sample1Unittest: phony $builddir/bin/gtestTest/sample1Unittest
 
