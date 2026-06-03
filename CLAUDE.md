@@ -5,7 +5,7 @@ Guidance for Claude or other AI coding agents working in this repository.
 ## Project overview
 
 - This repository contains C++ solutions and experiments for Project Euler, Advent of Code, LeetCode, and related small projects.
-- Buck2 is the primary build system. Ninja files are generated from `BUCK` / `BUILD` files by `scripts/generate_ninja.py` and are used for a lightweight CI smoke build.
+- Buck2 is the primary build system. Ninja files are generated from `BUCK` / `BUILD` files by `scripts/generate_ninja.py` and are used for a lightweight CI smoke build. Bazel metadata also exists for targets that have `BUILD` files.
 - Many targets depend on optional system libraries such as MKL, OpenGL, CGAL, Boost, or vendored third-party code. Prefer small smoke targets unless the task requires a full target.
 
 ## Setup
@@ -36,11 +36,14 @@ python3 scripts/generate_ninja.py
 
 # Ninja smoke build used by CI
 ninja advent/2020/1/1
+
+# Bazel target build for packages with BUILD files
+./bBazel.sh //advent/2024/1:all
 ```
 
 ## Development notes
 
-- Prefer editing `BUCK` / `BUILD` definitions first, then regenerate Ninja files with `python3 scripts/generate_ninja.py` when build metadata changes.
+- Prefer editing `BUCK` / `BUILD` definitions first, then regenerate Ninja files with `python3 scripts/generate_ninja.py` when Ninja build metadata changes. Remember that `BUILD` files may be consumed by Bazel too.
 - Do not hand-edit generated `build.ninja` files unless the task is explicitly about generated output; update the generator instead.
 - Keep CI smoke builds dependency-light. Expanding CI to full `//...` or full Ninja builds is likely to fail without additional system libraries.
 - Existing generated files and third-party directories are large. Keep diffs focused on files relevant to the task.

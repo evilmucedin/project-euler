@@ -1,5 +1,6 @@
 buck-out/
 build-ninja/
+bazel-*
 common/common.pyc
 perf.data
 perf.data.old
