@@ -302,7 +302,9 @@ def run_backtest(md: MarketData, args: argparse.Namespace) -> Tuple[List[Dict[st
     equal_equity = 1.0
     equal_returns: List[float] = []
 
+    print("run_backtest 1...")
     for rb_pos, start in enumerate(rebalances[:-1]):
+        print("     run_backtest 2 " + str(len(rebalances)) + "...")
         end = rebalances[rb_pos + 1]
         train = md.returns[start - train_days : start]
         new_weights = optimize_weights(train, weights, args, rng)
@@ -377,6 +379,7 @@ def main() -> int:
     tickers = split_csv_words(args.tickers)
     os.makedirs(args.output_dir, exist_ok=True)
     md = load_market_data(Path(args.data_folder), tickers, args.start_date, args.end_date)
+    print("MD is ready")
     equity_rows, allocation_rows, metrics = run_backtest(md, args)
 
     output_dir = Path(args.output_dir)
