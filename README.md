@@ -28,8 +28,9 @@ Make sure `~/.local/bin` is on your `PATH`, then build any project with:
 ./bBazel.sh //advent/2024/1:all  # builds an existing Bazel target
 ```
 
-The `cCommon.sh` helper requires `buck2` on PATH. You can install only Buck2
-with one of the platform installers:
+The `cCommon.sh` helper uses `buck2` from PATH, `BUCK_BIN`, or the standard
+`~/.local/bin/buck2` location used by `setupUbuntu.sh`. You can install only
+Buck2 with one of the platform installers:
 
 ```sh
 ./scripts/installBuck2Ubuntu.sh      # Ubuntu Linux

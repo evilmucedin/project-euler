@@ -7,8 +7,13 @@ if [ -n "${BUCK_BIN:-}" ]; then
     buck_bin="${BUCK_BIN}"
 elif command -v buck2 >/dev/null 2>&1; then
     buck_bin=`command -v buck2`
+elif [ -x "${HOME}/.local/bin/buck2" ]; then
+    # setupUbuntu.sh installs Buck2 here. Ubuntu login shells do not always
+    # pick up ~/.local/bin immediately, so make local builds work without
+    # requiring users to restart their shell or export PATH manually.
+    buck_bin="${HOME}/.local/bin/buck2"
 else
-    echo "ERROR: buck2 not found in PATH. Install Buck2 or set BUCK_BIN=/path/to/buck2." >&2
+    echo "ERROR: buck2 not found. Install Buck2, add ~/.local/bin to PATH, or set BUCK_BIN=/path/to/buck2." >&2
     exit 1
 fi
 if [ "`basename "${buck_bin}"`" = "buck" ]; then

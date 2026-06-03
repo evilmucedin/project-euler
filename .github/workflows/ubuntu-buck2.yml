@@ -46,3 +46,16 @@ jobs:
 
       - name: Build ETFModeling with Buck2
         run: ./bETFModelingBuck2.sh
+
+      - name: Build ETFModeling with Buck2 on Ubuntu 26.04
+        run: |
+          docker run --rm -v "${PWD}:/repo" -w /repo ubuntu:26.04 bash -lc '
+            set -euo pipefail
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              build-essential clang lld curl ca-certificates git pkg-config \
+              python3 python3-pip zstd
+            ./scripts/installBuck2Ubuntu.sh
+            ./bETFModelingBuck2.sh
+          '
