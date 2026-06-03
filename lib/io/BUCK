@@ -19,6 +19,10 @@ cxx_library(
   exported_headers=[
     "fileIo.h",
   ],
+  exported_deps=[
+    "//lib:header",
+    "//lib:noncopyable",
+  ],
   srcs=[
     "fileIo.cpp",
   ],
@@ -88,6 +92,9 @@ cxx_library(
   exported_headers=[
     "csv.h",
   ],
+  exported_deps=[
+    "//lib:header",
+  ],
   srcs=[
     "csv.cpp",
   ],
@@ -156,12 +163,17 @@ cxx_library(
   exported_headers=[
     "stream.h",
   ],
+  exported_deps=[
+    ":fileIo",
+  ],
   srcs=[
     "stream.cpp",
   ],
   deps=[
     ":fileIo",
     "//lib:exception",
+    "//lib:header",
+    "//lib:noncopyable",
   ],
   visibility=[
     "PUBLIC",
