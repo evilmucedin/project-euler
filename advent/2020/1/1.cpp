@@ -5,6 +5,8 @@ void first() {
     i32 k;
     while (scanf("%d", &k) == 1) {
         if (s.find(2020 - k) != s.end()) {
+            cerr << k << endl;
+            cerr << 2020 - k << endl;
             cout << k * (2020 - k) << endl;
         }
         s.insert(k);
@@ -29,7 +31,7 @@ void second() {
 }
 
 int main() {
-    // first();
-    second();
+    first();
+    // second();
     return 0;
 }
