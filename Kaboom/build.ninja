@@ -2,7 +2,7 @@
 
 build $builddir/obj/Kaboom/Kaboom.cpp.o: cxx Kaboom/Kaboom.cpp
   extra_cflags = -fopenmp
-build $builddir/bin/Kaboom/Kaboom: link $builddir/obj/Kaboom/Kaboom.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/geometry.a
+build $builddir/bin/Kaboom/Kaboom: link $builddir/obj/Kaboom/Kaboom.cpp.o $builddir/lib/lib/geometry.a $builddir/lib/lib/header.a
   extra_ldflags = -fopenmp
 build Kaboom/Kaboom: phony $builddir/bin/Kaboom/Kaboom
 

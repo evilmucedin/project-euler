@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import ast
 import os
+import shlex
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -49,6 +50,7 @@ class Target:
     headers: List[str] = field(default_factory=list)
     deps: List[str] = field(default_factory=list)
     compiler_flags: List[str] = field(default_factory=list)
+    exported_compiler_flags: List[str] = field(default_factory=list)
     linker_flags: List[str] = field(default_factory=list)
     public_include_directories: List[str] = field(default_factory=list)
 
@@ -102,6 +104,7 @@ def _parse_rule(call: ast.Call, pkg: str) -> Optional[Target]:
         headers=dict_or_list("exported_headers") + dict_or_list("headers"),
         deps=lst("deps"),
         compiler_flags=lst("compiler_flags") + lst("preprocessor_flags"),
+        exported_compiler_flags=lst("exported_compiler_flags") + lst("exported_preprocessor_flags"),
         linker_flags=lst("linker_flags"),
         public_include_directories=lst("public_include_directories"),
     )
@@ -158,6 +161,11 @@ def src_obj(pkg: str, src: str) -> str:
     return f"$builddir/obj/{base}.o"
 
 
+def shell_join(parts: List[str]) -> str:
+    """Quote command fragments that are stored in Ninja variables."""
+    return " ".join(shlex.quote(part) for part in parts)
+
+
 def closure(targets: Dict[Tuple[str, str], Target], root: Target) -> List[Target]:
     """Return root's transitive deps (including itself), depth-first, deduped."""
     seen: Dict[Tuple[str, str], None] = {}
@@ -193,7 +201,7 @@ cxxflags = -std=c++17 -fPIC -O2 -I.
 ldflags =
 
 rule cxx
-  command = $cxx -MMD -MT $out -MF $out.d $cxxflags $extra_cflags -c $in -o $out
+  command = $cxx -MMD -MT $out -MF $out.d $extra_cflags $cxxflags -c $in -o $out
   depfile = $out.d
   deps = gcc
   description = CXX $out
@@ -232,16 +240,21 @@ def emit_dir_ninja(pkg: str, dir_targets: List[Target], targets: Dict[Tuple[str,
 
         clos = closure(targets, t)
         extra_includes: List[str] = []
+        extra_exported_flags: List[str] = []
         for dep_t in clos:
             for inc in dep_t.public_include_directories:
                 inc_path = (Path(dep_t.pkg) / inc).as_posix() if dep_t.pkg else inc
                 extra_includes.append(f"-I{inc_path}")
+            extra_exported_flags.extend(dep_t.exported_compiler_flags)
         # Dedupe while preserving order.
         seen_inc: Dict[str, None] = {}
         for inc in extra_includes:
             seen_inc.setdefault(inc, None)
-        extra_cflags_parts = list(seen_inc.keys()) + t.compiler_flags
-        extra_cflags = " ".join(extra_cflags_parts)
+        seen_exported_flags: Dict[str, None] = {}
+        for flag in extra_exported_flags:
+            seen_exported_flags.setdefault(flag, None)
+        extra_cflags_parts = list(seen_inc.keys()) + list(seen_exported_flags.keys()) + t.compiler_flags
+        extra_cflags = shell_join(extra_cflags_parts)
 
         objs: List[str] = []
         for src in t.srcs:
@@ -265,16 +278,16 @@ def emit_dir_ninja(pkg: str, dir_targets: List[Target], targets: Dict[Tuple[str,
             lines.append(f"build {lib}: ar {' '.join(objs)}")
             lines.append(f"build {alias}: phony {lib}")
         else:  # cxx_binary, cxx_test
-            # Collect static libs from transitive deps, in reverse-topological
-            # order so the linker sees dependees before dependencies.
+            # Collect static libs from transitive deps in reverse closure order
+            # so libraries that satisfy references appear after their users.
             link_objs: List[str] = list(objs)
-            for dep_t in clos:
+            for dep_t in reversed(clos):
                 if dep_t is t:
                     continue
                 if dep_t.kind == "cxx_library" and dep_t.srcs:
                     dep_id = f"{dep_t.pkg}/{dep_t.name}" if dep_t.pkg else dep_t.name
                     link_objs.append(f"$builddir/lib/{dep_id}.a")
-            extra_ldflags = " ".join(t.linker_flags)
+            extra_ldflags = shell_join(t.linker_flags)
             exe = f"$builddir/bin/{target_id}"
             lines.append(f"build {exe}: link {' '.join(link_objs)}")
             if extra_ldflags:

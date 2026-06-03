@@ -2,6 +2,6 @@
 
 build $builddir/obj/leetcode/parallel-courses-ii/parallel-courses-ii.cpp.o: cxx leetcode/parallel-courses-ii/parallel-courses-ii.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/leetcode/parallel-courses-ii/parallel-courses-ii: link $builddir/obj/leetcode/parallel-courses-ii/parallel-courses-ii.cpp.o $builddir/lib/lib/header.a $builddir/lib/lib/timer.a $builddir/lib/glog/glog.a
+build $builddir/bin/leetcode/parallel-courses-ii/parallel-courses-ii: link $builddir/obj/leetcode/parallel-courses-ii/parallel-courses-ii.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/timer.a $builddir/lib/lib/header.a
 build leetcode/parallel-courses-ii/parallel-courses-ii: phony $builddir/bin/leetcode/parallel-courses-ii/parallel-courses-ii
 

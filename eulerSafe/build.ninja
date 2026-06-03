@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerSafe/Safe.cpp.o: cxx eulerSafe/Safe.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerSafe/Safe: link $builddir/obj/eulerSafe/Safe.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/header.a
+build $builddir/bin/eulerSafe/Safe: link $builddir/obj/eulerSafe/Safe.cpp.o $builddir/lib/lib/header.a $builddir/lib/glog/glog.a
 build eulerSafe/Safe: phony $builddir/bin/eulerSafe/Safe
 

@@ -2,6 +2,6 @@
 
 build $builddir/obj/eulerGoldschmidt/Goldschmidt.cpp.o: cxx eulerGoldschmidt/Goldschmidt.cpp
   extra_cflags = -Iglog/..
-build $builddir/bin/eulerGoldschmidt/Goldschmidt: link $builddir/obj/eulerGoldschmidt/Goldschmidt.cpp.o $builddir/lib/glog/glog.a $builddir/lib/lib/header.a $builddir/lib/lib/matrix.a $builddir/lib/lib/random.a $builddir/lib/lib/timer.a
+build $builddir/bin/eulerGoldschmidt/Goldschmidt: link $builddir/obj/eulerGoldschmidt/Goldschmidt.cpp.o $builddir/lib/lib/timer.a $builddir/lib/lib/random.a $builddir/lib/lib/matrix.a $builddir/lib/lib/header.a $builddir/lib/glog/glog.a
 build eulerGoldschmidt/Goldschmidt: phony $builddir/bin/eulerGoldschmidt/Goldschmidt
 
