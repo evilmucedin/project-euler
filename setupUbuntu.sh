@@ -82,23 +82,10 @@ if [ "${#PIP_PACKAGES[@]}" -gt 0 ]; then
 fi
 
 echo ">>> Installing Buck2"
-mkdir -p "${HOME}/.local/bin"
-if ! command -v buck2 >/dev/null 2>&1; then
-    arch=$(uname -m)
-    case "${arch}" in
-        x86_64|amd64) buck_arch=x86_64-unknown-linux-musl ;;
-        aarch64|arm64) buck_arch=aarch64-unknown-linux-musl ;;
-        *) echo "Unsupported architecture: ${arch}" >&2; exit 1 ;;
-    esac
-    tmp=$(mktemp -d)
-    trap 'rm -rf "${tmp}"' EXIT
-    curl -fsSL "https://github.com/facebook/buck2/releases/download/latest/buck2-${buck_arch}.zst" \
-        -o "${tmp}/buck2.zst"
-    zstd -d "${tmp}/buck2.zst" -o "${HOME}/.local/bin/buck2"
-    chmod +x "${HOME}/.local/bin/buck2"
-    echo "Installed buck2 to ${HOME}/.local/bin/buck2"
-else
+if command -v buck2 >/dev/null 2>&1; then
     echo "buck2 already installed: $(command -v buck2)"
+else
+    ./installBuck2Ubuntu.sh
 fi
 
 if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then

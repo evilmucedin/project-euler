@@ -1,14 +1,13 @@
 cxx_library(
   name="glog",
-  public_include_directories=[
-    "src",
-  ],
   exported_preprocessor_flags=[
+    "-Iglog2/src",
     "-DGLOG_DEPRECATED=__attribute__((deprecated))",
     "-DGLOG_EXPORT=__attribute__((visibility(\"default\")))",
     "-DGLOG_NO_EXPORT=__attribute__((visibility(\"default\")))",
   ],
   compiler_flags=[
+    "-Iglog2/src",
     "-Wno-sign-compare",
     "-Wno-unused-function",
     "-Wno-unused-local-typedefs",

@@ -53,6 +53,9 @@ cxx_library(
     exported_headers=[
         "matrix.h",
     ],
+    exported_deps=[
+        ":header",
+    ],
     srcs=[
         "matrix.cpp",
     ],
@@ -68,6 +71,10 @@ cxx_library(
     name="string",
     exported_headers=[
         "string.h",
+    ],
+    exported_deps=[
+        ":exception",
+        ":header",
     ],
     srcs=[
         "string.cpp",
@@ -216,6 +223,9 @@ cxx_library(
     exported_headers=[
         "timer.h",
     ],
+    exported_deps=[
+        ":header",
+    ],
     deps=[
         ":header",
     ],
@@ -309,6 +319,9 @@ cxx_library(
     ],
     exported_headers=[
         "exception.h",
+    ],
+    exported_deps=[
+        ":header",
     ],
     deps=[
         ":header",
@@ -409,6 +422,9 @@ cxx_library(
     name="stat",
     exported_headers=[
         "stat.h",
+    ],
+    exported_deps=[
+        ":header",
     ],
     deps=[
         ":header",
