@@ -170,6 +170,7 @@ subninja euler/euler539/build.ninja
 subninja euler/euler549/build.ninja
 subninja euler/euler555/build.ninja
 subninja euler/euler565/build.ninja
+subninja euler/euler57/build.ninja
 subninja euler/euler571/build.ninja
 subninja euler/euler581/build.ninja
 subninja euler/euler587/build.ninja
