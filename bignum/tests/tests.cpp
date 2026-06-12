@@ -10,6 +10,38 @@
 using bignum::BigInt;
 using bignum::BigFloat;
 
+namespace {
+
+// Fixed-point arctan(1/x) scaled by `scale`, i.e. returns round(scale*atan(1/x)).
+// Uses the Taylor series atan(1/x) = sum_{k>=0} (-1)^k / ((2k+1) * x^(2k+1)),
+// which converges quickly for large x (e.g. x = 5 and x = 239 in Machin's
+// formula). All arithmetic is integer-only via BigInt.
+BigInt ScaledArctanInv(long long x, const BigInt& scale) {
+  BigInt x2(x * x);
+  BigInt power = scale / BigInt(x);  // scale / x  (k = 0 term)
+  BigInt sum = power;
+  for (long long k = 1;; ++k) {
+    power /= x2;  // scale / x^(2k+1)
+    BigInt term = power / BigInt(2 * k + 1);
+    if (term.is_zero()) break;
+    if (k & 1) sum -= term; else sum += term;
+  }
+  return sum;
+}
+
+// Compute pi to `digits` decimal places using Machin's formula:
+//   pi = 16*arctan(1/5) - 4*arctan(1/239)
+// A handful of guard digits are used internally and then trimmed.
+BigFloat ComputePi(int digits) {
+  const int guard = 12;
+  BigInt scale = BigInt::pow10(static_cast<unsigned>(digits + guard));
+  BigInt pi_scaled =
+      BigInt(16) * ScaledArctanInv(5, scale) - BigInt(4) * ScaledArctanInv(239, scale);
+  return BigFloat(pi_scaled, -(static_cast<long long>(digits) + guard));
+}
+
+}  // namespace
+
 // ===========================================================================
 // BigInt
 // ===========================================================================
@@ -287,4 +319,32 @@ TEST(BigFloat, StreamRoundTrip) {
   BigFloat v;
   ss >> v;
   EXPECT_EQ(v.to_string(), "-273.15");
+}
+
+// ===========================================================================
+// Fun: compute a long value of Pi with a fast algorithm (Machin's formula)
+// ===========================================================================
+
+TEST(Pi, Machin100Digits) {
+  // Reference: pi to 100 decimal places.
+  const std::string kPi100 =
+      "3."
+      "1415926535897932384626433832795028841971"
+      "6939937510582097494459230781640628620899"
+      "86280348253421170679";
+
+  BigFloat pi = ComputePi(100);
+  std::string s = pi.to_string();
+  // Compare "3." + 100 fractional digits (102 characters).
+  EXPECT_EQ(s.substr(0, 102), kPi100);
+}
+
+TEST(Pi, Machin1000DigitsSpotCheck) {
+  BigFloat pi = ComputePi(1000);
+  std::string s = pi.to_string();
+  EXPECT_EQ(s.substr(0, 12), "3.1415926535");
+  // Pi to 1000 decimal places famously ends with "...2164201989".
+  // Digits 991..1000 (after the decimal point) are "2164201989".
+  ASSERT_GE(s.size(), 1002u);  // "3." + at least 1000 digits
+  EXPECT_EQ(s.substr(2 + 990, 10), "2164201989");
 }
