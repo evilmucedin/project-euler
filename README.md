@@ -6,6 +6,44 @@ We use [Buck2](https://buck2.build/) as the primary build system. The repo also 
 
 Freely distributed under MIT licence.
 
+## Recommendation for apps and libraries
+
+New apps (binaries) and libraries should be buildable and runnable with **all
+three** supported build systems — **Bazel**, **Buck2**, and **Ninja** — so they
+work in every workflow (local dev, CI smoke builds, and Bazel-based tooling).
+Concretely, for each new directory:
+
+1. **Add a `BUCK` file** describing the targets with `cxx_library`,
+   `cxx_binary`, or `cxx_test`. Buck2 is the primary build system.
+2. **Add a `BUILD` file** with the matching Bazel rules — `cc_library`,
+   `cc_binary`, or `cc_test` (load them from `@rules_cc//cc:defs.bzl`). Keep the
+   target names and dependency list in sync with the `BUCK` file.
+3. **Regenerate the Ninja metadata** with `python3 scripts/generate_ninja.py`,
+   which reads the `BUCK` (or `BUILD`) files and emits the per-directory
+   `build.ninja` plus the root `build.ninja`. Commit the regenerated files.
+
+Use workspace-root-relative includes (e.g. `#include "bignum/bigint.h"`) so the
+same sources compile under every build system, and keep new CI smoke targets
+dependency-light. A minimal library + binary then builds and runs like this:
+
+```sh
+# Buck2 (primary)
+buck2 build //path/to:target
+buck2 run   //path/to:binary
+
+# Bazel
+bazel build //path/to:target
+bazel run   //path/to:binary
+# or: ./bBazel.sh //path/to:target
+
+# Ninja (after regenerating with scripts/generate_ninja.py)
+ninja path/to/binary
+./build-ninja/bin/path/to/binary
+```
+
+Tests should be runnable as `cc_test` under Bazel (`bazel test //path/to:...`),
+as `cxx_test` / `cxx_binary` under Buck2, and as a Ninja binary target.
+
 ## Building on Ubuntu Linux
 
 The primary supported platform is Ubuntu Linux. To set up a fresh machine:
