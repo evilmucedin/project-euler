@@ -10,6 +10,17 @@ cxx_binary(
 )
 
 cxx_binary(
+    name="piTest",
+    srcs=[
+        "pi_test.cpp",
+    ],
+    deps=[
+        "//bignum:bignum",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_binary(
     name="cpuCrossCheckTest",
     srcs=[
         "cpu_crosscheck_test.cpp",
