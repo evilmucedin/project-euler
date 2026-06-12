@@ -1,0 +1,12 @@
+cxx_library(
+    name="bignum",
+    deps=[
+    ],
+    exported_headers=[
+        "bigint.h",
+        "bigfloat.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
