@@ -1,0 +1,10 @@
+cxx_binary(
+    name="bignumTest",
+    srcs=[
+        "tests.cpp",
+    ],
+    deps=[
+        "//bignum:bignum",
+        "//gtest:gtest",
+    ],
+)
