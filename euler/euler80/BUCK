@@ -1,0 +1,9 @@
+cxx_binary(
+  name="80",
+  srcs=[
+    "80.cpp",
+  ],
+  deps=[
+    "//bignum:bignum",
+  ],
+)

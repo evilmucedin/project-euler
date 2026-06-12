@@ -177,6 +177,7 @@ subninja euler/euler615/build.ninja
 subninja euler/euler622/build.ninja
 subninja euler/euler668/build.ninja
 subninja euler/euler686/build.ninja
+subninja euler/euler80/build.ninja
 subninja eulerAsyncMerge/build.ninja
 subninja eulerBaumWelch/build.ninja
 subninja eulerBoostSpirit/build.ninja
