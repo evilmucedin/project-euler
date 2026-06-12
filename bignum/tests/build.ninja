@@ -4,3 +4,7 @@ build $builddir/obj/bignum/tests/tests.cpp.o: cxx bignum/tests/tests.cpp
 build $builddir/bin/bignum/tests/bignumTest: link $builddir/obj/bignum/tests/tests.cpp.o $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a
 build bignum/tests/bignumTest: phony $builddir/bin/bignum/tests/bignumTest
 
+build $builddir/obj/bignum/tests/cpu_crosscheck_test.cpp.o: cxx bignum/tests/cpu_crosscheck_test.cpp
+build $builddir/bin/bignum/tests/cpuCrossCheckTest: link $builddir/obj/bignum/tests/cpu_crosscheck_test.cpp.o $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a
+build bignum/tests/cpuCrossCheckTest: phony $builddir/bin/bignum/tests/cpuCrossCheckTest
+
