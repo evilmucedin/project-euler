@@ -48,6 +48,24 @@ class BigInt {
     return r;
   }
 
+  // Integer square root: floor(sqrt(*this)). Throws for negative values.
+  // Uses Newton's method seeded with 2^ceil(bits/2) so it converges in
+  // O(log(bits)) iterations.
+  BigInt isqrt() const {
+    if (is_negative()) throw std::domain_error("BigInt::isqrt of negative");
+    if (is_zero()) return BigInt();
+    size_t bits = bit_length(mag_);
+    BigInt x = pow(BigInt(2), (bits + 1) / 2);  // guess >= sqrt(n)
+    const BigInt two(2);
+    while (true) {
+      BigInt y = (x + *this / x) / two;
+      if (y >= x) break;  // monotonically decreasing until floor reached
+      x = std::move(y);
+    }
+    while (x * x > *this) x -= one();  // guard against overshoot
+    return x;
+  }
+
   // base^exp (exponentiation by squaring).
   static BigInt pow(BigInt base, unsigned long long exp) {
     BigInt result(1);

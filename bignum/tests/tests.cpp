@@ -40,6 +40,32 @@ BigFloat ComputePi(int digits) {
   return BigFloat(pi_scaled, -(static_cast<long long>(digits) + guard));
 }
 
+// Compute pi to `digits` decimal places using the Gauss-Legendre (AGM)
+// algorithm. Each iteration roughly doubles the number of correct digits
+// (quadratic convergence), so ~log2(digits) iterations suffice.
+BigFloat ComputePiGaussLegendre(int digits) {
+  const int work = digits + 10;  // guard digits
+  BigFloat a(1);
+  BigFloat b = BigFloat::sqrt(BigFloat::divide(BigFloat(1), BigFloat(2), work), work);
+  BigFloat t = BigFloat::divide(BigFloat(1), BigFloat(4), work);
+  BigFloat p(1);
+
+  // log2(digits) + a couple of safety iterations.
+  int iters = 2;
+  for (int v = digits; v > 0; v >>= 1) ++iters;
+  for (int i = 0; i < iters; ++i) {
+    BigFloat a_next = BigFloat::divide(a + b, BigFloat(2), work);
+    BigFloat b_next = BigFloat::sqrt(a * b, work);
+    BigFloat diff = a - a_next;
+    t = t - p * (diff * diff);
+    a = a_next;
+    b = b_next;
+    p = p * BigFloat(2);
+  }
+  BigFloat num = (a + b) * (a + b);
+  return BigFloat::divide(num, BigFloat(4) * t, digits + 2);
+}
+
 }  // namespace
 
 // ===========================================================================
@@ -347,4 +373,39 @@ TEST(Pi, Machin1000DigitsSpotCheck) {
   // Digits 991..1000 (after the decimal point) are "2164201989".
   ASSERT_GE(s.size(), 1002u);  // "3." + at least 1000 digits
   EXPECT_EQ(s.substr(2 + 990, 10), "2164201989");
+}
+
+TEST(BigInt, IntegerSqrt) {
+  EXPECT_EQ(BigInt(0).isqrt().to_string(), "0");
+  EXPECT_EQ(BigInt(1).isqrt().to_string(), "1");
+  EXPECT_EQ(BigInt(15).isqrt().to_string(), "3");
+  EXPECT_EQ(BigInt(16).isqrt().to_string(), "4");
+  EXPECT_EQ(BigInt("1000000000000000000000000").isqrt().to_string(),
+            "1000000000000");
+  BigInt n = BigInt::pow10(100) * BigInt(2);  // 2e100
+  BigInt r = n.isqrt();
+  EXPECT_TRUE(r * r <= n);
+  EXPECT_TRUE((r + BigInt(1)) * (r + BigInt(1)) > n);
+  EXPECT_THROW(BigInt(-4).isqrt(), std::domain_error);
+}
+
+TEST(BigFloat, Sqrt) {
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("4"), 20).to_string().substr(0, 1), "2");
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("2"), 30).to_string().substr(0, 17),
+            "1.414213562373095");
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("0"), 10).to_string(), "0");
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("0.25"), 10).to_string(), "0.5");
+  EXPECT_THROW(BigFloat::sqrt(BigFloat("-1"), 10), std::domain_error);
+}
+
+// Gauss-Legendre (AGM) is quadratically convergent: it roughly doubles the
+// number of correct digits each iteration, far fewer iterations than Machin.
+TEST(Pi, GaussLegendre100Digits) {
+  const std::string kPi100 =
+      "3."
+      "1415926535897932384626433832795028841971"
+      "6939937510582097494459230781640628620899"
+      "86280348253421170679";
+  BigFloat pi = ComputePiGaussLegendre(100);
+  EXPECT_EQ(pi.to_string().substr(0, 102), kPi100);
 }
