@@ -8,3 +8,14 @@ cxx_binary(
         "//gtest:gtest",
     ],
 )
+
+cxx_binary(
+    name="cpuCrossCheckTest",
+    srcs=[
+        "cpu_crosscheck_test.cpp",
+    ],
+    deps=[
+        "//bignum:bignum",
+        "//gtest:gtest",
+    ],
+)
