@@ -89,6 +89,26 @@ class BigFloat {
     return result.round_to_significant(digits);
   }
 
+  // Square root to `digits` significant decimal digits. Throws for negatives.
+  // Computed exactly via integer sqrt of a scaled significand:
+  //   sqrt(sig * 10^e) = isqrt(sig * 10^(e + 2P)) * 10^-P
+  static BigFloat sqrt(const BigFloat& x, int digits = kDefaultDivPrecision) {
+    if (x.sign() < 0) throw std::domain_error("BigFloat::sqrt of negative");
+    if (x.is_zero()) return BigFloat();
+    if (digits < 1) digits = 1;
+    long long P = static_cast<long long>(digits) + 5;  // guard digits
+    long long shift = x.exp_ + 2 * P;
+    BigInt scaled = x.sig_;
+    if (shift >= 0) {
+      scaled *= BigInt::pow10(static_cast<unsigned>(shift));
+    } else {
+      scaled = BigInt::divmod(scaled, BigInt::pow10(static_cast<unsigned>(-shift))).first;
+    }
+    BigFloat result(scaled.isqrt(), -P);
+    result.trim();
+    return result.round_to_significant(digits);
+  }
+
   // --- Comparison -----------------------------------------------------------
   int compare(const BigFloat& o) const {
     if (sign() != o.sign()) return sign() < o.sign() ? -1 : 1;

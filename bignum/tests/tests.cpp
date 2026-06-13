@@ -10,6 +10,8 @@
 using bignum::BigInt;
 using bignum::BigFloat;
 
+// Note: the Pi-generation tests live in bignum/tests/pi_test.cpp.
+
 // ===========================================================================
 // BigInt
 // ===========================================================================
@@ -287,4 +289,31 @@ TEST(BigFloat, StreamRoundTrip) {
   BigFloat v;
   ss >> v;
   EXPECT_EQ(v.to_string(), "-273.15");
+}
+
+// ===========================================================================
+// Square roots (building blocks used by the Pi tests in pi_test.cpp)
+// ===========================================================================
+
+TEST(BigInt, IntegerSqrt) {
+  EXPECT_EQ(BigInt(0).isqrt().to_string(), "0");
+  EXPECT_EQ(BigInt(1).isqrt().to_string(), "1");
+  EXPECT_EQ(BigInt(15).isqrt().to_string(), "3");
+  EXPECT_EQ(BigInt(16).isqrt().to_string(), "4");
+  EXPECT_EQ(BigInt("1000000000000000000000000").isqrt().to_string(),
+            "1000000000000");
+  BigInt n = BigInt::pow10(100) * BigInt(2);  // 2e100
+  BigInt r = n.isqrt();
+  EXPECT_TRUE(r * r <= n);
+  EXPECT_TRUE((r + BigInt(1)) * (r + BigInt(1)) > n);
+  EXPECT_THROW(BigInt(-4).isqrt(), std::domain_error);
+}
+
+TEST(BigFloat, Sqrt) {
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("4"), 20).to_string().substr(0, 1), "2");
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("2"), 30).to_string().substr(0, 17),
+            "1.414213562373095");
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("0"), 10).to_string(), "0");
+  EXPECT_EQ(BigFloat::sqrt(BigFloat("0.25"), 10).to_string(), "0.5");
+  EXPECT_THROW(BigFloat::sqrt(BigFloat("-1"), 10), std::domain_error);
 }
