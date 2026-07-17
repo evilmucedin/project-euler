@@ -291,6 +291,7 @@ subninja leetcode/number-of-great-partitions/build.ninja
 subninja leetcode/number-of-operations-to-make-network-connected/build.ninja
 subninja leetcode/number-of-provinces/build.ninja
 subninja leetcode/number-of-ways-to-form-a-target-string-given-a-dictionary/build.ninja
+subninja leetcode/number-of-zigzag-arrays-ii/build.ninja
 subninja leetcode/orderly-queue/build.ninja
 subninja leetcode/palindrome-pairs/build.ninja
 subninja leetcode/palindromic-substrings/build.ninja
