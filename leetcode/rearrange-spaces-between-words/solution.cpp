@@ -4,17 +4,18 @@
 using namespace std;
 
 class Solution {
-    public:
-
-    String reorderSpaces(String text) {
-        const int n = text.len();
-
+public:
+    string reorderSpaces(string text) {
+        const int n = text.size();
+        string result;
+        return result;
     }
 };
 
 int main(void) {
     Solution s;
-    cout << "`" << s.reorderSpaces(" practice   makes   perfect") << "'" << end;
+    cerr << endl;
+    // cout << "`" << s.reorderSpaces(" practice   makes   perfect") << "'" << endl;
 
     return 0;
 }
