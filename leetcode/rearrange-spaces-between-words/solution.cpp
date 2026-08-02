@@ -7,6 +7,14 @@ class Solution {
 public:
     string reorderSpaces(string text) {
         const int n = text.size();
+        int a = 0;
+        int b = n;
+        while (a < n && text[a] == ' ')
+            ++a;
+        while (a < b && text[b - 1] == ' ')
+            --b;
+        return text.substr(a, b - a);
+
         string result;
         bool in = false;
         int num = 0;
