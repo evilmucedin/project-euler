@@ -102,8 +102,12 @@ PriceData loadData(const StringVector& tickers) {
                         THROW("No price in '" << ticker << "' index: " << i);
                     }
                     tickerPrices[iDate] = price->as<double>(i);
+                    if (tickerPrices[iDate] <= 0.0)
+                        cerr << "Problem in: " << tickerPrices[iDate] << " date: " << iDate << " ticker: " << ticker << endl;
                     ASSERTGT(tickerPrices[iDate], 0.0);
                     tickerDividends[iDate] = dividends->as<double>(i);
+                    if (tickerDividends[iDate] < 0.0)
+                        cerr << "Problem in: " << tickerDividends[iDate] << " date: " << iDate << " ticker: " << ticker << endl;
                     ASSERTGE(tickerDividends[iDate], 0.0);
                     dates.emplace(iDate);
                 }
