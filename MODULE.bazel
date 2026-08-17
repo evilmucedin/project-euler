@@ -6,6 +6,7 @@
 ###############################################################################
 
 bazel_dep(name = "rules_cc", version = "0.0.17")
+bazel_dep(name = "rules_java", version = "8.16.1")
 
 # bazel_dep(name = "rules_rust", version = "0.54.1") # Use the latest stable version
 
