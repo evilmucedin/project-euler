@@ -60,6 +60,9 @@ cc_test(
   srcs=[
     "fileTest.cpp",
   ],
+  data=[
+    "utf8test.txt",
+  ],
   deps=[
     "//glog2:glog",
     "//lib:file",
