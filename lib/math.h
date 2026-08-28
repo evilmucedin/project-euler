@@ -135,3 +135,22 @@ T invertModPrime(T x, T prime) {
     }
     return a;
 }
+
+// Define the Runge-Kutta method function with a better readability name
+double rungeKutta4(double t, double y0 ,const vector<double>& dydt, const vector<double>& dt)
+{
+    // Calculate the time step
+    double h = dt[0];
+
+    // Compute the first three steps of the solution
+    double k1 = h * (y0 + 0.5 * dydt[0]);
+    double k2 = h * (y0 + 0.5 * dydt[1]);
+    double k3 = h * (y0 + dydt[2]);
+
+    // Compute the fourth step of the solution
+    double y1 = y0 + (k1 + k2 + k3) / 6;
+
+    // Return the value at t+h
+    return y1;
+}
+

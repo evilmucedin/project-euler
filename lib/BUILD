@@ -21,6 +21,17 @@ cc_library(
 )
 
 cc_library(
+    name="math",
+    srcs=[
+    ],
+    hdrs=[
+        "math.h",
+    ],
+    visibility = ["//visibility:public"],
+    features = ["-lto"],
+)
+
+cc_library(
     name="noncopyable",
     srcs=[
         "noncopyable.cpp",
