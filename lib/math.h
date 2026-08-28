@@ -136,23 +136,26 @@ T invertModPrime(T x, T prime) {
     return a;
 }
 
-#include <vector>
+// One step of the classical 4th-order Runge-Kutta method for y' = f(t, y):
+// advances the solution from (t, y) by step h.
+template<typename F>
+double rungeKutta4Step(F&& f, double t, double y, double h) {
+    double k1 = f(t, y);
+    double k2 = f(t + 0.5 * h, y + 0.5 * h * k1);
+    double k3 = f(t + 0.5 * h, y + 0.5 * h * k2);
+    double k4 = f(t + h, y + h * k3);
+    return y + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+}
 
-// Define the Runge-Kutta method function with a better readability name
-double rungeKutta4(double t, double y0, const std::vector<double>& dydt, const std::vector<double>& dt)
-{
-    // Calculate the time step
-    double h = dt[0];
-
-    // Compute the first three steps of the solution
-    double k1 = h * (y0 + 0.5 * dydt[0]);
-    double k2 = h * (y0 + 0.5 * dydt[1]);
-    double k3 = h * (y0 + dydt[2]);
-
-    // Compute the fourth step of the solution
-    double y1 = y0 + (k1 + k2 + k3) / 6;
-
-    // Return the value at t+h
-    return y1;
+// Integrates y' = f(t, y) with y(t0) = y0 from t0 to t1 in the given number
+// of equal steps (t1 < t0 integrates backwards); returns y(t1).
+template<typename F>
+double rungeKutta4(F&& f, double t0, double y0, double t1, int steps) {
+    double h = (t1 - t0) / steps;
+    double y = y0;
+    for (int i = 0; i < steps; ++i) {
+        y = rungeKutta4Step(f, t0 + i * h, y, h);
+    }
+    return y;
 }
 
