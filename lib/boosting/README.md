@@ -61,5 +61,28 @@ corrupted input.
 - `tests/` — gtest coverage: leaf indexing, regression and classification
   quality, subsampling determinism, save/load roundtrips.
 
+## Comparison against the official CatBoost library
+
+`tests/catboostCompareTest.cpp` trains this library and official CatBoost on
+identical synthetic datasets with matched hyperparameters (200 symmetric trees
+of depth 6, plain boosting, no bootstrap, single thread) and compares test-set
+quality and speed. CatBoost is driven through `tests/catboost_reference.py`;
+the tests skip when `python3` with the `catboost` package is unavailable
+(override the interpreter with `CATBOOST_PYTHON`, the script location with
+`CATBOOST_REFERENCE_SCRIPT`; run from the repo root).
+
+Sample run (Apple M-series, CatBoost 1.2.10, single thread):
+
+| metric | lib/boosting | CatBoost |
+| --- | --- | --- |
+| regression test MSE | 0.00327 | 0.00304 |
+| classification test accuracy | 0.951 | 0.951 |
+| classification test logloss | 0.1933 | 0.1943 |
+| train time, regression (6000 rows) | 52 ms | 184 ms |
+| apply, per row (realtime path) | 0.38 us | — (batch only) |
+
+The asserted bounds are intentionally loose (quality within a small factor of
+CatBoost's); the printed `[ compare ]` lines carry the exact numbers.
+
 Not implemented (relative to real CatBoost): ordered boosting, categorical
 feature target statistics, GPU training, and multiclass losses.
