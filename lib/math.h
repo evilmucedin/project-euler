@@ -136,8 +136,10 @@ T invertModPrime(T x, T prime) {
     return a;
 }
 
+#include <vector>
+
 // Define the Runge-Kutta method function with a better readability name
-double rungeKutta4(double t, double y0 ,const vector<double>& dydt, const vector<double>& dt)
+double rungeKutta4(double t, double y0, const std::vector<double>& dydt, const std::vector<double>& dt)
 {
     // Calculate the time step
     double h = dt[0];

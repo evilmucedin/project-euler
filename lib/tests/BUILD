@@ -3,6 +3,18 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
 cc_test(
+  name="mathTest",
+  srcs=[
+    "mathTest.cpp",
+  ],
+  deps=[
+    "//lib:header",
+    "//lib:math",
+    "//gtest:gtest",
+  ],
+)
+
+cc_test(
   name="headerTest",
   srcs=[
     "headerTest.cpp",
