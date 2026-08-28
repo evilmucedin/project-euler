@@ -334,6 +334,8 @@ subninja leetcode/wildcard-matching/build.ninja
 subninja leetcode/word-search/build.ninja
 subninja leetcode/word-search-ii/build.ninja
 subninja lib/build.ninja
+subninja lib/boosting/build.ninja
+subninja lib/boosting/tests/build.ninja
 subninja lib/easybmp/build.ninja
 subninja lib/graph/build.ninja
 subninja lib/io/build.ninja

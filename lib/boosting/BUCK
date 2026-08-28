@@ -1,0 +1,46 @@
+cxx_library(
+  name="model",
+  exported_headers=[
+    "model.h",
+  ],
+  srcs=[
+    "model.cpp",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="dataset",
+  exported_headers=[
+    "dataset.h",
+  ],
+  srcs=[
+    "dataset.cpp",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="trainer",
+  exported_headers=[
+    "trainer.h",
+  ],
+  srcs=[
+    "trainer.cpp",
+  ],
+  deps=[
+    ":dataset",
+    ":model",
+  ],
+  exported_deps=[
+    ":dataset",
+    ":model",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
