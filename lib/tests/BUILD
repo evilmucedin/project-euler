@@ -42,6 +42,7 @@ cc_test(
   ],
   deps=[
     "//lib:datetime",
+    "//gtest:gtest",
   ],
 )
 

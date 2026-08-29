@@ -32,6 +32,23 @@ cc_library(
 )
 
 cc_library(
+    name="datetime",
+    hdrs=[
+        "datetime.h",
+    ],
+    srcs=[
+        "datetime.cpp",
+    ],
+    deps=[
+        ":header",
+        ":math",
+        ":string",
+    ],
+    visibility = ["//visibility:public"],
+    features = ["-lto"],
+)
+
+cc_library(
     name="noncopyable",
     srcs=[
         "noncopyable.cpp",
