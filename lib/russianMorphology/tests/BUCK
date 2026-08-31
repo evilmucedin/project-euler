@@ -1,0 +1,10 @@
+cxx_test(
+  name="morphologyTest",
+  srcs=[
+    "morphologyTest.cpp",
+  ],
+  deps=[
+    "//gtest:gtest",
+    "//lib/russianMorphology:morphology",
+  ],
+)
