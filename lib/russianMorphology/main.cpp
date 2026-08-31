@@ -13,8 +13,11 @@ namespace {
 
 void report(const std::string& word) {
     const russianMorphology::TAnalysis analysis = russianMorphology::analyze(word);
-    std::cout << word << " (" << russianMorphology::partOfSpeechName(analysis.partOfSpeech)
-              << "):" << std::endl;
+    std::cout << word << " (" << russianMorphology::partOfSpeechName(analysis.partOfSpeech);
+    if (!analysis.zaliznyakIndex.empty()) {
+        std::cout << ", " << analysis.zaliznyakIndex;
+    }
+    std::cout << "):" << std::endl;
     for (const std::string& form : analysis.forms) {
         std::cout << "  " << form << std::endl;
     }
