@@ -9,6 +9,6 @@ cc_library(
 
 cc_binary(
     name = "morphologyCli",
-    srcs = ["main.cpp"],
+    srcs = ["morphologyCLI.cpp"],
     deps = [":morphology"],
 )
