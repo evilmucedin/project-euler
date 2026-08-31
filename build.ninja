@@ -342,6 +342,8 @@ subninja lib/io/keyvalue/test/build.ninja
 subninja lib/io/test/build.ninja
 subninja lib/ml/build.ninja
 subninja lib/ml/tests/build.ninja
+subninja lib/russianMorphology/build.ninja
+subninja lib/russianMorphology/tests/build.ninja
 subninja lib/spsc/build.ninja
 subninja lib/spsc/tests/build.ninja
 subninja lib/stat/build.ninja

@@ -1,0 +1,22 @@
+cxx_library(
+  name="morphology",
+  exported_headers=[
+    "morphology.h",
+  ],
+  srcs=[
+    "morphology.cpp",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_binary(
+  name="morphologyCli",
+  srcs=[
+    "morphologyCLI.cpp",
+  ],
+  deps=[
+    ":morphology",
+  ],
+)
