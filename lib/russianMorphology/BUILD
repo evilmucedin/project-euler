@@ -1,6 +1,13 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_library(
+    name = "languageData",
+    srcs = ["languageData.cpp"],
+    hdrs = ["languageData.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
     name = "morphology",
     srcs = ["morphology.cpp"],
     hdrs = [
@@ -8,6 +15,7 @@ cc_library(
         "utf8.h",
     ],
     visibility = ["//visibility:public"],
+    deps = [":languageData"],
 )
 
 cc_library(
@@ -15,7 +23,10 @@ cc_library(
     srcs = ["embeddingMorphology.cpp"],
     hdrs = ["embeddingMorphology.h"],
     visibility = ["//visibility:public"],
-    deps = [":morphology"],
+    deps = [
+        ":languageData",
+        ":morphology",
+    ],
 )
 
 cc_library(
@@ -31,6 +42,7 @@ cc_binary(
     srcs = ["morphologyCLI.cpp"],
     deps = [
         ":embeddingMorphology",
+        ":languageData",
         ":morphology",
     ],
 )
@@ -41,6 +53,7 @@ cc_binary(
     deps = [
         ":embeddingMorphology",
         ":evaluation",
+        ":languageData",
         ":morphology",
     ],
 )

@@ -1,4 +1,17 @@
 cxx_library(
+  name="languageData",
+  exported_headers=[
+    "languageData.h",
+  ],
+  srcs=[
+    "languageData.cpp",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
   name="morphology",
   exported_headers=[
     "morphology.h",
@@ -6,6 +19,9 @@ cxx_library(
   ],
   srcs=[
     "morphology.cpp",
+  ],
+  deps=[
+    ":languageData",
   ],
   visibility=[
     'PUBLIC',
@@ -21,6 +37,7 @@ cxx_library(
     "embeddingMorphology.cpp",
   ],
   deps=[
+    ":languageData",
     ":morphology",
   ],
   visibility=[
@@ -50,6 +67,7 @@ cxx_binary(
     "morphologyCLI.cpp",
   ],
   deps=[
+    ":languageData",
     ":morphology",
     ":embeddingMorphology",
   ],
@@ -61,6 +79,7 @@ cxx_binary(
     "morphologyCompare.cpp",
   ],
   deps=[
+    ":languageData",
     ":morphology",
     ":embeddingMorphology",
     ":evaluation",

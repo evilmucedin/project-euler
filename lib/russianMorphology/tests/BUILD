@@ -15,6 +15,7 @@ cc_test(
     deps = [
         "//gtest:gtest",
         "//lib/russianMorphology:embeddingMorphology",
+        "//lib/russianMorphology:languageData",
         "//lib/russianMorphology:morphology",
     ],
 )
@@ -26,6 +27,7 @@ cc_test(
         "//gtest:gtest",
         "//lib/russianMorphology:embeddingMorphology",
         "//lib/russianMorphology:evaluation",
+        "//lib/russianMorphology:languageData",
         "//lib/russianMorphology:morphology",
     ],
 )

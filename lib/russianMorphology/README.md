@@ -15,6 +15,12 @@ tables:
   with a fastText-style subword-embedding classifier trained in-process on a
   small labeled lexicon — fully local, deterministic, no files or network.
 
+All the Russian language data both backends share — the paradigm ending
+tables, the closed exception lists, the irregular paradigms, and the labeled
+training lexicon — lives in one dependency-free library
+(`languageData.h`/`languageData.cpp`), which changes rarely; the backends
+contain only classification and generation logic.
+
 On a held-out gold set the embedding backend classifies **87.4%** of words
 into the correct inflection class vs **65.0%** for the rules (see
 [Quality comparison](#quality-comparison)).
@@ -57,7 +63,7 @@ learned classifier while reusing the same paradigm tables for generation
   generalizes to unseen words through their substrings.
 - A softmax layer over the embedding predicts the Zaliznyak class. N-gram
   vectors and softmax weights are trained jointly by SGD on the ~800-word
-  labeled lexicon embedded in `embeddingMorphology.cpp`.
+  labeled lexicon embedded in `languageData.cpp`.
 - Training runs on first use, in-process, in ~0.1 s, and is deterministic
   (fixed-seed PRNG, fixed shuffle order): no model files, downloads, or
   network access, matching the library's dictionary-free spirit.

@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "lib/russianMorphology/languageData.h"
 #include "lib/russianMorphology/morphology.h"
 
 namespace russianMorphology {
@@ -54,13 +55,11 @@ TPrediction classify(const std::string& word);
 TAnalysis analyze(const std::string& word);
 std::vector<std::string> getForms(const std::string& word);
 
-// The labeled lexicon the classifier is trained on, exposed so that tests and
-// the evaluation harness can check accuracy and train/eval disjointness.
-struct TLabeledWord {
-    const char* word;
-    const char* zaliznyakIndex;
-};
-const std::vector<TLabeledWord>& trainingLexicon();
+// The labeled lexicon the classifier is trained on lives in the shared
+// language-data library (languageData.h); re-exported here so that tests and
+// the evaluation harness can keep referring to embedding::trainingLexicon().
+using data::TLabeledWord;
+using data::trainingLexicon;
 
 }  // namespace embedding
 }  // namespace russianMorphology
