@@ -354,6 +354,7 @@ subninja lib/thread-pool/tests/build.ninja
 subninja moodycamel/build.ninja
 subninja num/build.ninja
 subninja num/tests/build.ninja
+subninja percolationModel/build.ninja
 subninja pistache/build.ninja
 subninja pistache/client/build.ninja
 subninja pistache/common/build.ninja
