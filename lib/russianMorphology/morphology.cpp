@@ -9,15 +9,24 @@
 #include "lib/russianMorphology/morphology.h"
 
 #include <initializer_list>
-#include <unordered_map>
 #include <unordered_set>
 
+#include "lib/russianMorphology/languageData.h"
 #include "lib/russianMorphology/utf8.h"
 
 namespace russianMorphology {
 
 namespace {
 
+using data::adjectiveEndings;
+using data::classFiveVerbs;
+using data::feminineNounEndings;
+using data::feminineSoftSignNouns;
+using data::irregularWords;
+using data::masculineNounEndings;
+using data::neuterNounEndings;
+using data::TAdjectiveEndings;
+using data::TNounEndings;
 using detail::TWord;
 using detail::decodeUtf8;
 using detail::encodeUtf8;
@@ -75,20 +84,9 @@ private:
 
 // --- Zaliznyak stem types ---
 //
-// Zaliznyak classifies every inflected word by the type of its stem-final
-// sound plus a stress scheme, and the appendix of the dictionary gives one
-// ending table per type. The stem types:
-//   1  hard paired consonant   (стол, мама, место)
-//   2  soft paired consonant   (конь, неделя, поле)
-//   3  velar г/к/х             (бык, книга, войско)
-//   4  hushing ж/ч/ш/щ         (нож, туча, жилище)
-//   5  ц                       (месяц, улица)
-//   6  vowel or ь before the ending (герой, шея, платье)
-//   7  stem in -и              (гений, армия, здание)
-//   8  third declension        (ночь, путь)
-// Stress schemes (a..f) are not recoverable without the dictionary; where
-// the spelling of an ending depends on stress (ножом vs маршем) the tables
-// list both variants.
+// The stem-type inventory and the ending table of each type live in
+// languageData.h. The stem type of a consonant-final stem follows from the
+// stem-final sound alone:
 
 int consonantStemType(char32_t c) {
     if (isVelar(c)) {
@@ -103,99 +101,9 @@ int consonantStemType(char32_t c) {
     return 1;
 }
 
-// --- Noun declension tables ---
-
-struct TNounEndings {
-    // nominative, genitive, dative, accusative, instrumental, prepositional
-    const char32_t* singular[6];
-    // nominative, genitive, dative, instrumental, prepositional
-    // (the accusative matches the nominative or the genitive)
-    const char32_t* plural[5];
-};
-
-const TNounEndings* masculineEndings(int type) {
-    static const TNounEndings type1 = {{U"", U"а", U"у", U"", U"ом", U"е"},
-                                       {U"ы", U"ов", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type2 = {{U"ь", U"я", U"ю", U"ь", U"ем", U"е"},
-                                       {U"и", U"ей", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type3 = {{U"", U"а", U"у", U"", U"ом", U"е"},
-                                       {U"и", U"ов", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type4 = {{U"", U"а", U"у", U"", U"ем|ом", U"е"},
-                                       {U"и", U"ей", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type5 = {{U"", U"а", U"у", U"", U"ем|ом", U"е"},
-                                       {U"ы", U"ев|ов", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type6 = {{U"й", U"я", U"ю", U"й", U"ем", U"е"},
-                                       {U"и", U"ев", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type7 = {{U"й", U"я", U"ю", U"й", U"ем", U"и"},
-                                       {U"и", U"ев", U"ям", U"ями", U"ях"}};
-    switch (type) {
-        case 2: return &type2;
-        case 3: return &type3;
-        case 4: return &type4;
-        case 5: return &type5;
-        case 6: return &type6;
-        case 7: return &type7;
-        default: return &type1;
-    }
-}
-
-const TNounEndings* feminineEndings(int type, char32_t stemLast) {
-    static const TNounEndings type1 = {{U"а", U"ы", U"е", U"у", U"ой", U"е"},
-                                       {U"ы", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type2 = {{U"я", U"и", U"е", U"ю", U"ей", U"е"},
-                                       {U"и", U"ь", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type3 = {{U"а", U"и", U"е", U"у", U"ой", U"е"},
-                                       {U"и", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type4 = {{U"а", U"и", U"е", U"у", U"ей|ой", U"е"},
-                                       {U"и", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type5 = {{U"а", U"ы", U"е", U"у", U"ей|ой", U"е"},
-                                       {U"ы", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type6 = {{U"я", U"и", U"е", U"ю", U"ей", U"е"},
-                                       {U"и", U"й", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type7 = {{U"я", U"и", U"и", U"ю", U"ей", U"и"},
-                                       {U"и", U"й", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type8 = {{U"ь", U"и", U"и", U"ь", U"ью", U"и"},
-                                       {U"и", U"ей", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type8Hushing = {{U"ь", U"и", U"и", U"ь", U"ью", U"и"},
-                                              {U"и", U"ей", U"ам", U"ами", U"ах"}};
-    switch (type) {
-        case 2: return &type2;
-        case 3: return &type3;
-        case 4: return &type4;
-        case 5: return &type5;
-        case 6: return &type6;
-        case 7: return &type7;
-        case 8: return isHushing(stemLast) ? &type8Hushing : &type8;
-        default: return &type1;
-    }
-}
-
-const TNounEndings* neuterEndings(char32_t nominative, int type) {
-    // All о-nouns share one ending row regardless of stem type (место,
-    // войско, лицо); е-nouns differ by type.
-    static const TNounEndings hardO = {{U"о", U"а", U"у", U"о", U"ом", U"е"},
-                                       {U"а", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type2 = {{U"е", U"я", U"ю", U"е", U"ем", U"е"},
-                                       {U"я", U"ей", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type4 = {{U"е", U"а", U"у", U"е", U"ем", U"е"},
-                                       {U"а", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type5 = {{U"е", U"а", U"у", U"е", U"ем|ом", U"е"},
-                                       {U"а", U"", U"ам", U"ами", U"ах"}};
-    static const TNounEndings type6 = {{U"е", U"я", U"ю", U"е", U"ем", U"е"},
-                                       {U"я", U"ев", U"ям", U"ями", U"ях"}};
-    static const TNounEndings type7 = {{U"е", U"я", U"ю", U"е", U"ем", U"и"},
-                                       {U"я", U"й", U"ям", U"ями", U"ях"}};
-    if (nominative == U'о') {
-        return &hardO;
-    }
-    switch (type) {
-        case 4: return &type4;
-        case 5: return &type5;
-        case 6: return &type6;
-        case 7: return &type7;
-        default: return &type2;
-    }
-}
+// --- Noun declension ---
+// The ending tables live in languageData.h; classification below maps a word
+// shape to gender + stem type and picks the table.
 
 struct TNounClass {
     bool declinable = false;
@@ -211,7 +119,7 @@ TNounClass feminineThirdDeclension(const TWord& word) {
     result.gender = "ж";
     result.type = 8;
     result.stem = word.substr(0, word.size() - 1);
-    result.endings = feminineEndings(8, result.stem.back());
+    result.endings = feminineNounEndings(8, result.stem.back());
     return result;
 }
 
@@ -224,15 +132,15 @@ TNounClass classifyNoun(const TWord& word) {
     if (last == U'а') {
         result.gender = "ж";
         result.type = consonantStemType(prev);
-        result.endings = feminineEndings(result.type, prev);
+        result.endings = feminineNounEndings(result.type, prev);
     } else if (last == U'я') {
         result.gender = "ж";
         result.type = prev == U'и' ? 7 : (prev == U'ь' || isVowel(prev) ? 6 : 2);
-        result.endings = feminineEndings(result.type, prev);
+        result.endings = feminineNounEndings(result.type, prev);
     } else if (last == U'о') {
         result.gender = "с";
         result.type = consonantStemType(prev);
-        result.endings = neuterEndings(last, result.type);
+        result.endings = neuterNounEndings(last, result.type);
     } else if (last == U'е' || last == U'ё') {
         result.gender = "с";
         if (prev == U'и') {
@@ -246,23 +154,23 @@ TNounClass classifyNoun(const TWord& word) {
         } else {
             result.type = 2;
         }
-        result.endings = neuterEndings(U'е', result.type);
+        result.endings = neuterNounEndings(last, result.type);
     } else if (last == U'й') {
         result.gender = "м";
         result.type = prev == U'и' ? 7 : 6;
-        result.endings = masculineEndings(result.type);
+        result.endings = masculineNounEndings(result.type);
     } else if (last == U'ь') {
         if (isHushing(prev)) {
             return feminineThirdDeclension(word);
         }
         result.gender = "м";
         result.type = 2;
-        result.endings = masculineEndings(2);
+        result.endings = masculineNounEndings(2);
     } else if (!isVowel(last)) {
         result.gender = "м";
         result.type = consonantStemType(last);
         result.stem = word;
-        result.endings = masculineEndings(result.type);
+        result.endings = masculineNounEndings(result.type);
     } else {
         // Final и/ы/у/ю/э: indeclinable or already inflected.
         result.declinable = false;
@@ -279,58 +187,9 @@ void declineNoun(const TNounClass& nounClass, TFormCollector& out) {
     }
 }
 
-// --- Adjective declension tables ---
-
-struct TAdjectiveEndings {
-    // nominative, genitive, dative, instrumental, prepositional
-    // (the accusative matches the nominative or the genitive)
-    const char32_t* masculine[5];
-    // nominative, oblique (gen/dat/ins/prep), accusative
-    const char32_t* feminine[3];
-    // nominative/accusative (other cases match the masculine)
-    const char32_t* neuter;
-    // nominative, genitive/prepositional, dative, instrumental
-    const char32_t* plural[4];
-};
-
+// --- Adjective declension ---
 // Adjective stem types use the same numbering; the nominative ending of the
 // input word fixes the stress scheme (a: -ый/-ий, b: -ой).
-const TAdjectiveEndings* adjectiveEndings(int type, bool endingStressed) {
-    static const TAdjectiveEndings type1a = {{U"ый", U"ого", U"ому", U"ым", U"ом"},
-                                             {U"ая", U"ой", U"ую"},
-                                             U"ое",
-                                             {U"ые", U"ых", U"ым", U"ыми"}};
-    static const TAdjectiveEndings type1b = {{U"ой", U"ого", U"ому", U"ым", U"ом"},
-                                             {U"ая", U"ой", U"ую"},
-                                             U"ое",
-                                             {U"ые", U"ых", U"ым", U"ыми"}};
-    static const TAdjectiveEndings type2a = {{U"ий", U"его", U"ему", U"им", U"ем"},
-                                             {U"яя", U"ей", U"юю"},
-                                             U"ее",
-                                             {U"ие", U"их", U"им", U"ими"}};
-    static const TAdjectiveEndings type3a = {{U"ий", U"ого", U"ому", U"им", U"ом"},
-                                             {U"ая", U"ой", U"ую"},
-                                             U"ое",
-                                             {U"ие", U"их", U"им", U"ими"}};
-    static const TAdjectiveEndings type3b = {{U"ой", U"ого", U"ому", U"им", U"ом"},
-                                             {U"ая", U"ой", U"ую"},
-                                             U"ое",
-                                             {U"ие", U"их", U"им", U"ими"}};
-    static const TAdjectiveEndings type4a = {{U"ий", U"его", U"ему", U"им", U"ем"},
-                                             {U"ая", U"ей", U"ую"},
-                                             U"ее",
-                                             {U"ие", U"их", U"им", U"ими"}};
-    static const TAdjectiveEndings type4b = {{U"ой", U"ого", U"ому", U"им", U"ом"},
-                                             {U"ая", U"ой", U"ую"},
-                                             U"ое",
-                                             {U"ие", U"их", U"им", U"ими"}};
-    switch (type) {
-        case 2: return &type2a;
-        case 3: return endingStressed ? &type3b : &type3a;
-        case 4: return endingStressed ? &type4b : &type4a;
-        default: return endingStressed ? &type1b : &type1a;
-    }
-}
 
 struct TAdjectiveClass {
     int type = 1;
@@ -383,20 +242,6 @@ void declineAdjective(const TAdjectiveClass& adjectiveClass, TFormCollector& out
 //      стоять, ...), since the shape does not distinguish them from class 1.
 // The regular first-person-singular alternations of classes 4/5 are applied
 // (ходить -> хожу, любить -> люблю, простить -> прощу).
-
-// Class-5 verbs mapped to the vowel of their past-tense suffix.
-const std::unordered_map<std::string, char32_t>& classFiveVerbs() {
-    static const std::unordered_map<std::string, char32_t> verbs = {
-        {"слышать", U'а'}, {"дышать", U'а'}, {"держать", U'а'}, {"лежать", U'а'},
-        {"молчать", U'а'}, {"кричать", U'а'}, {"стучать", U'а'}, {"звучать", U'а'},
-        {"спать", U'а'},
-        {"видеть", U'е'}, {"смотреть", U'е'}, {"сидеть", U'е'}, {"лететь", U'е'},
-        {"гореть", U'е'}, {"терпеть", U'е'}, {"вертеть", U'е'}, {"обидеть", U'е'},
-        {"зависеть", U'е'}, {"ненавидеть", U'е'},
-        {"стоять", U'я'},
-    };
-    return verbs;
-}
 
 int verbClass(const TWord& word, const std::string& normalized) {
     if (classFiveVerbs().count(normalized) != 0) {
@@ -499,41 +344,6 @@ void conjugateVerb(const TWord& infinitive, int cls, char32_t classFivePastVowel
 }
 
 // --- Classification helpers ---
-
-// Common non-verbs whose endings look like an infinitive (vowel + "ть"), and
-// other soft-sign feminines that would otherwise be guessed masculine.
-const std::unordered_set<std::string>& feminineSoftSignNouns() {
-    static const std::unordered_set<std::string> words = {
-        "сеть", "кровать", "печать", "память", "площадь", "лошадь",
-        "тетрадь", "ткань", "дверь", "соль", "боль", "жизнь", "любовь",
-        "осень", "очередь", "медаль",
-    };
-    return words;
-}
-
-// Fully irregular paradigms that no table produces.
-struct TIrregular {
-    const char* index;
-    std::vector<std::string> forms;
-};
-
-const std::unordered_map<std::string, TIrregular>& irregularWords() {
-    static const std::unordered_map<std::string, TIrregular> words = {
-        {"мать",
-         {"ж 8",
-          {"мать", "матери", "матерью", "матерей", "матерям", "матерями",
-           "матерях"}}},
-        {"дочь",
-         {"ж 8",
-          {"дочь", "дочери", "дочерью", "дочерей", "дочерям", "дочерьми",
-           "дочерях"}}},
-        {"путь",
-         {"м 8",
-          {"путь", "пути", "путём", "путем", "путей", "путям", "путями",
-           "путях"}}},
-    };
-    return words;
-}
 
 bool looksLikeInfinitive(const TWord& word) {
     if (word.size() < 4 || !endsWith(word, U"ть")) {
@@ -658,7 +468,7 @@ bool nounParadigm(const TWord& word, EGender gender, int type, TWord& stem,
             } else {
                 return false;
             }
-            endings = masculineEndings(type);
+            endings = masculineNounEndings(type);
             return true;
         case EGender::Feminine:
             if (last == U'а') {
@@ -678,7 +488,7 @@ bool nounParadigm(const TWord& word, EGender gender, int type, TWord& stem,
                 return false;
             }
             stem = word.substr(0, word.size() - 1);
-            endings = feminineEndings(type, stem.back());
+            endings = feminineNounEndings(type, stem.back());
             return true;
         case EGender::Neuter: {
             int shapeType;
@@ -703,7 +513,7 @@ bool nounParadigm(const TWord& word, EGender gender, int type, TWord& stem,
                 return false;
             }
             stem = word.substr(0, word.size() - 1);
-            endings = neuterEndings(last == U'о' ? U'о' : U'е', type);
+            endings = neuterNounEndings(last, type);
             return true;
         }
     }
@@ -791,7 +601,7 @@ TAnalysis analyze(const std::string& word) {
     const auto& irregular = irregularWords();
     if (auto it = irregular.find(normalized); it != irregular.end()) {
         result.partOfSpeech = EPartOfSpeech::Noun;
-        result.zaliznyakIndex = it->second.index;
+        result.zaliznyakIndex = it->second.zaliznyakIndex;
         result.forms = it->second.forms;
         return result;
     }
@@ -900,7 +710,7 @@ bool lookupIrregular(const std::string& word, TAnalysis& result) {
         return false;
     }
     result.partOfSpeech = EPartOfSpeech::Noun;
-    result.zaliznyakIndex = it->second.index;
+    result.zaliznyakIndex = it->second.zaliznyakIndex;
     result.forms = it->second.forms;
     return true;
 }
