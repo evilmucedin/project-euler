@@ -1,18 +1,23 @@
 // CLI for manual testing of the Russian morphology library.
 //
 // Usage:
-//   morphologyCli слово [слово...]   # analyze the given words
-//   morphologyCli                    # read words from stdin, one per line
+//   morphologyCli слово [слово...]                # rule-based backend
+//   morphologyCli --embedding слово [слово...]    # embedding backend
+//   morphologyCli [--embedding]                   # read words from stdin
 
+#include "lib/russianMorphology/embeddingMorphology.h"
 #include "lib/russianMorphology/morphology.h"
 
+#include <cstring>
 #include <iostream>
 #include <string>
 
 namespace {
 
-void report(const std::string& word) {
-    const russianMorphology::TAnalysis analysis = russianMorphology::analyze(word);
+void report(const std::string& word, bool useEmbedding) {
+    const russianMorphology::TAnalysis analysis =
+        useEmbedding ? russianMorphology::embedding::analyze(word)
+                     : russianMorphology::analyze(word);
     std::cout << word << " (" << russianMorphology::partOfSpeechName(analysis.partOfSpeech);
     if (!analysis.zaliznyakIndex.empty()) {
         std::cout << ", " << analysis.zaliznyakIndex;
@@ -26,15 +31,21 @@ void report(const std::string& word) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    if (argc > 1) {
-        for (int i = 1; i < argc; ++i) {
-            report(argv[i]);
+    int firstWord = 1;
+    bool useEmbedding = false;
+    if (argc > 1 && std::strcmp(argv[1], "--embedding") == 0) {
+        useEmbedding = true;
+        firstWord = 2;
+    }
+    if (firstWord < argc) {
+        for (int i = firstWord; i < argc; ++i) {
+            report(argv[i], useEmbedding);
         }
         return 0;
     }
     std::string word;
     while (std::cin >> word) {
-        report(word);
+        report(word, useEmbedding);
     }
     return 0;
 }

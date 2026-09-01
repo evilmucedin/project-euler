@@ -4,3 +4,11 @@ build $builddir/obj/lib/russianMorphology/tests/morphologyTest.cpp.o: cxx lib/ru
 build $builddir/bin/lib/russianMorphology/tests/morphologyTest: link $builddir/obj/lib/russianMorphology/tests/morphologyTest.cpp.o $builddir/lib/lib/russianMorphology/morphology.a $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a
 build lib/russianMorphology/tests/morphologyTest: phony $builddir/bin/lib/russianMorphology/tests/morphologyTest
 
+build $builddir/obj/lib/russianMorphology/tests/embeddingMorphologyTest.cpp.o: cxx lib/russianMorphology/tests/embeddingMorphologyTest.cpp
+build $builddir/bin/lib/russianMorphology/tests/embeddingMorphologyTest: link $builddir/obj/lib/russianMorphology/tests/embeddingMorphologyTest.cpp.o $builddir/lib/lib/russianMorphology/embeddingMorphology.a $builddir/lib/lib/russianMorphology/morphology.a $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a
+build lib/russianMorphology/tests/embeddingMorphologyTest: phony $builddir/bin/lib/russianMorphology/tests/embeddingMorphologyTest
+
+build $builddir/obj/lib/russianMorphology/tests/comparisonTest.cpp.o: cxx lib/russianMorphology/tests/comparisonTest.cpp
+build $builddir/bin/lib/russianMorphology/tests/comparisonTest: link $builddir/obj/lib/russianMorphology/tests/comparisonTest.cpp.o $builddir/lib/lib/russianMorphology/evaluation.a $builddir/lib/lib/russianMorphology/embeddingMorphology.a $builddir/lib/lib/russianMorphology/morphology.a $builddir/lib/gtest/gtest.a $builddir/lib/gtest/gtestInt.a
+build lib/russianMorphology/tests/comparisonTest: phony $builddir/bin/lib/russianMorphology/tests/comparisonTest
+
