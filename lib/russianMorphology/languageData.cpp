@@ -5,6 +5,16 @@
 namespace russianMorphology {
 namespace data {
 
+namespace {
+
+// The hushing sibilants ж/ч/ш/щ, whose stems take the hard type-8 plural.
+// Kept local so the data library stays dependency-free.
+bool isHushingConsonant(char32_t c) {
+    return c == U'ж' || c == U'ч' || c == U'ш' || c == U'щ';
+}
+
+}  // namespace
+
 // --- Noun declension tables ---
 
 const TNounEndings* masculineNounEndings(int type) {
@@ -33,7 +43,7 @@ const TNounEndings* masculineNounEndings(int type) {
     }
 }
 
-const TNounEndings* feminineNounEndings(int type, bool hushingStem) {
+const TNounEndings* feminineNounEndings(int type, char32_t stemLast) {
     static const TNounEndings type1 = {{U"а", U"ы", U"е", U"у", U"ой", U"е"},
                                        {U"ы", U"", U"ам", U"ами", U"ах"}};
     static const TNounEndings type2 = {{U"я", U"и", U"е", U"ю", U"ей", U"е"},
@@ -59,12 +69,12 @@ const TNounEndings* feminineNounEndings(int type, bool hushingStem) {
         case 5: return &type5;
         case 6: return &type6;
         case 7: return &type7;
-        case 8: return hushingStem ? &type8Hushing : &type8;
+        case 8: return isHushingConsonant(stemLast) ? &type8Hushing : &type8;
         default: return &type1;
     }
 }
 
-const TNounEndings* neuterNounEndings(bool oNoun, int type) {
+const TNounEndings* neuterNounEndings(char32_t nominative, int type) {
     static const TNounEndings hardO = {{U"о", U"а", U"у", U"о", U"ом", U"е"},
                                        {U"а", U"", U"ам", U"ами", U"ах"}};
     static const TNounEndings type2 = {{U"е", U"я", U"ю", U"е", U"ем", U"е"},
@@ -77,7 +87,7 @@ const TNounEndings* neuterNounEndings(bool oNoun, int type) {
                                        {U"я", U"ев", U"ям", U"ями", U"ях"}};
     static const TNounEndings type7 = {{U"е", U"я", U"ю", U"е", U"ем", U"и"},
                                        {U"я", U"й", U"ям", U"ями", U"ях"}};
-    if (oNoun) {
+    if (nominative == U'о') {
         return &hardO;
     }
     switch (type) {

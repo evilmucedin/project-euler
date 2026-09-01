@@ -44,12 +44,14 @@ struct TNounEndings {
 const TNounEndings* masculineNounEndings(int type);
 
 // Ending tables of the feminine stem types 1..8; the third declension
-// (type 8) differs between hushing and other stems.
-const TNounEndings* feminineNounEndings(int type, bool hushingStem);
+// (type 8) reads its plural row off the stem-final character (hushing
+// stems decline ночь -> ночам, others тень -> теням).
+const TNounEndings* feminineNounEndings(int type, char32_t stemLast);
 
-// Ending tables of the neuter nouns: all о-nouns share one ending row
-// regardless of stem type (место, войско, лицо); е-nouns differ by type.
-const TNounEndings* neuterNounEndings(bool oNoun, int type);
+// Ending tables of the neuter nouns, keyed by the nominative ending: all
+// о-nouns share one ending row regardless of stem type (место, войско,
+// лицо); е-nouns differ by type.
+const TNounEndings* neuterNounEndings(char32_t nominative, int type);
 
 struct TAdjectiveEndings {
     // nominative, genitive, dative, instrumental, prepositional

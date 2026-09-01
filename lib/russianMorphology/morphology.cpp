@@ -119,7 +119,7 @@ TNounClass feminineThirdDeclension(const TWord& word) {
     result.gender = "ж";
     result.type = 8;
     result.stem = word.substr(0, word.size() - 1);
-    result.endings = feminineNounEndings(8, isHushing(result.stem.back()));
+    result.endings = feminineNounEndings(8, result.stem.back());
     return result;
 }
 
@@ -132,15 +132,15 @@ TNounClass classifyNoun(const TWord& word) {
     if (last == U'а') {
         result.gender = "ж";
         result.type = consonantStemType(prev);
-        result.endings = feminineNounEndings(result.type, isHushing(prev));
+        result.endings = feminineNounEndings(result.type, prev);
     } else if (last == U'я') {
         result.gender = "ж";
         result.type = prev == U'и' ? 7 : (prev == U'ь' || isVowel(prev) ? 6 : 2);
-        result.endings = feminineNounEndings(result.type, isHushing(prev));
+        result.endings = feminineNounEndings(result.type, prev);
     } else if (last == U'о') {
         result.gender = "с";
         result.type = consonantStemType(prev);
-        result.endings = neuterNounEndings(true, result.type);
+        result.endings = neuterNounEndings(last, result.type);
     } else if (last == U'е' || last == U'ё') {
         result.gender = "с";
         if (prev == U'и') {
@@ -154,7 +154,7 @@ TNounClass classifyNoun(const TWord& word) {
         } else {
             result.type = 2;
         }
-        result.endings = neuterNounEndings(false, result.type);
+        result.endings = neuterNounEndings(last, result.type);
     } else if (last == U'й') {
         result.gender = "м";
         result.type = prev == U'и' ? 7 : 6;
@@ -488,7 +488,7 @@ bool nounParadigm(const TWord& word, EGender gender, int type, TWord& stem,
                 return false;
             }
             stem = word.substr(0, word.size() - 1);
-            endings = feminineNounEndings(type, isHushing(stem.back()));
+            endings = feminineNounEndings(type, stem.back());
             return true;
         case EGender::Neuter: {
             int shapeType;
@@ -513,7 +513,7 @@ bool nounParadigm(const TWord& word, EGender gender, int type, TWord& stem,
                 return false;
             }
             stem = word.substr(0, word.size() - 1);
-            endings = neuterNounEndings(last == U'о', type);
+            endings = neuterNounEndings(last, type);
             return true;
         }
     }
