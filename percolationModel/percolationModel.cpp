@@ -50,8 +50,9 @@ static Grid makeGrid(int n, double p, mt19937& rng) {
 }
 
 // Effective conductance of the sample with V=1 on row 0 and V=0 on row n-1.
-// Unknowns are the cells of rows 1..n-2.
-static double effectiveConductivity(const Grid& g) {
+// Unknowns are the cells of rows 1..n-2. If potentialOut is given, it is
+// filled with the full n*n potential field including the electrode rows.
+static double effectiveConductivity(const Grid& g, vector<double>* potentialOut = nullptr) {
     const int n = g.n;
     const int rows = n - 2;
     const size_t m = static_cast<size_t>(rows) * n;
@@ -147,6 +148,18 @@ static double effectiveConductivity(const Grid& g) {
         }
     }
 
+    if (potentialOut) {
+        potentialOut->assign(static_cast<size_t>(n) * n, 0.0);
+        for (int col = 0; col < n; ++col) {
+            (*potentialOut)[col] = 1.0;
+        }
+        for (int row = 1; row + 1 < n; ++row) {
+            for (int col = 0; col < n; ++col) {
+                (*potentialOut)[static_cast<size_t>(row) * n + col] = x[index(row, col)];
+            }
+        }
+    }
+
     // Total current out of the top electrode.
     double current = 0.0;
     for (int col = 0; col < n; ++col) {
@@ -155,7 +168,37 @@ static double effectiveConductivity(const Grid& g) {
     return current / n * (n - 1);  // normalize to conductivity of a unit square
 }
 
+static void writeMatrix(const string& filename, const vector<double>& values, int n) {
+    ofstream out(filename);
+    for (int row = 0; row < n; ++row) {
+        for (int col = 0; col < n; ++col) {
+            out << values[static_cast<size_t>(row) * n + col] << (col + 1 < n ? "," : "\n");
+        }
+    }
+}
+
+// "field" mode: solve one random sample and dump the material grid and the
+// potential field for visualization with drawField.py.
+static int fieldMode(int argc, char* argv[]) {
+    int n = (argc > 2) ? atoi(argv[2]) : 48;
+    double p = (argc > 3) ? atof(argv[3]) : 0.6;
+    uint32_t seed = (argc > 4) ? static_cast<uint32_t>(atoi(argv[4])) : 1;
+    string prefix = (argc > 5) ? argv[5] : "field";
+
+    mt19937 rng(seed);
+    Grid g = makeGrid(n, p, rng);
+    vector<double> potential;
+    double sigma = effectiveConductivity(g, &potential);
+    writeMatrix(prefix + "_grid.csv", g.sigma, n);
+    writeMatrix(prefix + "_potential.csv", potential, n);
+    cerr << "p=" << p << " sigma=" << sigma << " wrote " << prefix << "_{grid,potential}.csv\n";
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
+    if (argc > 1 && string(argv[1]) == "field") {
+        return fieldMode(argc, argv);
+    }
     int n = (argc > 1) ? atoi(argv[1]) : 48;
     int trials = (argc > 2) ? atoi(argv[2]) : 20;
     double pStep = (argc > 3) ? atof(argv[3]) : 0.02;
