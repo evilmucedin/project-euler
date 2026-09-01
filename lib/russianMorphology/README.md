@@ -21,7 +21,7 @@ training lexicon — lives in one dependency-free library
 (`languageData.h`/`languageData.cpp`), which changes rarely; the backends
 contain only classification and generation logic.
 
-On a held-out gold set the embedding backend classifies **87.4%** of words
+On a held-out gold set the embedding backend classifies **89.3%** of words
 into the correct inflection class vs **65.0%** for the rules (see
 [Quality comparison](#quality-comparison)).
 
@@ -62,7 +62,7 @@ learned classifier while reusing the same paradigm tables for generation
   embedding is their average — the fastText subword scheme, so the model
   generalizes to unseen words through their substrings.
 - A softmax layer over the embedding predicts the Zaliznyak class. N-gram
-  vectors and softmax weights are trained jointly by SGD on the ~800-word
+  vectors and softmax weights are trained jointly by SGD on the ~1100-word
   labeled lexicon embedded in `languageData.cpp`.
 - Training runs on first use, in-process, in ~0.1 s, and is deterministic
   (fixed-seed PRNG, fixed shuffle order): no model files, downloads, or
@@ -132,7 +132,7 @@ shapes listed above, alongside regular vocabulary. Measured by
 | backend | part of speech | inflection class | paradigm correct* |
 |---|---|---|---|
 | rules | 93/103 (90.3%) | 67/103 (65.0%) | 67/103 (65.0%) |
-| embeddings | 98/103 (95.1%) | 90/103 (87.4%) | 90/103 (87.4%) |
+| embeddings | 99/103 (96.1%) | 92/103 (89.3%) | 92/103 (89.3%) |
 
 *paradigm correct = all required forms generated and no forbidden form.
 
@@ -149,9 +149,10 @@ shape classes, the embeddings on individual hard words:
 - Second-conjugation verbs in `-ать`/`-еть` outside the rules' closed class-5
   list (`дрожать`, `жужжать`, `сипеть`) get first-conjugation forms.
 - The embeddings' remaining losses are individually ambiguous words:
-  `нить`/`рать` (noun vs infinitive shape), `дрель` vs `отель` (feminine vs
-  masculine `-ель`), `кровать` (noun ending in `-овать`), `толстеть`
-  (`гл 1` vs `гл 5` in `-стеть`) — plus a few indeclinables (`табло`).
+  `нить`/`рать`/`сеть`/`кровать` (nouns with infinitive shape),
+  `пудель`/`миндаль`/`хрусталь` (masculine soft-sign nouns misread feminine),
+  `копыто`/`корыто`/`табло` (declinable vs indeclinable `-о`), and `толстеть`
+  (`гл 1` vs `гл 5` in `-стеть`).
 
 ```sh
 ninja lib/russianMorphology/morphologyCompare
