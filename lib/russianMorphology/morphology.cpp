@@ -12,115 +12,21 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "lib/russianMorphology/utf8.h"
+
 namespace russianMorphology {
 
 namespace {
 
-using TWord = std::u32string;
-
-// --- UTF-8 <-> code points ---
-
-TWord decodeUtf8(const std::string& text) {
-    TWord result;
-    size_t i = 0;
-    while (i < text.size()) {
-        const unsigned char byte = static_cast<unsigned char>(text[i]);
-        char32_t code = 0;
-        size_t length = 1;
-        if (byte < 0x80) {
-            code = byte;
-        } else if ((byte & 0xE0) == 0xC0) {
-            code = byte & 0x1F;
-            length = 2;
-        } else if ((byte & 0xF0) == 0xE0) {
-            code = byte & 0x0F;
-            length = 3;
-        } else if ((byte & 0xF8) == 0xF0) {
-            code = byte & 0x07;
-            length = 4;
-        } else {
-            // Invalid lead byte: keep it as-is so the word round-trips.
-            code = byte;
-        }
-        if (i + length > text.size()) {
-            code = byte;
-            length = 1;
-        }
-        for (size_t k = 1; k < length; ++k) {
-            const unsigned char cont = static_cast<unsigned char>(text[i + k]);
-            if ((cont & 0xC0) != 0x80) {
-                code = byte;
-                length = 1;
-                break;
-            }
-            code = (code << 6) | (cont & 0x3F);
-        }
-        result.push_back(code);
-        i += length;
-    }
-    return result;
-}
-
-std::string encodeUtf8(const TWord& word) {
-    std::string result;
-    for (char32_t code : word) {
-        if (code < 0x80) {
-            result.push_back(static_cast<char>(code));
-        } else if (code < 0x800) {
-            result.push_back(static_cast<char>(0xC0 | (code >> 6)));
-            result.push_back(static_cast<char>(0x80 | (code & 0x3F)));
-        } else if (code < 0x10000) {
-            result.push_back(static_cast<char>(0xE0 | (code >> 12)));
-            result.push_back(static_cast<char>(0x80 | ((code >> 6) & 0x3F)));
-            result.push_back(static_cast<char>(0x80 | (code & 0x3F)));
-        } else {
-            result.push_back(static_cast<char>(0xF0 | (code >> 18)));
-            result.push_back(static_cast<char>(0x80 | ((code >> 12) & 0x3F)));
-            result.push_back(static_cast<char>(0x80 | ((code >> 6) & 0x3F)));
-            result.push_back(static_cast<char>(0x80 | (code & 0x3F)));
-        }
-    }
-    return result;
-}
-
-// --- Russian alphabet helpers ---
-
-char32_t toLowerRussian(char32_t c) {
-    if (c >= U'А' && c <= U'Я') {
-        return c + (U'а' - U'А');
-    }
-    if (c == U'Ё') {
-        return U'ё';
-    }
-    return c;
-}
-
-bool isRussianLetter(char32_t c) {
-    return (c >= U'а' && c <= U'я') || c == U'ё';
-}
-
-bool isVowel(char32_t c) {
-    switch (c) {
-        case U'а': case U'е': case U'ё': case U'и': case U'о':
-        case U'у': case U'ы': case U'э': case U'ю': case U'я':
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool isHushing(char32_t c) {
-    return c == U'ж' || c == U'ч' || c == U'ш' || c == U'щ';
-}
-
-bool isVelar(char32_t c) {
-    return c == U'г' || c == U'к' || c == U'х';
-}
-
-bool endsWith(const TWord& word, const TWord& suffix) {
-    return word.size() >= suffix.size() &&
-           word.compare(word.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
+using detail::TWord;
+using detail::decodeUtf8;
+using detail::encodeUtf8;
+using detail::endsWith;
+using detail::isHushing;
+using detail::isRussianLetter;
+using detail::isVelar;
+using detail::isVowel;
+using detail::toLowerRussian;
 
 class TFormCollector {
 public:
@@ -662,6 +568,206 @@ std::string makeIndex(const char* prefix, int type, const char* scheme = "") {
     return result;
 }
 
+// --- Generation from an explicitly given inflection class ---
+//
+// The paradigm tables above are keyed by the shape of the word, so a class
+// index is only usable when the word shape fits it: "ж 8" needs a word in
+// "-ь", "гл 2" needs "-овать"/"-евать", and so on. These helpers check that
+// compatibility and extract the stem, which lets an external classifier (the
+// embedding backend) pick any class it likes among the shape-compatible ones.
+
+enum class EGender { Masculine, Feminine, Neuter };
+
+struct TParsedIndex {
+    EPartOfSpeech partOfSpeech = EPartOfSpeech::Unknown;
+    EGender gender = EGender::Masculine;
+    int type = 0;
+    bool endingStressed = false;
+    bool indeclinable = false;
+};
+
+bool parseZaliznyakIndex(const std::string& index, TParsedIndex& out) {
+    if (index == "0") {
+        out.partOfSpeech = EPartOfSpeech::Noun;
+        out.indeclinable = true;
+        return true;
+    }
+    const size_t space = index.find(' ');
+    if (space == std::string::npos || space + 1 >= index.size()) {
+        return false;
+    }
+    const std::string prefix = index.substr(0, space);
+    const std::string rest = index.substr(space + 1);
+    if (rest[0] < '1' || rest[0] > '8') {
+        return false;
+    }
+    out.type = rest[0] - '0';
+    if (prefix == "м" || prefix == "ж" || prefix == "с") {
+        if (rest.size() != 1) {
+            return false;
+        }
+        out.partOfSpeech = EPartOfSpeech::Noun;
+        out.gender = prefix == "м" ? EGender::Masculine
+                                   : (prefix == "ж" ? EGender::Feminine : EGender::Neuter);
+        return true;
+    }
+    if (prefix == "п") {
+        if (rest.size() != 2 || (rest[1] != 'a' && rest[1] != 'b')) {
+            return false;
+        }
+        out.partOfSpeech = EPartOfSpeech::Adjective;
+        out.endingStressed = rest[1] == 'b';
+        return true;
+    }
+    if (prefix == "гл") {
+        if (rest.size() != 1 || out.type > 5) {
+            return false;
+        }
+        out.partOfSpeech = EPartOfSpeech::Verb;
+        return true;
+    }
+    return false;
+}
+
+// Fills stem/endings when the word shape can decline as gender + stem type.
+bool nounParadigm(const TWord& word, EGender gender, int type, TWord& stem,
+                  const TNounEndings*& endings) {
+    if (word.size() < 2) {
+        return false;
+    }
+    const char32_t last = word.back();
+    const char32_t prev = word[word.size() - 2];
+    switch (gender) {
+        case EGender::Masculine:
+            if (last == U'ь') {
+                // Hushing + ь nouns (ночь, дочь, мышь) are always feminine.
+                if (type != 2 || isHushing(prev)) {
+                    return false;
+                }
+                stem = word.substr(0, word.size() - 1);
+            } else if (last == U'й') {
+                if (type != (prev == U'и' ? 7 : 6)) {
+                    return false;
+                }
+                stem = word.substr(0, word.size() - 1);
+            } else if (!isVowel(last)) {
+                if (type != consonantStemType(last)) {
+                    return false;
+                }
+                stem = word;
+            } else {
+                return false;
+            }
+            endings = masculineEndings(type);
+            return true;
+        case EGender::Feminine:
+            if (last == U'а') {
+                if (type != consonantStemType(prev)) {
+                    return false;
+                }
+            } else if (last == U'я') {
+                if (type != (prev == U'и' ? 7
+                                          : (prev == U'ь' || isVowel(prev) ? 6 : 2))) {
+                    return false;
+                }
+            } else if (last == U'ь') {
+                if (type != 8) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            stem = word.substr(0, word.size() - 1);
+            endings = feminineEndings(type, stem.back());
+            return true;
+        case EGender::Neuter: {
+            int shapeType;
+            if (last == U'о') {
+                shapeType = consonantStemType(prev);
+            } else if (last == U'е' || last == U'ё') {
+                if (prev == U'и') {
+                    shapeType = 7;
+                } else if (isHushing(prev)) {
+                    shapeType = 4;
+                } else if (prev == U'ц') {
+                    shapeType = 5;
+                } else if (prev == U'ь' || isVowel(prev)) {
+                    shapeType = 6;
+                } else {
+                    shapeType = 2;
+                }
+            } else {
+                return false;
+            }
+            if (type != shapeType) {
+                return false;
+            }
+            stem = word.substr(0, word.size() - 1);
+            endings = neuterEndings(last == U'о' ? U'о' : U'е', type);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool adjectiveParadigm(const TWord& word, int type, bool endingStressed, TWord& stem,
+                       const TAdjectiveEndings*& endings) {
+    if (word.size() < 4 ||
+        (!endsWith(word, U"ый") && !endsWith(word, U"ий") && !endsWith(word, U"ой"))) {
+        return false;
+    }
+    const TAdjectiveClass derived = classifyAdjective(word);
+    if (derived.type != type || derived.endingStressed != endingStressed) {
+        return false;
+    }
+    stem = derived.stem;
+    endings = derived.endings;
+    return true;
+}
+
+bool verbShapeCompatible(const TWord& word, int cls) {
+    if (word.size() < 4 || !endsWith(word, U"ть")) {
+        return false;
+    }
+    const char32_t theme = word[word.size() - 3];
+    switch (cls) {
+        case 1:
+        case 5:
+            return theme == U'а' || theme == U'я' || theme == U'е';
+        case 2:
+            return word.size() >= 6 &&
+                   (endsWith(word, U"овать") || endsWith(word, U"евать"));
+        case 3:
+            return word.size() >= 5 && endsWith(word, U"нуть");
+        case 4:
+            return theme == U'и';
+        default:
+            return false;
+    }
+}
+
+bool indexCompatible(const TWord& letters, const TParsedIndex& parsed) {
+    if (parsed.indeclinable) {
+        return true;
+    }
+    TWord stem;
+    switch (parsed.partOfSpeech) {
+        case EPartOfSpeech::Noun: {
+            const TNounEndings* endings = nullptr;
+            return nounParadigm(letters, parsed.gender, parsed.type, stem, endings);
+        }
+        case EPartOfSpeech::Adjective: {
+            const TAdjectiveEndings* endings = nullptr;
+            return adjectiveParadigm(letters, parsed.type, parsed.endingStressed, stem,
+                                     endings);
+        }
+        case EPartOfSpeech::Verb:
+            return verbShapeCompatible(letters, parsed.type);
+        default:
+            return false;
+    }
+}
+
 }  // namespace
 
 TAnalysis analyze(const std::string& word) {
@@ -723,6 +829,80 @@ TAnalysis analyze(const std::string& word) {
     }
     result.forms = collector.take();
     return result;
+}
+
+TAnalysis analyzeWithClass(const std::string& word, const std::string& zaliznyakIndex) {
+    TWord letters;
+    TAnalysis result;
+    const bool isRussian = detail::normalizeRussianWord(word, letters);
+    if (!letters.empty()) {
+        result.forms.push_back(encodeUtf8(letters));
+    }
+    TParsedIndex parsed;
+    if (!isRussian || !parseZaliznyakIndex(zaliznyakIndex, parsed) ||
+        !indexCompatible(letters, parsed)) {
+        return result;
+    }
+    result.partOfSpeech = parsed.partOfSpeech;
+    result.zaliznyakIndex = zaliznyakIndex;
+    if (parsed.indeclinable) {
+        return result;
+    }
+    TFormCollector collector;
+    collector.add(letters);
+    TWord stem;
+    switch (parsed.partOfSpeech) {
+        case EPartOfSpeech::Noun: {
+            const TNounEndings* endings = nullptr;
+            nounParadigm(letters, parsed.gender, parsed.type, stem, endings);
+            TNounClass nounClass;
+            nounClass.stem = stem;
+            nounClass.endings = endings;
+            declineNoun(nounClass, collector);
+            break;
+        }
+        case EPartOfSpeech::Adjective: {
+            TAdjectiveClass adjectiveClass;
+            adjectiveParadigm(letters, parsed.type, parsed.endingStressed,
+                              adjectiveClass.stem, adjectiveClass.endings);
+            declineAdjective(adjectiveClass, collector);
+            break;
+        }
+        case EPartOfSpeech::Verb: {
+            // For classes 4/5 the past-tense vowel is the theme vowel of the
+            // infinitive itself (говор-и-ть -> говорил, слыш-а-ть -> слышал).
+            const char32_t themeVowel = letters[letters.size() - 3];
+            conjugateVerb(letters, parsed.type, themeVowel, collector);
+            break;
+        }
+        default:
+            break;
+    }
+    result.forms = collector.take();
+    return result;
+}
+
+bool classCompatible(const std::string& word, const std::string& zaliznyakIndex) {
+    TWord letters;
+    TParsedIndex parsed;
+    return detail::normalizeRussianWord(word, letters) &&
+           parseZaliznyakIndex(zaliznyakIndex, parsed) && indexCompatible(letters, parsed);
+}
+
+bool lookupIrregular(const std::string& word, TAnalysis& result) {
+    TWord letters;
+    if (!detail::normalizeRussianWord(word, letters)) {
+        return false;
+    }
+    const auto& irregular = irregularWords();
+    const auto it = irregular.find(encodeUtf8(letters));
+    if (it == irregular.end()) {
+        return false;
+    }
+    result.partOfSpeech = EPartOfSpeech::Noun;
+    result.zaliznyakIndex = it->second.index;
+    result.forms = it->second.forms;
+    return true;
 }
 
 std::vector<std::string> getForms(const std::string& word) {

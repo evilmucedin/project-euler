@@ -2,9 +2,42 @@ cxx_library(
   name="morphology",
   exported_headers=[
     "morphology.h",
+    "utf8.h",
   ],
   srcs=[
     "morphology.cpp",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="embeddingMorphology",
+  exported_headers=[
+    "embeddingMorphology.h",
+  ],
+  srcs=[
+    "embeddingMorphology.cpp",
+  ],
+  deps=[
+    ":morphology",
+  ],
+  visibility=[
+    'PUBLIC',
+  ],
+)
+
+cxx_library(
+  name="evaluation",
+  exported_headers=[
+    "evaluation.h",
+  ],
+  srcs=[
+    "evaluation.cpp",
+  ],
+  deps=[
+    ":morphology",
   ],
   visibility=[
     'PUBLIC',
@@ -18,5 +51,18 @@ cxx_binary(
   ],
   deps=[
     ":morphology",
+    ":embeddingMorphology",
+  ],
+)
+
+cxx_binary(
+  name="morphologyCompare",
+  srcs=[
+    "morphologyCompare.cpp",
+  ],
+  deps=[
+    ":morphology",
+    ":embeddingMorphology",
+    ":evaluation",
   ],
 )

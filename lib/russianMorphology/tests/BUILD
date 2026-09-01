@@ -8,3 +8,24 @@ cc_test(
         "//lib/russianMorphology:morphology",
     ],
 )
+
+cc_test(
+    name = "embeddingMorphologyTest",
+    srcs = ["embeddingMorphologyTest.cpp"],
+    deps = [
+        "//gtest:gtest",
+        "//lib/russianMorphology:embeddingMorphology",
+        "//lib/russianMorphology:morphology",
+    ],
+)
+
+cc_test(
+    name = "comparisonTest",
+    srcs = ["comparisonTest.cpp"],
+    deps = [
+        "//gtest:gtest",
+        "//lib/russianMorphology:embeddingMorphology",
+        "//lib/russianMorphology:evaluation",
+        "//lib/russianMorphology:morphology",
+    ],
+)

@@ -4,7 +4,19 @@ build $builddir/obj/lib/russianMorphology/morphology.cpp.o: cxx lib/russianMorph
 build $builddir/lib/lib/russianMorphology/morphology.a: ar $builddir/obj/lib/russianMorphology/morphology.cpp.o
 build lib/russianMorphology/morphology: phony $builddir/lib/lib/russianMorphology/morphology.a
 
+build $builddir/obj/lib/russianMorphology/embeddingMorphology.cpp.o: cxx lib/russianMorphology/embeddingMorphology.cpp
+build $builddir/lib/lib/russianMorphology/embeddingMorphology.a: ar $builddir/obj/lib/russianMorphology/embeddingMorphology.cpp.o
+build lib/russianMorphology/embeddingMorphology: phony $builddir/lib/lib/russianMorphology/embeddingMorphology.a
+
+build $builddir/obj/lib/russianMorphology/evaluation.cpp.o: cxx lib/russianMorphology/evaluation.cpp
+build $builddir/lib/lib/russianMorphology/evaluation.a: ar $builddir/obj/lib/russianMorphology/evaluation.cpp.o
+build lib/russianMorphology/evaluation: phony $builddir/lib/lib/russianMorphology/evaluation.a
+
 build $builddir/obj/lib/russianMorphology/morphologyCLI.cpp.o: cxx lib/russianMorphology/morphologyCLI.cpp
-build $builddir/bin/lib/russianMorphology/morphologyCli: link $builddir/obj/lib/russianMorphology/morphologyCLI.cpp.o $builddir/lib/lib/russianMorphology/morphology.a
+build $builddir/bin/lib/russianMorphology/morphologyCli: link $builddir/obj/lib/russianMorphology/morphologyCLI.cpp.o $builddir/lib/lib/russianMorphology/embeddingMorphology.a $builddir/lib/lib/russianMorphology/morphology.a
 build lib/russianMorphology/morphologyCli: phony $builddir/bin/lib/russianMorphology/morphologyCli
+
+build $builddir/obj/lib/russianMorphology/morphologyCompare.cpp.o: cxx lib/russianMorphology/morphologyCompare.cpp
+build $builddir/bin/lib/russianMorphology/morphologyCompare: link $builddir/obj/lib/russianMorphology/morphologyCompare.cpp.o $builddir/lib/lib/russianMorphology/evaluation.a $builddir/lib/lib/russianMorphology/embeddingMorphology.a $builddir/lib/lib/russianMorphology/morphology.a
+build lib/russianMorphology/morphologyCompare: phony $builddir/bin/lib/russianMorphology/morphologyCompare
 
