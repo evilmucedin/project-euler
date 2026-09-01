@@ -168,6 +168,27 @@ static double effectiveConductivity(const Grid& g, vector<double>* potentialOut 
     return current / n * (n - 1);  // normalize to conductivity of a unit square
 }
 
+// Mean magnitude of the bond currents over all bonds of the sample.
+static double averageCurrentDensity(const Grid& g, const vector<double>& potential) {
+    const int n = g.n;
+    auto v = [&](int row, int col) { return potential[static_cast<size_t>(row) * n + col]; };
+    double sum = 0.0;
+    size_t bonds = 0;
+    for (int row = 0; row < n; ++row) {
+        for (int col = 0; col < n; ++col) {
+            if (col + 1 < n) {
+                sum += fabs(g.bond(row, col, row, col + 1) * (v(row, col) - v(row, col + 1)));
+                ++bonds;
+            }
+            if (row + 1 < n) {
+                sum += fabs(g.bond(row, col, row + 1, col) * (v(row, col) - v(row + 1, col)));
+                ++bonds;
+            }
+        }
+    }
+    return sum / bonds;
+}
+
 static void writeMatrix(const string& filename, const vector<double>& values, int n) {
     ofstream out(filename);
     for (int row = 0; row < n; ++row) {
@@ -205,22 +226,30 @@ int main(int argc, char* argv[]) {
     string outName = (argc > 4) ? argv[4] : "conductivity.csv";
 
     ofstream out(outName);
-    out << "p,mean,std\n";
+    out << "p,mean,std,meanCurrentDensity,stdCurrentDensity\n";
     for (int step = 0; step * pStep <= 1.0 + 1e-9; ++step) {
         double p = min(step * pStep, 1.0);
         double sum = 0.0;
         double sum2 = 0.0;
+        double jSum = 0.0;
+        double jSum2 = 0.0;
         for (int trial = 0; trial < trials; ++trial) {
             mt19937 rng(static_cast<uint32_t>(step * 7919 + trial + 1));
             Grid g = makeGrid(n, p, rng);
-            double sigma = effectiveConductivity(g);
+            vector<double> potential;
+            double sigma = effectiveConductivity(g, &potential);
             sum += sigma;
             sum2 += sigma * sigma;
+            double j = averageCurrentDensity(g, potential);
+            jSum += j;
+            jSum2 += j * j;
         }
         double mean = sum / trials;
         double var = max(0.0, sum2 / trials - mean * mean);
-        out << p << "," << mean << "," << sqrt(var) << "\n";
-        cerr << "p=" << p << " sigma=" << mean << "\n";
+        double jMean = jSum / trials;
+        double jVar = max(0.0, jSum2 / trials - jMean * jMean);
+        out << p << "," << mean << "," << sqrt(var) << "," << jMean << "," << sqrt(jVar) << "\n";
+        cerr << "p=" << p << " sigma=" << mean << " avgCurrentDensity=" << jMean << "\n";
     }
     cerr << "wrote " << outName << "\n";
     return 0;
