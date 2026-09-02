@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include "lib/compression/rc.h"
+
 namespace Lz {
 
 namespace {
@@ -309,7 +311,7 @@ size_t decompressBlock(const u8* src, size_t srcSize, u8* dst, size_t dstCapacit
 // ---------------------------------------------------------------------------
 // Frame layer.
 //
-//   u32 magic
+//   u32 magic | u8 codec (Level)
 //   repeated blocks: u32 rawSize (1..kFrameBlockSize) | u32 compressedSize
 //                    (0 = stored raw) | payload
 //   u32 rawSize == 0 terminator
@@ -317,8 +319,29 @@ size_t decompressBlock(const u8* src, size_t srcSize, u8* dst, size_t dstCapacit
 
 namespace {
 
+constexpr size_t kFrameHeaderSize = 4 + 1;
+
 u64 chainChecksum(u64 chk, const u8* raw, size_t rawSize) {
   return hash64(raw, rawSize) ^ rotl64(chk, 1);
+}
+
+// Compress one frame block with the requested codec. May return kError
+// (Rc gives up on incompressible input rather than overflow scratch), which
+// compares >= rawSize, so callers store the block raw in that case too.
+size_t frameCompressBlock(Level level, const u8* src, size_t srcSize, u8* dst,
+                          size_t dstCapacity) {
+  return level == Level::kFast ? compressBlock(src, srcSize, dst, dstCapacity)
+                               : Rc::compressBlock(src, srcSize, dst, dstCapacity);
+}
+
+size_t frameDecompressBlock(Level level, const u8* src, size_t srcSize, u8* dst,
+                            size_t dstCapacity) {
+  return level == Level::kFast ? decompressBlock(src, srcSize, dst, dstCapacity)
+                               : Rc::decompressBlock(src, srcSize, dst, dstCapacity);
+}
+
+bool validLevel(u8 codec) {
+  return codec == static_cast<u8>(Level::kFast) || codec == static_cast<u8>(Level::kHigh);
 }
 
 struct FileCloser {
@@ -332,16 +355,21 @@ using FilePtr = unique_ptr<FILE, FileCloser>;
 
 }  // namespace
 
-vector<u8> compress(const void* data, size_t size) {
+vector<u8> compress(const void* data, size_t size, Level level) {
   const u8* src = static_cast<const u8*>(data);
-  vector<u8> out(4);
+  vector<u8> out(kFrameHeaderSize);
   writeU32(out.data(), kMagic);
-  vector<u8> scratch(compressBound(min(size, kFrameBlockSize)));
+  out[4] = static_cast<u8>(level);
+  const size_t blockBound = level == Level::kFast
+                                ? compressBound(min(size, kFrameBlockSize))
+                                : Rc::compressBound(min(size, kFrameBlockSize));
+  vector<u8> scratch(blockBound);
   u64 chk = 0;
   for (size_t pos = 0; pos < size; pos += kFrameBlockSize) {
     const size_t rawSize = min(kFrameBlockSize, size - pos);
-    const size_t compSize = compressBlock(src + pos, rawSize, scratch.data(), scratch.size());
-    const bool stored = compSize >= rawSize;
+    const size_t compSize =
+        frameCompressBlock(level, src + pos, rawSize, scratch.data(), scratch.size());
+    const bool stored = compSize >= rawSize;  // also catches kError
     const size_t payloadSize = stored ? rawSize : compSize;
     const size_t base = out.size();
     out.resize(base + 8 + payloadSize);
@@ -357,18 +385,23 @@ vector<u8> compress(const void* data, size_t size) {
   return out;
 }
 
-vector<u8> compress(const vector<u8>& data) { return compress(data.data(), data.size()); }
+vector<u8> compress(const vector<u8>& data, Level level) {
+  return compress(data.data(), data.size(), level);
+}
 
-vector<u8> compress(const string& data) { return compress(data.data(), data.size()); }
+vector<u8> compress(const string& data, Level level) {
+  return compress(data.data(), data.size(), level);
+}
 
 bool decompress(const u8* data, size_t size, vector<u8>& out) {
   out.clear();
   size_t pos = 0;
   auto remaining = [&] { return size - pos; };
-  if (remaining() < 4 || readU32(data) != kMagic) {
+  if (remaining() < kFrameHeaderSize || readU32(data) != kMagic || !validLevel(data[4])) {
     return false;
   }
-  pos += 4;
+  const Level level = static_cast<Level>(data[4]);
+  pos = kFrameHeaderSize;
   u64 chk = 0;
   for (;;) {
     if (remaining() < 4) {
@@ -392,7 +425,8 @@ bool decompress(const u8* data, size_t size, vector<u8>& out) {
     out.resize(base + rawSize);
     if (compSize == 0) {
       memcpy(out.data() + base, data + pos, rawSize);
-    } else if (decompressBlock(data + pos, compSize, out.data() + base, rawSize) != rawSize) {
+    } else if (frameDecompressBlock(level, data + pos, compSize, out.data() + base,
+                                    rawSize) != rawSize) {
       return false;
     }
     pos += payloadSize;
@@ -409,27 +443,29 @@ vector<u8> decompress(const vector<u8>& data) {
   return out;
 }
 
-bool compressFile(const string& inputPath, const string& outputPath) {
+bool compressFile(const string& inputPath, const string& outputPath, Level level) {
   FilePtr in(fopen(inputPath.c_str(), "rb"));
   FilePtr fout(fopen(outputPath.c_str(), "wb"));
   if (!in || !fout) {
     return false;
   }
-  u8 header[4];
+  u8 header[kFrameHeaderSize];
   writeU32(header, kMagic);
+  header[4] = static_cast<u8>(level);
   if (fwrite(header, 1, sizeof(header), fout.get()) != sizeof(header)) {
     return false;
   }
   vector<u8> raw(kFrameBlockSize);
-  vector<u8> scratch(compressBound(kFrameBlockSize));
+  vector<u8> scratch(max(compressBound(kFrameBlockSize), Rc::compressBound(kFrameBlockSize)));
   u64 chk = 0;
   for (;;) {
     const size_t rawSize = fread(raw.data(), 1, raw.size(), in.get());
     if (rawSize == 0) {
       break;
     }
-    const size_t compSize = compressBlock(raw.data(), rawSize, scratch.data(), scratch.size());
-    const bool stored = compSize >= rawSize;
+    const size_t compSize =
+        frameCompressBlock(level, raw.data(), rawSize, scratch.data(), scratch.size());
+    const bool stored = compSize >= rawSize;  // also catches kError
     u8 blockHeader[8];
     writeU32(blockHeader, static_cast<u32>(rawSize));
     writeU32(blockHeader + 4, stored ? 0 : static_cast<u32>(compSize));
@@ -457,11 +493,12 @@ bool decompressFile(const string& inputPath, const string& outputPath) {
   if (!in || !fout) {
     return false;
   }
-  u8 header[4];
+  u8 header[kFrameHeaderSize];
   if (fread(header, 1, sizeof(header), in.get()) != sizeof(header) ||
-      readU32(header) != kMagic) {
+      readU32(header) != kMagic || !validLevel(header[4])) {
     return false;
   }
+  const Level level = static_cast<Level>(header[4]);
   vector<u8> payload(compressBound(kFrameBlockSize));
   vector<u8> raw(kFrameBlockSize);
   u64 chk = 0;
@@ -488,7 +525,8 @@ bool decompressFile(const string& inputPath, const string& outputPath) {
     }
     const u8* rawOut = payload.data();
     if (compSize != 0) {
-      if (decompressBlock(payload.data(), compSize, raw.data(), rawSize) != rawSize) {
+      if (frameDecompressBlock(level, payload.data(), compSize, raw.data(), rawSize) !=
+          rawSize) {
         return false;
       }
       rawOut = raw.data();

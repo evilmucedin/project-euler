@@ -169,6 +169,25 @@ TEST(LzFileTest, FileRoundTrip) {
   EXPECT_EQ(got, data);
 }
 
+TEST(LzFileTest, HighLevelFileRoundTrip) {
+  const vector<u8> data = compressibleText(2 << 20);
+  TempFile raw("hi_raw"), packed("hi_packed"), restored("hi_restored");
+  {
+    FILE* f = fopen(raw.path().c_str(), "wb");
+    ASSERT_NE(f, nullptr);
+    ASSERT_EQ(fwrite(data.data(), 1, data.size(), f), data.size());
+    fclose(f);
+  }
+  ASSERT_TRUE(Lz::compressFile(raw.path(), packed.path(), Lz::Level::kHigh));
+  ASSERT_TRUE(Lz::decompressFile(packed.path(), restored.path()));
+  FILE* f = fopen(restored.path().c_str(), "rb");
+  ASSERT_NE(f, nullptr);
+  vector<u8> got(data.size() + 1);
+  got.resize(fread(got.data(), 1, got.size(), f));
+  fclose(f);
+  EXPECT_EQ(got, data);
+}
+
 TEST(LzFileTest, EmptyFileRoundTrip) {
   TempFile raw("empty_raw"), packed("empty_packed"), restored("empty_restored");
   fclose(fopen(raw.path().c_str(), "wb"));

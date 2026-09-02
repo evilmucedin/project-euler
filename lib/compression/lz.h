@@ -17,11 +17,17 @@ namespace Lz {
 //   * Block API — raw block in a caller-provided buffer, no header, the caller
 //     must remember the uncompressed size.
 //   * Frame API — self-describing container used by the in-memory helpers and
-//     the file helpers: a magic word, 1 MiB blocks each preceded by
-//     [ u32 rawSize | u32 compressedSize ] (compressedSize == 0 means the
-//     block is stored uncompressed), a rawSize == 0 terminator block, and a
-//     u64 checksum of the original data. Incompressible input therefore costs
-//     ~8 bytes per MiB plus the fixed 16-byte envelope.
+//     the file helpers: a magic word, a codec byte (the Level below), 1 MiB
+//     blocks each preceded by [ u32 rawSize | u32 compressedSize ]
+//     (compressedSize == 0 means the block is stored uncompressed), a
+//     rawSize == 0 terminator block, and a u64 checksum of the original data.
+//     Incompressible input therefore costs ~8 bytes per MiB plus the fixed
+//     17-byte envelope.
+//
+// The frame API takes a Level: kFast uses this file's byte-oriented codec,
+// kHigh the range-coded codec from rc.h — typically 30-40% smaller output on
+// text at roughly a tenth of the speed. Decompression reads the level from
+// the frame, so decoders need no flag.
 
 // ---------------------------------------------------------------------------
 // Block API.
@@ -47,10 +53,16 @@ u64 hash64(const void* data, size_t size);
 // ---------------------------------------------------------------------------
 // Frame API — in memory.
 
+// Codec used for the blocks of a frame.
+enum class Level : u8 {
+  kFast = 0,  // byte-oriented LZ (this file): fastest, moderate ratio
+  kHigh = 1,  // range-coded LZ (rc.h): best ratio, slower
+};
+
 // Compress into a self-describing checksummed frame.
-vector<u8> compress(const void* data, size_t size);
-vector<u8> compress(const vector<u8>& data);
-vector<u8> compress(const string& data);
+vector<u8> compress(const void* data, size_t size, Level level = Level::kFast);
+vector<u8> compress(const vector<u8>& data, Level level = Level::kFast);
+vector<u8> compress(const string& data, Level level = Level::kFast);
 
 // Decompress a frame. Returns false on corrupt, truncated, or checksum-
 // mismatching input, leaving out in an unspecified state.
@@ -64,7 +76,8 @@ vector<u8> decompress(const vector<u8>& data);
 // Frame API — on disk. Streams 1 MiB blocks, memory use is O(block), not
 // O(file). Return false on I/O error or (for decompressFile) corrupt input.
 
-bool compressFile(const string& inputPath, const string& outputPath);
+bool compressFile(const string& inputPath, const string& outputPath,
+                  Level level = Level::kFast);
 bool decompressFile(const string& inputPath, const string& outputPath);
 
 }  // namespace Lz
