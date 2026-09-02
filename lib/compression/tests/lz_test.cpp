@@ -127,6 +127,17 @@ TEST(LzFrameTest, MemoryRoundTrips) {
   ExpectRoundTrip(randomBytes((1 << 20) + 1, 4));    // one byte over a block
 }
 
+TEST(LzFrameTest, EmptyStringRoundTrip) {
+  for (const Lz::Level level : {Lz::Level::kFast, Lz::Level::kHigh}) {
+    const vector<u8> packed = Lz::compress(string(), level);
+    // Just the envelope: magic + codec byte + terminator + checksum.
+    EXPECT_EQ(packed.size(), 17u);
+    vector<u8> got{1, 2, 3};  // must be cleared, not appended to
+    ASSERT_TRUE(Lz::decompress(packed.data(), packed.size(), got));
+    EXPECT_TRUE(got.empty());
+  }
+}
+
 TEST(LzFrameTest, FrameOverheadIsSmall) {
   const vector<u8> data = randomBytes(1 << 20, 5);
   const vector<u8> packed = Lz::compress(data);
