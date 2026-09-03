@@ -114,11 +114,37 @@ def geocode_osm(query):
     return float(data[0]["lat"]), float(data[0]["lon"])
 
 
+def geocode_photon(query):
+    url = "https://photon.komoot.io/api/?" + urllib.parse.urlencode({"q": query, "limit": 1})
+    data = http_get_json(url)
+    features = data.get("features") or []
+    if not features:
+        return None
+    lon, lat = features[0]["geometry"]["coordinates"]
+    return lat, lon
+
+
+def geocode_arcgis(query):
+    # Esri World Geocoder; keyless access is allowed for non-stored geocoding.
+    url = (
+        "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?"
+        + urllib.parse.urlencode({"SingleLine": query, "f": "json", "maxLocations": 1})
+    )
+    data = http_get_json(url)
+    candidates = data.get("candidates") or []
+    if not candidates:
+        return None
+    loc = candidates[0]["location"]
+    return loc["y"], loc["x"]
+
+
 PROVIDERS = {
     "google": (geocode_google, "GOOGLE_MAPS_API_KEY", 0.05),
     "tomtom": (geocode_tomtom, "TOMTOM_API_KEY", 0.25),
     "mapbox": (geocode_mapbox, "MAPBOX_ACCESS_TOKEN", 0.15),
     "osm": (geocode_osm, None, 1.1),  # Nominatim usage policy: max 1 req/s
+    "photon": (geocode_photon, None, 1.1),  # be polite to the public komoot instance
+    "arcgis": (geocode_arcgis, None, 0.5),
 }
 
 

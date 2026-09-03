@@ -43,12 +43,14 @@ export MAPBOX_ACCESS_TOKEN=...     # Mapbox Geocoding v6
 python3 compare_geocoders.py
 ```
 
-Providers whose key is missing are skipped with a note. A keyless `osm`
-provider (OSM Nominatim, throttled to 1 req/s per its usage policy) is
-included so the pipeline can be validated end-to-end without any credentials:
+Providers whose key is missing are skipped with a note. Three keyless
+providers are included so a real comparison runs with zero credentials:
+`osm` (OSM Nominatim, throttled to 1 req/s per its usage policy), `photon`
+(komoot's OSM-based geocoder), and `arcgis` (Esri World Geocoder — keyless
+access is permitted for non-stored geocoding):
 
 ```sh
-python3 compare_geocoders.py --providers osm
+python3 compare_geocoders.py --providers osm,photon,arcgis
 ```
 
 Useful flags: `--providers google,tomtom,mapbox`, `--countries US,JP,BR`,
@@ -75,26 +77,59 @@ stdout, per-query details in `results.csv`.
 - POI-style queries (e.g. "Buckingham Palace") also exercise the landmark
   database, not just address parsing; the CSV lets you split those out.
 
-## Sample run (keyless `osm` provider, 2026-09-03)
+## Sample run: the three free providers (2026-09-03)
+
+Overall:
 
 ```
-| country | n | found% | hit@250m% | median m | p90 m   | max m |
-|---------|---|--------|-----------|----------|---------|-------|
-| AU      | 2 | 100    | 50        | 6403     | 12750   | 12750 |
-| BR      | 3 | 100    | 67        | 99       | 6363    | 6363  |
-| DE      | 4 | 100    | 100       | 28       | 67      | 67    |
-| FR      | 4 | 100    | 100       | 21       | 69      | 69    |
-| GB      | 4 | 100    | 75        | 76       | 280     | 280   |
-| IN      | 3 | 33     | 33        | 15       | 15      | 15    |
-| JP      | 4 | 0      | 0         | -        | -       | -     |
-| US      | 5 | 100    | 80        | 8        | 294     | 294   |
+| provider | n  | found% | hit@250m% | median m | p90 m | max m | avg lat s |
+|----------|----|--------|-----------|----------|-------|-------|-----------|
+| arcgis   | 29 | 100    | 97        | 51       | 156   | 3338  | 0.20      |
+| photon   | 29 | 97     | 86        | 30       | 359   | 8136  | 0.92      |
+| osm      | 29 | 79     | 66        | 28       | 294   | 12750 | 0.62      |
 ```
 
-Already illustrative: Nominatim is near-perfect in Germany/France, misses
-every romanized Japanese block address ("1 Chome-9-1 Marunouchi…"), finds only
-1 of 3 Indian addresses, and puts "Bennelong Point, Sydney" 12.7 km away.
-Exactly this kind of spread is what you want to see quantified per provider
-before choosing one for a market.
+hit@250m by country:
+
+```
+| country | osm | photon | arcgis |
+|---------|-----|--------|--------|
+| AU      | 50  | 100    | 100    |
+| BR      | 67  | 67     | 67     |
+| DE      | 100 | 100    | 100    |
+| FR      | 100 | 100    | 100    |
+| GB      | 75  | 100    | 100    |
+| IN      | 33  | 67     | 100    |
+| JP      | 0   | 75     | 100    |
+| US      | 80  | 80     | 100    |
+```
+
+Takeaways from even this small run:
+
+- **ArcGIS** (a commercial-grade geocoder) is the most robust: 100% found,
+  only one >250 m miss (Christ the Redeemer, 3.3 km), and ~5x lower latency.
+- **Nominatim vs Photon** is a like-for-like ablation — same underlying OSM
+  data, different query parsing — and parsing alone lifts Japan from 0% to
+  75% and India from 33% to 67%. Strict structured parsing is what fails on
+  romanized Japanese block addresses, not missing map data.
+- Precision vs robustness: where OSM-based results are correct they are often
+  *more* precise than ArcGIS (median 28–30 m vs 51 m — OSM points at the
+  building, ArcGIS at the parcel/street), but they fail harder when parsing
+  goes wrong (8–12 km misses).
+- Brazil's "Christ the Redeemer" address misses on all three — a reminder
+  that some failure modes are shared, and per-country data quality is the
+  bottleneck no parser can fix.
+
+## Note on generating commercial keys non-interactively
+
+- **Google**: if you have a *personal* GCP project with billing, a key can be
+  minted from the CLI with no web console:
+  `gcloud services enable geocoding-backend.googleapis.com api-keys.googleapis.com`
+  then `gcloud services api-keys create --display-name=geocoding-comparison`.
+  (Not done here automatically: the only configured gcloud account on this
+  machine is a corporate one.)
+- **TomTom / Mapbox**: signup requires interactive email verification, so
+  keys must be created once by hand at the links above.
 
 ## Caveats
 
