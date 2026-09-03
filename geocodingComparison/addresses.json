@@ -1,0 +1,47 @@
+{
+  "US": [
+    {"query": "1600 Pennsylvania Avenue NW, Washington, DC 20500, USA", "lat": 38.8977, "lon": -77.0365, "note": "White House"},
+    {"query": "350 5th Ave, New York, NY 10118, USA", "lat": 40.7484, "lon": -73.9857, "note": "Empire State Building"},
+    {"query": "1 Apple Park Way, Cupertino, CA 95014, USA", "lat": 37.3349, "lon": -122.0090, "note": "Apple Park"},
+    {"query": "233 S Wacker Dr, Chicago, IL 60606, USA", "lat": 41.8789, "lon": -87.6359, "note": "Willis Tower"},
+    {"query": "400 Broad St, Seattle, WA 98109, USA", "lat": 47.6205, "lon": -122.3493, "note": "Space Needle"}
+  ],
+  "GB": [
+    {"query": "10 Downing Street, London SW1A 2AA, United Kingdom", "lat": 51.5034, "lon": -0.1276, "note": "10 Downing Street"},
+    {"query": "Buckingham Palace, London SW1A 1AA, United Kingdom", "lat": 51.5014, "lon": -0.1419, "note": "Buckingham Palace"},
+    {"query": "221B Baker Street, London NW1 6XE, United Kingdom", "lat": 51.5238, "lon": -0.1586, "note": "Sherlock Holmes Museum"},
+    {"query": "Castlehill, Edinburgh EH1 2NG, United Kingdom", "lat": 55.9486, "lon": -3.1999, "note": "Edinburgh Castle"}
+  ],
+  "DE": [
+    {"query": "Platz der Republik 1, 11011 Berlin, Germany", "lat": 52.5186, "lon": 13.3762, "note": "Reichstag"},
+    {"query": "Pariser Platz, 10117 Berlin, Germany", "lat": 52.5163, "lon": 13.3777, "note": "Brandenburg Gate"},
+    {"query": "Marienplatz 8, 80331 München, Germany", "lat": 48.1374, "lon": 11.5755, "note": "Neues Rathaus Munich"},
+    {"query": "Domkloster 4, 50667 Köln, Germany", "lat": 50.9413, "lon": 6.9583, "note": "Cologne Cathedral"}
+  ],
+  "FR": [
+    {"query": "5 Avenue Anatole France, 75007 Paris, France", "lat": 48.8584, "lon": 2.2945, "note": "Eiffel Tower"},
+    {"query": "55 Rue du Faubourg Saint-Honoré, 75008 Paris, France", "lat": 48.8704, "lon": 2.3168, "note": "Élysée Palace"},
+    {"query": "Place Charles de Gaulle, 75008 Paris, France", "lat": 48.8738, "lon": 2.2950, "note": "Arc de Triomphe"},
+    {"query": "6 Parvis Notre-Dame - Pl. Jean-Paul II, 75004 Paris, France", "lat": 48.8530, "lon": 2.3499, "note": "Notre-Dame"}
+  ],
+  "JP": [
+    {"query": "4 Chome-2-8 Shibakoen, Minato City, Tokyo 105-0011, Japan", "lat": 35.6586, "lon": 139.7454, "note": "Tokyo Tower"},
+    {"query": "1 Chome-1-2 Oshiage, Sumida City, Tokyo 131-0045, Japan", "lat": 35.7101, "lon": 139.8107, "note": "Tokyo Skytree"},
+    {"query": "1 Chome-9-1 Marunouchi, Chiyoda City, Tokyo 100-0005, Japan", "lat": 35.6812, "lon": 139.7671, "note": "Tokyo Station"},
+    {"query": "2 Chome-8-1 Nishishinjuku, Shinjuku City, Tokyo 163-8001, Japan", "lat": 35.6896, "lon": 139.6921, "note": "Tokyo Metropolitan Government Building"}
+  ],
+  "BR": [
+    {"query": "Praça dos Três Poderes, Brasília, DF, Brazil", "lat": -15.8003, "lon": -47.8611, "note": "Three Powers Plaza"},
+    {"query": "Av. Paulista, 1578 - Bela Vista, São Paulo, SP, Brazil", "lat": -23.5614, "lon": -46.6559, "note": "MASP museum"},
+    {"query": "Parque Nacional da Tijuca - Alto da Boa Vista, Rio de Janeiro, RJ, Brazil", "lat": -22.9519, "lon": -43.2105, "note": "Christ the Redeemer"}
+  ],
+  "IN": [
+    {"query": "Rashtrapati Bhavan, President's Estate, New Delhi, Delhi 110004, India", "lat": 28.6143, "lon": 77.1994, "note": "Rashtrapati Bhavan"},
+    {"query": "Taj Mahal, Dharmapuri, Forest Colony, Tajganj, Agra, Uttar Pradesh 282001, India", "lat": 27.1751, "lon": 78.0421, "note": "Taj Mahal"},
+    {"query": "Gateway Of India, Apollo Bandar, Colaba, Mumbai, Maharashtra 400001, India", "lat": 18.9220, "lon": 72.8347, "note": "Gateway of India"}
+  ],
+  "AU": [
+    {"query": "Bennelong Point, Sydney NSW 2000, Australia", "lat": -33.8568, "lon": 151.2153, "note": "Sydney Opera House"},
+    {"query": "Flinders Street Railway Station, Flinders St, Melbourne VIC 3000, Australia", "lat": -37.8183, "lon": 144.9671, "note": "Flinders Street Station"}
+  ]
+}
