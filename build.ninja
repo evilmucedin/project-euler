@@ -144,6 +144,7 @@ subninja advent/template/build.ninja
 subninja armadillo/build.ninja
 subninja bignum/build.ninja
 subninja bignum/tests/build.ninja
+subninja compilationTest/build.ninja
 subninja eigen/build.ninja
 subninja eigen/tests/build.ninja
 subninja euler/264/build.ninja
