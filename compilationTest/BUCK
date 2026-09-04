@@ -1,0 +1,6 @@
+cxx_binary(
+  name="test1",
+  srcs=[
+    "test1.cpp"
+  ],
+)
