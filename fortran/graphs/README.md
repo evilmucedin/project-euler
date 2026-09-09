@@ -41,12 +41,21 @@ call g%build()
 call dijkstra(g, 1_gk, dist)
 ```
 
-## Build and run
+## Build, test, and run
 
 ```sh
 make        # builds the library objects and all examples (gfortran)
+make test   # builds and runs the unit tests (test_graphs.f90, 27 assertions)
 make run    # runs every example
 make clean
+```
+
+Platform scripts install gfortran if needed, then run `make test` and
+`make run`:
+
+```sh
+./test_macos.sh    # macOS (Homebrew)
+./test_ubuntu.sh   # Ubuntu (apt)
 ```
 
 ## Examples

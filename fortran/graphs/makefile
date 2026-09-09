@@ -21,7 +21,13 @@ run: all
 	./example_toposort
 	./example_grid_benchmark
 
-clean:
-	rm -f *.o *.mod $(EXAMPLES)
+test_graphs: test_graphs.f90 $(LIB_OBJ)
+	$(FC) $(FFLAGS) -o $@ $< $(LIB_OBJ)
 
-.PHONY: all run clean
+test: test_graphs
+	./test_graphs
+
+clean:
+	rm -f *.o *.mod $(EXAMPLES) test_graphs
+
+.PHONY: all run test clean
