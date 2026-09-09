@@ -24,6 +24,13 @@ jobs:
           # full ubuntuPackages.txt list contains developer tools (vim,
           # fastfetch, lldb, ...) that are unrelated to the build and not
           # always available on every Ubuntu release.
+          # Third-party apt repos preinstalled on the runner image (Google
+          # Chrome, Microsoft Edge, ...) occasionally serve mismatched index
+          # hashes mid-publish and break `apt-get update`. The build only
+          # needs the Ubuntu archives, so drop the extra sources.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/microsoft-edge.list \
+                     /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential clang lld curl ca-certificates git pkg-config \
