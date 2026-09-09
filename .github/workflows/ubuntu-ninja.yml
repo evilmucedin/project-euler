@@ -21,6 +21,13 @@ jobs:
       - name: Install APT dependencies
         run: |
           # CI installs only the packages required for the smoke build.
+          # Third-party apt repos preinstalled on the runner image (Google
+          # Chrome, Microsoft Edge, ...) occasionally serve mismatched index
+          # hashes mid-publish and break `apt-get update`. The build only
+          # needs the Ubuntu archives, so drop the extra sources.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/microsoft-edge.list \
+                     /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential clang ninja-build python3 pkg-config
