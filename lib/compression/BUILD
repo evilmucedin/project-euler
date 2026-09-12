@@ -10,6 +10,35 @@ package(default_visibility = ["//visibility:public"])
 # )
 
 cc_library(
+  name="rc",
+  hdrs=[
+    "rc.h",
+  ],
+  srcs=[
+    "rc.cpp",
+  ],
+  deps=[
+    "//lib:header",
+  ],
+  features = ["-lto"],
+)
+
+cc_library(
+  name="lz",
+  hdrs=[
+    "lz.h",
+  ],
+  srcs=[
+    "lz.cpp",
+  ],
+  deps=[
+    ":rc",
+    "//lib:header",
+  ],
+  features = ["-lto"],
+)
+
+cc_library(
   name="pfordelta",
   hdrs=[
     "pfordelta.h",

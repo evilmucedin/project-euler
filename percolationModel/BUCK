@@ -1,0 +1,6 @@
+cxx_binary(
+  name="percolationModel",
+  srcs=[
+    "percolationModel.cpp"
+  ],
+)

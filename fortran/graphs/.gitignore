@@ -1,0 +1,8 @@
+*.o
+*.mod
+*.dSYM/
+example_shortest_paths
+example_components_mst
+example_toposort
+example_grid_benchmark
+test_graphs

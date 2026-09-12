@@ -1,0 +1,29 @@
+name: Fortran Graphs Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: fortran graphs (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Drop flaky third-party apt sources
+        run: |
+          # Third-party apt repos preinstalled on the runner image (Google
+          # Chrome, Microsoft Edge, ...) occasionally serve mismatched index
+          # hashes mid-publish and break `apt-get update`.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/microsoft-edge.list \
+                     /etc/apt/sources.list.d/microsoft-prod.list
+
+      - name: Run tests and examples
+        run: ./fortran/graphs/test_ubuntu.sh

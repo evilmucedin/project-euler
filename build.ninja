@@ -144,6 +144,7 @@ subninja advent/template/build.ninja
 subninja armadillo/build.ninja
 subninja bignum/build.ninja
 subninja bignum/tests/build.ninja
+subninja compilationTest/build.ninja
 subninja eigen/build.ninja
 subninja eigen/tests/build.ninja
 subninja euler/264/build.ninja
@@ -342,6 +343,8 @@ subninja lib/io/keyvalue/test/build.ninja
 subninja lib/io/test/build.ninja
 subninja lib/ml/build.ninja
 subninja lib/ml/tests/build.ninja
+subninja lib/russianMorphology/build.ninja
+subninja lib/russianMorphology/tests/build.ninja
 subninja lib/spsc/build.ninja
 subninja lib/spsc/tests/build.ninja
 subninja lib/stat/build.ninja
@@ -352,6 +355,7 @@ subninja lib/thread-pool/tests/build.ninja
 subninja moodycamel/build.ninja
 subninja num/build.ninja
 subninja num/tests/build.ninja
+subninja percolationModel/build.ninja
 subninja pistache/build.ninja
 subninja pistache/client/build.ninja
 subninja pistache/common/build.ninja
