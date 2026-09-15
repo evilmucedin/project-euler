@@ -1,0 +1,97 @@
+cxx_test(
+    name="fieldTest",
+    srcs=[
+        "fieldTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:field",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_test(
+    name="boundaryTest",
+    srcs=[
+        "boundaryTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_test(
+    name="poissonTest",
+    srcs=[
+        "poissonTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:poisson",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_test(
+    name="solverTest",
+    srcs=[
+        "solverTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:diagnostics",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:obstacle",
+        "//lib/NavierStokesEquations:poisson",
+        "//lib/NavierStokesEquations:solver",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_test(
+    name="diagnosticsTest",
+    srcs=[
+        "diagnosticsTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:diagnostics",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:poisson",
+        "//lib/NavierStokesEquations:solver",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_test(
+    name="obstacleTest",
+    srcs=[
+        "obstacleTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:obstacle",
+        "//gtest:gtest",
+    ],
+)
+
+cxx_test(
+    name="ioTest",
+    srcs=[
+        "ioTest.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:diagnostics",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:io",
+        "//gtest:gtest",
+    ],
+)

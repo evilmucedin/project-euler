@@ -1,0 +1,186 @@
+cxx_library(
+    name="grid",
+    exported_headers=[
+        "grid.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="field",
+    exported_headers=[
+        "field.h",
+    ],
+    srcs=[
+        "field.cpp",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="boundary",
+    exported_headers=[
+        "boundary.h",
+    ],
+    srcs=[
+        "boundary.cpp",
+    ],
+    exported_deps=[
+        ":field",
+        ":grid",
+    ],
+    deps=[
+        ":field",
+        ":grid",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="poisson",
+    exported_headers=[
+        "poisson.h",
+    ],
+    srcs=[
+        "poisson.cpp",
+    ],
+    exported_deps=[
+        ":boundary",
+        ":field",
+        ":grid",
+    ],
+    deps=[
+        ":boundary",
+        ":field",
+        ":grid",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="diagnostics",
+    exported_headers=[
+        "diagnostics.h",
+    ],
+    srcs=[
+        "diagnostics.cpp",
+    ],
+    exported_deps=[
+        ":field",
+        ":grid",
+    ],
+    deps=[
+        ":field",
+        ":grid",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="obstacle",
+    exported_headers=[
+        "obstacle.h",
+    ],
+    srcs=[
+        "obstacle.cpp",
+    ],
+    exported_deps=[
+        ":field",
+        ":grid",
+    ],
+    deps=[
+        ":field",
+        ":grid",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="io",
+    exported_headers=[
+        "io.h",
+    ],
+    srcs=[
+        "io.cpp",
+    ],
+    exported_deps=[
+        ":field",
+        ":grid",
+    ],
+    deps=[
+        ":field",
+        ":grid",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="solver",
+    exported_headers=[
+        "solver.h",
+    ],
+    srcs=[
+        "solver.cpp",
+    ],
+    exported_deps=[
+        ":boundary",
+        ":field",
+        ":grid",
+        ":poisson",
+    ],
+    deps=[
+        ":boundary",
+        ":field",
+        ":grid",
+        ":poisson",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
+
+cxx_library(
+    name="navierStokes",
+    exported_headers=[
+        "navierStokes.h",
+    ],
+    exported_deps=[
+        ":boundary",
+        ":diagnostics",
+        ":field",
+        ":grid",
+        ":io",
+        ":obstacle",
+        ":poisson",
+        ":solver",
+    ],
+    # Repeated as deps because scripts/generate_ninja.py resolves only `deps`
+    # when it collects the static libraries a binary has to link.
+    deps=[
+        ":boundary",
+        ":diagnostics",
+        ":field",
+        ":grid",
+        ":io",
+        ":obstacle",
+        ":poisson",
+        ":solver",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)

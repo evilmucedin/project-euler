@@ -1,0 +1,39 @@
+cxx_binary(
+    name="taylorGreen",
+    srcs=[
+        "taylorGreen.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:navierStokes",
+    ],
+)
+
+cxx_binary(
+    name="lidDrivenCavity",
+    srcs=[
+        "lidDrivenCavity.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:navierStokes",
+    ],
+)
+
+cxx_binary(
+    name="channelFlow",
+    srcs=[
+        "channelFlow.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:navierStokes",
+    ],
+)
+
+cxx_binary(
+    name="cylinderWake",
+    srcs=[
+        "cylinderWake.cpp",
+    ],
+    deps=[
+        "//lib/NavierStokesEquations:navierStokes",
+    ],
+)
