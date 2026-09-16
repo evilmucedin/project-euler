@@ -1,20 +1,23 @@
-add_test(
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
     name="fieldTest",
     srcs=[
         "fieldTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:field",
         "//gtest:gtest",
     ],
 )
 
-add_test(
+cc_test(
     name="boundaryTest",
     srcs=[
         "boundaryTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:boundary",
         "//lib/NavierStokesEquations:field",
         "//lib/NavierStokesEquations:grid",
@@ -23,12 +26,12 @@ add_test(
     ],
 )
 
-add_test(
+cc_test(
     name="poissonTest",
     srcs=[
         "poissonTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:boundary",
         "//lib/NavierStokesEquations:field",
         "//lib/NavierStokesEquations:grid",
@@ -37,12 +40,12 @@ add_test(
     ],
 )
 
-add_test(
+cc_test(
     name="solverTest",
     srcs=[
         "solverTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:boundary",
         "//lib/NavierStokesEquations:diagnostics",
         "//lib/NavierStokesEquations:field",
@@ -54,12 +57,12 @@ add_test(
     ],
 )
 
-add_test(
+cc_test(
     name="diagnosticsTest",
     srcs=[
         "diagnosticsTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:boundary",
         "//lib/NavierStokesEquations:diagnostics",
         "//lib/NavierStokesEquations:field",
@@ -70,12 +73,12 @@ add_test(
     ],
 )
 
-add_test(
+cc_test(
     name="obstacleTest",
     srcs=[
         "obstacleTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:field",
         "//lib/NavierStokesEquations:grid",
         "//lib/NavierStokesEquations:obstacle",
@@ -83,12 +86,12 @@ add_test(
     ],
 )
 
-add_test(
+cc_test(
     name="ioTest",
     srcs=[
         "ioTest.cpp",
     ],
-    dependencies=[
+    deps=[
         "//lib/NavierStokesEquations:diagnostics",
         "//lib/NavierStokesEquations:field",
         "//lib/NavierStokesEquations:grid",
