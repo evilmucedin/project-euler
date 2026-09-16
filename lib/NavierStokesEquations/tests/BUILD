@@ -1,0 +1,99 @@
+add_test(
+    name="fieldTest",
+    srcs=[
+        "fieldTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:field",
+        "//gtest:gtest",
+    ],
+)
+
+add_test(
+    name="boundaryTest",
+    srcs=[
+        "boundaryTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:poisson",
+        "//gtest:gtest",
+    ],
+)
+
+add_test(
+    name="poissonTest",
+    srcs=[
+        "poissonTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:poisson",
+        "//gtest:gtest",
+    ],
+)
+
+add_test(
+    name="solverTest",
+    srcs=[
+        "solverTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:diagnostics",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:obstacle",
+        "//lib/NavierStokesEquations:poisson",
+        "//lib/NavierStokesEquations:solver",
+        "//gtest:gtest",
+    ],
+)
+
+add_test(
+    name="diagnosticsTest",
+    srcs=[
+        "diagnosticsTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:boundary",
+        "//lib/NavierStokesEquations:diagnostics",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:poisson",
+        "//lib/NavierStokesEquations:solver",
+        "//gtest:gtest",
+    ],
+)
+
+add_test(
+    name="obstacleTest",
+    srcs=[
+        "obstacleTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:obstacle",
+        "//gtest:gtest",
+    ],
+)
+
+add_test(
+    name="ioTest",
+    srcs=[
+        "ioTest.cpp",
+    ],
+    dependencies=[
+        "//lib/NavierStokesEquations:diagnostics",
+        "//lib/NavierStokesEquations:field",
+        "//lib/NavierStokesEquations:grid",
+        "//lib/NavierStokesEquations:io",
+        "//gtest:gtest",
+    ],
+)
+
