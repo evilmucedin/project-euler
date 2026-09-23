@@ -17,6 +17,9 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 # package(default_visibility = ["//ETFModeling"])
 
 
+# Read by //ETFModeling/tests:etfModelTest.
+exports_files(["marketData/SPY.csv"])
+
 cc_library(
    name="etfModel",
    hdrs=[
@@ -29,12 +32,14 @@ cc_library(
     "//gflags:gflags2",
     "//glog2:glog",
     "//lib:header",
+    "//lib:exception",
     "//lib/thread-pool:thread-pool2",
     "//lib:random",
     "//lib:timer",
     "//lib:stat",
     "//lib/ml:dataframe",
   ],
+  visibility = ["//visibility:public"],
   features = ["-lto"],
 )
 

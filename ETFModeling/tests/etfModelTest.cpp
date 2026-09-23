@@ -35,8 +35,10 @@ PriceData makePriceData(const StringVector& tickers, const vector<DoubleVector>&
 class TempDataFolder {
    public:
     TempDataFolder() {
-        char pattern[] = "/tmp/etfModelTestXXXXXX";
-        const char* dir = mkdtemp(pattern);
+        // Bazel gives each test its own scratch directory.
+        const char* root = getenv("TEST_TMPDIR");
+        string pattern = string(root ? root : "/tmp") + "/etfModelTestXXXXXX";
+        const char* dir = mkdtemp(&pattern[0]);
         if (!dir) {
             THROW("mkdtemp failed");
         }
