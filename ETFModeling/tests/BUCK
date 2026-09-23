@@ -1,0 +1,26 @@
+cxx_test(
+  name="etfModelTest",
+  srcs=[
+    "etfModelTest.cpp",
+  ],
+  deps=[
+    "//ETFModeling:etfModel",
+    "//gflags:gflags",
+    "//glog2:glog",
+    "//lib:header",
+    "//lib:exception",
+    "//lib:noncopyable",
+    "//lib:string",
+    "//lib/thread-pool:thread-pool",
+    "//lib:matrix",
+    "//lib:random",
+    "//lib:stat",
+    "//lib:timer",
+    "//lib:file",
+    "//lib/io:csv",
+    "//lib/io:fileIo",
+    "//lib/io:stream",
+    "//lib/ml:dataframe",
+    "//gtest:gtest",
+  ],
+)

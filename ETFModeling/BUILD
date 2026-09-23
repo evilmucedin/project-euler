@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 # //toolchain:clang12_cc_toolchain_config.bzl
 # load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
@@ -17,12 +17,34 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 # package(default_visibility = ["//ETFModeling"])
 
 
+cc_library(
+   name="etfModel",
+   hdrs=[
+     "etfModel.h",
+   ],
+   srcs=[
+     "etfModel.cpp",
+   ],
+   deps=[
+    "//gflags:gflags2",
+    "//glog2:glog",
+    "//lib:header",
+    "//lib/thread-pool:thread-pool2",
+    "//lib:random",
+    "//lib:timer",
+    "//lib:stat",
+    "//lib/ml:dataframe",
+  ],
+  features = ["-lto"],
+)
+
 cc_binary(
    name="ETFModeling2",
    srcs=[
      "ETFModeling.cpp",
    ],
    deps=[
+    ":etfModel",
     "//gflags:gflags2",
     "//glog2:glog",
     "//lib:header",

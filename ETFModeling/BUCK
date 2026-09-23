@@ -1,9 +1,41 @@
+cxx_library(
+  name="etfModel",
+  exported_headers=[
+    "etfModel.h",
+  ],
+  srcs=[
+    "etfModel.cpp",
+  ],
+  deps=[
+    "//gflags:gflags",
+    "//glog2:glog",
+    "//lib:header",
+    "//lib:exception",
+    "//lib:noncopyable",
+    "//lib:string",
+    "//lib/thread-pool:thread-pool",
+    "//lib:matrix",
+    "//lib:random",
+    "//lib:stat",
+    "//lib:timer",
+    "//lib:file",
+    "//lib/io:csv",
+    "//lib/io:fileIo",
+    "//lib/io:stream",
+    "//lib/ml:dataframe",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
 cxx_binary(
   name="ETFModeling",
   srcs=[
     "ETFModeling.cpp"
   ],
   deps=[
+    ":etfModel",
     "//gflags:gflags",
     "//glog2:glog",
     "//lib:header",
