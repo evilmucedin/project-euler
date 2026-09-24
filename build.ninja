@@ -30,6 +30,7 @@ rule link
 
 subninja CovMatrix/build.ninja
 subninja ETFModeling/build.ninja
+subninja ETFModeling/tests/build.ninja
 subninja Kaboom/build.ninja
 subninja Mnist/build.ninja
 subninja ReutersStat/build.ninja
