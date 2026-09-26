@@ -22,6 +22,9 @@ system_cxx_toolchain(
         "config//os:linux": ["-Wl,--no-as-needed"],
         "DEFAULT": [],
     }),
+    # The default "preorder" follows deps declaration order, so a library can
+    # land after its own deps and GNU ld leaves its symbols unresolved.
+    link_ordering = "topological",
     visibility = ["PUBLIC"],
 )
 
