@@ -27,6 +27,7 @@ cxx_library(
   visibility=[
     "PUBLIC",
   ],
+  link_style="static",
 )
 
 cxx_binary(
@@ -54,4 +55,5 @@ cxx_binary(
     "//lib/io:stream",
     "//lib/ml:dataframe",
   ],
+  link_style="static",
 )
