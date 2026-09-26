@@ -111,7 +111,7 @@ cc_library(
     "utils.cpp",
   ],
   deps=[
-    "//glog:glog2",
+    "//glog:glog",
     "//lib:header",
     "//lib:string",
     ":stream",

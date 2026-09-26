@@ -34,6 +34,9 @@ buck2 build //advent/2020/1/...
 # Regenerate Ninja files after BUCK/BUILD changes
 python3 scripts/generate_ninja.py
 
+# Generate Bazel BUILD targets for BUCK targets that have none
+python3 scripts/generate_bazel.py
+
 # Ninja smoke build used by CI
 ninja advent/2020/1/1
 
@@ -44,6 +47,7 @@ ninja advent/2020/1/1
 ## Development notes
 
 - Prefer editing `BUCK` / `BUILD` definitions first, then regenerate Ninja files with `python3 scripts/generate_ninja.py` when Ninja build metadata changes. Remember that `BUILD` files may be consumed by Bazel too.
+- `scripts/generate_bazel.py` rewrites BUILD files that start with its "Generated from BUCK" header and only appends missing targets to hand-written BUILD files. After changing a BUCK file, rerun it (`--check` reports stale files).
 - Do not hand-edit generated `build.ninja` files unless the task is explicitly about generated output; update the generator instead.
 - Keep CI smoke builds dependency-light. Expanding CI to full `//...` or full Ninja builds is likely to fail without additional system libraries.
 - Existing generated files and third-party directories are large. Keep diffs focused on files relevant to the task.

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "lib/header.h"
-#include "stream.h"
+#include "lib/io/stream.h"
 
 template<typename T>
 void saveVector(ostream& s, const vector<T>& vct) {

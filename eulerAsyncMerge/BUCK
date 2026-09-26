@@ -6,7 +6,7 @@ cxx_binary(
   deps=[
     "//glog:glog",
     "//lib:header",
-    "//lib/io:file",
+    "//lib/io:fileIo",
     "//lib/io:varlen",
     "//lib/spsc:spsc",
     "//lib:timer",

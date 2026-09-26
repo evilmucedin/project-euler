@@ -9,6 +9,7 @@ cxx_test(
     "//lib/io:utils",
     "//lib/io:zstream",
     "//glog:glog",
+    "//gtest:gtest",
   ],
 )
 
@@ -37,6 +38,7 @@ cxx_test(
     "//lib/io:stream",
     "//lib:random",
     "//lib:timer",
+    "//gtest:gtest",
   ],
 )
 
@@ -48,6 +50,7 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib/io:csv",
+    "//gtest:gtest",
   ],
 )
 
@@ -60,5 +63,6 @@ cxx_test(
     "//lib:random",
     "//lib/io:binarySerialization",
     "//lib/io:zstream",
+    "//gtest:gtest",
   ],
 )

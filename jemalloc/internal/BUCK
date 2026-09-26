@@ -94,7 +94,7 @@ cxx_library(
   ],
   srcs=[
   ],
-  deps=[
+  exported_deps=[
     "//jemalloc:headers",
   ],
   visibility=[

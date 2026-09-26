@@ -5,6 +5,7 @@ cxx_test(
   ],
   deps=[
     "//lib/ml:gbdt",
+    "//gtest:gtest",
   ],
 )
 
@@ -15,5 +16,6 @@ cxx_test(
   ],
   deps=[
     "//lib/ml:ols",
+    "//gtest:gtest",
   ],
 )

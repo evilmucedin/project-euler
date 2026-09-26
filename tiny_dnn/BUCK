@@ -173,7 +173,7 @@ cxx_library(
 "xtensor/xfunction.hpp",
 "xtensor/xgenerator.hpp",
     ],
-    deps=[
+    exported_deps=[
         "//tiny_dnn/cereal:cereal",
     ],
     visibility=[
@@ -192,7 +192,7 @@ cxx_library(
 "io/display.h",
 "util/image.h",
     ],
-    deps=[
+    exported_deps=[
         "//tiny_dnn/cereal:cereal",
     ],
     visibility=[

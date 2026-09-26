@@ -46,7 +46,7 @@ cxx_library(
     "util.c",
     "witness.c",
   ],
-  deps=[
+  exported_deps=[
     ":headers",
     "//jemalloc/internal:internal",
   ],

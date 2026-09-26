@@ -1,4 +1,7 @@
 build --cxxopt=-std=c++17
+# Like Buck, resolve <lib/header.h>-style includes from the repo root. Headers
+# still have to be declared by a dependency to be visible in the sandbox.
+build --copt=-I.
 build --java_language_version=21 --java_runtime_version=remotejdk_21
 common --noenable_bzlmod
 

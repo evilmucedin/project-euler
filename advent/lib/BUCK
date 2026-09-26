@@ -3,7 +3,7 @@ cxx_library(
     srcs=[
         "aoc.cpp",
     ],
-    deps=[
+    exported_deps=[
         "//lib:header",
     ],
     exported_headers=[

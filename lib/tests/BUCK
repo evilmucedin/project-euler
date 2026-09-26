@@ -5,6 +5,7 @@ cxx_test(
   ],
   deps=[
     "//lib:header",
+    "//gtest:gtest",
   ],
 )
 
@@ -15,6 +16,7 @@ cxx_test(
   ],
   deps=[
     "//lib:trie",
+    "//gtest:gtest",
   ],
 )
 
@@ -25,6 +27,7 @@ cxx_test(
   ],
   deps=[
     "//lib:datetime",
+    "//gtest:gtest",
   ],
 )
 
@@ -35,6 +38,7 @@ cxx_test(
   ],
   deps=[
     "//lib:string",
+    "//gtest:gtest",
   ],
 )
 
@@ -46,6 +50,7 @@ cxx_test(
   deps=[
     "//glog:glog",
     "//lib:file",
+    "//gtest:gtest",
   ],
 )
 
@@ -58,6 +63,7 @@ cxx_test(
     "//lib:header",
     "//lib:radixSort",
     "//lib:timer",
+    "//gtest:gtest",
   ],
 )
 
@@ -69,6 +75,7 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib:primes",
+    "//gtest:gtest",
   ],
 )
 
@@ -80,6 +87,7 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib:segmentTree",
+    "//gtest:gtest",
   ],
 )
 
@@ -91,6 +99,7 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib:redBlackTree",
+    "//gtest:gtest",
   ],
 )
 
@@ -101,6 +110,7 @@ cxx_test(
   ],
   deps=[
     "//lib:integrate",
+    "//gtest:gtest",
   ],
 )
 
@@ -112,6 +122,7 @@ cxx_test(
   deps=[
     "//lib:fft",
     "//lib:random",
+    "//gtest:gtest",
   ],
 )
 
@@ -122,6 +133,7 @@ cxx_test(
   ],
   deps=[
     "//lib:progressBar",
+    "//gtest:gtest",
   ],
 )
 
@@ -132,6 +144,7 @@ cxx_test(
   ],
   deps=[
     "//lib:exception",
+    "//gtest:gtest",
   ],
 )
 
@@ -142,6 +155,7 @@ cxx_test(
   ],
   deps=[
     "//lib:lru",
+    "//gtest:gtest",
   ],
 )
 
@@ -153,6 +167,7 @@ cxx_test(
   deps=[
     "//lib:random",
     "//lib:rmq",
+    "//gtest:gtest",
   ],
 )
 
@@ -164,6 +179,7 @@ cxx_test(
   deps=[
     "//lib:random",
     "//lib:fraction",
+    "//gtest:gtest",
   ],
 )
 
@@ -175,6 +191,7 @@ cxx_test(
   deps=[
     "//lib:random",
     "//lib:treap",
+    "//gtest:gtest",
   ],
 )
 
@@ -186,6 +203,7 @@ cxx_test(
   deps=[
     "//lib:random",
     "//lib:implicitTreap",
+    "//gtest:gtest",
   ],
 )
 
@@ -198,6 +216,7 @@ cxx_test(
     "//lib:random",
     "//lib:atkinSieve",
     "//lib:primes",
+    "//gtest:gtest",
   ],
 )
 
@@ -211,6 +230,7 @@ cxx_test(
     "//lib:random",
     "//lib:robinHood",
     "//lib:timer",
+    "//gtest:gtest",
   ],
 )
 
@@ -222,5 +242,6 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib:quickSort",
+    "//gtest:gtest",
   ],
 )

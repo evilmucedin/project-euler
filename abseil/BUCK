@@ -16,7 +16,7 @@ cxx_library(
     exported_headers=[
         "functional/function_ref.h",
     ],
-    deps=[
+    exported_deps=[
         ":base",
     ],
     visibility=[
@@ -32,7 +32,7 @@ cxx_library(
     visibility=[
         "PUBLIC",
     ],
-    deps=[
+    exported_deps=[
         ":functional",
     ],
 )

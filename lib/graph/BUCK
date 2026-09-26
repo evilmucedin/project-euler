@@ -1,6 +1,6 @@
 cxx_library(
     name="pushRelabel",
-    deps=[
+    exported_deps=[
         "//lib:header",
     ],
     exported_headers=[
@@ -13,7 +13,7 @@ cxx_library(
 
 cxx_library(
     name="hungarian",
-    deps=[
+    exported_deps=[
         "//lib:header",
     ],
     srcs=[

@@ -2,14 +2,37 @@ load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
 load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain", "system_python_toolchain")
 load("@prelude//toolchains:rust.bzl", "system_rust_toolchain")
+load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 
+# Mirrors the [cxx] section of the old Buck1 .buckconfig: C sources go through
+# the C compiler, everything is built with -march=native and linked with
+# -pthread.
 system_cxx_toolchain(
     name = "cxx",
-    compiler = "g++",
+    compiler = "gcc",
     compiler_type = "gcc",
     cxx_compiler = "g++",
     linker = "g++",
-    cxx_flags = ["-std=c++17"],
+    c_flags = ["-march=native"],
+    cxx_flags = ["-std=c++17", "-march=native"],
+    # Buck2 puts a target's linker_flags (-lGL, -lmkl_core, ...) before the
+    # objects; without --no-as-needed Ubuntu's linker drops those libraries.
+    link_flags = ["-pthread"] + select({
+        "config//os:linux": ["-Wl,--no-as-needed"],
+        "DEFAULT": [],
+    }),
+    visibility = ["PUBLIC"],
+)
+
+# Required by cxx_test and the other *_test rules; tests run locally.
+noop_test_toolchain(
+    name = "test",
+    visibility = ["PUBLIC"],
+)
+
+remote_test_execution_toolchain(
+    name = "remote_test_execution",
     visibility = ["PUBLIC"],
 )
 

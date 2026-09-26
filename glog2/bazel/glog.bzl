@@ -29,14 +29,16 @@ expand_template = rule(
     },
 )
 
-def glog_library(with_gflags = 1, **kwargs):
+def glog_library(with_gflags = 1, gflags_dep = "@gflags//:gflags", gtest_dep = "@googletest//:gtest", **kwargs):
     if native.repository_name() != "@":
         repo_name = native.repository_name()[1:]  # Strip the first leading @
         gendir = "$(GENDIR)/external/" + repo_name
         src_windows = "external/%s/src/windows" % repo_name
     else:
-        gendir = "$(GENDIR)"
-        src_windows = "src/windows"
+        # In this repo glog lives in //glog2 rather than at the workspace root.
+        package = native.package_name()
+        gendir = "$(GENDIR)/" + package if package else "$(GENDIR)"
+        src_windows = package + "/src/windows" if package else "src/windows"
 
     # Config setting for WebAssembly target.
     native.config_setting(
@@ -132,7 +134,7 @@ def glog_library(with_gflags = 1, **kwargs):
         "src/windows/port.h",
     ]
 
-    gflags_deps = ["@gflags//:gflags"] if with_gflags else []
+    gflags_deps = [gflags_dep] if with_gflags else []
 
     final_lib_defines = select({
         # GLOG_EXPORT is normally set by export.h, but that's not
@@ -265,7 +267,7 @@ def glog_library(with_gflags = 1, **kwargs):
             copts = final_lib_copts + test_only_copts,
             deps = gflags_deps + [
                 ":glog",
-                "@googletest//:gtest",
+                gtest_dep,
             ],
             **kwargs
         )

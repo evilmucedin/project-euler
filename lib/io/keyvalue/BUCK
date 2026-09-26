@@ -6,10 +6,10 @@ cxx_library(
   srcs=[
     "blockStorage.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//lib:exception",
     "//lib:header",
-    "//lib/io:file",
+    "//lib/io:fileIo",
     "//glog:glog",
   ],
   visibility=[

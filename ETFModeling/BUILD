@@ -71,3 +71,30 @@ cc_binary(
 #  copts = ["-D_GLIBCXX_USE_CXX11_ABI=0", "-std=c++17"],
 #  visibility = ["//ETFModeling:ETFModeling2"],
 )
+
+# Targets below were generated from BUCK by scripts/generate_bazel.py.
+
+cc_binary(
+    name = "ETFModeling",
+    srcs = ["ETFModeling.cpp"],
+    deps = [
+        ":etfModel",
+        "//gflags:gflags",
+        "//glog2:glog",
+        "//lib:header",
+        "//lib:init",
+        "//lib:exception",
+        "//lib:noncopyable",
+        "//lib:string",
+        "//lib/thread-pool:thread-pool",
+        "//lib:matrix",
+        "//lib:random",
+        "//lib:stat",
+        "//lib:timer",
+        "//lib:file",
+        "//lib/io:csv",
+        "//lib/io:fileIo",
+        "//lib/io:stream",
+        "//lib/ml:dataframe",
+    ],
+)

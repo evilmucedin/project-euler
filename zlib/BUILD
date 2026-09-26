@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
   name="zlib2",
   hdrs=[
@@ -33,3 +34,39 @@ cc_library(
   visibility = ["//visibility:public"],
 )
 
+# Targets below were generated from BUCK by scripts/generate_bazel.py.
+
+cc_library(
+    name = "zlib",
+    srcs = [
+        "adler32.c",
+        "compress.c",
+        "crc32.c",
+        "deflate.c",
+        "gzclose.c",
+        "gzlib.c",
+        "gzread.c",
+        "gzwrite.c",
+        "infback.c",
+        "inffast.c",
+        "inflate.c",
+        "inftrees.c",
+        "trees.c",
+        "uncompr.c",
+        "zutil.c",
+        "crc32.h",
+        "deflate.h",
+        "gzguts.h",
+        "inffast.h",
+        "inffixed.h",
+        "inflate.h",
+        "inftrees.h",
+        "trees.h",
+        "zutil.h",
+    ],
+    hdrs = [
+        "zconf.h",
+        "zlib.h",
+    ],
+    visibility = ["//visibility:public"],
+)

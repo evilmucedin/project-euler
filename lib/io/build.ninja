@@ -17,7 +17,7 @@ build $builddir/lib/lib/io/csv.a: ar $builddir/obj/lib/io/csv.cpp.o
 build lib/io/csv: phony $builddir/lib/lib/io/csv.a
 
 build $builddir/obj/lib/io/utils.cpp.o: cxx lib/io/utils.cpp
-  extra_cflags = -Iglog/..
+  extra_cflags = -Iglog2/src '-DGLOG_DEPRECATED=__attribute__((deprecated))' '-DGLOG_EXPORT=__attribute__((visibility("default")))' '-DGLOG_NO_EXPORT=__attribute__((visibility("default")))' -DGLOG_USE_GFLAGS
 build $builddir/lib/lib/io/utils.a: ar $builddir/obj/lib/io/utils.cpp.o
 build lib/io/utils: phony $builddir/lib/lib/io/utils.a
 
