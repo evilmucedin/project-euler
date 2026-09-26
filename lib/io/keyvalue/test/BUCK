@@ -6,6 +6,7 @@ cxx_test(
   deps=[
     "//lib:header",
     "//lib/io/keyvalue:blockStorage",
+    "//gtest:gtest",
   ],
 )
 

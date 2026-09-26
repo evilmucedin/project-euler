@@ -102,7 +102,7 @@ def _parse_rule(call: ast.Call, pkg: str) -> Optional[Target]:
         pkg=pkg,
         srcs=lst("srcs"),
         headers=dict_or_list("exported_headers") + dict_or_list("headers"),
-        deps=lst("deps"),
+        deps=lst("deps") + lst("exported_deps"),
         compiler_flags=lst("compiler_flags") + lst("preprocessor_flags"),
         exported_compiler_flags=lst("exported_compiler_flags") + lst("exported_preprocessor_flags"),
         linker_flags=lst("linker_flags"),
@@ -126,6 +126,28 @@ def parse_build_file(path: Path) -> List[Target]:
             if tgt is not None:
                 targets.append(tgt)
     return targets
+
+
+def parse_aliases(path: Path) -> Dict[Tuple[str, str], str]:
+    """alias(name=..., actual=...) rules, keyed by (pkg, name)."""
+    pkg = str(path.parent.relative_to(REPO_ROOT)).replace(os.sep, "/")
+    if pkg == ".":
+        pkg = ""
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except SyntaxError:
+        return {}
+    aliases: Dict[Tuple[str, str], str] = {}
+    for node in tree.body:
+        if not (isinstance(node, ast.Expr) and isinstance(node.value, ast.Call)):
+            continue
+        call = node.value
+        if not isinstance(call.func, ast.Name) or call.func.id != "alias":
+            continue
+        kw = {k.arg: _literal(k.value) for k in call.keywords if k.arg}
+        if isinstance(kw.get("name"), str) and isinstance(kw.get("actual"), str):
+            aliases[(pkg, kw["name"])] = kw["actual"]
+    return aliases
 
 
 def walk_build_files() -> List[Path]:
@@ -329,8 +351,10 @@ def main(argv: List[str]) -> int:
     build_files = walk_build_files()
     targets: Dict[Tuple[str, str], Target] = {}
     per_dir: Dict[str, List[Target]] = {}
+    aliases: Dict[Tuple[str, str], str] = {}
     skipped_missing_srcs = 0
     for bf in build_files:
+        aliases.update(parse_aliases(bf))
         for t in parse_build_file(bf):
             key = (t.pkg, t.name)
             if key in targets:
@@ -344,6 +368,17 @@ def main(argv: List[str]) -> int:
                 continue
             targets[key] = t
             per_dir.setdefault(t.pkg, []).append(t)
+
+    # Point deps on alias() rules at the actual target.
+    for t in targets.values():
+        resolved = []
+        for d in t.deps:
+            r = resolve_dep(d, t.pkg)
+            while r in aliases and r not in targets:
+                d = aliases[r]
+                r = resolve_dep(d, r[0])
+            resolved.append(d)
+        t.deps = resolved
 
     written: List[str] = []
     for pkg, dir_targets in sorted(per_dir.items()):

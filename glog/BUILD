@@ -1,6 +1,8 @@
 # load(":bazel/glog.bzl", "glog_library")
 # load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 # package(default_visibility = ["//glog"])
 
 # glog_library()
@@ -84,4 +86,12 @@ cc_library(
         "-DHAVE_LINK_H",
         "-DHAVE_SYMBOLIZE",  # Supported by <link.h>
 ],
+)
+
+# Same label as in BUCK: most targets depend on //glog:glog, which is the
+# vendored glog 0.7 in //glog2.
+alias(
+    name = "glog",
+    actual = "//glog2:glog",
+    visibility = ["//visibility:public"],
 )

@@ -5,6 +5,9 @@ cxx_library(
     "-DGLOG_DEPRECATED=__attribute__((deprecated))",
     "-DGLOG_EXPORT=__attribute__((visibility(\"default\")))",
     "-DGLOG_NO_EXPORT=__attribute__((visibility(\"default\")))",
+    # Use gflags for FLAGS_logtostderr & co. instead of glog's own copies,
+    # which would clash with gflags in programs that use both.
+    "-DGLOG_USE_GFLAGS",
   ],
   compiler_flags=[
     "-Iglog2/src",
@@ -27,17 +30,25 @@ cxx_library(
     "-fvisibility-inlines-hidden",
     "-fvisibility=hidden",
   ],
-  exported_headers=[
-    "src/glog/flags.h",
-    "src/glog/log_severity.h",
-    "src/glog/logging.h",
-    "src/glog/platform.h",
-    "src/glog/raw_logging.h",
-    "src/glog/stl_logging.h",
-    "src/glog/types.h",
-    "src/glog/vlog_is_on.h",
-  ],
+  # Consumers include these as <glog/logging.h> etc.
+  header_namespace="glog",
+  exported_headers={
+    "flags.h": "src/glog/flags.h",
+    "log_severity.h": "src/glog/log_severity.h",
+    "logging.h": "src/glog/logging.h",
+    "platform.h": "src/glog/platform.h",
+    "raw_logging.h": "src/glog/raw_logging.h",
+    "stl_logging.h": "src/glog/stl_logging.h",
+    "types.h": "src/glog/types.h",
+    "vlog_is_on.h": "src/glog/vlog_is_on.h",
+  },
   headers=[
+    "src/config.h",
+    "src/stacktrace_generic-inl.h",
+    "src/stacktrace_libunwind-inl.h",
+    "src/stacktrace_powerpc-inl.h",
+    "src/stacktrace_unwind-inl.h",
+    "src/stacktrace_x86-inl.h",
     "src/base/commandlineflags.h",
     "src/base/googleinit.h",
     "src/demangle.h",
@@ -55,6 +66,9 @@ cxx_library(
     "src/symbolize.cc",
     "src/utilities.cc",
     "src/vlog_is_on.cc",
+  ],
+  exported_deps=[
+    "//gflags:gflags",
   ],
   visibility=[
     "PUBLIC",

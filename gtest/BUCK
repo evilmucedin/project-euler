@@ -46,7 +46,7 @@ cxx_library(
   srcs=[
     "gtest_main.cc",
   ],
-  deps=[
+  exported_deps=[
     ":gtestInt",
   ],
   visibility=[

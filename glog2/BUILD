@@ -8,7 +8,10 @@ exports_files(["COPYING"])
 # load("@rules_cc//cc:defs.bzl", "cc_binary")
 load(":bazel/glog.bzl", "glog_library")
 
-glog_library(with_gflags=0)
+# generate_bazel: skip (glog_library() below defines :glog)
+# Built with gflags, like the BUCK target, so that programs using both
+# libraries share one set of FLAGS_*.
+glog_library(with_gflags=1, gflags_dep="//gflags:gflags2", gtest_dep="//gtest:gtest")
 
 # platform() to build with clang-cl on Bazel CI. This is enabled with
 # the flags in .bazelci/presubmit.yml:

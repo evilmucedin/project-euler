@@ -13,4 +13,5 @@ cc_binary(
     srcs=[
         "solution2.cpp",
     ],
+    linkopts = ["-lmpfr", "-lgmp"],
 )

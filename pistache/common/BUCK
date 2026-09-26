@@ -17,7 +17,7 @@ cxx_library(
     "timer_pool.cc",
     "transport.cc",
   ],
-  deps=[
+  exported_deps=[
     "//pistache:headers",
     "//pistache/date:date",
   ],

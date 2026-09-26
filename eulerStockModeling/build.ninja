@@ -5,8 +5,8 @@ build $builddir/lib/eulerStockModeling/stockModelingLib.a: ar $builddir/obj/eule
 build eulerStockModeling/stockModelingLib: phony $builddir/lib/eulerStockModeling/stockModelingLib.a
 
 build $builddir/obj/eulerStockModeling/StockModeling.cpp.o: cxx eulerStockModeling/StockModeling.cpp
-  extra_cflags = -Iglog/..
-build $builddir/bin/eulerStockModeling/StockModeling: link $builddir/obj/eulerStockModeling/StockModeling.cpp.o $builddir/lib/lib/io/utils.a $builddir/lib/glog/glog.a $builddir/lib/lib/io/csv.a $builddir/lib/lib/string.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/exception.a $builddir/lib/eulerStockModeling/stockModelingLib.a $builddir/lib/lib/random.a $builddir/lib/lib/header.a
+  extra_cflags = -Iglog2/src '-DGLOG_DEPRECATED=__attribute__((deprecated))' '-DGLOG_EXPORT=__attribute__((visibility("default")))' '-DGLOG_NO_EXPORT=__attribute__((visibility("default")))' -DGLOG_USE_GFLAGS
+build $builddir/bin/eulerStockModeling/StockModeling: link $builddir/obj/eulerStockModeling/StockModeling.cpp.o $builddir/lib/lib/io/utils.a $builddir/lib/glog2/glog.a $builddir/lib/gflags/gflags.a $builddir/lib/lib/io/csv.a $builddir/lib/lib/string.a $builddir/lib/lib/io/stream.a $builddir/lib/lib/io/fileIo.a $builddir/lib/lib/noncopyable.a $builddir/lib/lib/exception.a $builddir/lib/eulerStockModeling/stockModelingLib.a $builddir/lib/lib/random.a $builddir/lib/lib/header.a
 build eulerStockModeling/StockModeling: phony $builddir/bin/eulerStockModeling/StockModeling
 
 build $builddir/obj/eulerStockModeling/StockModelingTest.cpp.o: cxx eulerStockModeling/StockModelingTest.cpp

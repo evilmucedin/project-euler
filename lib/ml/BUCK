@@ -6,7 +6,7 @@ cxx_library(
   srcs=[
     "regressor.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//lib:header",
   ],
   visibility=[
@@ -22,7 +22,7 @@ cxx_library(
   srcs=[
     "metrics.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//lib:header",
   ],
   visibility=[
@@ -38,7 +38,7 @@ cxx_library(
   srcs=[
     "gbdt.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//lib:header",
     "//lib:exception",
     "//lib:noncopyable",
@@ -58,7 +58,7 @@ cxx_library(
   srcs=[
     "ols.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//lib:header",
     ":regressor",
   ],
@@ -76,16 +76,11 @@ cxx_library(
     "//lib:exception",
     "//lib:header",
     "//lib:string",
+    "//lib/io:csv",
+    "//lib:file",
   ],
   srcs=[
     "dataframe.cpp",
-  ],
-  deps=[
-    "//lib:header",
-    "//lib:string",
-    "//lib/io:csv",
-    "//lib:file",
-    "//lib:exception",
   ],
   visibility=[
     'PUBLIC',

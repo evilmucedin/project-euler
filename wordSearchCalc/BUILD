@@ -41,3 +41,10 @@ cc_binary(
         "test.cpp",
     ],
 )
+
+# Targets below were generated from BUCK by scripts/generate_bazel.py.
+
+cc_binary(
+    name = "findStrean",
+    srcs = ["findStream.cpp"],
+)

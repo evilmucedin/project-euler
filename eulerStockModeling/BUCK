@@ -3,7 +3,7 @@ cxx_library(
   srcs=[
     "orderBook.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//lib:header",
     "//lib:random",
   ],

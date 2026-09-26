@@ -29,7 +29,7 @@ cxx_library(
         "utils.h",
         "base64.h",
     ],
-    deps=[
+    exported_deps=[
         "//pistache/date:date",
     ],
     visibility=[

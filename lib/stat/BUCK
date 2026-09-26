@@ -16,7 +16,7 @@ cxx_library(
     srcs=[
         "stat.cpp",
     ],
-    deps=[
+    exported_deps=[
         "//lib:header",
     ],
     visibility=[
@@ -32,7 +32,7 @@ cxx_library(
     srcs=[
         "tdigest.cpp",
     ],
-    deps=[
+    exported_deps=[
         "//lib:header",
         "//glog:glog",
     ],

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "header.h"
+#include "lib/header.h"
 
 template<typename T=ui64>
 vector<vector<T>> pascalTriangle(int n) {

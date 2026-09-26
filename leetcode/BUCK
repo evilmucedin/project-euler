@@ -11,3 +11,18 @@ cxx_library(
 )
 
 
+
+# Shared prelude that solutions include as "../header.h".
+cxx_library(
+    name="header",
+    exported_headers=[
+        "header.h",
+    ],
+    exported_deps=[
+        "//lib:header",
+        "//lib:timer",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)

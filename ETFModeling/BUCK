@@ -6,7 +6,7 @@ cxx_library(
   srcs=[
     "etfModel.cpp",
   ],
-  deps=[
+  exported_deps=[
     "//gflags:gflags",
     "//glog2:glog",
     "//lib:header",

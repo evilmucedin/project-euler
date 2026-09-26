@@ -201,7 +201,6 @@ subninja eulerStockModeling2/build.ninja
 subninja eulerXGBoost/build.ninja
 subninja euleramount-of-time-for-binary-tree-to-be-infected/build.ninja
 subninja gflags/build.ninja
-subninja glog/build.ninja
 subninja glog2/build.ninja
 subninja gtest/build.ninja
 subninja gtestTest/build.ninja

@@ -33,3 +33,10 @@ cc_library(
 #        "@gflags//:gflags2",
 #    ],
 #)
+
+# Same label as in BUCK.
+alias(
+    name = "gflags",
+    actual = ":gflags2",
+    visibility = ["//visibility:public"],
+)

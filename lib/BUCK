@@ -21,7 +21,7 @@ cxx_library(
     srcs=[
         "init.cpp",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         "//gflags:gflags",
         "//glog2:glog",
@@ -39,7 +39,7 @@ cxx_library(
     srcs=[
         "file.cpp",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         ":string",
     ],
@@ -59,9 +59,6 @@ cxx_library(
     srcs=[
         "matrix.cpp",
     ],
-    deps=[
-        ":header",
-    ],
     visibility=[
         "PUBLIC",
     ],
@@ -79,10 +76,6 @@ cxx_library(
     srcs=[
         "string.cpp",
     ],
-    deps=[
-        ":header",
-        ":exception",
-    ],
     visibility=[
         "PUBLIC",
     ],
@@ -96,7 +89,7 @@ cxx_library(
     srcs=[
         "datetime.cpp",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         ":math",
         ":string",
@@ -147,7 +140,7 @@ cxx_library(
     srcs=[
         "console.cpp",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -163,7 +156,7 @@ cxx_library(
     exported_headers=[
         "primes.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         ":math",
         "//glog2:glog",
@@ -181,7 +174,7 @@ cxx_library(
     exported_headers=[
         "radixSort.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -194,7 +187,7 @@ cxx_library(
     exported_headers=[
         "segmentTree.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -207,7 +200,7 @@ cxx_library(
     exported_headers=[
         "redBlackTree.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -226,9 +219,6 @@ cxx_library(
     exported_deps=[
         ":header",
     ],
-    deps=[
-        ":header",
-    ],
     visibility=[
         'PUBLIC',
     ],
@@ -242,7 +232,7 @@ cxx_library(
     exported_headers=[
         "integrate.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -258,7 +248,7 @@ cxx_library(
     exported_headers=[
         "fft.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -274,7 +264,7 @@ cxx_library(
     exported_headers=[
         "progressBar.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         "//lib/io:stream",
     ],
@@ -291,7 +281,7 @@ cxx_library(
     exported_headers=[
         "geometry.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -304,7 +294,7 @@ cxx_library(
     exported_headers=[
         "convexHull.h",
     ],
-    deps=[
+    exported_deps=[
         ":geometry",
     ],
     visibility=[
@@ -323,9 +313,6 @@ cxx_library(
     exported_deps=[
         ":header",
     ],
-    deps=[
-        ":header",
-    ],
     visibility=[
         'PUBLIC',
     ],
@@ -339,7 +326,7 @@ cxx_library(
     exported_headers=[
         "lru.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
     ],
     visibility=[
@@ -365,7 +352,7 @@ cxx_library(
     exported_headers=[
         "rmq.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         "//glog2:glog",
     ],
@@ -379,7 +366,7 @@ cxx_library(
     exported_headers=[
         "fraction.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         "//glog2:glog",
     ],
@@ -393,7 +380,7 @@ cxx_library(
     exported_headers=[
         "treap.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         ":random",
         "//glog2:glog",
@@ -408,7 +395,7 @@ cxx_library(
     exported_headers=[
         "implicitTreap.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         ":random",
         "//glog2:glog",
@@ -426,9 +413,6 @@ cxx_library(
     exported_deps=[
         ":header",
     ],
-    deps=[
-        ":header",
-    ],
     visibility=[
         'PUBLIC',
     ],
@@ -439,7 +423,7 @@ cxx_library(
     exported_headers=[
         "benchmark.h",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         ":stat",
         ":timer",
@@ -457,7 +441,7 @@ cxx_library(
     srcs=[
         "atkinSieve.cpp",
     ],
-    deps=[
+    exported_deps=[
         ":header",
         "//glog2:glog",
     ],
@@ -468,7 +452,7 @@ cxx_library(
 
 cxx_library(
     name="cycles",
-    deps=[
+    exported_deps=[
         ":header",
     ],
     exported_headers=[
@@ -533,7 +517,7 @@ cxx_library(
 
 cxx_library(
     name="trie",
-    deps=[
+    exported_deps=[
         ":exception",
     ],
     exported_headers=[
@@ -573,7 +557,8 @@ cxx_library(
 
 cxx_library(
     name="combinatorics",
-    deps=[
+    exported_deps=[
+        ":header",
     ],
     srcs=[
         "combinatorics.cpp",

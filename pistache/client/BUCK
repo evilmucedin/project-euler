@@ -3,7 +3,7 @@ cxx_library(
   srcs=[
     "client.cc",
   ],
-  deps=[
+  exported_deps=[
     "//pistache:headers",
     "//pistache/common:common",
   ],

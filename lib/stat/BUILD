@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name="counters",
     hdrs=[
@@ -30,7 +31,17 @@ cc_library(
     ],
     deps=[
         "//lib:header",
-        "//glog:glog2",
+        "//glog:glog",
     ],
+    visibility = ["//visibility:public"],
+)
+
+# Targets below were generated from BUCK by scripts/generate_bazel.py.
+
+cc_library(
+    name = "stat",
+    srcs = ["stat.cpp"],
+    hdrs = ["stat.h"],
+    deps = ["//lib:header"],
     visibility = ["//visibility:public"],
 )

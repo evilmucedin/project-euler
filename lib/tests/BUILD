@@ -31,6 +31,7 @@ cc_test(
     "trieTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:trie",
   ],
 )
@@ -52,6 +53,7 @@ cc_test(
     "stringTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:string",
   ],
 )
@@ -77,6 +79,7 @@ cc_test(
     "radixSortTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:header",
     "//lib:radixSort",
     "//lib:timer",
@@ -89,6 +92,7 @@ cc_test(
     "primesTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:header",
     "//lib:primes",
   ],
@@ -100,6 +104,7 @@ cc_test(
     "segmentTreeTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:header",
     "//lib:segmentTree",
   ],
@@ -111,6 +116,7 @@ cc_test(
     "redBlackTreeTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:header",
     "//lib:redBlackTree",
   ],
@@ -122,6 +128,7 @@ cc_test(
     "integrateTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:integrate",
   ],
 )
@@ -132,6 +139,7 @@ cc_test(
     "fftTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:fft",
     "//lib:random",
   ],
@@ -143,6 +151,7 @@ cc_test(
     "progressBarTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:progressBar",
   ],
 )
@@ -153,6 +162,7 @@ cc_test(
     "exceptionTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:exception",
   ],
 )
@@ -163,6 +173,7 @@ cc_test(
     "lruTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:lru",
   ],
 )
@@ -173,6 +184,7 @@ cc_test(
     "rmqTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:random",
     "//lib:rmq",
   ],
@@ -184,6 +196,7 @@ cc_test(
     "fractionTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:random",
     "//lib:fraction",
   ],
@@ -195,6 +208,7 @@ cc_test(
     "treapTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:random",
     "//lib:treap",
   ],
@@ -206,6 +220,7 @@ cc_test(
     "implicitTreapTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:random",
     "//lib:implicitTreap",
   ],
@@ -217,6 +232,7 @@ cc_test(
     "atkinSieveTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:random",
     "//lib:atkinSieve",
     "//lib:primes",
@@ -229,6 +245,7 @@ cc_test(
     "robinHoodTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:header",
     "//lib:random",
     "//lib:robinHood",
@@ -242,6 +259,7 @@ cc_test(
     "quickSortTest.cpp",
   ],
   deps=[
+    "//gtest:gtest",
     "//lib:header",
     "//lib:quickSort",
   ],
