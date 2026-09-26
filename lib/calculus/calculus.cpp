@@ -1,5 +1,6 @@
 #include "lib/calculus/calculus.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
@@ -23,7 +24,8 @@ struct Node {
 
 namespace {
 
-// Placeholder variable used by integration by substitution.
+// Prefix of the placeholder variable used by integration by substitution; the
+// recursion depth is appended so nested substitutions do not collide.
 const char* const kSubstitutionVar = "__u";
 
 // Guards the mutually recursive integration rules.
@@ -31,6 +33,15 @@ constexpr int kMaxIntegrationDepth = 64;
 
 // Largest integer power of a sum that expand() multiplies out.
 constexpr double kMaxExpandPower = 32;
+
+// Largest degree read by polynomialCoefficients().
+constexpr int kMaxPolynomialDegree = 32;
+
+// Largest |n| for the reduction formulas of sin(x)^n and friends.
+constexpr double kMaxReductionPower = 32;
+
+// Most subexpressions tried as g in a substitution u = g(x).
+constexpr size_t kMaxSubstitutionCandidates = 32;
 
 bool isUnary(Op op) { return op >= Op::Neg; }
 
@@ -84,6 +95,36 @@ std::pair<Expression, double> splitPower(const Expression& e) {
     return {e, 1};
 }
 
+struct FunctionInfo {
+    Op op;
+    const char* name;
+    double (*evaluate)(double);
+    Expression (*build)(const Expression&);
+};
+
+double absoluteValue(double v) { return std::fabs(v); }
+
+const FunctionInfo kFunctionTable[] = {
+    {Op::Sin, "sin", std::sin, sin},       {Op::Cos, "cos", std::cos, cos},
+    {Op::Tan, "tan", std::tan, tan},       {Op::Exp, "exp", std::exp, exp},
+    {Op::Log, "log", std::log, log},       {Op::Sqrt, "sqrt", std::sqrt, sqrt},
+    {Op::Abs, "abs", absoluteValue, abs},  {Op::Asin, "asin", std::asin, asin},
+    {Op::Acos, "acos", std::acos, acos},   {Op::Atan, "atan", std::atan, atan},
+    {Op::Sinh, "sinh", std::sinh, sinh},   {Op::Cosh, "cosh", std::cosh, cosh},
+    {Op::Tanh, "tanh", std::tanh, tanh},   {Op::Asinh, "asinh", std::asinh, asinh},
+    {Op::Acosh, "acosh", std::acosh, acosh}, {Op::Atanh, "atanh", std::atanh, atanh},
+};
+
+// Only called for unary ops other than Neg.
+const FunctionInfo& functionInfo(Op op) {
+    for (const FunctionInfo& info : kFunctionTable) {
+        if (info.op == op) {
+            return info;
+        }
+    }
+    throw std::logic_error("not a function");
+}
+
 Expression build(Op op, const Expression& a, const Expression& b) {
     switch (op) {
         case Op::Add:
@@ -98,25 +139,12 @@ Expression build(Op op, const Expression& a, const Expression& b) {
             return pow(a, b);
         case Op::Neg:
             return -a;
-        case Op::Sin:
-            return sin(a);
-        case Op::Cos:
-            return cos(a);
-        case Op::Tan:
-            return tan(a);
-        case Op::Exp:
-            return exp(a);
-        case Op::Log:
-            return log(a);
-        case Op::Sqrt:
-            return sqrt(a);
-        case Op::Abs:
-            return abs(a);
         case Op::Constant:
         case Op::Variable:
-            break;
+            return a;
+        default:
+            return functionInfo(op).build(a);
     }
-    return a;
 }
 
 double evaluateNode(const Node& n, const Variables& vars) {
@@ -143,22 +171,9 @@ double evaluateNode(const Node& n, const Variables& vars) {
             return std::pow(arg(n.a), arg(n.b));
         case Op::Neg:
             return -arg(n.a);
-        case Op::Sin:
-            return std::sin(arg(n.a));
-        case Op::Cos:
-            return std::cos(arg(n.a));
-        case Op::Tan:
-            return std::tan(arg(n.a));
-        case Op::Exp:
-            return std::exp(arg(n.a));
-        case Op::Log:
-            return std::log(arg(n.a));
-        case Op::Sqrt:
-            return std::sqrt(arg(n.a));
-        case Op::Abs:
-            return std::fabs(arg(n.a));
+        default:
+            return functionInfo(n.op).evaluate(arg(n.a));
     }
-    return 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -171,27 +186,6 @@ std::string formatNumber(double v) {
     std::ostringstream os;
     os << std::setprecision(15) << v;
     return os.str();
-}
-
-const char* functionName(Op op) {
-    switch (op) {
-        case Op::Sin:
-            return "sin";
-        case Op::Cos:
-            return "cos";
-        case Op::Tan:
-            return "tan";
-        case Op::Exp:
-            return "exp";
-        case Op::Log:
-            return "log";
-        case Op::Sqrt:
-            return "sqrt";
-        case Op::Abs:
-            return "abs";
-        default:
-            return "?";
-    }
 }
 
 // Binding strength of the printed form; higher binds tighter.
@@ -252,7 +246,7 @@ Printed print(const Expression& e) {
         case Op::Neg:
             return {"-" + wrap(print(e.left()), kProduct, true), kUnaryMinus, true};
         default:
-            return {std::string(functionName(e.op())) + "(" + print(e.left()).text + ")", kAtom, false};
+            return {std::string(functionInfo(e.op()).name) + "(" + print(e.left()).text + ")", kAtom, false};
     }
 }
 
@@ -363,16 +357,28 @@ private:
     }
 
     Expression applyFunction(const std::string& name, const Expression& arg, size_t at) {
-        static const std::map<std::string, Op> kFunctions = {
-            {"sin", Op::Sin}, {"cos", Op::Cos}, {"tan", Op::Tan},   {"exp", Op::Exp},
-            {"log", Op::Log}, {"ln", Op::Log},  {"sqrt", Op::Sqrt}, {"abs", Op::Abs},
+        for (const FunctionInfo& info : kFunctionTable) {
+            if (name == info.name) {
+                return info.build(arg);
+            }
+        }
+        static const std::map<std::string, std::function<Expression(const Expression&)>> kAliases = {
+            {"ln", [](const Expression& u) { return log(u); }},
+            {"arcsin", [](const Expression& u) { return asin(u); }},
+            {"arccos", [](const Expression& u) { return acos(u); }},
+            {"arctan", [](const Expression& u) { return atan(u); }},
+            {"sec", [](const Expression& u) { return 1 / cos(u); }},
+            {"csc", [](const Expression& u) { return 1 / sin(u); }},
+            {"cot", [](const Expression& u) { return 1 / tan(u); }},
+            {"log10", [](const Expression& u) { return log(u) / std::log(10.0); }},
+            {"log2", [](const Expression& u) { return log(u) / std::log(2.0); }},
         };
-        auto it = kFunctions.find(name);
-        if (it == kFunctions.end()) {
+        auto it = kAliases.find(name);
+        if (it == kAliases.end()) {
             pos_ = at;
             fail("unknown function '" + name + "'");
         }
-        return build(it->second, arg, Expression());
+        return it->second(arg);
     }
 
     void skipSpaces() {
@@ -490,6 +496,8 @@ struct Factors {
     std::vector<Expression> factors;
 };
 
+Factors factorsOf(const Expression& e, const std::string& var);
+
 void collectFactors(const Expression& e, const std::string& var, Factors& out) {
     if (e.isFreeOf(var)) {
         out.coefficient = out.coefficient * e;
@@ -504,9 +512,23 @@ void collectFactors(const Expression& e, const std::string& var, Factors& out) {
             out.coefficient = -out.coefficient;
             collectFactors(e.left(), var, out);
             return;
-        case Op::Div:
+        case Op::Div: {
             collectFactors(e.left(), var, out);
-            collectFactors(pow(e.right(), -1), var, out);
+            Factors den = factorsOf(e.right(), var);
+            out.coefficient = out.coefficient / den.coefficient;
+            for (const Expression& factor : den.factors) {
+                collectFactors(pow(factor, -1), var, out);
+            }
+            return;
+        }
+        case Op::Pow:
+            // (a*b)^n = a^n * b^n for integer n.
+            if (e.left().op() == Op::Mul && e.right().isConstant() && isInteger(e.right().value())) {
+                collectFactors(pow(e.left().left(), e.right()), var, out);
+                collectFactors(pow(e.left().right(), e.right()), var, out);
+                return;
+            }
+            out.factors.push_back(e);
             return;
         default:
             out.factors.push_back(e);
@@ -527,26 +549,19 @@ Expression productOf(const std::vector<Expression>& factors) {
     return result;
 }
 
-// Multiset equality under structural comparison.
-bool sameFactors(const std::vector<Expression>& a, const std::vector<Expression>& b) {
-    if (a.size() != b.size()) {
-        return false;
-    }
-    std::vector<bool> used(b.size(), false);
-    for (const Expression& x : a) {
-        bool found = false;
-        for (size_t j = 0; j < b.size(); ++j) {
-            if (!used[j] && b[j] == x) {
-                used[j] = true;
-                found = true;
-                break;
-            }
+Expression integrateImpl(const Expression& e, const std::string& var, int depth);
+
+// Removes the factors of `part` from `whole`; nullopt unless all of them are present.
+std::optional<std::vector<Expression>> removeFactors(std::vector<Expression> whole,
+                                                     const std::vector<Expression>& part) {
+    for (const Expression& factor : part) {
+        auto it = std::find(whole.begin(), whole.end(), factor);
+        if (it == whole.end()) {
+            return std::nullopt;
         }
-        if (!found) {
-            return false;
-        }
+        whole.erase(it);
     }
-    return true;
+    return whole;
 }
 
 bool isPolynomial(const Expression& e, const std::string& var) {
@@ -572,11 +587,300 @@ bool isPolynomial(const Expression& e, const std::string& var) {
     }
 }
 
-Expression integrateImpl(const Expression& e, const std::string& var, int depth);
+// Numeric coefficients c[0] + c[1]*x + c[2]*x^2 + ... of a polynomial, from
+// its Taylor series at 0. nullopt when e is not a polynomial with numeric
+// coefficients.
+std::optional<std::vector<double>> polynomialCoefficients(const Expression& e, const std::string& var) {
+    if (!isPolynomial(e, var)) {
+        return std::nullopt;
+    }
+    std::vector<double> result;
+    Expression derivative = e;
+    double factorial = 1;
+    for (int k = 0; !isValue(derivative, 0); ++k) {
+        if (k > kMaxPolynomialDegree) {
+            return std::nullopt;
+        }
+        Expression atZero = substitute(derivative, var, Expression(0));
+        if (!atZero.isConstant()) {
+            return std::nullopt;
+        }
+        if (k > 0) {
+            factorial *= k;
+        }
+        result.push_back(atZero.value() / factorial);
+        derivative = differentiate(derivative, var);
+    }
+    while (!result.empty() && result.back() == 0) {
+        result.pop_back();
+    }
+    return result;
+}
+
+// c * term, written as n*term/d when c is close to a fraction n/d.
+Expression scaled(double c, const Expression& term) {
+    constexpr int kMaxDenominator = 64;
+    for (int d = 1; d <= kMaxDenominator; ++d) {
+        double n = std::round(c * d);
+        if (std::fabs(c * d - n) <= 1e-12 * std::max(1.0, std::fabs(n))) {
+            return n * term / d;
+        }
+    }
+    return c * term;
+}
+
+// p*x^2 + r*x + s written as p*((x + h)^2 + k).
+struct Quadratic {
+    double p;
+    double h;
+    double k;
+};
+
+std::optional<Quadratic> quadraticOf(const Expression& q, const std::string& var) {
+    auto c = polynomialCoefficients(q, var);
+    if (!c || c->size() != 3) {
+        return std::nullopt;
+    }
+    double p = (*c)[2];
+    double h = (*c)[1] / (2 * p);
+    double k = (*c)[0] / p - h * h;
+    if (std::fabs(k) < 1e-12 * std::max(1.0, h * h)) {
+        k = 0;
+    }
+    return Quadratic{p, h, k};
+}
+
+// ∫ 1/q dx with u = x + h.
+Expression integrateReciprocalQuadratic(const Quadratic& q, const Expression& u) {
+    if (q.k > 0) {
+        double m = std::sqrt(q.k);
+        return atan(u / m) / (q.p * m);
+    }
+    if (q.k < 0) {
+        double m = std::sqrt(-q.k);
+        return log(abs((u - m) / (u + m))) / (2 * m * q.p);
+    }
+    return -1 / (q.p * u);
+}
+
+// ∫ num/den dx for polynomials with numeric coefficients and den of degree 1
+// or 2: polynomial division, then log and atan for the remainder.
+std::optional<Expression> integrateRational(const Expression& num, const Expression& den, const std::string& var) {
+    auto n = polynomialCoefficients(num, var);
+    auto d = polynomialCoefficients(den, var);
+    if (!n || !d || d->size() < 2 || d->size() > 3) {
+        return std::nullopt;
+    }
+    const size_t degree = d->size() - 1;
+    std::vector<double> remainder = *n;
+    std::vector<double> quotient(remainder.size() > degree ? remainder.size() - degree : 0, 0.0);
+    for (size_t i = quotient.size(); i-- > 0;) {
+        quotient[i] = remainder[i + degree] / d->back();
+        for (size_t j = 0; j <= degree; ++j) {
+            remainder[i + j] -= quotient[i] * (*d)[j];
+        }
+    }
+    remainder.resize(std::min(remainder.size(), degree));
+    // remainder = a*x + b
+    const double a = remainder.size() > 1 ? remainder[1] : 0;
+    const double b = remainder.empty() ? 0 : remainder[0];
+
+    // ∫ quotient, term by term.
+    Expression result(0);
+    for (size_t k = quotient.size(); k-- > 0;) {
+        result = result + scaled(quotient[k] / (k + 1), pow(Expression::variable(var), static_cast<double>(k + 1)));
+    }
+    if (degree == 1) {
+        return result + b * log(abs(den)) / (*d)[1];
+    }
+    auto q = quadraticOf(den, var);
+    // a*x + b = a/(2p) * den' + (b - a*h)
+    if (a != 0) {
+        result = result + a * log(abs(den)) / (2 * q->p);
+    }
+    if (b - a * q->h != 0) {
+        result = result + (b - a * q->h) * integrateReciprocalQuadratic(*q, Expression::variable(var) + q->h);
+    }
+    return result;
+}
+
+// ∫ 1/sqrt(q) dx with u = x + h.
+std::optional<Expression> integrateReciprocalSqrtQuadratic(const Quadratic& q, const Expression& u,
+                                                           const Expression& sqrtQ) {
+    if (q.p > 0) {
+        double sp = std::sqrt(q.p);
+        if (q.k > 0) {
+            return asinh(u / std::sqrt(q.k)) / sp;
+        }
+        if (q.k < 0) {
+            return log(abs(u + sqrtQ / sp)) / sp;
+        }
+        return std::nullopt;
+    }
+    if (q.k < 0) {
+        return asin(u / std::sqrt(-q.k)) / std::sqrt(-q.p);
+    }
+    return std::nullopt;
+}
+
+// ∫ sqrt(q) dx with u = x + h.
+std::optional<Expression> integrateSqrtQuadratic(const Quadratic& q, const Expression& u, const Expression& sqrtQ) {
+    if (q.p > 0) {
+        double sp = std::sqrt(q.p);
+        if (q.k > 0) {
+            return u * sqrtQ / 2 + sp * q.k * asinh(u / std::sqrt(q.k)) / 2;
+        }
+        if (q.k < 0) {
+            return u * sqrtQ / 2 + sp * q.k * log(abs(u + sqrtQ / sp)) / 2;
+        }
+        return std::nullopt;
+    }
+    if (q.k < 0) {
+        return u * sqrtQ / 2 + std::sqrt(-q.p) * -q.k * asin(u / std::sqrt(-q.k)) / 2;
+    }
+    return std::nullopt;
+}
+
+// ∫ (a*x + b)/sqrt(q) dx = a/p * sqrt(q) + (b - a*h) * ∫ 1/sqrt(q) dx.
+std::optional<Expression> integrateOverSqrtQuadratic(const Expression& num, const Expression& qExpr,
+                                                     const std::string& var) {
+    auto q = quadraticOf(qExpr, var);
+    auto n = polynomialCoefficients(num, var);
+    if (!q || !n || n->size() > 2) {
+        return std::nullopt;
+    }
+    const double a = n->size() > 1 ? (*n)[1] : 0;
+    const double b = n->empty() ? 0 : (*n)[0];
+    const Expression sqrtQ = sqrt(qExpr);
+    Expression result = a * sqrtQ / q->p;
+    if (b - a * q->h != 0) {
+        auto inverse = integrateReciprocalSqrtQuadratic(*q, Expression::variable(var) + q->h, sqrtQ);
+        if (!inverse) {
+            return std::nullopt;
+        }
+        result = result + (b - a * q->h) * *inverse;
+    }
+    return result;
+}
+
+// q for sqrt(q) and q^0.5.
+std::optional<Expression> sqrtArgument(const Expression& e) {
+    if (e.op() == Op::Sqrt) {
+        return e.left();
+    }
+    if (e.op() == Op::Pow && isValue(e.right(), 0.5)) {
+        return e.left();
+    }
+    return std::nullopt;
+}
+
+// sqrt(q), q^-0.5 and q^-1 for a quadratic q.
+std::optional<Expression> integrateQuadraticPower(const Expression& e, const std::string& var) {
+    if (auto qExpr = sqrtArgument(e)) {
+        if (auto q = quadraticOf(*qExpr, var)) {
+            return integrateSqrtQuadratic(*q, Expression::variable(var) + q->h, sqrt(*qExpr));
+        }
+        return std::nullopt;
+    }
+    if (e.op() != Op::Pow) {
+        return std::nullopt;
+    }
+    if (isValue(e.right(), -0.5)) {
+        return integrateOverSqrtQuadratic(Expression(1), e.left(), var);
+    }
+    if (isValue(e.right(), -1)) {
+        return integrateRational(Expression(1), e.left(), var);
+    }
+    return std::nullopt;
+}
+
+// ∫ f(u)^n dx for f one of sin, cos, tan, sinh, cosh, tanh, u = a*x + b and
+// an integer n, by the usual reduction formulas.
+std::optional<Expression> integrateFunctionPower(const Expression& e, const std::string& var, int depth) {
+    const Expression base = e.left();
+    const Op f = base.op();
+    if (!e.right().isConstant() || !isInteger(e.right().value()) || std::fabs(e.right().value()) > kMaxReductionPower ||
+        (f != Op::Sin && f != Op::Cos && f != Op::Tan && f != Op::Sinh && f != Op::Cosh && f != Op::Tanh)) {
+        return std::nullopt;
+    }
+    const Expression u = base.left();
+    const auto k = linearSlope(u, var);
+    if (!k) {
+        return std::nullopt;
+    }
+    const double n = e.right().value();
+    const double m = -n;
+    auto power = [&](double exponent) { return pow(base, exponent); };
+    auto rest = [&](double exponent) { return integrateImpl(power(exponent), var, depth + 1); };
+    switch (f) {
+        case Op::Sin:
+            if (n >= 2) {
+                return -(power(n - 1) * cos(u)) / (n * *k) + (n - 1) * rest(n - 2) / n;
+            }
+            if (n == -1) {
+                return log(abs(tan(u / 2))) / *k;
+            }
+            if (n == -2) {
+                return -(cos(u) / sin(u)) / *k;
+            }
+            // ∫ csc^m = -csc^(m-2) cot / (m-1) + (m-2)/(m-1) ∫ csc^(m-2)
+            return -(cos(u) * power(1 - m)) / ((m - 1) * *k) + (m - 2) * rest(2 - m) / (m - 1);
+        case Op::Cos:
+            if (n >= 2) {
+                return power(n - 1) * sin(u) / (n * *k) + (n - 1) * rest(n - 2) / n;
+            }
+            if (n == -1) {
+                return log(abs(1 / cos(u) + tan(u))) / *k;
+            }
+            if (n == -2) {
+                return tan(u) / *k;
+            }
+            // ∫ sec^m = sec^(m-2) tan / (m-1) + (m-2)/(m-1) ∫ sec^(m-2)
+            return sin(u) * power(1 - m) / ((m - 1) * *k) + (m - 2) * rest(2 - m) / (m - 1);
+        case Op::Tan:
+            if (n >= 2) {
+                return power(n - 1) / ((n - 1) * *k) - rest(n - 2);
+            }
+            if (n == -1) {
+                return log(abs(sin(u))) / *k;
+            }
+            // ∫ cot^m = -cot^(m-1) / (m-1) - ∫ cot^(m-2)
+            return -power(1 - m) / ((m - 1) * *k) - rest(2 - m);
+        case Op::Sinh:
+            if (n >= 2) {
+                return power(n - 1) * cosh(u) / (n * *k) - (n - 1) * rest(n - 2) / n;
+            }
+            if (n == -2) {
+                return -(cosh(u) / sinh(u)) / *k;
+            }
+            return std::nullopt;
+        case Op::Cosh:
+            if (n >= 2) {
+                return power(n - 1) * sinh(u) / (n * *k) + (n - 1) * rest(n - 2) / n;
+            }
+            if (n == -2) {
+                return tanh(u) / *k;
+            }
+            return std::nullopt;
+        case Op::Tanh:
+            if (n >= 2) {
+                return -power(n - 1) / ((n - 1) * *k) + rest(n - 2);
+            }
+            if (n == -1) {
+                return log(abs(sinh(u))) / *k;
+            }
+            return std::nullopt;
+        default:
+            return std::nullopt;
+    }
+}
 
 // Antiderivatives of f(a*x + b) for the elementary functions: F(u) / a.
-std::optional<Expression> integrateTable(const Expression& e, const std::string& var) {
+std::optional<Expression> integrateTable(const Expression& e, const std::string& var, int depth) {
     if (e.op() == Op::Pow) {
+        if (auto result = integrateFunctionPower(e, var, depth)) {
+            return result;
+        }
         const Expression& base = e.left();
         const Expression& exponent = e.right();
         if (exponent.isFreeOf(var)) {
@@ -616,71 +920,195 @@ std::optional<Expression> integrateTable(const Expression& e, const std::string&
             return 2 * pow(u, 1.5) / (3 * *k);
         case Op::Abs:
             return u * abs(u) / (2 * *k);
+        case Op::Asin:
+            return (u * asin(u) + sqrt(1 - pow(u, 2))) / *k;
+        case Op::Acos:
+            return (u * acos(u) - sqrt(1 - pow(u, 2))) / *k;
+        case Op::Atan:
+            return (u * atan(u) - log(pow(u, 2) + 1) / 2) / *k;
+        case Op::Sinh:
+            return cosh(u) / *k;
+        case Op::Cosh:
+            return sinh(u) / *k;
+        case Op::Tanh:
+            return log(cosh(u)) / *k;
+        case Op::Asinh:
+            return (u * asinh(u) - sqrt(pow(u, 2) + 1)) / *k;
+        case Op::Acosh:
+            return (u * acosh(u) - sqrt(pow(u, 2) - 1)) / *k;
+        case Op::Atanh:
+            return (u * atanh(u) + log(1 - pow(u, 2)) / 2) / *k;
         default:
             return std::nullopt;
     }
 }
 
-// ∫ h(g(x)) * c*g'(x) dx = c * H(g(x)), where H is an antiderivative of h.
+// Subexpressions of e that depend on var non-linearly: the candidates for g
+// in a substitution u = g(x).
+void collectSubexpressions(const Expression& e, const std::string& var, std::vector<Expression>& out) {
+    if (e.isFreeOf(var) || e.op() == Op::Variable || out.size() >= kMaxSubstitutionCandidates) {
+        return;
+    }
+    if (!linearSlope(e, var) && std::find(out.begin(), out.end(), e) == out.end()) {
+        out.push_back(e);
+    }
+    collectSubexpressions(e.left(), var, out);
+    if (!isUnary(e.op())) {
+        collectSubexpressions(e.right(), var, out);
+    }
+}
+
+// Replaces every occurrence of the subexpression `from` with `to`.
+Expression replace(const Expression& e, const Expression& from, const Expression& to, const std::string& var) {
+    if (e == from) {
+        return to;
+    }
+    // v^b = (v^a)^(b/a)
+    if (from.op() == Op::Pow && e.op() == Op::Pow && from.right().isConstant() && e.right().isConstant() &&
+        e.left() == from.left()) {
+        double ratio = e.right().value() / from.right().value();
+        if (isInteger(ratio)) {
+            return pow(to, ratio);
+        }
+    }
+    // exp(r*v) = exp(v)^r
+    if (from.op() == Op::Exp && e.op() == Op::Exp) {
+        auto kFrom = linearSlope(from.left(), var);
+        auto kE = linearSlope(e.left(), var);
+        if (kFrom && kE) {
+            Expression ratio = *kE / *kFrom;
+            if (ratio.isConstant() && isInteger(ratio.value()) && ratio * from.left() == e.left()) {
+                return pow(to, ratio);
+            }
+        }
+    }
+    if (e.op() == Op::Constant || e.op() == Op::Variable) {
+        return e;
+    }
+    return build(e.op(), replace(e.left(), from, to, var),
+                 isUnary(e.op()) ? Expression() : replace(e.right(), from, to, var));
+}
+
+// ∫ h(g(x)) * c*g'(x) dx = c * H(g(x)), where H is an antiderivative of h:
+// for each candidate g, divide g' out of the integrand and check that what is
+// left depends on x only through g.
 std::optional<Expression> integrateBySubstitution(const Expression& e, const std::string& var, int depth) {
-    const Expression u = Expression::variable(kSubstitutionVar);
+    const std::string uName = kSubstitutionVar + std::to_string(depth);
+    const Expression u = Expression::variable(uName);
     Factors f = factorsOf(e, var);
-    for (size_t i = 0; i < f.factors.size(); ++i) {
-        const Expression& factor = f.factors[i];
-        // Candidate inner functions g together with the outer h(u).
-        std::vector<std::pair<Expression, Expression>> candidates = {{factor, u}};
-        if (isUnary(factor.op()) && factor.op() != Op::Neg) {
-            candidates.push_back({factor.left(), build(factor.op(), u, Expression())});
-        } else if (factor.op() == Op::Pow) {
-            if (factor.right().isFreeOf(var)) {
-                candidates.push_back({factor.left(), pow(u, factor.right())});
-            } else if (factor.left().isFreeOf(var)) {
-                candidates.push_back({factor.right(), pow(factor.left(), u)});
+    std::vector<Expression> candidates;
+    const Expression x = Expression::variable(var);
+    for (const Expression& factor : f.factors) {
+        collectSubexpressions(factor, var, candidates);
+        // A factor x^m is the derivative of g = x^(m+1), up to a constant.
+        auto [base, power] = splitPower(factor);
+        if (base == x && power != -1) {
+            Expression g = pow(x, power + 1);
+            if (std::find(candidates.begin(), candidates.end(), g) == candidates.end()) {
+                candidates.push_back(g);
             }
         }
-        std::vector<Expression> rest;
-        for (size_t j = 0; j < f.factors.size(); ++j) {
-            if (j != i) {
-                rest.push_back(f.factors[j]);
-            }
+    }
+    for (const Expression& inner : candidates) {
+        Factors derivative = factorsOf(differentiate(inner, var), var);
+        auto rest = removeFactors(f.factors, derivative.factors);
+        if (!rest) {
+            continue;
         }
-        for (const auto& [inner, outer] : candidates) {
-            Factors derivative = factorsOf(differentiate(inner, var), var);
-            if (!sameFactors(rest, derivative.factors)) {
-                continue;
-            }
-            try {
-                Expression antiderivative = integrateImpl(outer, kSubstitutionVar, depth + 1);
-                return f.coefficient * substitute(antiderivative, kSubstitutionVar, inner) / derivative.coefficient;
-            } catch (const IntegrationError&) {
-            }
+        Expression outer(1);
+        for (const Expression& factor : *rest) {
+            outer = outer * replace(factor, inner, u, var);
+        }
+        if (!outer.isFreeOf(var)) {
+            continue;
+        }
+        try {
+            Expression antiderivative = integrateImpl(outer, uName, depth + 1);
+            return f.coefficient * substitute(antiderivative, uName, inner) / derivative.coefficient;
+        } catch (const IntegrationError&) {
         }
     }
     return std::nullopt;
 }
 
-bool isPartsTarget(const Expression& e, const std::string& var) {
-    switch (e.op()) {
+// sin*sin, sin*cos, cos*cos, exp*sin, exp*cos and exp*exp of linear arguments.
+std::optional<Expression> integrateSpecialProduct(const Expression& e, const std::string& var, int depth) {
+    Factors f = factorsOf(e, var);
+    if (f.factors.size() != 2) {
+        return std::nullopt;
+    }
+    auto rank = [](Op op) { return op == Op::Exp ? 0 : op == Op::Sin ? 1 : op == Op::Cos ? 2 : 3; };
+    Expression a = f.factors[0];
+    Expression b = f.factors[1];
+    if (rank(b.op()) < rank(a.op())) {
+        std::swap(a, b);
+    }
+    if (rank(a.op()) == 3 || rank(b.op()) == 3) {
+        return std::nullopt;
+    }
+    const Expression u = a.left();
+    const Expression v = b.left();
+    const auto ku = linearSlope(u, var);
+    const auto kv = linearSlope(v, var);
+    if (!ku || !kv) {
+        return std::nullopt;
+    }
+    Expression rewritten;
+    if (a.op() == Op::Exp) {
+        if (b.op() == Op::Exp) {
+            rewritten = exp(u + v);
+        } else {
+            // ∫ e^u sin v = e^u (ku sin v - kv cos v) / (ku^2 + kv^2), same for cos.
+            Expression norm = pow(*ku, 2) + pow(*kv, 2);
+            if (b.op() == Op::Sin) {
+                return f.coefficient * a * (*ku * sin(v) - *kv * cos(v)) / norm;
+            }
+            return f.coefficient * a * (*ku * cos(v) + *kv * sin(v)) / norm;
+        }
+    } else if (a.op() == Op::Sin && b.op() == Op::Sin) {
+        rewritten = cos(u - v) / 2 - cos(u + v) / 2;
+    } else if (a.op() == Op::Cos) {
+        rewritten = cos(u - v) / 2 + cos(u + v) / 2;
+    } else {
+        rewritten = sin(u + v) / 2 + sin(u - v) / 2;
+    }
+    return f.coefficient * integrateImpl(rewritten, var, depth + 1);
+}
+
+enum class PartsRole { None, Integrate, Differentiate };
+
+// How t is treated in ∫ p(x) t(x) dx for a polynomial p.
+PartsRole partsRole(const Expression& t, const std::string& var) {
+    switch (t.op()) {
         case Op::Exp:
         case Op::Sin:
         case Op::Cos:
-        case Op::Log:
-            return linearSlope(e.left(), var).has_value();
+        case Op::Sinh:
+        case Op::Cosh:
+            return linearSlope(t.left(), var) ? PartsRole::Integrate : PartsRole::None;
         case Op::Pow:
-            return e.left().isFreeOf(var) && linearSlope(e.right(), var).has_value();
+            return t.left().isFreeOf(var) && linearSlope(t.right(), var) ? PartsRole::Integrate : PartsRole::None;
+        case Op::Log:
+        case Op::Asin:
+        case Op::Acos:
+        case Op::Atan:
+        case Op::Asinh:
+        case Op::Acosh:
+        case Op::Atanh:
+            return linearSlope(t.left(), var) ? PartsRole::Differentiate : PartsRole::None;
         default:
-            return false;
+            return PartsRole::None;
     }
 }
 
-// ∫ p(x) * t(x) dx for a polynomial p and t one of exp, sin, cos, c^x, log of a
-// linear argument.
+// ∫ p(x) * t(x) dx for a polynomial p and t one of exp, sin, cos, sinh, cosh,
+// c^x (integrated) or log, atan, asin, ... (differentiated) of a linear argument.
 std::optional<Expression> integrateByParts(const Expression& e, const std::string& var, int depth) {
     Factors f = factorsOf(e, var);
     std::optional<size_t> target;
     std::vector<Expression> polynomial;
     for (size_t i = 0; i < f.factors.size(); ++i) {
-        if (!target && isPartsTarget(f.factors[i], var)) {
+        if (!target && partsRole(f.factors[i], var) != PartsRole::None) {
             target = i;
         } else if (isPolynomial(f.factors[i], var)) {
             polynomial.push_back(f.factors[i]);
@@ -693,14 +1121,44 @@ std::optional<Expression> integrateByParts(const Expression& e, const std::strin
     }
     Expression p = f.coefficient * productOf(polynomial);
     const Expression& t = f.factors[*target];
-    if (t.op() == Op::Log) {
-        // Differentiate the logarithm, integrate the polynomial.
+    if (partsRole(t, var) == PartsRole::Differentiate) {
         Expression antiP = integrateImpl(p, var, depth + 1);
         return antiP * t - integrateImpl(antiP * differentiate(t, var), var, depth + 1);
     }
     // Differentiate the polynomial; its degree drops on every step.
     Expression antiT = integrateImpl(t, var, depth + 1);
     return p * antiT - integrateImpl(differentiate(p, var) * antiT, var, depth + 1);
+}
+
+std::optional<Expression> integrateQuotient(const Expression& e, const std::string& var, int depth) {
+    const Expression num = e.left();
+    const Expression den = e.right();
+    if (num.isFreeOf(var)) {
+        if (auto k = linearSlope(den, var)) {
+            return num * log(abs(den)) / *k;
+        }
+        if (!num.isConstant()) {
+            try {
+                return num * integrateImpl(1 / den, var, depth + 1);
+            } catch (const IntegrationError&) {
+                return std::nullopt;
+            }
+        }
+        // 1/cos(x), 1/sin(x)^2, ...
+        Expression inverse = pow(den, -1);
+        if (inverse.op() == Op::Pow) {
+            if (auto result = integrateFunctionPower(inverse, var, depth)) {
+                return num * *result;
+            }
+        }
+    }
+    if (auto result = integrateRational(num, den, var)) {
+        return result;
+    }
+    if (auto q = sqrtArgument(den)) {
+        return integrateOverSqrtQuadratic(num, *q, var);
+    }
+    return std::nullopt;
 }
 
 Expression integrateImpl(const Expression& e, const std::string& var, int depth) {
@@ -732,18 +1190,22 @@ Expression integrateImpl(const Expression& e, const std::string& var, int depth)
             if (e.right().isFreeOf(var)) {
                 return integrateImpl(e.left(), var, next) / e.right();
             }
-            if (e.left().isFreeOf(var)) {
-                if (auto k = linearSlope(e.right(), var)) {
-                    return e.left() * log(abs(e.right())) / *k;
-                }
+            if (auto result = integrateQuotient(e, var, next)) {
+                return *result;
             }
             break;
         default:
-            if (auto result = integrateTable(e, var)) {
+            if (auto result = integrateTable(e, var, next)) {
+                return *result;
+            }
+            if (auto result = integrateQuadraticPower(e, var)) {
                 return *result;
             }
     }
     if (auto result = integrateBySubstitution(e, var, next)) {
+        return *result;
+    }
+    if (auto result = integrateSpecialProduct(e, var, next)) {
         return *result;
     }
     try {
@@ -902,6 +1364,13 @@ Expression operator+(const Expression& a, const Expression& b) {
     if (b.isConstant() && a.op() == Op::Sub && a.right().isConstant()) {
         return a.left() + Expression(b.value() - a.right().value());
     }
+    // Keep sums left-leaning: a + (b + c) -> (a + b) + c.
+    if (b.op() == Op::Add) {
+        return (a + b.left()) + b.right();
+    }
+    if (b.op() == Op::Sub) {
+        return (a + b.left()) - b.right();
+    }
     auto [ca, ra] = splitCoefficient(a);
     auto [cb, rb] = splitCoefficient(b);
     if (ra == rb) {
@@ -937,6 +1406,12 @@ Expression operator-(const Expression& a, const Expression& b) {
     }
     if (b.isConstant() && a.op() == Op::Sub && a.right().isConstant()) {
         return a.left() - Expression(a.right().value() + b.value());
+    }
+    if (b.op() == Op::Add) {
+        return (a - b.left()) - b.right();
+    }
+    if (b.op() == Op::Sub) {
+        return (a - b.left()) + b.right();
     }
     auto [ca, ra] = splitCoefficient(a);
     auto [cb, rb] = splitCoefficient(b);
@@ -1034,6 +1509,13 @@ Expression operator/(const Expression& a, const Expression& b) {
     if (isValue(a, 0) && !isValue(b, 0)) {
         return Expression(0);
     }
+    if (isNegativeConstant(b)) {
+        return -(a / Expression(-b.value()));
+    }
+    // a/0.5 -> 2*a
+    if (b.isConstant() && !isInteger(b.value()) && isInteger(1 / b.value())) {
+        return Expression(1 / b.value()) * a;
+    }
     if (a.op() == Op::Neg) {
         return -(a.left() / b);
     }
@@ -1089,6 +1571,12 @@ Expression pow(const Expression& base, const Expression& exponent) {
         if (base.op() == Op::Sqrt) {
             return pow(base.left(), Expression(exponent.value() / 2));
         }
+        if (base.op() == Op::Div) {
+            return pow(base.left(), exponent) / pow(base.right(), exponent);
+        }
+        if (base.op() == Op::Exp) {
+            return exp(exponent * base.left());
+        }
     }
     return Expression::make(Op::Pow, base, exponent);
 }
@@ -1102,13 +1590,40 @@ Expression function(Op op, double (*f)(double), const Expression& a) {
     return Expression::make(op, a);
 }
 
+// u for a = -u or a = -c*u.
+std::optional<Expression> negatedArgument(const Expression& a) {
+    if (a.op() == Op::Neg) {
+        return a.left();
+    }
+    if (hasNegativeCoefficient(a)) {
+        return Expression(-a.left().value()) * a.right();
+    }
+    return std::nullopt;
+}
+
+// f(-u) = -f(u)
+Expression oddFunction(Op op, double (*f)(double), Expression (*self)(const Expression&), const Expression& a) {
+    if (auto u = negatedArgument(a)) {
+        return -self(*u);
+    }
+    return function(op, f, a);
+}
+
+// f(-u) = f(u)
+Expression evenFunction(Op op, double (*f)(double), const Expression& a) {
+    if (auto u = negatedArgument(a)) {
+        return function(op, f, *u);
+    }
+    return function(op, f, a);
+}
+
 }  // namespace
 
-Expression sin(const Expression& a) { return function(Op::Sin, std::sin, a); }
+Expression sin(const Expression& a) { return a.op() == Op::Asin ? a.left() : oddFunction(Op::Sin, std::sin, sin, a); }
 
-Expression cos(const Expression& a) { return function(Op::Cos, std::cos, a); }
+Expression cos(const Expression& a) { return a.op() == Op::Acos ? a.left() : evenFunction(Op::Cos, std::cos, a); }
 
-Expression tan(const Expression& a) { return function(Op::Tan, std::tan, a); }
+Expression tan(const Expression& a) { return a.op() == Op::Atan ? a.left() : oddFunction(Op::Tan, std::tan, tan, a); }
 
 Expression exp(const Expression& a) {
     if (a.op() == Op::Log) {
@@ -1132,6 +1647,28 @@ Expression abs(const Expression& a) {
     }
     return function(Op::Abs, std::fabs, a);
 }
+
+Expression asin(const Expression& a) { return oddFunction(Op::Asin, std::asin, asin, a); }
+
+Expression acos(const Expression& a) { return function(Op::Acos, std::acos, a); }
+
+Expression atan(const Expression& a) { return oddFunction(Op::Atan, std::atan, atan, a); }
+
+Expression sinh(const Expression& a) {
+    return a.op() == Op::Asinh ? a.left() : oddFunction(Op::Sinh, std::sinh, sinh, a);
+}
+
+Expression cosh(const Expression& a) { return a.op() == Op::Acosh ? a.left() : evenFunction(Op::Cosh, std::cosh, a); }
+
+Expression tanh(const Expression& a) {
+    return a.op() == Op::Atanh ? a.left() : oddFunction(Op::Tanh, std::tanh, tanh, a);
+}
+
+Expression asinh(const Expression& a) { return oddFunction(Op::Asinh, std::asinh, asinh, a); }
+
+Expression acosh(const Expression& a) { return function(Op::Acosh, std::acosh, a); }
+
+Expression atanh(const Expression& a) { return oddFunction(Op::Atanh, std::atanh, atanh, a); }
 
 // ---------------------------------------------------------------------------
 // Public algorithms
@@ -1226,6 +1763,24 @@ Expression differentiate(const Expression& e, const std::string& var) {
             return da / (2 * e);
         case Op::Abs:
             return da * a / e;
+        case Op::Asin:
+            return da / sqrt(1 - pow(a, 2));
+        case Op::Acos:
+            return -(da / sqrt(1 - pow(a, 2)));
+        case Op::Atan:
+            return da / (1 + pow(a, 2));
+        case Op::Sinh:
+            return cosh(a) * da;
+        case Op::Cosh:
+            return sinh(a) * da;
+        case Op::Tanh:
+            return da / pow(cosh(a), 2);
+        case Op::Asinh:
+            return da / sqrt(pow(a, 2) + 1);
+        case Op::Acosh:
+            return da / sqrt(pow(a, 2) - 1);
+        case Op::Atanh:
+            return da / (1 - pow(a, 2));
         default:
             break;
     }

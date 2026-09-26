@@ -17,6 +17,9 @@
 //   numbers    1, 2.5, 1e-3        constants  pi, e
 //   operators  + - * / ^ (right associative), unary -, parentheses
 //   functions  sin cos tan exp log (natural; "ln" is an alias) sqrt abs
+//              asin acos atan (also arcsin, arccos, arctan)
+//              sinh cosh tanh asinh acosh atanh
+//              sec csc cot log10 log2 (rewritten as 1/cos(x), log(x)/log(10), ...)
 //   anything else made of letters, digits and '_' is a variable.
 // Unary minus binds looser than ^, so -x^2 is -(x^2).
 
@@ -60,6 +63,15 @@ enum class Op {
     Log,
     Sqrt,
     Abs,
+    Asin,
+    Acos,
+    Atan,
+    Sinh,
+    Cosh,
+    Tanh,
+    Asinh,
+    Acosh,
+    Atanh,
 };
 
 struct Node;
@@ -119,6 +131,15 @@ Expression exp(const Expression& a);
 Expression log(const Expression& a);
 Expression sqrt(const Expression& a);
 Expression abs(const Expression& a);
+Expression asin(const Expression& a);
+Expression acos(const Expression& a);
+Expression atan(const Expression& a);
+Expression sinh(const Expression& a);
+Expression cosh(const Expression& a);
+Expression tanh(const Expression& a);
+Expression asinh(const Expression& a);
+Expression acosh(const Expression& a);
+Expression atanh(const Expression& a);
 
 // Replaces every occurrence of `var` with `value`.
 Expression substitute(const Expression& e, const std::string& var, const Expression& value);
@@ -132,10 +153,22 @@ Expression differentiate(const Expression& e, const std::string& var = "x");
 // n-th derivative.
 Expression differentiate(const Expression& e, const std::string& var, int order);
 
-// Symbolic antiderivative (without the +C). Supports linearity, powers,
-// exp/sin/cos/tan/log/sqrt of linear arguments, polynomials, integration by
-// parts of polynomial * exp/sin/cos, and substitution f(g(x)) * g'(x).
-// Throws IntegrationError when none of these apply.
+// Symbolic antiderivative (without the +C). Throws IntegrationError when none
+// of the rules apply. Rules, tried roughly in this order:
+//   - linearity and polynomials;
+//   - every supported function of a linear argument a*x + b, including the
+//     inverse trigonometric and (inverse) hyperbolic ones;
+//   - integer powers of sin, cos, tan, sinh, cosh, tanh, e.g. sin(x)^3,
+//     1/cos(x)^2, 1/sin(x), by reduction formulas;
+//   - rational functions P(x)/Q(x) with numeric coefficients and Q of degree
+//     1 or 2 (polynomial division, then log / atan);
+//   - (A*x + B)/sqrt(Q), sqrt(Q) for quadratic Q (asin, asinh, log);
+//   - substitution u = g(x) for any subexpression g, e.g.
+//     cos(x)/(1 + sin(x)^2) -> atan(sin(x));
+//   - products sin*cos, sin*sin, cos*cos, exp*sin, exp*cos of linear arguments;
+//   - integration by parts of polynomial * exp/sin/cos/sinh/cosh/c^x and of
+//     polynomial * log/atan/asin/...;
+//   - expanding products and powers of sums.
 Expression integrate(const Expression& e, const std::string& var = "x");
 
 // Definite integral over [a, b]. Uses the antiderivative when one is found
