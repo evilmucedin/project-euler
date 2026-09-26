@@ -141,6 +141,13 @@ subninja advent/2024/7/build.ninja
 subninja advent/2024/8/build.ninja
 subninja advent/2024/9/build.ninja
 subninja advent/2025/1/build.ninja
+subninja advent/2025/10/build.ninja
+subninja advent/2025/11/build.ninja
+subninja advent/2025/12/build.ninja
+subninja advent/2025/4/build.ninja
+subninja advent/2025/7/build.ninja
+subninja advent/2025/8/build.ninja
+subninja advent/2025/9/build.ninja
 subninja advent/lib/build.ninja
 subninja advent/template/build.ninja
 subninja armadillo/build.ninja
@@ -202,6 +209,7 @@ subninja eulerStockModeling2/build.ninja
 subninja eulerXGBoost/build.ninja
 subninja euleramount-of-time-for-binary-tree-to-be-infected/build.ninja
 subninja gflags/build.ninja
+subninja gflagsTest/build.ninja
 subninja glog2/build.ninja
 subninja gtest/build.ninja
 subninja gtestTest/build.ninja
@@ -218,6 +226,7 @@ subninja leetcode/apply-operations-to-maximize-score/build.ninja
 subninja leetcode/basic-calculator/build.ninja
 subninja leetcode/best-team-with-no-conflicts/build.ninja
 subninja leetcode/best-time-to-buy-and-sell-stock-with-cooldown/build.ninja
+subninja leetcode/binary-tree-paths/build.ninja
 subninja leetcode/champagne-tower/build.ninja
 subninja leetcode/cheapest-flights-within-k-stops/build.ninja
 subninja leetcode/checking-existence-of-edge-length-limited-paths/build.ninja
@@ -228,6 +237,7 @@ subninja leetcode/constrained-subsequence-sum/build.ninja
 subninja leetcode/construct-binary-tree-from-inorder-and-postorder-traversal/build.ninja
 subninja leetcode/construct-quad-tree/build.ninja
 subninja leetcode/contains-duplicate-iii/build.ninja
+subninja leetcode/convert-sorted-array-to-binary-search-tree/build.ninja
 subninja leetcode/count-all-possible-routes/build.ninja
 subninja leetcode/count-and-say/build.ninja
 subninja leetcode/count-of-smaller-numbers-after-self/build.ninja
@@ -284,10 +294,12 @@ subninja leetcode/minimum-number-of-operations-to-sort-a-binary-tree-by-level/bu
 subninja leetcode/minimum-reverse-operations/build.ninja
 subninja leetcode/minimum-score-of-a-path-between-two-cities/build.ninja
 subninja leetcode/minimum-time-to-make-rope-colorful/build.ninja
+subninja leetcode/minimum-value-to-get-positive-step-by-step-sum/build.ninja
 subninja leetcode/minimum-window-substring/build.ninja
 subninja leetcode/most-stones-removed-with-same-row-or-column/build.ninja
 subninja leetcode/my-calendar-iii/build.ninja
 subninja leetcode/new-21-game/build.ninja
+subninja leetcode/number-complement/build.ninja
 subninja leetcode/number-of-dice-rolls-with-target-sum/build.ninja
 subninja leetcode/number-of-great-partitions/build.ninja
 subninja leetcode/number-of-operations-to-make-network-connected/build.ninja
@@ -322,8 +334,10 @@ subninja leetcode/spiral-matrix/build.ninja
 subninja leetcode/split-the-array-to-make-coprime-products/build.ninja
 subninja leetcode/stone-game-ii/build.ninja
 subninja leetcode/string-compression-ii/build.ninja
+subninja leetcode/subsets-ii/build.ninja
 subninja leetcode/substring-with-concatenation-of-all-words/build.ninja
 subninja leetcode/sudoku-solver/build.ninja
+subninja leetcode/sum-of-all-odd-length-subarrays/build.ninja
 subninja leetcode/sum-of-number-and-its-reverse/build.ninja
 subninja leetcode/sum-of-subarray-minimums/build.ninja
 subninja leetcode/take-k-of-each-character-from-left-and-right/build.ninja
@@ -331,6 +345,8 @@ subninja leetcode/tallest-billboard/build.ninja
 subninja leetcode/the-skyline-problem/build.ninja
 subninja leetcode/time-to-cross-a-bridge/build.ninja
 subninja leetcode/trapping-rain-water/build.ninja
+subninja leetcode/unique-binary-search-trees/build.ninja
+subninja leetcode/unique-morse-code-words/build.ninja
 subninja leetcode/unique-paths-iii/build.ninja
 subninja leetcode/wildcard-matching/build.ninja
 subninja leetcode/word-search/build.ninja
@@ -341,6 +357,8 @@ subninja lib/NavierStokesEquations/examples/build.ninja
 subninja lib/NavierStokesEquations/tests/build.ninja
 subninja lib/calculus/build.ninja
 subninja lib/calculus/tests/build.ninja
+subninja lib/compression/build.ninja
+subninja lib/compression/tests/build.ninja
 subninja lib/easybmp/build.ninja
 subninja lib/graph/build.ninja
 subninja lib/io/build.ninja
@@ -368,12 +386,16 @@ subninja pistache/common/build.ninja
 subninja pistache/date/build.ninja
 subninja pistacheTest/build.ninja
 subninja preprocessor/build.ninja
+subninja search/build.ninja
+subninja searchIndex/build.ninja
+subninja timus/1013/build.ninja
 subninja timus/1071/build.ninja
 subninja timus/1369/build.ninja
 subninja timus/1683/build.ninja
 subninja timus/1688/build.ninja
 subninja timus/1961/build.ninja
 subninja timus/2056/build.ninja
+subninja timus/2217/build.ninja
 subninja tiny_dnn/build.ninja
 subninja tiny_dnn/cereal/build.ninja
 subninja tqdm/build.ninja

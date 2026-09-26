@@ -1,0 +1,6 @@
+cxx_binary(
+  name="t1013",
+  srcs=[
+    "1013.cpp",
+  ],
+)

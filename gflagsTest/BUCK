@@ -1,0 +1,12 @@
+cxx_binary(
+  name="gflagsTest",
+  headers=[
+    "test.h",
+  ],
+  srcs=[
+    "test.cpp",
+  ],
+  deps=[
+    "//gflags:gflags",
+  ],
+)
