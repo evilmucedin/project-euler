@@ -27,7 +27,6 @@ cxx_library(
   visibility=[
     "PUBLIC",
   ],
-  link_style="static",
 )
 
 cxx_binary(
