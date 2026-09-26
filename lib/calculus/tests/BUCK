@@ -1,0 +1,10 @@
+cxx_test(
+  name="calculusTest",
+  srcs=[
+    "calculusTest.cpp",
+  ],
+  deps=[
+    "//lib/calculus:calculus",
+    "//gtest:gtest",
+  ],
+)

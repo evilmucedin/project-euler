@@ -1,0 +1,12 @@
+cxx_library(
+    name="calculus",
+    srcs=[
+        "calculus.cpp",
+    ],
+    exported_headers=[
+        "calculus.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)
