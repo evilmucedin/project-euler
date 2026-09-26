@@ -1,0 +1,48 @@
+cxx_library(
+  name="rc",
+  exported_headers=[
+    "rc.h",
+  ],
+  srcs=[
+    "rc.cpp",
+  ],
+  exported_deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
+cxx_library(
+  name="lz",
+  exported_headers=[
+    "lz.h",
+  ],
+  srcs=[
+    "lz.cpp",
+  ],
+  exported_deps=[
+    ":rc",
+    "//lib:header",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)
+
+cxx_library(
+  name="pfordelta",
+  exported_headers=[
+    "pfordelta.h",
+  ],
+  srcs=[
+    "pfordelta.cpp",
+  ],
+  exported_deps=[
+    "//lib:header",
+  ],
+  visibility=[
+    "PUBLIC",
+  ],
+)

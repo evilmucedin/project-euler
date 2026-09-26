@@ -1,0 +1,6 @@
+cxx_binary(
+  name="t2217",
+  srcs=[
+    "2217.cpp",
+  ],
+)
