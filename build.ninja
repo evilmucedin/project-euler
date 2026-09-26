@@ -140,6 +140,7 @@ subninja advent/2024/6/build.ninja
 subninja advent/2024/7/build.ninja
 subninja advent/2024/8/build.ninja
 subninja advent/2024/9/build.ninja
+subninja advent/2025/1/build.ninja
 subninja advent/2025/10/build.ninja
 subninja advent/2025/11/build.ninja
 subninja advent/2025/12/build.ninja
