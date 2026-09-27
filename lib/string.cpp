@@ -202,8 +202,9 @@ u64 wStringToU64(const WString& s) {
     }
 
     u64 result = 0;
+    const ssize_t ssize = (ssize_t)s.size();
     for (ssize_t i = s.size() - 1; i >= 0; --i) {
-        if (s[i] == 0 && (i + 1 == s.size())) {
+        if (s[i] == 0 && (i + 1 == ssize)) {
             continue;
         }
         if (s[i] < '0' || s[i] > '9') {
