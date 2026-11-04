@@ -1,0 +1,21 @@
+# Header-only approximate-nearest-neighbour library: SIMD distance kernels,
+# aligned vector storage, brute force, k-d tree, HNSW and IVF-Flat indexes.
+cxx_library(
+    name="ann",
+    exported_headers=[
+        "bruteForce.h",
+        "common.h",
+        "distance.h",
+        "evaluation.h",
+        "hnsw.h",
+        "ivfFlat.h",
+        "kdTree.h",
+        "kmeans.h",
+        "synthetic.h",
+        "topk.h",
+        "vectorSet.h",
+    ],
+    visibility=[
+        "PUBLIC",
+    ],
+)

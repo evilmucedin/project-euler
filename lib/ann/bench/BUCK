@@ -1,0 +1,9 @@
+cxx_binary(
+    name="annBench",
+    srcs=[
+        "annBench.cpp",
+    ],
+    deps=[
+        "//lib/ann:ann",
+    ],
+)
