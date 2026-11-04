@@ -1,0 +1,90 @@
+cxx_test(
+  name="commonTest",
+  srcs=[
+    "commonTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="distanceTest",
+  srcs=[
+    "distanceTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="vectorSetTest",
+  srcs=[
+    "vectorSetTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="bruteForceTest",
+  srcs=[
+    "bruteForceTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="kdTreeTest",
+  srcs=[
+    "kdTreeTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="hnswTest",
+  srcs=[
+    "hnswTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+  linker_flags=[
+    "-pthread",
+  ],
+)
+
+cxx_test(
+  name="ivfFlatTest",
+  srcs=[
+    "ivfFlatTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
+
+cxx_test(
+  name="evaluationTest",
+  srcs=[
+    "evaluationTest.cpp",
+  ],
+  deps=[
+    "//lib/ann:ann",
+    "//gtest:gtest",
+  ],
+)
