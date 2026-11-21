@@ -36,11 +36,11 @@ def downloadTicker(ticker):
 #   print(help(yfinance))
 
 tickers = ["FBIOX", "FNCMX", "FSEAX", "FSKAX", "FSPSX", "FXAIX", "SHOP", "GOOG", "GOOGL", "IWM", "VUG", "MSFT", "T", "NCLH", "IBM",
-           "SPY", "IVV", "VOO", "QQQ", "AMZN", "META", "AVGO", "AMD", "PLTR", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB", "HNDL", "WBII", "PCEF", "FDIV", "CEFS", "YLD", "INKM", "IYLD", "FCEF", "MLTI", "YYY", "MDIV", "HIPS", "CVY", "GYLD", "VTI", "VEA", "IEFA", "AGG", "GLD", "XLF", "VNQ", "LQD", "SWPPX", "MGK", "GME", "UNG", "OIH", "XME", "PFIX", "VXX", "EWZ", "ILF", "SCHE",
+           "SPY", "IVV", "VOO", "QQQ", "AMZN", "META", "AVGO", "AMD", "PLTR", "TSLA", "BND", "FBND", "HDV", "VEU", "VWO", "FDHY", "FDIS", "ONEQ", "VV", "VB", "HNDL", "PCEF", "FDIV", "CEFS", "YLD", "INKM", "IYLD", "FCEF", "YYY", "MDIV", "HIPS", "CVY", "GYLD", "VTI", "VEA", "IEFA", "AGG", "GLD", "XLF", "VNQ", "LQD", "SWPPX", "MGK", "GME", "UNG", "OIH", "XME", "PFIX", "VXX", "EWZ", "ILF", "SCHE",
            "AAPL", "NVDA", "TSM", "UNH", "JNJ", "V", "WMT", "JPM", "PG", "XOM", "HD", "CVX", "PFE", "VWAGY", "KHC", "NKE", "SBUX", "NBIS", "COP",
-           "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG", "FPRO", "FBCV", "FMIL",
+           "FBCG", "FQAL", "FLPSX", "FDRR", "FMAG", "FPRO", "FBCV",
            "COIN", "LMT", "FDIG", "ARKK", "FELG", "FTEC", "FDVV",
-           "BITO", "BITW", "VBB", "SFY", "IJR", "SCHD", "FTLS", "FDHT", "FRNW", "FDRV", "FCLD", "ITA", "PPA", "XAR", "USO", "IEO", "SPGP", "IWY", "SPYG", "DBO", "AIQ", "VDE",
+           "BITO", "BITW", "SFY", "IJR", "SCHD", "FTLS", "FRNW", "FDRV", "FCLD", "ITA", "PPA", "XAR", "USO", "IEO", "SPGP", "IWY", "SPYG", "DBO", "AIQ", "VDE",
            "AIG", "BAMXF", "FLOC",
            # "59101K877", "09259A395"
            ]
